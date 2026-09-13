@@ -77,6 +77,10 @@ The GitHub Actions workflow performs `check`, migration drift validation, migrat
 
 Settings live under `config/settings/`: `base.py`, `development.py`, `test.py`, `staging.py` and `production.py`. Staging and production force `DEBUG=False`; deployment of either environment is outside LE-001.
 
+## AliExpress integration
+
+Technical integration documentation: `docs/integrations/aliexpress.md`.
+
 ## Project governance
 
 Read `PROJECT_CONSTITUTION.md`, `PROJECT_STATE.md`, `AGENTS.md` and `SUPERVISOR_PROMPT.md` before making structural changes. Development is task → branch → tests → Pull Request → Supervisor review → approval → merge.

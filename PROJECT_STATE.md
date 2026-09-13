@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-001 ACCEPTED AND MERGED — LE-002 AUTHORIZED**.
+Current state: **LE-002 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -29,16 +29,17 @@ Measure and understand before automating critical decisions.
 - LE-001 Foundation was approved at Gate 1 and merged into `main` through PR #1.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 are the approved foundation.
 - Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
-- No public production deployment has been performed.
-- AliExpress API capability was validated technically before this codebase, but the Django integration layer is not implemented yet.
+- AliExpress integration layer is implemented on `builder/le-002-aliexpress-integration` with environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
+- Live AliExpress smoke test: **PASS** for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
+- No commercial database models, discovery, scoring, frontend or public deployment have been started.
 
 ## Infrastructure classification
 
 The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial system target for a future validated deployment. The system must remain lightweight enough to begin on this server. Scaling requires measured need and Supervisor approval.
 
-## Authorized next task
+## Current task
 
-`LE-002 — AliExpress integration layer` is authorized. It must be developed on its own branch, tested, submitted by Pull Request and stopped at the next Supervisor gate before merge.
+`LE-002 — AliExpress integration layer` is implemented and awaits Supervisor review. It must not be merged by the Builder.
 
 ## Planned later task
 
@@ -46,4 +47,4 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Gate
 
-Gate 1 is closed. LE-001 is officially accepted. LE-002 may start. No deployment to public production is authorized.
+Gate 2 is active. LE-002 awaits Supervisor review. No merge, data-model work, discovery, LE-UX-001, frontend or public deployment is authorized.
