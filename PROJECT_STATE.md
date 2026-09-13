@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-003 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **LE-003 ACCEPTED — LE-004 AUTHORIZED**.
 
 ## Strategic state
 
@@ -28,12 +28,14 @@ Measure and understand before automating critical decisions.
 - ADR-002 initial infrastructure and scaling is Accepted.
 - LE-001 Foundation was approved at Gate 1 and merged into `main` through PR #1.
 - LE-002 AliExpress integration layer was approved at Gate 2 and merged into `main` through PR #5.
+- LE-003 minimal catalog data model was approved at Gate 3 and merged into `main` through PR #8.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 are the approved foundation.
 - Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
-- AliExpress integration layer is implemented on `builder/le-002-aliexpress-integration` with environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
-- Live AliExpress smoke test: **PASS** for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
-- LE-003 minimal catalog data model is implemented with ProductFamily, Offer and OfferObservation, PostgreSQL constraints, protected history, Django Admin, tests and documentation.
-- No discovery, automatic AliExpress-to-database import, scoring, frontend or public deployment has been started.
+- AliExpress integration layer provides environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
+- Live AliExpress smoke test previously passed for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
+- The catalog contains ProductFamily, Offer and OfferObservation with PostgreSQL constraints, protected history, Django Admin, tests and documentation.
+- Structural catalog invariants are enforced at PostgreSQL level for lifecycle/source/availability, timeline and numeric ranges.
+- No discovery, scoring, frontend or public deployment has been started.
 
 ## Infrastructure classification
 
@@ -41,7 +43,17 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Current task
 
-`LE-003 — Minimal catalog data model` is implemented on `builder/le-003-catalog-model` and awaits Supervisor review. It contains only the minimum relational model for permanent Product Families, replaceable Offers and factual Offer Observations.
+`LE-004 — Controlled AliExpress persistence` is authorized as GitHub Issue #9.
+
+The task must prove the controlled path `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` through an explicit, transactional import of a known product. It must not introduce automatic discovery, mass import, scoring, background scheduling or frontend.
+
+Important semantics for LE-004:
+
+- repeated imports reuse the same Offer and append factual OfferObservation history;
+- missing source data stays unknown and is never invented;
+- availability remains UNKNOWN unless the normalized source explicitly supports another state;
+- `Offer.is_active=True` means the external listing was successfully seen, not confirmed stock availability;
+- ProductFamily assignment remains manual/outside LE-004.
 
 ## Planned later task
 
@@ -49,4 +61,4 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Gate
 
-Gate 3 is active. LE-003 awaits Supervisor review. No merge, discovery, automatic AliExpress-to-database import, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 3 is closed. LE-004 is authorized. The Builder must work on a dedicated branch, open a Pull Request, and stop at Gate 4 before merge. No automatic discovery, scoring, LE-UX-001, frontend or public deployment is authorized yet.
