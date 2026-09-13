@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-011 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 11 CLOSED — LE-012 AUTHORIZED**.
 
 ## Strategic state
 
@@ -37,6 +37,7 @@ Measure and understand before automating critical decisions.
 - LE-008 conservative logistics evidence assessment was approved at Gate 8 and merged into `main` through PR #26.
 - LE-009 temporal validity of logistics evidence was approved at Gate 9 and merged into `main` through PR #29.
 - LE-010 longitudinal logistics history diagnostics was approved at Gate 10 and merged into `main` through PR #32.
+- LE-011 controlled real logistics observation cohort was approved at Gate 11 and merged into `main` through PR #35 as `11bbc3fb48ea9fe3281096e63b067fa9ddf92481`.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
 - AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
 - Plain `HIFU` search previously showed strong Hanfu/cosplay semantic noise; specific queries such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` produced relevant professional HIFU products in the observed studies.
@@ -53,8 +54,9 @@ Measure and understand before automating critical decisions.
 - LE-010 added a read-only longitudinal logistics history diagnostic for one Offer, using one ordered query plus O(n) in-memory evaluation. It reports chronological counts, span, latest diagnostics, conflict/future flags and current-support counts without score, percentage or stability decision.
 - LE-010 final validation passed 120 tests with PostgreSQL 16 and exact-head CI green. The live study DB remained empty and the read-only `Offer not found` path was validated honestly.
 - LE-011 created the first controlled live longitudinal baseline: 3 professional-HIFU AliExpress Offers and 3 OfferObservations for PT/EUR, one baseline Observation per Offer.
-- All three baseline Observations preserve search delivery=5 and detail delivery=NULL as separate provenance; each currently diagnoses as SEARCH_ONLY and FRESH.
-- LE-011 used one explicit live commit after exact-cohort dry-run, kept ProductFamily unassigned, and did not run a second observation. No commercial stability threshold is authorized.
+- All three baseline Observations preserve search delivery=5 and detail delivery=NULL as separate provenance; each diagnosed as SEARCH_ONLY and FRESH at baseline time.
+- LE-011 used one explicit live commit after exact-cohort dry-run, kept ProductFamily unassigned, did not run a second observation, passed 130 tests and exact-head CI, and was independently revalidated against the live DB by the Supervisor.
+- No commercial stability threshold has been authorized.
 - No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
@@ -63,15 +65,19 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-011 — Controlled real logistics observation cohort` is implemented on its dedicated Builder branch and awaits Supervisor review under GitHub Issue #33.
+`LE-012 — Controlled second longitudinal logistics observation` is authorized as GitHub Issue #36.
 
-The controlled baseline contains exactly 3 AliExpress Offers and 3 OfferObservations for PT/EUR professional HIFU. The documented IDs are `1005012522304882`, `1005013116584854` and `1005013002556821`; each has exactly one baseline Observation and no ProductFamily assignment.
+LE-012 must reobserve exactly the same three LE-011 cohort Offers, with no additions or substitutions: `1005012522304882`, `1005013116584854` and `1005013002556821`.
 
-The exact cohort passed dry-run before the single live commit. PostgreSQL migrations `0001` and `0002` are applied with zero migration drift; the prior OperationalError was an execution-context configuration issue and did not require schema changes. The persistence layer now also rejects mismatched detail product IDs before affiliate generation or database writes.
+The second live observation round must not occur until at least 24 real hours have elapsed since the LE-011 baseline. This 24-hour delay is an experimental study cadence only; it is not a commercial SLA, final freshness policy or customer-facing delivery guarantee.
 
-The baseline study is archived at `docs/studies/LE-011-INITIAL-LOGISTICS-COHORT.md`, and `aliexpress_logistics_history` confirmed `Observations: 1` and zero span for every cohort Offer. No second observation has been run.
+Before the single LE-012 live commit, the exact fixed cohort must pass dry-run with zero permanent writes. The phase must reuse the existing append-only persistence, search/detail provenance and longitudinal history tools. No model, table or migration is authorized.
 
-No commercial stability threshold, customer-facing delivery claim, automatic filtering, scheduler, cron, ProductFamily automation, frontend, deployment or infrastructure increase is authorized.
+If all three products succeed, each Offer should end with exactly two Observations. Partial external failures must be recorded honestly and must not trigger immediate retries or replacement products. The study must compare factual changes in price, commission, sales, search/detail logistics, evidence/freshness and conflicts without deriving a stability score, confidence percentage or commercial threshold.
+
+The second-round study must be archived at `docs/studies/LE-012-SECOND-LOGISTICS-OBSERVATION.md`.
+
+No third observation, scheduler, cron, automatic revalidation, commercial stability threshold, customer-facing delivery claim, scoring, ranking, winner selection, ProductFamily automation, frontend, deployment or infrastructure increase is authorized.
 
 ## Planned later task
 
@@ -79,4 +85,4 @@ No commercial stability threshold, customer-facing delivery claim, automatic fil
 
 ## Gate
 
-Gate 11 is active. LE-011 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-012, second longitudinal observation, commercial stability threshold, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 11 is closed. LE-012 is authorized on a dedicated Builder branch under Issue #36. The Builder must stop at Gate 12 before merge. No LE-013, third longitudinal observation, commercial stability threshold, scoring, LE-UX-001, frontend or public deployment is authorized.
