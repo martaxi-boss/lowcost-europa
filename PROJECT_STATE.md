@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-002 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **LE-002 ACCEPTED — LE-003 AUTHORIZED**.
 
 ## Strategic state
 
@@ -27,11 +27,12 @@ Measure and understand before automating critical decisions.
 - ADR-001 initial architecture is Accepted.
 - ADR-002 initial infrastructure and scaling is Accepted.
 - LE-001 Foundation was approved at Gate 1 and merged into `main` through PR #1.
+- LE-002 AliExpress integration layer was approved at Gate 2 and merged into `main` through PR #5.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 are the approved foundation.
 - Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
 - AliExpress integration layer is implemented on `builder/le-002-aliexpress-integration` with environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
 - Live AliExpress smoke test: **PASS** for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
-- No commercial database models, discovery, scoring, frontend or public deployment have been started.
+- No discovery, scoring, frontend or public deployment has been started.
 
 ## Infrastructure classification
 
@@ -39,7 +40,9 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Current task
 
-`LE-002 — AliExpress integration layer` is implemented and awaits Supervisor review. It must not be merged by the Builder.
+`LE-003 — Minimal catalog data model` is authorized as GitHub Issue #6.
+
+The task must create only the minimum relational model for permanent Product Families, replaceable Offers and factual Offer Observations. Discovery, scoring and frontend remain outside scope.
 
 ## Planned later task
 
@@ -47,4 +50,4 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Gate
 
-Gate 2 is active. LE-002 awaits Supervisor review. No merge, data-model work, discovery, LE-UX-001, frontend or public deployment is authorized.
+Gate 2 is closed. LE-003 is authorized. The Builder must work on a dedicated branch, open a Pull Request, and stop at Gate 3 before merge. No discovery, scoring, LE-UX-001, frontend or public deployment is authorized yet.
