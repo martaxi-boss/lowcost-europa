@@ -38,6 +38,8 @@ Measure and understand before automating critical decisions.
 - Live AliExpress smoke tests passed for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
 - The catalog contains ProductFamily, Offer and OfferObservation with PostgreSQL constraints, protected history, Django Admin, tests and documentation.
 - Controlled persistence proves `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` for one explicitly supplied product ID.
+- Controlled Portugal discovery is implemented for one explicit keyword per run, fixed PT/EUR, default limit 10, hard cap 25, sequential processing, deduplication, per-product failure accounting and dry-run.
+- The first live HIFU/PT dry-run received 9 unique candidates and processed 9/9 successfully; price/currency/sales/commission were present for 9/9, evaluation rate for 4/9, and normalized logistics/delivery days for 0/9. The batch also exposed substantial HIFU/Hanfu semantic search noise.
 - No scoring, ranking, frontend, public deployment or autonomous scheduling has been started.
 
 ## Infrastructure classification

@@ -8,14 +8,18 @@ The AliExpress search returned 9 normalized candidates. All 9 had valid unique p
 
 Data coverage after the detail path: price 9/9, currency 9/9, evaluation rate 4/9, sales count 9/9, commission rate 9/9, raw shipping 0/9, interpreted delivery days 0/9. Because no candidate exposed interpretable `delivery_days`, the <=5-day metric was not observable in this batch: within 5 days = 0, over 5 days = 0, missing = 9.
 
-The normalized search response showed the same aggregate coverage in this run: price 9/9, currency 9/9, evaluation rate 4/9, sales 9/9, commission 9/9, raw shipping 0/9 and delivery days 0/9. This is an observation about this single batch, not a general rule about search versus detail.
+Dry-run projected 9 new Offers and 9 new Observations. Database counts were Offers=0 and Observations=0 before the study and remained 0/0 after the final confirmation run.
 
-Dry-run projected 9 new Offers and 9 new Observations. Database counts remained Offers=0 and Observations=0 after the command.
+## Search-quality observation
+
+The `HIFU` query returned titles dominated by `Hanfu`, cosplay and hair-accessory products rather than the intended professional HIFU equipment niche. This is factual search-quality evidence from this batch only. LE-005 does not filter, score, rank or label these products as good/bad.
 
 ## Performance
 
-Elapsed time: 18.16 seconds. Maximum command RSS: 57,624 KB (~56 MB). Before the run the Droplet had ~344 MB memory available, 269 MB swap used and load average 0.04/0.03/0.00. After the run it had ~372 MB available, swap still 269 MB and load average 0.10/0.05/0.01. No material pressure was observed from this bounded batch.
+A measured bounded run completed in 18.31 seconds with maximum RSS 57,752 KB (~56.4 MB). The final confirmation run against the stabilized code completed in 18.06 seconds with maximum RSS 57,748 KB (~56.4 MB).
+
+Before the measured study the Droplet had 346 MB memory available, 269 MB swap used and load average 0.02/0.01/0.00. After that study it had 355 MB available, swap still 269 MB and load average 0.06/0.02/0.00. No material pressure was observed from this bounded batch.
 
 ## Interpretation
 
-This study measures data availability only. It does not rank candidates or conclude that any product is good, bad, a winner or commercially suitable. In particular, missing logistics is unknown data rather than evidence of slow delivery. No secrets, raw payloads or full affiliate/product URLs are recorded here.
+This study measures data availability only. It does not rank candidates or conclude that any product is good, bad, a winner or commercially suitable. Missing logistics is unknown data rather than evidence of slow delivery. No secrets, raw payloads or full affiliate/product URLs are recorded here.
