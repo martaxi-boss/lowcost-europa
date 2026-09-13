@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-008 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 8 CLOSED — LE-009 AUTHORIZED**.
 
 ## Strategic state
 
@@ -34,6 +34,7 @@ Measure and understand before automating critical decisions.
 - LE-005 controlled Portugal discovery was approved at Gate 5 and merged into `main` through PR #17.
 - LE-006 controlled search precision and delivery filtering was approved at Gate 6 and merged into `main` through PR #20.
 - LE-007 provenance-aware logistics persistence was approved at Gate 7 and merged into `main` through PR #23.
+- LE-008 conservative logistics evidence assessment was approved at Gate 8 and merged into `main` through PR #26.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
 - AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
 - Plain `HIFU` search previously showed strong Hanfu/cosplay semantic noise; specific queries such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` produced relevant professional HIFU products in the observed studies.
@@ -41,9 +42,11 @@ Measure and understand before automating critical decisions.
 - Across three LE-006 PT/EUR/EN dry-run studies with `delivery_days=5`, search returned normalized 5-day logistics for all 25 observed candidates.
 - 24 detail operations succeeded, and none of those 24 reproduced `delivery_days`; 24 search/detail logistics mismatches were therefore observed.
 - LE-007 added normal catalog migration `0002` with nullable `OfferObservation.search_ship_to_days_raw` and `OfferObservation.search_delivery_days`; the original `0001_initial.py` remains unchanged.
-- Search logistics and detail logistics are now persisted with explicit provenance and without fallback or precedence. Manual product import leaves search logistics NULL; discovery may pass normalized search evidence only for the same product ID.
-- LE-007 final validation passed 86 tests with PostgreSQL 16, migration drift check and CI green. No new infrastructure cost was introduced.
-- No scoring, ranking, winner selection, frontend, public deployment or autonomous scheduling has started.
+- Search logistics and detail logistics are persisted with explicit provenance and without fallback or precedence. Manual product import leaves search logistics NULL; discovery may pass normalized search evidence only for the same product ID.
+- LE-008 added a pure, derived logistics-evidence assessment with states `UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` and `CONFLICT`.
+- LE-008 reports only whether one observation contains non-conflicting source evidence compatible with the <=5-day candidate criterion. `CONFLICT` never supports the criterion automatically, even when both values are <=5.
+- LE-008 introduced no schema, migration, effective delivery value, score, ranking, winner selection or customer-facing claim. Final validation passed 97 tests and exact-head CI was green.
+- No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
 
@@ -51,17 +54,15 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-008 — Conservative logistics evidence assessment` is implemented on its Builder branch and awaits Supervisor review as GitHub Issue #24.
+`LE-009 — Temporal validity of logistics evidence` is authorized as GitHub Issue #27.
 
-LE-008 must create a small, derived, non-persisted assessment of logistics evidence for a single `OfferObservation`. It must classify observations as `UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` or `CONFLICT` according to the separately persisted search/detail delivery values.
+LE-009 must add a pure, derived, timezone-aware assessment of observation freshness. It must keep evidence quality (LE-008) separate from temporal validity and compose them only for internal diagnostics.
 
-At observation level only, the assessment may report whether the available non-conflicting source evidence supports the strategic <=5-day candidate criterion. Search-only evidence remains an estimate reported by the source, not an independent verification or customer guarantee. `CONSISTENT` means the search and detail endpoints agree; it does not mean guaranteed delivery.
+For this phase, an explicit **24-hour diagnostic window** is authorized for studies/output. This is a provisional internal engineering threshold, not a final commercial policy or customer promise. The freshness service must accept `max_age` as a parameter rather than hard-code an immutable production rule.
 
-LE-008 must not create `effective_delivery_days`, database fields, migrations, precedence between search/detail, numeric confidence/scoring, automatic filtering of persistence, ranking, winners or customer-facing delivery claims. The assessment may appear in diagnostic discovery output for human review only.
+Minimum freshness states are `FRESH`, `STALE` and `FUTURE`. `FRESH` means `0 <= age <= max_age`; `STALE` means `age > max_age`; `FUTURE` means the observation timestamp is later than the evaluation time and must not be silently corrected. Naive datetimes and non-positive max-age values must be rejected clearly.
 
-The implemented derived service classifies exactly five states (`UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT`, `CONFLICT`). Non-conflicting source evidence supports the <=5-day candidate criterion only when its interpreted day value is <=5; every conflict returns false, including conflicts where both values are <=5. No schema change or scoring was introduced.
-
-The LE-008 live dry-run (`HIFU machine`, PT/EUR, EN, delivery filter 5, limit 3) returned two search candidates with 5-day search evidence, but both detail operations returned sanitized `AliExpressAPIError`; therefore no integrated evidence state was asserted from that live batch. Database counts remained zero before and after.
+The internal diagnostic composition may report `supports_current_5d_candidate = evidence.supports_within_5_days AND freshness.is_fresh`. It must not filter persistence, create an effective delivery estimate, score, rank, select winners or authorize customer-facing logistics claims.
 
 ## Planned later task
 
@@ -69,4 +70,4 @@ The LE-008 live dry-run (`HIFU machine`, PT/EUR, EN, delivery filter 5, limit 3)
 
 ## Gate
 
-Gate 8 is active. LE-008 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-009, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 8 is closed. LE-009 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 9 before merge. No LE-010, final commercial freshness policy, scoring, LE-UX-001, frontend or public deployment is authorized.
