@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-002 ACCEPTED — LE-003 AUTHORIZED**.
+Current state: **LE-003 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -32,7 +32,8 @@ Measure and understand before automating critical decisions.
 - Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
 - AliExpress integration layer is implemented on `builder/le-002-aliexpress-integration` with environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
 - Live AliExpress smoke test: **PASS** for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
-- No discovery, scoring, frontend or public deployment has been started.
+- LE-003 minimal catalog data model is implemented with ProductFamily, Offer and OfferObservation, PostgreSQL constraints, protected history, Django Admin, tests and documentation.
+- No discovery, automatic AliExpress-to-database import, scoring, frontend or public deployment has been started.
 
 ## Infrastructure classification
 
@@ -40,9 +41,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Current task
 
-`LE-003 — Minimal catalog data model` is authorized as GitHub Issue #6.
-
-The task must create only the minimum relational model for permanent Product Families, replaceable Offers and factual Offer Observations. Discovery, scoring and frontend remain outside scope.
+`LE-003 — Minimal catalog data model` is implemented on `builder/le-003-catalog-model` and awaits Supervisor review. It contains only the minimum relational model for permanent Product Families, replaceable Offers and factual Offer Observations.
 
 ## Planned later task
 
@@ -50,4 +49,4 @@ The task must create only the minimum relational model for permanent Product Fam
 
 ## Gate
 
-Gate 2 is closed. LE-003 is authorized. The Builder must work on a dedicated branch, open a Pull Request, and stop at Gate 3 before merge. No discovery, scoring, LE-UX-001, frontend or public deployment is authorized yet.
+Gate 3 is active. LE-003 awaits Supervisor review. No merge, discovery, automatic AliExpress-to-database import, scoring, LE-UX-001, frontend or public deployment is authorized.
