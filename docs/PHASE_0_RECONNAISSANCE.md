@@ -21,7 +21,7 @@ FastAPI, Next.js separado, WordPress/WooCommerce e microserviços foram rejeitad
 ## 10. Dependências propostas
 Django 5.2 LTS, psycopg 3 e Ruff como ferramenta leve; Celery, Redis e Elasticsearch não eram necessários.
 ## 11. Riscos
-ALTO: `main` sem proteção e integração AliExpress ainda não validada. MÉDIO: CI, backups, staging, função do Droplet e margem de 1 GB. BAIXO: metadata de e-mail e observabilidade ainda ausente.
+ALTO: `main` sem proteção. MÉDIO: a API AliExpress tinha sido validada tecnicamente fora deste codebase, mas a integração ainda não estava implementada nem versionada na aplicação Django; CI, backups, staging, função do Droplet e margem de 1 GB também permaneciam por tratar. BAIXO: metadata de e-mail e observabilidade ainda ausente.
 ## 12. Custos
 Droplet existente cerca de US$6/mês. Nenhum custo novo necessário na Fase 0; custos futuros possíveis apenas para staging, backups, domínio ou proteção GitHub.
 ## 13. Proposta ADR-001

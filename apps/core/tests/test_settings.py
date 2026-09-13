@@ -11,3 +11,8 @@ class SettingsTests(SimpleTestCase):
 
     def test_production_style_defaults_are_safe(self):
         self.assertFalse(settings.DEBUG)
+
+    def test_portugal_locale_and_timezone(self):
+        self.assertEqual(settings.LANGUAGE_CODE, "pt-pt")
+        self.assertEqual(settings.TIME_ZONE, "Europe/Lisbon")
+
