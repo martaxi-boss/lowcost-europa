@@ -1,22 +1,29 @@
 # Lowcost Europa — Project State
 
-Atualizado em 2026-09-13.
+Updated: 2026-09-13.
 
-Fase atual: preparação da base técnica e documental do projeto.
+Current state: **AWAITING SUPERVISOR REVIEW**.
 
-Mercado inicial: Portugal.
+## Completed in the current branch
 
-Critério logístico principal: privilegiar produtos com entrega prevista em até 5 dias e usar apenas informação que possa ser confirmada.
+- Phase 0 reconnaissance completed and versioned.
+- ADR-001 approved and recorded as Accepted.
+- LE-001 Foundation implemented on `builder/le-001-foundation`.
+- Python 3.12, Django 5.2 LTS and PostgreSQL 16 selected.
+- Environment-specific settings, PostgreSQL configuration, health checks, tests, Ruff and CI added.
+- Local setup and validation documented in README.
 
-Arquitetura inicial: aplicação web robusta, base de dados relacional, Nginx, tarefas agendadas e arquitetura modular.
+## Not started
 
-Modelo de produto: a família é permanente e as ofertas são substituíveis.
+- No AliExpress integration has started.
+- No commercial product, offer, seller, scoring or price-history models exist.
+- No public deployment has been performed.
+- No production environment is approved.
 
-Primeiro nicho estratégico: estética profissional, sem limitar o projeto a esse nicho.
+## Infrastructure classification
 
-Próximas tarefas:
-1. Consolidar a estrutura inicial.
-2. Implementar descoberta e validação de produtos para Portugal.
-3. Definir o modelo mínimo de dados para famílias, ofertas, histórico e estabilidade.
-4. Preparar staging.
-5. Medir resultados antes de automatizar decisões críticas.
+The existing DigitalOcean Droplet is a technical development / future internal staging environment. It is not the official production server.
+
+## Gate
+
+LE-001 is implemented but **not officially accepted**. Only the Supervisor may accept it after Pull Request review. The next task is not authorized.
