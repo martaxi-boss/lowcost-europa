@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **GATE 6 CLOSED — LE-007 AUTHORIZED**.
+Current state: **LE-007 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -49,7 +49,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-007 — Provenance-aware logistics persistence` is authorized as GitHub Issue #21.
+`LE-007 — Provenance-aware logistics persistence` is implemented on its Builder branch and awaits Supervisor review as GitHub Issue #21.
 
 LE-007 must persist logistics evidence with explicit provenance before any scoring or customer-facing use. The current `OfferObservation.ship_to_days_raw` and `OfferObservation.delivery_days` remain detail-level evidence. The phase may add separate nullable search-level logistics fields and pass search evidence from controlled discovery into persistence only for the same product ID.
 
@@ -63,4 +63,4 @@ No `effective_delivery_days`, ProductFamily auto-assignment, scoring, ranking, w
 
 ## Gate
 
-Gate 6 is closed. LE-007 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 7 before merge. No LE-008, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 7 is active. LE-007 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-008, scoring, LE-UX-001, frontend or public deployment is authorized.

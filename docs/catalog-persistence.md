@@ -16,7 +16,9 @@ The importer never assigns or replaces `ProductFamily`. Current title, product U
 
 ## Observation semantics
 
-Every successful import appends a factual observation. Price, original price, currency, evaluation percentage, sales count, commission, destination and logistics come only from the current normalized `AliExpressProduct`. Missing values remain `NULL`; old facts are never copied into a new observation. `availability` remains `UNKNOWN` because the normalized source does not yet provide a sufficiently explicit availability state.
+Every successful import appends a factual observation. Price, original price, currency, evaluation percentage, sales count, commission and destination come from the current normalized detail product. Existing `ship_to_days_raw` / `delivery_days` are explicitly detail provenance. Optional `search_product` evidence may populate only `search_ship_to_days_raw` / `search_delivery_days`. Missing values remain `NULL`; old facts are never copied into a new observation. No search-to-detail or detail-to-search fallback exists. `availability` remains `UNKNOWN` because the normalized source does not yet provide a sufficiently explicit availability state.
+
+When `search_product` is supplied, its `product_id` must exactly match the requested product ID before external calls or persistence. Discovery supplies the already-normalized search candidate it has for that same ID. The manual `aliexpress_import_product` command has no search context and therefore stores both search logistics fields as `NULL`; it does not perform an extra search.
 
 ## Atomicity and failures
 

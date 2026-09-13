@@ -169,6 +169,13 @@ class DiscoveryTests(TransactionTestCase):
             [(c.search_delivery_days, c.detail_delivery_days) for c in result.candidates],
             [(5, None), (None, 5), (5, 5)],
         )
+        self.assertEqual(
+            [
+                (c.observation_search_delivery_days, c.observation_detail_delivery_days)
+                for c in result.candidates
+            ],
+            [(5, None), (None, 5), (5, 5)],
+        )
 
     def test_invalid_delivery_filter_is_rejected_before_search(self):
         client = FakeDiscoveryClient([product("42")])

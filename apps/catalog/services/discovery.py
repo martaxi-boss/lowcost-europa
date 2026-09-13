@@ -55,6 +55,8 @@ class DiscoveryCandidate:
     search_delivery_days: int | None
     detail_ship_to_days_raw: str | None
     detail_delivery_days: int | None
+    observation_search_delivery_days: int | None
+    observation_detail_delivery_days: int | None
     outcome: str
 
 
@@ -143,6 +145,8 @@ def _candidate_record(
     search_product: AliExpressProduct,
     detail_product: AliExpressProduct | None,
     outcome: str,
+    *,
+    observation=None,
 ) -> DiscoveryCandidate:
     return DiscoveryCandidate(
         product_id=search_product.product_id,
@@ -156,6 +160,12 @@ def _candidate_record(
         search_delivery_days=search_product.delivery_days,
         detail_ship_to_days_raw=(detail_product.ship_to_days_raw if detail_product else None),
         detail_delivery_days=(detail_product.delivery_days if detail_product else None),
+        observation_search_delivery_days=(
+            observation.search_delivery_days if observation is not None else None
+        ),
+        observation_detail_delivery_days=(
+            observation.delivery_days if observation is not None else None
+        ),
         outcome=outcome,
     )
 
@@ -221,6 +231,7 @@ def discover_aliexpress(
                 CURRENCY,
                 client=client,
                 dry_run=dry_run,
+                search_product=search_product,
             )
         except AliExpressError as exc:
             result.failed += 1
@@ -245,6 +256,10 @@ def discover_aliexpress(
         _record_detail_metrics(result.metrics, detail_product)
         if search_product.delivery_days != detail_product.delivery_days:
             result.metrics.delivery_search_detail_mismatch += 1
-        result.candidates.append(_candidate_record(search_product, detail_product, "success"))
+        result.candidates.append(
+            _candidate_record(
+                search_product, detail_product, "success", observation=persisted.observation
+            )
+        )
 
     return result

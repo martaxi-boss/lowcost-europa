@@ -32,7 +32,17 @@ Current URLs/title are lightweight current metadata only. No Seller, SKU/variant
 
 Money uses `DecimalField`; missing prices stay `NULL`. `evaluation_rate_percent` is a source percentage such as `96.5` meaning 96.5%, never stars. `commission_rate` is the percentage/rate supplied by the source and is nullable; LE-003 does not calculate revenue.
 
-`ship_to_days_raw` preserves the source logistics text. `delivery_days` is nullable and is only populated when the integration layer interpreted a day count safely. The <=5-day commercial selection rule is not applied here.
+`OfferObservation` preserves logistics provenance explicitly. `search_ship_to_days_raw` and `search_delivery_days` contain only values observed in product search. Existing `ship_to_days_raw` and `delivery_days` contain only values observed in product detail. All four fields are nullable; `NULL` means unknown/not observed. No fallback, precedence or effective delivery value exists.
+
+```text
+OfferObservation
+├── search_ship_to_days_raw
+├── search_delivery_days
+├── ship_to_days_raw       # detail
+└── delivery_days          # detail
+```
+
+`search_delivery_days` accepts any non-negative observed value; the 3/5/7/10 restriction applies only to API query filters, not stored observations. The <=5-day commercial selection rule is not applied here.
 
 `destination_country` is a simple ISO alpha-2 value when known. `availability` distinguishes UNKNOWN, AVAILABLE and UNAVAILABLE so missing information is not misrepresented as confirmed unavailability.
 

@@ -173,3 +173,12 @@ class OfferObservationTests(TestCase):
         OfferObservation.objects.create(offer=self.offer)
         with self.assertRaises(ProtectedError):
             self.offer.delete()
+
+    def test_search_delivery_days_database_constraint_rejects_negative(self):
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="negative-search-days",
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OfferObservation.objects.create(offer=offer, search_delivery_days=-1)

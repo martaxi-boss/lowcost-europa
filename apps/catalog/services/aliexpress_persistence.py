@@ -24,8 +24,11 @@ def import_aliexpress_product(
     *,
     client: AliExpressClient | None = None,
     dry_run: bool = False,
+    search_product: AliExpressProduct | None = None,
 ) -> PersistenceResult:
     client = client or AliExpressClient()
+    if search_product is not None and search_product.product_id != product_id:
+        raise ValueError("search_product product_id must match requested product_id")
 
     # All network work happens before opening the database transaction.
     product = client.get_product_detail(product_id, country, currency)
@@ -83,6 +86,12 @@ def import_aliexpress_product(
             evaluation_rate_percent=product.evaluation_rate_percent,
             sales_count=product.sales_count,
             commission_rate=product.commission_rate,
+            search_ship_to_days_raw=(
+                search_product.ship_to_days_raw if search_product is not None else None
+            ),
+            search_delivery_days=(
+                search_product.delivery_days if search_product is not None else None
+            ),
             ship_to_days_raw=product.ship_to_days_raw,
             delivery_days=product.delivery_days,
             availability=OfferObservation.Availability.UNKNOWN,
