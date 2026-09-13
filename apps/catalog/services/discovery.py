@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db import DatabaseError
 
 from apps.catalog.services.aliexpress_persistence import import_aliexpress_product
+from apps.catalog.services.logistics_evidence import assess_logistics_evidence
 from apps.integrations.aliexpress.client import SUPPORTED_DELIVERY_DAYS, AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError
 from apps.integrations.aliexpress.types import AliExpressProduct
@@ -57,6 +58,8 @@ class DiscoveryCandidate:
     detail_delivery_days: int | None
     observation_search_delivery_days: int | None
     observation_detail_delivery_days: int | None
+    evidence_state: str | None
+    supports_within_5_days: bool | None
     outcome: str
 
 
@@ -148,6 +151,14 @@ def _candidate_record(
     *,
     observation=None,
 ) -> DiscoveryCandidate:
+    assessment = (
+        assess_logistics_evidence(
+            search_delivery_days=search_product.delivery_days,
+            detail_delivery_days=detail_product.delivery_days,
+        )
+        if detail_product is not None
+        else None
+    )
     return DiscoveryCandidate(
         product_id=search_product.product_id,
         title=search_product.title,
@@ -165,6 +176,10 @@ def _candidate_record(
         ),
         observation_detail_delivery_days=(
             observation.delivery_days if observation is not None else None
+        ),
+        evidence_state=assessment.state.value if assessment is not None else None,
+        supports_within_5_days=(
+            assessment.supports_within_5_days if assessment is not None else None
         ),
         outcome=outcome,
     )
