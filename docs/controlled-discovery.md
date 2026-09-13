@@ -14,6 +14,8 @@ The existing data-coverage metrics for price, currency, evaluation percentage, s
 
 LE-008 adds a derived diagnostic assessment for each successful candidate. Output may show `evidence_state` (`UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` or `CONFLICT`) and `supports_5d`. This is an in-memory interpretation of the already-separated delivery values only. It does not filter, rank, deactivate or skip persistence, and it does not create a final/effective delivery value or customer-facing promise.
 
+LE-009 adds a second, separate diagnostic dimension for successful candidates: `freshness_state` (`FRESH`, `STALE` or `FUTURE`), sanitized `age`, and `supports_current_5d`. Discovery uses one shared `as_of` for the whole diagnostic batch and a provisional 24-hour window. `supports_current_5d` is true only when LE-008 evidence supports <=5 days and the observation is FRESH. These values do not filter, rank, deactivate or skip persistence and are not customer-facing claims.
+
 Example:
 
 ```text

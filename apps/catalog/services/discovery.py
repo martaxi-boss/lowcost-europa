@@ -1,10 +1,16 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.db import DatabaseError
+from django.utils import timezone
 
 from apps.catalog.services.aliexpress_persistence import import_aliexpress_product
 from apps.catalog.services.logistics_evidence import assess_logistics_evidence
+from apps.catalog.services.logistics_freshness import (
+    assess_logistics_freshness,
+    supports_current_5d_candidate,
+)
 from apps.integrations.aliexpress.client import SUPPORTED_DELIVERY_DAYS, AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError
 from apps.integrations.aliexpress.types import AliExpressProduct
@@ -14,6 +20,7 @@ MAX_LIMIT = 25
 COUNTRY = "PT"
 CURRENCY = "EUR"
 SUPPORTED_TARGET_LANGUAGES = frozenset({"EN", "PT"})
+DIAGNOSTIC_FRESHNESS_MAX_AGE = timedelta(hours=24)
 
 
 @dataclass
@@ -60,6 +67,10 @@ class DiscoveryCandidate:
     observation_detail_delivery_days: int | None
     evidence_state: str | None
     supports_within_5_days: bool | None
+    observation_observed_at: datetime | None
+    freshness_state: str | None
+    freshness_age: timedelta | None
+    supports_current_5d_candidate: bool | None
     outcome: str
 
 
@@ -69,6 +80,7 @@ class DiscoveryResult:
     requested_limit: int
     target_language: str | None = None
     delivery_days_filter: int | None = None
+    diagnostic_as_of: datetime | None = None
     search_results_received: int = 0
     unique_candidates: int = 0
     duplicates_in_batch: int = 0
@@ -181,6 +193,10 @@ def _candidate_record(
         supports_within_5_days=(
             assessment.supports_within_5_days if assessment is not None else None
         ),
+        observation_observed_at=(observation.observed_at if observation is not None else None),
+        freshness_state=None,
+        freshness_age=None,
+        supports_current_5d_candidate=None,
         outcome=outcome,
     )
 
@@ -277,4 +293,32 @@ def discover_aliexpress(
             )
         )
 
+    # Capture one timestamp for the whole diagnostic assessment batch.
+    as_of = timezone.now()
+    result.diagnostic_as_of = as_of
+    assessed_candidates: list[DiscoveryCandidate] = []
+    for candidate in result.candidates:
+        if candidate.observation_observed_at is None or candidate.outcome != "success":
+            assessed_candidates.append(candidate)
+            continue
+        evidence = assess_logistics_evidence(
+            search_delivery_days=candidate.search_delivery_days,
+            detail_delivery_days=candidate.detail_delivery_days,
+        )
+        freshness = assess_logistics_freshness(
+            observed_at=candidate.observation_observed_at,
+            as_of=as_of,
+            max_age=DIAGNOSTIC_FRESHNESS_MAX_AGE,
+        )
+        assessed_candidates.append(
+            replace(
+                candidate,
+                freshness_state=freshness.state.value,
+                freshness_age=freshness.age,
+                supports_current_5d_candidate=supports_current_5d_candidate(
+                    evidence=evidence, freshness=freshness
+                ),
+            )
+        )
+    result.candidates = assessed_candidates
     return result
