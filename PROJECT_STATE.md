@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-003 ACCEPTED — LE-004 AUTHORIZED**.
+Current state: **LE-004 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -43,9 +43,9 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial sys
 
 ## Current task
 
-`LE-004 — Controlled AliExpress persistence` is authorized as GitHub Issue #9.
+`LE-004 — Controlled AliExpress persistence` is implemented on the Builder branch and awaits Supervisor review.
 
-The task must prove the controlled path `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` through an explicit, transactional import of a known product. It must not introduce automatic discovery, mass import, scoring, background scheduling or frontend.
+The controlled path `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` is implemented for explicit import of one known product with transactional persistence and dry-run rollback. Automatic discovery, mass import, scoring, background scheduling and frontend remain outside scope.
 
 Important semantics for LE-004:
 
@@ -61,4 +61,4 @@ Important semantics for LE-004:
 
 ## Gate
 
-Gate 3 is closed. LE-004 is authorized. The Builder must work on a dedicated branch, open a Pull Request, and stop at Gate 4 before merge. No automatic discovery, scoring, LE-UX-001, frontend or public deployment is authorized yet.
+Gate 4 is active. LE-004 awaits Supervisor review. The Builder must stop before merge. No LE-005, automatic discovery, mass import, scoring, LE-UX-001, frontend or public deployment is authorized.
