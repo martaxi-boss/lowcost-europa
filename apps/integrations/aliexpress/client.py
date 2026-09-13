@@ -16,6 +16,8 @@ from .types import AliExpressSearchResult
 
 logger = logging.getLogger(__name__)
 
+SUPPORTED_DELIVERY_DAYS = frozenset({3, 5, 7, 10})
+
 
 class AliExpressClient:
     CATEGORY_METHOD = "aliexpress.affiliate.category.get"
@@ -119,7 +121,12 @@ class AliExpressClient:
         currency: str = "EUR",
         page_no: int = 1,
         page_size: int = 20,
+        target_language: str | None = None,
+        delivery_days: int | None = None,
     ) -> AliExpressSearchResult:
+        if delivery_days is not None and delivery_days not in SUPPORTED_DELIVERY_DAYS:
+            allowed = ", ".join(str(value) for value in sorted(SUPPORTED_DELIVERY_DAYS))
+            raise ValueError(f"delivery_days must be one of: {allowed}")
         result = self._result(
             self._call(
                 self.SEARCH_METHOD,
@@ -129,6 +136,8 @@ class AliExpressClient:
                     "target_currency": currency,
                     "page_no": page_no,
                     "page_size": page_size,
+                    "target_language": target_language,
+                    "delivery_days": delivery_days,
                     "tracking_id": self.config.tracking_id,
                 },
             ),
@@ -159,9 +168,17 @@ class AliExpressClient:
         currency: str = "EUR",
         page_no: int = 1,
         page_size: int = 20,
+        target_language: str | None = None,
+        delivery_days: int | None = None,
     ):
         return self.search_products_diagnostic(
-            keyword, country, currency, page_no, page_size
+            keyword,
+            country,
+            currency,
+            page_no,
+            page_size,
+            target_language,
+            delivery_days,
         ).products
 
     def get_product_detail(self, product_id: str, country: str = "PT", currency: str = "EUR"):

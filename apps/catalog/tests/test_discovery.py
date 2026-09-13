@@ -15,7 +15,9 @@ from apps.catalog.services.discovery import (
     DEFAULT_LIMIT,
     MAX_LIMIT,
     discover_aliexpress,
+    validate_delivery_days,
     validate_limit,
+    validate_target_language,
 )
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.config import AliExpressConfig
@@ -51,8 +53,27 @@ class FakeDiscoveryClient:
         self.search_calls = []
         self.detail_calls = []
 
-    def search_products_diagnostic(self, keyword, country, currency, page_no=1, page_size=20):
-        self.search_calls.append((keyword, country, currency, page_no, page_size))
+    def search_products_diagnostic(
+        self,
+        keyword,
+        country,
+        currency,
+        page_no=1,
+        page_size=20,
+        target_language=None,
+        delivery_days=None,
+    ):
+        self.search_calls.append(
+            (
+                keyword,
+                country,
+                currency,
+                page_no,
+                page_size,
+                target_language,
+                delivery_days,
+            )
+        )
         return AliExpressSearchResult(products=self.search_results, invalid_items=0)
 
     def get_product_detail(self, product_id, country, currency):
@@ -92,7 +113,75 @@ class DiscoveryTests(TransactionTestCase):
     def test_search_uses_one_keyword_pt_eur_and_requested_limit(self):
         client = FakeDiscoveryClient([product("42")])
         discover_aliexpress("HIFU", 1, client=client, dry_run=True)
-        self.assertEqual(client.search_calls, [("HIFU", COUNTRY, CURRENCY, 1, 1)])
+        self.assertEqual(client.search_calls, [("HIFU", COUNTRY, CURRENCY, 1, 1, None, None)])
+
+    def test_search_filters_contract_and_pass_through(self):
+        for value in (3, 5, 7, 10):
+            self.assertEqual(validate_delivery_days(value), value)
+        with self.assertRaises(ValueError):
+            validate_delivery_days(6)
+        self.assertEqual(validate_target_language("en"), "EN")
+        with self.assertRaises(ValueError):
+            validate_target_language("ES")
+
+        client = FakeDiscoveryClient([product("42")])
+        result = discover_aliexpress(
+            "HIFU machine",
+            1,
+            target_language="EN",
+            delivery_days=5,
+            client=client,
+            dry_run=True,
+        )
+        self.assertEqual(result.target_language, "EN")
+        self.assertEqual(result.delivery_days_filter, 5)
+        self.assertEqual(
+            client.search_calls,
+            [("HIFU machine", COUNTRY, CURRENCY, 1, 1, "EN", 5)],
+        )
+
+    def test_search_detail_delivery_metrics_and_mismatches(self):
+        search_products = [
+            product("42", delivery_days=5, ship_to_days_raw="Ship to PT in 5 Days"),
+            product("84", delivery_days=None, ship_to_days_raw=None),
+            product("126", delivery_days=5, ship_to_days_raw="Ship to PT in 5 Days"),
+        ]
+        details = {
+            "42": product("42", delivery_days=None, ship_to_days_raw=None),
+            "84": product("84", delivery_days=5, ship_to_days_raw="Ship to PT in 5 Days"),
+            "126": product("126", delivery_days=5, ship_to_days_raw="Ship to PT in 5 Days"),
+        }
+        result = discover_aliexpress(
+            "HIFU machine",
+            3,
+            target_language="EN",
+            delivery_days=5,
+            client=FakeDiscoveryClient(search_products, details=details),
+            dry_run=True,
+        )
+        m = result.metrics
+        self.assertEqual((m.search_delivery_days_present, m.search_delivery_days_missing), (2, 1))
+        self.assertEqual(m.search_delivery_within_5_days, 2)
+        self.assertEqual((m.delivery_days_present, m.delivery_days_missing), (2, 1))
+        self.assertEqual(m.delivery_within_5_days, 2)
+        self.assertEqual(m.delivery_search_detail_mismatch, 2)
+        self.assertEqual(
+            [(c.search_delivery_days, c.detail_delivery_days) for c in result.candidates],
+            [(5, None), (None, 5), (5, 5)],
+        )
+
+    def test_invalid_delivery_filter_is_rejected_before_search(self):
+        client = FakeDiscoveryClient([product("42")])
+        with self.assertRaises(ValueError):
+            discover_aliexpress("HIFU machine", 1, delivery_days=6, client=client)
+        self.assertEqual(client.search_calls, [])
+
+    def test_result_has_no_scoring_fields(self):
+        result = discover_aliexpress(
+            "HIFU machine", 1, client=FakeDiscoveryClient([product("42")]), dry_run=True
+        )
+        self.assertFalse(hasattr(result, "score"))
+        self.assertFalse(hasattr(result, "relevance_score"))
 
     def test_deduplicates_batch(self):
         client = FakeDiscoveryClient([product("42"), product("42"), product("84")])
