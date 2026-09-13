@@ -120,6 +120,8 @@ class OfferObservation(models.Model):
     )
     sales_count = models.PositiveBigIntegerField(null=True, blank=True)
     commission_rate = models.DecimalField(max_digits=7, decimal_places=4, null=True, blank=True)
+    search_ship_to_days_raw = models.CharField(max_length=255, null=True, blank=True)
+    search_delivery_days = models.PositiveSmallIntegerField(null=True, blank=True)
     ship_to_days_raw = models.CharField(max_length=255, null=True, blank=True)
     delivery_days = models.PositiveSmallIntegerField(null=True, blank=True)
     availability = models.CharField(
@@ -161,6 +163,10 @@ class OfferObservation(models.Model):
             models.CheckConstraint(
                 condition=Q(original_price__isnull=True) | Q(original_price__gte=0),
                 name="catalog_obs_original_price_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=Q(search_delivery_days__isnull=True) | Q(search_delivery_days__gte=0),
+                name="catalog_obs_search_delivery_nonnegative",
             ),
         ]
         indexes = [

@@ -185,3 +185,108 @@ class AliExpressPersistenceTests(TransactionTestCase):
         self.assertTrue(result.dry_run)
         self.assertEqual(Offer.objects.count(), 0)
         self.assertEqual(OfferObservation.objects.count(), 0)
+
+    def test_manual_import_has_no_search_logistics(self):
+        import_aliexpress_product("42", client=FakeClient([product()]))
+        obs = OfferObservation.objects.get()
+        self.assertIsNone(obs.search_ship_to_days_raw)
+        self.assertIsNone(obs.search_delivery_days)
+        self.assertEqual(obs.ship_to_days_raw, "Ship to PT in 3 Days")
+        self.assertEqual(obs.delivery_days, 3)
+
+    def test_search_five_detail_none_preserves_provenance(self):
+        search = product(
+            ship_to_days_raw="Ship to PT in 5 days",
+            delivery_days=5,
+        )
+        detail = product(ship_to_days_raw=None, delivery_days=None)
+        result = import_aliexpress_product("42", client=FakeClient([detail]), search_product=search)
+        obs = result.observation
+        self.assertEqual(obs.search_ship_to_days_raw, "Ship to PT in 5 days")
+        self.assertEqual(obs.search_delivery_days, 5)
+        self.assertIsNone(obs.ship_to_days_raw)
+        self.assertIsNone(obs.delivery_days)
+
+    def test_search_none_detail_five_preserves_provenance(self):
+        search = product(ship_to_days_raw=None, delivery_days=None)
+        detail = product(
+            ship_to_days_raw="Ship to PT in 5 Days",
+            delivery_days=5,
+        )
+        result = import_aliexpress_product("42", client=FakeClient([detail]), search_product=search)
+        obs = result.observation
+        self.assertIsNone(obs.search_ship_to_days_raw)
+        self.assertIsNone(obs.search_delivery_days)
+        self.assertEqual(obs.ship_to_days_raw, "Ship to PT in 5 Days")
+        self.assertEqual(obs.delivery_days, 5)
+
+    def test_matching_search_and_detail_are_both_preserved(self):
+        search = product(ship_to_days_raw="Ship to PT in 5 Days", delivery_days=5)
+        detail = product(ship_to_days_raw="Ship to PT in 5 Days", delivery_days=5)
+        obs = import_aliexpress_product(
+            "42", client=FakeClient([detail]), search_product=search
+        ).observation
+        self.assertEqual((obs.search_delivery_days, obs.delivery_days), (5, 5))
+
+    def test_different_search_and_detail_are_both_preserved(self):
+        search = product(ship_to_days_raw="Ship to PT in 5 Days", delivery_days=5)
+        detail = product(ship_to_days_raw="Ship to PT in 7 Days", delivery_days=7)
+        obs = import_aliexpress_product(
+            "42", client=FakeClient([detail]), search_product=search
+        ).observation
+        self.assertEqual((obs.search_delivery_days, obs.delivery_days), (5, 7))
+
+    def test_search_product_id_mismatch_fails_before_network_or_writes(self):
+        client = FakeClient([product()])
+        with self.assertRaisesRegex(ValueError, "search_product product_id"):
+            import_aliexpress_product(
+                "42",
+                client=client,
+                search_product=product(product_id="84"),
+            )
+        self.assertEqual(client.atomic_states, [])
+        self.assertEqual((Offer.objects.count(), OfferObservation.objects.count()), (0, 0))
+
+    def test_reimport_appends_distinct_search_and_detail_logistics(self):
+        first_search = product(ship_to_days_raw="Ship to PT in 5 Days", delivery_days=5)
+        second_search = product(ship_to_days_raw="Ship to PT in 7 Days", delivery_days=7)
+        client = FakeClient(
+            [
+                product(ship_to_days_raw=None, delivery_days=None),
+                product(ship_to_days_raw="Ship to PT in 6 Days", delivery_days=6),
+            ]
+        )
+        import_aliexpress_product("42", client=client, search_product=first_search)
+        import_aliexpress_product("42", client=client, search_product=second_search)
+        self.assertEqual(Offer.objects.count(), 1)
+        self.assertEqual(OfferObservation.objects.count(), 2)
+        observations = list(OfferObservation.objects.order_by("observed_at", "pk"))
+        self.assertEqual(
+            [(o.search_delivery_days, o.delivery_days) for o in observations],
+            [(5, None), (7, 6)],
+        )
+
+    def test_product_family_preserved_with_search_evidence(self):
+        family = ProductFamily.objects.create(name="HIFU provenance", slug="hifu-provenance")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="42",
+            product_family=family,
+        )
+        import_aliexpress_product(
+            "42",
+            client=FakeClient([product(delivery_days=None, ship_to_days_raw=None)]),
+            search_product=product(delivery_days=5, ship_to_days_raw="Ship to PT in 5 Days"),
+        )
+        self.assertEqual(Offer.objects.get().product_family, family)
+
+    def test_dry_run_rolls_back_search_logistics_too(self):
+        result = import_aliexpress_product(
+            "42",
+            client=FakeClient([product(delivery_days=None, ship_to_days_raw=None)]),
+            search_product=product(delivery_days=5, ship_to_days_raw="Ship to PT in 5 Days"),
+            dry_run=True,
+        )
+        self.assertEqual(result.observation.search_delivery_days, 5)
+        self.assertIsNone(result.observation.delivery_days)
+        self.assertEqual((Offer.objects.count(), OfferObservation.objects.count()), (0, 0))

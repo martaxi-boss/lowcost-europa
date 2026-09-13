@@ -25,6 +25,8 @@ class OfferObservationAdmin(admin.ModelAdmin):
         "destination_country",
         "price",
         "currency",
+        "search_delivery_days",
+        "delivery_days",
         "availability",
     )
     search_fields = ("offer__external_product_id",)

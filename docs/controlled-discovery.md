@@ -8,7 +8,7 @@ LE-006 adds two optional search controls without changing older calls: `target_l
 
 For the LE-006 studies, `target_language=EN` and `delivery_days=5` are sent only to the AliExpress search request. `delivery_days=5` means the source was asked to return results matching that filter; it is not a customer delivery guarantee.
 
-Search and detail provenance remain separate. Search-level `ship_to_days_raw` / `delivery_days` are measured from the normalized search candidate. Detail-level logistics come only from the normalized product returned by the existing LE-004 persistence path. Discovery counts search/detail mismatches by `product_id` and does not copy search logistics into detail or `OfferObservation`.
+Search and detail provenance remain separate. Search-level `ship_to_days_raw` / `delivery_days` are measured from the normalized search candidate. Detail-level logistics come only from the normalized product returned by the persistence path. Discovery counts search/detail mismatches by `product_id`. From LE-007 onward, when discovery runs in commit mode, the same search candidate is passed to persistence so its search logistics can be stored separately in `search_ship_to_days_raw` / `search_delivery_days`; detail logistics remain in `ship_to_days_raw` / `delivery_days`. There is no fallback, precedence rule or effective delivery value.
 
 The existing data-coverage metrics for price, currency, evaluation percentage, sales, commission and detail logistics remain factual observations. LE-006 adds separate search logistics metrics and a delivery mismatch count. Missing logistics means unknown data, not rejection or slow delivery.
 
