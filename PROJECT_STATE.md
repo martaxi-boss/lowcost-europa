@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-009 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 9 CLOSED — LE-010 AUTHORIZED**.
 
 ## Strategic state
 
@@ -35,6 +35,7 @@ Measure and understand before automating critical decisions.
 - LE-006 controlled search precision and delivery filtering was approved at Gate 6 and merged into `main` through PR #20.
 - LE-007 provenance-aware logistics persistence was approved at Gate 7 and merged into `main` through PR #23.
 - LE-008 conservative logistics evidence assessment was approved at Gate 8 and merged into `main` through PR #26.
+- LE-009 temporal validity of logistics evidence was approved at Gate 9 and merged into `main` through PR #29.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
 - AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
 - Plain `HIFU` search previously showed strong Hanfu/cosplay semantic noise; specific queries such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` produced relevant professional HIFU products in the observed studies.
@@ -45,10 +46,10 @@ Measure and understand before automating critical decisions.
 - Search logistics and detail logistics are persisted with explicit provenance and without fallback or precedence. Manual product import leaves search logistics NULL; discovery may pass normalized search evidence only for the same product ID.
 - LE-008 added a pure, derived logistics-evidence assessment with states `UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` and `CONFLICT`.
 - LE-008 reports only whether one observation contains non-conflicting source evidence compatible with the <=5-day candidate criterion. `CONFLICT` never supports the criterion automatically, even when both values are <=5.
-- LE-008 introduced no schema, migration, effective delivery value, score, ranking, winner selection or customer-facing claim. Final validation passed 97 tests and exact-head CI was green.
-- LE-009 adds a pure, derived, timezone-aware freshness assessment with `FRESH`, `STALE` and `FUTURE`; its 24-hour window is provisional diagnostic configuration, not commercial policy.
+- LE-009 added a pure, derived, timezone-aware freshness assessment with `FRESH`, `STALE` and `FUTURE`; its 24-hour window remains provisional diagnostic configuration, not commercial policy.
 - LE-009 composes freshness with LE-008 only for internal `supports_current_5d_candidate`; one shared `as_of` is used per discovery batch, with no automatic filtering, ranking or persistence changes.
-- LE-009 introduces no schema or migration and leaves catalog persistence unchanged.
+- LE-009 final validation passed 110 tests with PostgreSQL 16 and exact-head CI green.
+- A single fresh positive observation is not sufficient, by itself, to authorize a public delivery promise. No final minimum-history threshold has been defined.
 - No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
@@ -57,15 +58,15 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-009 — Temporal validity of logistics evidence` is implemented on its Builder branch and awaits Supervisor review as GitHub Issue #27.
+`LE-010 — Longitudinal logistics history diagnostics` is authorized as GitHub Issue #30.
 
-LE-009 must add a pure, derived, timezone-aware assessment of observation freshness. It must keep evidence quality (LE-008) separate from temporal validity and compose them only for internal diagnostics.
+LE-010 must add a derived, read-only diagnostic of the historical `OfferObservation` sequence for one Offer. It must summarize observation count, first/last observation, span, evidence-state counts, freshness-state counts, positive <=5-day evidence counts, current <=5-day support counts, latest observation diagnostics, and whether conflicts or future timestamps exist.
 
-For this phase, an explicit **24-hour diagnostic window** is authorized for studies/output. This is a provisional internal engineering threshold, not a final commercial policy or customer promise. The freshness service must accept `max_age` as a parameter rather than hard-code an immutable production rule.
+The implementation should reuse the approved LE-008 evidence assessment and LE-009 freshness assessment, use one explicit `as_of` and `max_age` for the full history evaluation, and keep deterministic ordering by `observed_at`.
 
-Minimum freshness states are `FRESH`, `STALE` and `FUTURE`. `FRESH` means `0 <= age <= max_age`; `STALE` means `age > max_age`; `FUTURE` means the observation timestamp is later than the evaluation time and must not be silently corrected. Naive datetimes and non-positive max-age values must be rejected clearly.
+LE-010 must not define a commercial stability threshold, `commercially_usable`, `verified_delivery`, numeric confidence/score, ranking, winner selection, automatic filtering, scheduler, cron or customer-facing delivery claim. It must not add schema or migrations or alter catalog persistence.
 
-The internal diagnostic composition may report `supports_current_5d_candidate = evidence.supports_within_5_days AND freshness.is_fresh`. It must not filter persistence, create an effective delivery estimate, score, rank, select winners or authorize customer-facing logistics claims.
+A read-only manual history-inspection command may be added. If the live study database has no history, that fact must be reported honestly; no writes should be introduced merely to fabricate longitudinal evidence.
 
 ## Planned later task
 
@@ -73,4 +74,4 @@ The internal diagnostic composition may report `supports_current_5d_candidate = 
 
 ## Gate
 
-Gate 9 is active. LE-009 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-010, final commercial freshness policy, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 9 is closed. LE-010 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 10 before merge. No LE-011, commercial stability threshold, scoring, LE-UX-001, frontend or public deployment is authorized.
