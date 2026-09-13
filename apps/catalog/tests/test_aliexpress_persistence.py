@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation, ProductFamily
 from apps.catalog.services.aliexpress_persistence import import_aliexpress_product
-from apps.integrations.aliexpress.exceptions import AliExpressAPIError
+from apps.integrations.aliexpress.exceptions import AliExpressAPIError, AliExpressResponseError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 
@@ -235,6 +235,14 @@ class AliExpressPersistenceTests(TransactionTestCase):
             "42", client=FakeClient([detail]), search_product=search
         ).observation
         self.assertEqual((obs.search_delivery_days, obs.delivery_days), (5, 7))
+
+    def test_detail_product_id_mismatch_fails_before_affiliate_or_writes(self):
+        client = FakeClient([product(product_id="84")])
+        with self.assertRaisesRegex(AliExpressResponseError, "detail product_id"):
+            import_aliexpress_product("42", client=client)
+        self.assertEqual(client.link_calls, [])
+        self.assertEqual(client.atomic_states, [False])
+        self.assertEqual((Offer.objects.count(), OfferObservation.objects.count()), (0, 0))
 
     def test_search_product_id_mismatch_fails_before_network_or_writes(self):
         client = FakeClient([product()])
