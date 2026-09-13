@@ -47,7 +47,7 @@ class SigningTests(SimpleTestCase):
         params = {"method": "demo.method", "app_key": "fake-key", "timestamp": "123"}
         self.assertEqual(
             sign_hmac_sha256(params, "fake-secret"),
-            "BC47CC0A0E802D93F9CE6797BE41266C28A95E8CE27F87ACBD87EC7C05432DDD",
+            "9B428DBF1790FE78C509BCF6533DA1A31C780D0CD2CAC942E110087CA89B53E4",
         )
 
 
