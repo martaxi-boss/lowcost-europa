@@ -175,7 +175,11 @@ class AliExpressClient:
         result = self._result(
             self._call(
                 self.LINK_METHOD,
-                {"source_values": source_url, "tracking_id": self.config.tracking_id},
+                {
+                    "source_values": source_url,
+                    "tracking_id": self.config.tracking_id,
+                    "promotion_link_type": "0",
+                },
             ),
             self.LINK_METHOD,
         )

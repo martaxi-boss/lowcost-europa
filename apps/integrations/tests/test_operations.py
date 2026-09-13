@@ -1,6 +1,7 @@
+from django.test import SimpleTestCase
+
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.config import AliExpressConfig
-from django.test import SimpleTestCase
 
 
 class FakeResponse:
@@ -22,14 +23,14 @@ class OperationTests(SimpleTestCase):
         self.config = AliExpressConfig("key", "secret", "lowcost_europa", max_retries=0)
 
     def test_categories(self):
-        body = '{"aliexpress_affiliate_category_get_response":{"resp_result":{"result":{"categories":{"category":[{"category_id":2,"category_name":"Food"}]}}}}}'
+        body = '{"aliexpress_affiliate_category_get_response":{"resp_result":{"result":{"categories":{"category":[{"category_id":2,"category_name":"Food"}]}}}}}'  # noqa: E501
         client = AliExpressClient(
             self.config, opener=lambda *_a, **_k: FakeResponse(body)
         )
         self.assertEqual(client.get_categories()[0].name, "Food")
 
     def test_search_products(self):
-        body = '{"aliexpress_affiliate_product_query_response":{"resp_result":{"result":{"products":{"product":[{"product_id":"42","product_title":"HIFU","target_sale_price":"99","target_sale_price_currency":"EUR"}]}}}}}'
+        body = '{"aliexpress_affiliate_product_query_response":{"resp_result":{"result":{"products":{"product":[{"product_id":"42","product_title":"HIFU","target_sale_price":"99","target_sale_price_currency":"EUR"}]}}}}}'  # noqa: E501
         client = AliExpressClient(
             self.config, opener=lambda *_a, **_k: FakeResponse(body)
         )
@@ -38,14 +39,14 @@ class OperationTests(SimpleTestCase):
         self.assertEqual(product.destination_country, "PT")
 
     def test_product_detail(self):
-        body = '{"aliexpress_affiliate_productdetail_get_response":{"resp_result":{"result":{"products":{"product":[{"product_id":"42","product_title":"HIFU detail"}]}}}}}'
+        body = '{"aliexpress_affiliate_productdetail_get_response":{"resp_result":{"result":{"products":{"product":[{"product_id":"42","product_title":"HIFU detail"}]}}}}}'  # noqa: E501
         client = AliExpressClient(
             self.config, opener=lambda *_a, **_k: FakeResponse(body)
         )
         self.assertEqual(client.get_product_detail("42").title, "HIFU detail")
 
     def test_affiliate_link(self):
-        body = '{"aliexpress_affiliate_link_generate_response":{"resp_result":{"result":{"promotion_links":{"promotion_link":[{"promotion_link":"https://s.click.aliexpress.com/example"}]}}}}}'
+        body = '{"aliexpress_affiliate_link_generate_response":{"resp_result":{"result":{"promotion_links":{"promotion_link":[{"promotion_link":"https://s.click.aliexpress.com/example"}]}}}}}'  # noqa: E501
         client = AliExpressClient(
             self.config, opener=lambda *_a, **_k: FakeResponse(body)
         )

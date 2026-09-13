@@ -4,6 +4,8 @@ import os
 from unittest.mock import patch
 from urllib import error
 
+from django.test import SimpleTestCase
+
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.config import AliExpressConfig
 from apps.integrations.aliexpress.exceptions import (
@@ -13,7 +15,6 @@ from apps.integrations.aliexpress.exceptions import (
 )
 from apps.integrations.aliexpress.normalizers import normalize_product
 from apps.integrations.aliexpress.signing import canonicalize, sign_hmac_sha256
-from django.test import SimpleTestCase
 
 
 class FakeResponse:
@@ -92,7 +93,8 @@ class ClientTests(SimpleTestCase):
         client = AliExpressClient(
             self.config,
             opener=lambda *_a, **_k: FakeResponse(
-                '{"error_response":{"code":29,"msg":"Invalid app Key","sub_code":"isv.appkey-not-exists"}}'
+                '{"error_response":{"code":29,"msg":"Invalid app Key",'
+                '"sub_code":"isv.appkey-not-exists"}}'
             ),
         )
         with self.assertRaises(AliExpressAuthenticationError):
