@@ -18,9 +18,10 @@ class AliExpressProduct:
     price: Decimal | None = None
     currency: str | None = None
     original_price: Decimal | None = None
-    rating: Decimal | None = None
+    evaluation_rate_percent: Decimal | None = None
     sales_count: int | None = None
     commission_rate: Decimal | None = None
+    ship_to_days_raw: str | None = None
     delivery_days: int | None = None
     destination_country: str | None = None
     affiliate_url: str | None = None

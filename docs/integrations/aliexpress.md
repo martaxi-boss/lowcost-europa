@@ -32,9 +32,13 @@ Authentication, deterministic API errors and invalid responses are not retried b
 
 ## Normalization
 
-Raw responses are converted into lightweight dataclasses. Only fields present in the response are populated. Missing optional values remain `None`; ratings, sales, commission, logistics and warehouse data are never invented.
+Raw responses are converted into lightweight dataclasses. Only fields supported by the response are populated. Missing optional values remain `None`; sales, commission, logistics and warehouse data are never invented.
 
-Logistics information is transported when present. The commercial `<= 5 days` rule is intentionally not applied in this integration layer.
+`evaluate_rate` is normalized as `evaluation_rate_percent`. It is a percentage from the source, not a 0–5 star rating. For example, `96.5%` becomes `Decimal("96.5")`, meaning 96.5 percent. A future genuine star-rating field would be represented separately.
+
+For logistics, `ship_to_days_raw` preserves the source text when `ship_to_days` (or an equivalent supported field) is present. `delivery_days` is populated only when a day count can be extracted safely and deterministically; otherwise it remains `None`. The commercial `<= 5 days` rule is intentionally not applied in this integration layer.
+
+Products and categories require valid identifiers. Responses without a required `product_id`/equivalent or `category_id`/equivalent raise `AliExpressResponseError`; fictitious IDs such as `"None"` are never created.
 
 ## Errors and logging
 
@@ -59,7 +63,7 @@ On an authorized environment with credentials already stored securely:
 python manage.py aliexpress_smoke_test --keyword HIFU --country PT --currency EUR
 ```
 
-The command checks configuration, categories, search, product detail and affiliate-link generation when a source URL is available. It does not persist results and does not print secrets.
+The command checks configuration, categories, search, product detail and affiliate-link generation when a source URL is available. It reports only safe structural information such as counts, whether logistics/evaluation data are present, and interpreted `delivery_days` when available. It does not dump raw JSON, URLs, signatures, credentials or secrets, and it does not persist results.
 
 ## Scope boundaries
 

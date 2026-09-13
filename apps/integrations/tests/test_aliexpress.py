@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+from decimal import Decimal
 from unittest.mock import patch
 from urllib import error
 
@@ -11,9 +12,10 @@ from apps.integrations.aliexpress.config import AliExpressConfig
 from apps.integrations.aliexpress.exceptions import (
     AliExpressAuthenticationError,
     AliExpressConfigurationError,
+    AliExpressResponseError,
     AliExpressTransportError,
 )
-from apps.integrations.aliexpress.normalizers import normalize_product
+from apps.integrations.aliexpress.normalizers import normalize_category, normalize_product
 from apps.integrations.aliexpress.signing import canonicalize, sign_hmac_sha256
 
 
@@ -142,22 +144,54 @@ class NormalizerTests(SimpleTestCase):
                 "target_sale_price": "99.90",
                 "target_sale_price_currency": "EUR",
                 "target_original_price": "120.00",
-                "evaluate_rate": "4.8",
+                "evaluate_rate": "96.5%",
                 "lastest_volume": "21",
                 "commission_rate": "7.5%",
-                "estimated_delivery_days": "4",
+                "ship_to_days": "Ship to PT in 3 Days",
             },
             "PT",
         )
         self.assertEqual(product.product_id, "42")
         self.assertEqual(str(product.price), "99.90")
         self.assertEqual(product.currency, "EUR")
-        self.assertEqual(product.delivery_days, 4)
+        self.assertEqual(product.evaluation_rate_percent, Decimal("96.5"))
+        self.assertEqual(product.ship_to_days_raw, "Ship to PT in 3 Days")
+        self.assertEqual(product.delivery_days, 3)
         self.assertEqual(product.destination_country, "PT")
 
     def test_missing_optional_fields_are_none(self):
         product = normalize_product({"product_id": "42"}, "PT")
-        self.assertIsNone(product.rating)
+        self.assertIsNone(product.evaluation_rate_percent)
         self.assertIsNone(product.sales_count)
         self.assertIsNone(product.delivery_days)
         self.assertIsNone(product.affiliate_url)
+    def test_evaluation_rate_percent_is_not_star_rating(self):
+        product = normalize_product({"product_id": "42", "evaluate_rate": "96.5%"}, "PT")
+        self.assertEqual(product.evaluation_rate_percent, Decimal("96.5"))
+
+    def test_evaluation_rate_missing_is_none(self):
+        product = normalize_product({"product_id": "42"}, "PT")
+        self.assertIsNone(product.evaluation_rate_percent)
+
+    def test_ship_to_days_text_is_preserved_and_parsed(self):
+        product = normalize_product(
+            {"product_id": "42", "ship_to_days": "Ship to PT in 3 Days"}, "PT"
+        )
+        self.assertEqual(product.ship_to_days_raw, "Ship to PT in 3 Days")
+        self.assertEqual(product.delivery_days, 3)
+
+    def test_unparseable_ship_to_days_is_preserved_without_inventing_days(self):
+        product = normalize_product(
+            {"product_id": "42", "ship_to_days": "Delivery estimate unavailable"}, "PT"
+        )
+        self.assertEqual(product.ship_to_days_raw, "Delivery estimate unavailable")
+        self.assertIsNone(product.delivery_days)
+
+    def test_product_without_id_is_rejected(self):
+        with self.assertRaises(AliExpressResponseError):
+            normalize_product({"product_title": "Missing ID"}, "PT")
+
+    def test_category_without_id_is_rejected(self):
+        with self.assertRaises(AliExpressResponseError):
+            normalize_category({"category_name": "Missing ID"})
+

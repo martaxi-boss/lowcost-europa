@@ -29,7 +29,7 @@ Measure and understand before automating critical decisions.
 - LE-001 Foundation was approved at Gate 1 and merged into `main` through PR #1.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 are the approved foundation.
 - Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
-- AliExpress integration layer is implemented on `builder/le-002-aliexpress-integration` with environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, normalization, bounded retries/timeouts, structured errors, tests and documentation.
+- AliExpress integration layer is implemented on `builder/le-002-aliexpress-integration` with environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
 - Live AliExpress smoke test: **PASS** for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
 - No commercial database models, discovery, scoring, frontend or public deployment have been started.
 
