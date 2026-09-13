@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-005 ACCEPTED AND MERGED — LE-006 AUTHORIZED**.
+Current state: **LE-006 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -39,6 +39,11 @@ Measure and understand before automating critical decisions.
 - Supervisor verification after Gate 5 confirmed that more specific keywords such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` return relevant professional HIFU products.
 - Supervisor verification also confirmed that the documented AliExpress `delivery_days=5` query filter returns HIFU candidates with normalized `Ship to PT in 5 days` / `delivery_days=5` in the observed live sample.
 - No scoring, ranking, winner selection, frontend, public deployment or autonomous scheduling has started.
+- LE-006 adds optional `target_language` and documented `delivery_days` search controls without schema changes.
+- Three LE-006 dry-run studies used `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` with PT/EUR, EN and `delivery_days=5`.
+- Across those studies, search returned normalized 5-day logistics for all 25 candidates; detail returned no interpretable delivery days for 24 successful details, producing 24 search/detail mismatches.
+- One Study B candidate returned a sanitized external `AliExpressAPIError`; no rate-limit subtype was confirmed from retained evidence.
+- The specific HIFU machine queries removed the obvious Hanfu/cosplay noise seen with plain `HIFU`; this remains human-review evidence, not scoring.
 
 ## Infrastructure classification
 
@@ -46,7 +51,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-006 — Controlled search precision and delivery filtering` is authorized as GitHub Issue #18.
+`LE-006 — Controlled search precision and delivery filtering` is implemented on its Builder branch and awaits Supervisor review.
 
 LE-006 must add only the minimal explicit search controls needed to study search precision and source-supported fast-delivery filtering for Portugal. It must remain bounded, manual and measurable, reuse the existing integration/discovery/persistence pipeline and introduce no scoring or automatic commercial decisions.
 
