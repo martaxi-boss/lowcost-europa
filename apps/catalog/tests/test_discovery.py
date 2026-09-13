@@ -1,10 +1,14 @@
+import json
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import DatabaseError
 from django.test import TransactionTestCase
 
 from apps.catalog.models import Offer, OfferObservation, ProductFamily
+from apps.catalog.services.aliexpress_persistence import PersistenceResult
 from apps.catalog.services.discovery import (
     COUNTRY,
     CURRENCY,
@@ -13,8 +17,10 @@ from apps.catalog.services.discovery import (
     discover_aliexpress,
     validate_limit,
 )
+from apps.integrations.aliexpress.client import AliExpressClient
+from apps.integrations.aliexpress.config import AliExpressConfig
 from apps.integrations.aliexpress.exceptions import AliExpressAPIError
-from apps.integrations.aliexpress.types import AliExpressProduct
+from apps.integrations.aliexpress.types import AliExpressProduct, AliExpressSearchResult
 
 
 def product(product_id="42", **overrides):
@@ -45,9 +51,9 @@ class FakeDiscoveryClient:
         self.search_calls = []
         self.detail_calls = []
 
-    def search_products(self, keyword, country, currency, page_no=1, page_size=20):
+    def search_products_diagnostic(self, keyword, country, currency, page_no=1, page_size=20):
         self.search_calls.append((keyword, country, currency, page_no, page_size))
-        return self.search_results
+        return AliExpressSearchResult(products=self.search_results, invalid_items=0)
 
     def get_product_detail(self, product_id, country, currency):
         self.detail_calls.append((product_id, country, currency))
@@ -57,6 +63,20 @@ class FakeDiscoveryClient:
 
     def generate_affiliate_link(self, source_url):
         return "https://affiliate.example/item"
+
+
+class FakeResponse:
+    def __init__(self, payload):
+        self.body = json.dumps(payload).encode()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self):
+        return self.body
 
 
 class DiscoveryTests(TransactionTestCase):
@@ -74,13 +94,54 @@ class DiscoveryTests(TransactionTestCase):
         discover_aliexpress("HIFU", 1, client=client, dry_run=True)
         self.assertEqual(client.search_calls, [("HIFU", COUNTRY, CURRENCY, 1, 1)])
 
-    def test_deduplicates_batch_and_counts_invalid_id(self):
-        client = FakeDiscoveryClient([product("42"), product("42"), product(""), product("84")])
-        result = discover_aliexpress("HIFU", 4, client=client, dry_run=True)
+    def test_deduplicates_batch(self):
+        client = FakeDiscoveryClient([product("42"), product("42"), product("84")])
+        result = discover_aliexpress("HIFU", 3, client=client, dry_run=True)
         self.assertEqual(
-            (result.unique_candidates, result.duplicates_in_batch, result.invalid_ids), (2, 1, 1)
+            (result.unique_candidates, result.duplicates_in_batch, result.invalid_ids), (2, 1, 0)
         )
         self.assertEqual([call[0] for call in client.detail_calls], ["42", "84"])
+
+    def test_real_client_counts_invalid_search_item_and_keeps_valid_candidates(self):
+        payload = {
+            "aliexpress_affiliate_product_query_response": {
+                "resp_result": {
+                    "result": {
+                        "products": {
+                            "product": [
+                                {"product_id": "42", "product_title": "Valid one"},
+                                {"product_title": "Missing ID"},
+                                {"product_id": "84", "product_title": "Valid two"},
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+        config = AliExpressConfig("key", "secret", "track", max_retries=0)
+        client = AliExpressClient(config, opener=lambda *_a, **_k: FakeResponse(payload))
+
+        def fake_persist(product_id, *_args, **_kwargs):
+            normalized = product(product_id, product_url=None)
+            return PersistenceResult(
+                product=normalized,
+                offer=Offer(source=Offer.Source.ALIEXPRESS, external_product_id=product_id),
+                observation=OfferObservation(),
+                offer_created=True,
+                dry_run=True,
+            )
+
+        with patch(
+            "apps.catalog.services.discovery.import_aliexpress_product",
+            side_effect=fake_persist,
+        ) as persist:
+            result = discover_aliexpress("HIFU", 3, client=client, dry_run=True)
+
+        self.assertEqual(result.search_results_received, 3)
+        self.assertEqual(result.invalid_ids, 1)
+        self.assertEqual(result.unique_candidates, 2)
+        self.assertEqual(result.successful, 2)
+        self.assertEqual([call.args[0] for call in persist.call_args_list], ["42", "84"])
 
     def test_new_existing_offer_and_product_family(self):
         family = ProductFamily.objects.create(name="HIFU", slug="hifu")
@@ -151,6 +212,48 @@ class DiscoveryTests(TransactionTestCase):
         self.assertEqual(existing.title, "Existing title")
         self.assertEqual(existing.last_seen_at, original_last_seen)
         self.assertEqual(existing.product_family, family)
+
+    def test_database_error_is_counted_as_persistence_error(self):
+        client = FakeDiscoveryClient([product("42")])
+        with patch(
+            "apps.catalog.services.discovery.import_aliexpress_product",
+            side_effect=DatabaseError("db failure"),
+        ):
+            result = discover_aliexpress("HIFU", 1, client=client, dry_run=True)
+        self.assertEqual((result.failed, result.persistence_errors), (1, 1))
+        self.assertEqual(result.errors, ["product 42: DatabaseError"])
+
+    def test_unexpected_runtime_error_propagates(self):
+        client = FakeDiscoveryClient([product("42")])
+        with patch(
+            "apps.catalog.services.discovery.import_aliexpress_product",
+            side_effect=RuntimeError("programming bug"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "programming bug"):
+                discover_aliexpress("HIFU", 1, client=client, dry_run=True)
+
+    def test_offer_counts_use_persistence_result_offer_created(self):
+        client = FakeDiscoveryClient([product("42"), product("84")])
+        created = PersistenceResult(
+            product=product("42"),
+            offer=Offer(source=Offer.Source.ALIEXPRESS, external_product_id="42"),
+            observation=OfferObservation(),
+            offer_created=True,
+            dry_run=True,
+        )
+        reused = PersistenceResult(
+            product=product("84"),
+            offer=Offer(source=Offer.Source.ALIEXPRESS, external_product_id="84"),
+            observation=OfferObservation(),
+            offer_created=False,
+            dry_run=True,
+        )
+        with patch(
+            "apps.catalog.services.discovery.import_aliexpress_product",
+            side_effect=[created, reused],
+        ):
+            result = discover_aliexpress("HIFU", 2, client=client, dry_run=True)
+        self.assertEqual((result.offers_created, result.offers_reused), (1, 1))
 
     def test_command_rejects_limit_above_cap(self):
         with self.assertRaises(CommandError):

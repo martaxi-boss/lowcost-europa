@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
-from apps.catalog.models import Offer
+from django.db import DatabaseError
+
 from apps.catalog.services.aliexpress_persistence import import_aliexpress_product
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError
@@ -88,14 +89,15 @@ def discover_aliexpress(
         raise ValueError("keyword must not be blank")
 
     client = client or AliExpressClient()
-    products = client.search_products(
+    search = client.search_products_diagnostic(
         keyword, country=COUNTRY, currency=CURRENCY, page_no=1, page_size=limit
     )
-    limited = products[:limit]
+    limited = search.products[:limit]
     result = DiscoveryResult(
         keyword=keyword,
         requested_limit=limit,
-        search_results_received=len(limited),
+        search_results_received=len(limited) + search.invalid_items,
+        invalid_ids=search.invalid_items,
     )
 
     unique_ids: list[str] = []
@@ -114,10 +116,6 @@ def discover_aliexpress(
 
     for product_id in unique_ids:
         result.attempted += 1
-        existed = Offer.objects.filter(
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id=product_id,
-        ).exists()
         try:
             persisted = import_aliexpress_product(
                 product_id,
@@ -131,7 +129,7 @@ def discover_aliexpress(
             result.external_errors += 1
             result.errors.append(f"product {product_id}: {exc.__class__.__name__}")
             continue
-        except Exception as exc:
+        except DatabaseError as exc:
             result.failed += 1
             result.persistence_errors += 1
             result.errors.append(f"product {product_id}: {exc.__class__.__name__}")
@@ -139,10 +137,10 @@ def discover_aliexpress(
 
         result.successful += 1
         result.observations_created += 1
-        if existed:
-            result.offers_reused += 1
-        else:
+        if persisted.offer_created:
             result.offers_created += 1
+        else:
+            result.offers_reused += 1
         _record_metrics(result.metrics, persisted.product)
 
     return result

@@ -14,11 +14,11 @@ Dry-run projected 9 new Offers and 9 new Observations. Database counts were Offe
 
 The `HIFU` query returned titles dominated by `Hanfu`, cosplay and hair-accessory products rather than the intended professional HIFU equipment niche. This is factual search-quality evidence from this batch only. LE-005 does not filter, score, rank or label these products as good/bad.
 
-## Performance
+## Performance — final Gate 5 confirmation
 
-A measured bounded run completed in 18.31 seconds with maximum RSS 57,752 KB (~56.4 MB). The final confirmation run against the stabilized code completed in 18.06 seconds with maximum RSS 57,748 KB (~56.4 MB).
+The final confirmation run against the corrected Gate 5 code completed in 18.16 seconds with maximum RSS 57,756 KB (~56.4 MB).
 
-Before the measured study the Droplet had 346 MB memory available, 269 MB swap used and load average 0.02/0.01/0.00. After that study it had 355 MB available, swap still 269 MB and load average 0.06/0.02/0.00. No material pressure was observed from this bounded batch.
+Immediately before that run the Droplet had 365 MB memory available, 270 MB swap used and load average 0.03/0.03/0.00. Immediately after it had 367 MB available, swap still 270 MB and load average 0.06/0.04/0.00. No material pressure was observed from this bounded batch.
 
 ## Interpretation
 
