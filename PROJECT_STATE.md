@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-007 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 7 CLOSED — LE-008 AUTHORIZED**.
 
 ## Strategic state
 
@@ -33,15 +33,17 @@ Measure and understand before automating critical decisions.
 - The deep audit through Gate 4 is archived at `docs/audits/AUDIT_GATE_4.md` and the post-Gate-4 checkpoint was approved externally.
 - LE-005 controlled Portugal discovery was approved at Gate 5 and merged into `main` through PR #17.
 - LE-006 controlled search precision and delivery filtering was approved at Gate 6 and merged into `main` through PR #20.
+- LE-007 provenance-aware logistics persistence was approved at Gate 7 and merged into `main` through PR #23.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
 - AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
-- LE-006 final suite passed 76 tests with no migration drift and no new infrastructure cost.
 - Plain `HIFU` search previously showed strong Hanfu/cosplay semantic noise; specific queries such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` produced relevant professional HIFU products in the observed studies.
 - LE-006 added optional `target_language` and documented `delivery_days` search controls while preserving backward compatibility.
 - Across three LE-006 PT/EUR/EN dry-run studies with `delivery_days=5`, search returned normalized 5-day logistics for all 25 observed candidates.
 - 24 detail operations succeeded, and none of those 24 reproduced `delivery_days`; 24 search/detail logistics mismatches were therefore observed.
-- Search and detail logistics remain separate. No data fusion, scoring, ranking, winner selection or customer-facing delivery claim has been authorized.
-- No frontend, public deployment or autonomous scheduling has started.
+- LE-007 added normal catalog migration `0002` with nullable `OfferObservation.search_ship_to_days_raw` and `OfferObservation.search_delivery_days`; the original `0001_initial.py` remains unchanged.
+- Search logistics and detail logistics are now persisted with explicit provenance and without fallback or precedence. Manual product import leaves search logistics NULL; discovery may pass normalized search evidence only for the same product ID.
+- LE-007 final validation passed 86 tests with PostgreSQL 16, migration drift check and CI green. No new infrastructure cost was introduced.
+- No scoring, ranking, winner selection, frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
 
@@ -49,13 +51,13 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-007 — Provenance-aware logistics persistence` is implemented on its Builder branch and awaits Supervisor review as GitHub Issue #21.
+`LE-008 — Conservative logistics evidence assessment` is authorized as GitHub Issue #24.
 
-LE-007 must persist logistics evidence with explicit provenance before any scoring or customer-facing use. The current `OfferObservation.ship_to_days_raw` and `OfferObservation.delivery_days` remain detail-level evidence. The phase may add separate nullable search-level logistics fields and pass search evidence from controlled discovery into persistence only for the same product ID.
+LE-008 must create a small, derived, non-persisted assessment of logistics evidence for a single `OfferObservation`. It must classify observations as `UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` or `CONFLICT` according to the separately persisted search/detail delivery values.
 
-LE-007 must use a normal new migration; the already-merged catalog initial migration must not be rewritten. Manual product imports without search context must leave search-level logistics fields NULL. Search values must never be silently copied into detail fields, and detail values must never be silently copied into search fields.
+At observation level only, the assessment may report whether the available non-conflicting source evidence supports the strategic <=5-day candidate criterion. Search-only evidence remains an estimate reported by the source, not an independent verification or customer guarantee. `CONSISTENT` means the search and detail endpoints agree; it does not mean guaranteed delivery.
 
-No `effective_delivery_days`, ProductFamily auto-assignment, scoring, ranking, winner selection, scheduler, cron, mass import, publication or customer-facing delivery promise is authorized.
+LE-008 must not create `effective_delivery_days`, database fields, migrations, precedence between search/detail, numeric confidence/scoring, automatic filtering of persistence, ranking, winners or customer-facing delivery claims. The assessment may appear in diagnostic discovery output for human review only.
 
 ## Planned later task
 
@@ -63,4 +65,4 @@ No `effective_delivery_days`, ProductFamily auto-assignment, scoring, ranking, w
 
 ## Gate
 
-Gate 7 is active. LE-007 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-008, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 7 is closed. LE-008 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 8 before merge. No LE-009, scoring, LE-UX-001, frontend or public deployment is authorized.
