@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-004 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **LE-004 ACCEPTED — DEVELOPMENT PAUSED FOR DEEP AUDIT**.
 
 ## Strategic state
 
@@ -29,36 +29,32 @@ Measure and understand before automating critical decisions.
 - LE-001 Foundation was approved at Gate 1 and merged into `main` through PR #1.
 - LE-002 AliExpress integration layer was approved at Gate 2 and merged into `main` through PR #5.
 - LE-003 minimal catalog data model was approved at Gate 3 and merged into `main` through PR #8.
+- LE-004 controlled AliExpress persistence was approved at Gate 4 and merged into `main` through PR #11.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 are the approved foundation.
 - Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
-- AliExpress integration layer provides environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation. `evaluate_rate` is treated as a percentage, logistics raw text is preserved with conservative `delivery_days` parsing, and entities without required IDs are rejected.
-- Live AliExpress smoke test previously passed for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
+- AliExpress integration provides environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation.
+- Live AliExpress smoke tests passed for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
 - The catalog contains ProductFamily, Offer and OfferObservation with PostgreSQL constraints, protected history, Django Admin, tests and documentation.
 - Structural catalog invariants are enforced at PostgreSQL level for lifecycle/source/availability, timeline and numeric ranges.
+- Controlled persistence now proves `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` for one explicitly supplied product ID.
+- Reimports reuse the same Offer, append factual OfferObservation history, preserve ProductFamily and do not invent missing source facts.
+- Live LE-004 dry-run passed on the Droplet with full transaction rollback and no persistent test data.
 - No discovery, scoring, frontend or public deployment has been started.
 
 ## Infrastructure classification
 
 The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) is the initial system target for a future validated deployment. The system must remain lightweight enough to begin on this server. Scaling requires measured need and Supervisor approval.
 
-## Current task
+## Current checkpoint
 
-`LE-004 — Controlled AliExpress persistence` is implemented on the Builder branch and awaits Supervisor review.
+Development is intentionally paused after Gate 4 for the independent deep audit recorded as GitHub Issue #12.
 
-The controlled path `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` is implemented for explicit import of one known product with transactional persistence and dry-run rollback. Automatic discovery, mass import, scoring, background scheduling and frontend remain outside scope.
-
-Important semantics for LE-004:
-
-- repeated imports reuse the same Offer and append factual OfferObservation history;
-- missing source data stays unknown and is never invented;
-- availability remains UNKNOWN unless the normalized source explicitly supports another state;
-- `Offer.is_active=True` means the external listing was successfully seen, not confirmed stock availability;
-- ProductFamily assignment remains manual/outside LE-004.
+The audit must review governance, architecture, security, CI/tests, migrations, AliExpress integration, data model, controlled persistence, Git/documentation and real Droplet state before any next construction phase is authorized.
 
 ## Planned later task
 
-`LE-UX-001 — UX/UI e Design System inicial` is recorded as GitHub Issue #2. It must not start yet. It belongs before the full public frontend, after the motor/data needed for truthful presentation are sufficiently defined.
+`LE-UX-001 — UX/UI e Design System inicial` remains recorded as GitHub Issue #2. It must not start until a later explicit Supervisor decision.
 
 ## Gate
 
-Gate 4 is active. LE-004 awaits Supervisor review. The Builder must stop before merge. No LE-005, automatic discovery, mass import, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 4 is closed. **No LE-005 is authorized.** No automatic discovery, mass import, scoring, LE-UX-001, frontend or public deployment may begin until the deep-audit checkpoint has been reviewed by the owner, partner and consultant and the Supervisor issues a new decision.
