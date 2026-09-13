@@ -1,22 +1,42 @@
 # Lowcost Europa — Project State
 
-Atualizado em 2026-09-13.
+Updated: 2026-09-13.
 
-Fase atual: preparação da base técnica e documental do projeto.
+Current state: **AWAITING SUPERVISOR REVIEW**.
 
-Mercado inicial: Portugal.
+## Strategic state
 
-Critério logístico principal: privilegiar produtos com entrega prevista em até 5 dias e usar apenas informação que possa ser confirmada.
+### Initial market
+Portugal.
 
-Arquitetura inicial: aplicação web robusta, base de dados relacional, Nginx, tarefas agendadas e arquitetura modular.
+### Main logistics criterion
+Prioritize products with estimated/verifiable delivery in up to **5 days**. Never promise logistics information that cannot be supported.
 
-Modelo de produto: a família é permanente e as ofertas são substituíveis.
+### Product model
+`Product Family` is permanent in Lowcost Europa. `Offer` is replaceable. A permanent page must not disappear only because an AliExpress offer disappears.
 
-Primeiro nicho estratégico: estética profissional, sem limitar o projeto a esse nicho.
+### First strategic niche
+Professional aesthetics. This does not limit the project to this niche.
 
-Próximas tarefas:
-1. Consolidar a estrutura inicial.
-2. Implementar descoberta e validação de produtos para Portugal.
-3. Definir o modelo mínimo de dados para famílias, ofertas, histórico e estabilidade.
-4. Preparar staging.
-5. Medir resultados antes de automatizar decisões críticas.
+### Automation
+Measure and understand before automating critical decisions.
+
+## Technical state
+
+- Phase 0 reconnaissance completed and versioned.
+- ADR-001 approved and recorded as Accepted.
+- ADR-002 initial infrastructure and scaling recorded as Accepted.
+- LE-001 Foundation implemented on `builder/le-001-foundation`.
+- Python 3.12, Django 5.2 LTS and PostgreSQL 16 selected.
+- Environment-specific settings, PostgreSQL configuration, health checks, tests, Ruff and CI added.
+- Local setup and validation documented in README.
+- No AliExpress integration is implemented or versioned in the Django application yet.
+- No public deployment has been performed.
+
+## Infrastructure classification
+
+The existing DigitalOcean Droplet is the initial system target for a future validated deployment. It is not yet an official public production deployment.
+
+## Gate
+
+LE-001 is implemented but **not officially accepted**. Only the Supervisor may accept it after Pull Request review. The next task is not authorized.
