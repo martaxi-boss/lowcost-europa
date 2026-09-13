@@ -23,3 +23,8 @@ No precedence exists between search and detail. No `effective_delivery_days`, `r
 Controlled discovery may display the derived `evidence_state` and `supports_5d` for successful candidates. These values are diagnostic only: discovery does not exclude, reorder, deactivate or avoid persisting a candidate because the assessment is false.
 
 Use factual language such as: “the observation contains source evidence compatible with <=5 days.” Do not state or imply guaranteed delivery.
+
+
+## Evidence quality and freshness
+
+Evidence quality is not freshness. LE-008 answers whether one observation contains non-conflicting source evidence compatible with <=5 days. LE-009 separately evaluates whether that observation is recent enough for the current diagnostic window. Both dimensions are required before the internal diagnostic can report a current <=5-day candidate.

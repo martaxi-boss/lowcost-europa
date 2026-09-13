@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -179,6 +180,43 @@ class DiscoveryTests(TransactionTestCase):
         self.assertEqual(
             [(c.evidence_state, c.supports_within_5_days) for c in result.candidates],
             [("SEARCH_ONLY", True), ("DETAIL_ONLY", True), ("CONSISTENT", True)],
+        )
+
+    def test_freshness_uses_one_stable_as_of_for_batch(self):
+        fixed_as_of = datetime(2026, 9, 13, 14, 0, tzinfo=timezone.utc)
+        client = FakeDiscoveryClient([product("42"), product("84")])
+        first = PersistenceResult(
+            product=product("42"),
+            offer=Offer(source=Offer.Source.ALIEXPRESS, external_product_id="42"),
+            observation=OfferObservation(observed_at=fixed_as_of - timedelta(hours=1)),
+            offer_created=True,
+            dry_run=True,
+        )
+        second = PersistenceResult(
+            product=product("84"),
+            offer=Offer(source=Offer.Source.ALIEXPRESS, external_product_id="84"),
+            observation=OfferObservation(observed_at=fixed_as_of - timedelta(hours=2)),
+            offer_created=True,
+            dry_run=True,
+        )
+        with (
+            patch(
+                "apps.catalog.services.discovery.import_aliexpress_product",
+                side_effect=[first, second],
+            ),
+            patch("apps.catalog.services.discovery.timezone.now", return_value=fixed_as_of) as now,
+        ):
+            result = discover_aliexpress("HIFU", 2, client=client, dry_run=True)
+
+        now.assert_called_once_with()
+        self.assertEqual(result.diagnostic_as_of, fixed_as_of)
+        self.assertEqual(
+            [(c.freshness_state, c.freshness_age) for c in result.candidates],
+            [("FRESH", timedelta(hours=1)), ("FRESH", timedelta(hours=2))],
+        )
+        self.assertEqual(
+            [c.supports_current_5d_candidate for c in result.candidates],
+            [True, True],
         )
 
     def test_invalid_delivery_filter_is_rejected_before_search(self):

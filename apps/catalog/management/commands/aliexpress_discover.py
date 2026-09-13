@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.catalog.services.discovery import (
@@ -8,6 +10,25 @@ from apps.catalog.services.discovery import (
     validate_target_language,
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError
+
+
+def _format_age(age: timedelta | None) -> str:
+    if age is None:
+        return "-"
+    future = age.total_seconds() < 0
+    seconds = int(abs(age.total_seconds()))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days:
+        text = f"{days}d {hours}h"
+    elif hours:
+        text = f"{hours}h"
+    elif minutes:
+        text = f"{minutes}m"
+    else:
+        text = f"{seconds}s"
+    return f"future {text}" if future else text
 
 
 class Command(BaseCommand):
@@ -73,7 +94,8 @@ class Command(BaseCommand):
             lines.append("Candidates:")
             lines.append(
                 "product_id | title | price | currency | eval% | sales | commission% | "
-                "search_days | detail_days | evidence_state | supports_5d | outcome"
+                "search_days | detail_days | evidence_state | supports_5d | freshness_state | "
+                "age | supports_current_5d | outcome"
             )
             for candidate in result.candidates[:25]:
                 title = " ".join((candidate.title or "").split())[:70]
@@ -113,6 +135,15 @@ class Command(BaseCommand):
                                 if candidate.supports_within_5_days is True
                                 else "no"
                                 if candidate.supports_within_5_days is False
+                                else "-"
+                            ),
+                            candidate.freshness_state or "-",
+                            _format_age(candidate.freshness_age),
+                            (
+                                "yes"
+                                if candidate.supports_current_5d_candidate is True
+                                else "no"
+                                if candidate.supports_current_5d_candidate is False
                                 else "-"
                             ),
                             candidate.outcome,

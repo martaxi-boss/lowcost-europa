@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **GATE 8 CLOSED — LE-009 AUTHORIZED**.
+Current state: **LE-009 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -46,6 +46,9 @@ Measure and understand before automating critical decisions.
 - LE-008 added a pure, derived logistics-evidence assessment with states `UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` and `CONFLICT`.
 - LE-008 reports only whether one observation contains non-conflicting source evidence compatible with the <=5-day candidate criterion. `CONFLICT` never supports the criterion automatically, even when both values are <=5.
 - LE-008 introduced no schema, migration, effective delivery value, score, ranking, winner selection or customer-facing claim. Final validation passed 97 tests and exact-head CI was green.
+- LE-009 adds a pure, derived, timezone-aware freshness assessment with `FRESH`, `STALE` and `FUTURE`; its 24-hour window is provisional diagnostic configuration, not commercial policy.
+- LE-009 composes freshness with LE-008 only for internal `supports_current_5d_candidate`; one shared `as_of` is used per discovery batch, with no automatic filtering, ranking or persistence changes.
+- LE-009 introduces no schema or migration and leaves catalog persistence unchanged.
 - No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
@@ -54,7 +57,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-009 — Temporal validity of logistics evidence` is authorized as GitHub Issue #27.
+`LE-009 — Temporal validity of logistics evidence` is implemented on its Builder branch and awaits Supervisor review as GitHub Issue #27.
 
 LE-009 must add a pure, derived, timezone-aware assessment of observation freshness. It must keep evidence quality (LE-008) separate from temporal validity and compose them only for internal diagnostics.
 
@@ -70,4 +73,4 @@ The internal diagnostic composition may report `supports_current_5d_candidate = 
 
 ## Gate
 
-Gate 8 is closed. LE-009 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 9 before merge. No LE-010, final commercial freshness policy, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 9 is active. LE-009 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-010, final commercial freshness policy, scoring, LE-UX-001, frontend or public deployment is authorized.
