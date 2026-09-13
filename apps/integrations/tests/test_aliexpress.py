@@ -1,0 +1,161 @@
+import io
+import logging
+import os
+from unittest.mock import patch
+from urllib import error
+
+from apps.integrations.aliexpress.client import AliExpressClient
+from apps.integrations.aliexpress.config import AliExpressConfig
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressAuthenticationError,
+    AliExpressConfigurationError,
+    AliExpressTransportError,
+)
+from apps.integrations.aliexpress.normalizers import normalize_product
+from apps.integrations.aliexpress.signing import canonicalize, sign_hmac_sha256
+from django.test import SimpleTestCase
+
+
+class FakeResponse:
+    def __init__(self, body: str):
+        self.body = body.encode()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self):
+        return self.body
+
+
+class ConfigTests(SimpleTestCase):
+    @patch.dict(os.environ, {}, clear=True)
+    def test_missing_configuration_is_clear(self):
+        with self.assertRaises(AliExpressConfigurationError) as ctx:
+            AliExpressConfig.from_env()
+        self.assertIn("Missing required AliExpress configuration", str(ctx.exception))
+
+
+class SigningTests(SimpleTestCase):
+    def test_canonicalization_sorts_parameters(self):
+        self.assertEqual(canonicalize({"b": 2, "a": 1}), "a1b2")
+
+    def test_signing_is_deterministic(self):
+        params = {"method": "demo.method", "app_key": "fake-key", "timestamp": "123"}
+        self.assertEqual(
+            sign_hmac_sha256(params, "fake-secret"),
+            "BC47CC0A0E802D93F9CE6797BE41266C28A95E8CE27F87ACBD87EC7C05432DDD",
+        )
+
+
+class ClientTests(SimpleTestCase):
+    def setUp(self):
+        self.config = AliExpressConfig(
+            app_key="fake-key",
+            app_secret="fake-secret",
+            tracking_id="lowcost_europa",
+            timeout_seconds=3,
+            max_retries=1,
+        )
+
+    def test_request_uses_gateway_and_timeout(self):
+        calls = []
+
+        def opener(req, timeout):
+            calls.append((req.full_url, timeout, req.data.decode()))
+            return FakeResponse('{"demo_method_response":{"result":{"ok":true}}}')
+
+        client = AliExpressClient(self.config, opener=opener)
+        with patch.object(
+            client,
+            "_base_params",
+            return_value={
+                "app_key": "fake-key",
+                "timestamp": "123",
+                "sign_method": "sha256",
+                "method": "demo.method",
+                "format": "json",
+                "v": "2.0",
+            },
+        ):
+            client._call(
+                "demo.method", {"ship_to_country": "PT", "target_currency": "EUR"}
+            )
+        self.assertEqual(calls[0][0], "https://api-sg.aliexpress.com/sync")
+        self.assertEqual(calls[0][1], 3)
+        self.assertIn("ship_to_country=PT", calls[0][2])
+        self.assertIn("target_currency=EUR", calls[0][2])
+
+    def test_api_auth_error_becomes_structured_exception(self):
+        client = AliExpressClient(
+            self.config,
+            opener=lambda *_a, **_k: FakeResponse(
+                '{"error_response":{"code":29,"msg":"Invalid app Key","sub_code":"isv.appkey-not-exists"}}'
+            ),
+        )
+        with self.assertRaises(AliExpressAuthenticationError):
+            client._call("demo.method")
+
+    def test_transient_network_error_retries_once(self):
+        calls = 0
+
+        def opener(*_a, **_k):
+            nonlocal calls
+            calls += 1
+            raise error.URLError("temporary")
+
+        client = AliExpressClient(self.config, opener=opener)
+        with self.assertRaises(AliExpressTransportError):
+            client._call("demo.method")
+        self.assertEqual(calls, 2)
+
+    def test_secret_is_not_exposed_in_errors_or_logs(self):
+        stream = io.StringIO()
+        handler = logging.StreamHandler(stream)
+        logger = logging.getLogger("apps.integrations.aliexpress.client")
+        logger.addHandler(handler)
+        try:
+            client = AliExpressClient(
+                self.config,
+                opener=lambda *_a, **_k: (_ for _ in ()).throw(error.URLError("down")),
+            )
+            with self.assertRaises(AliExpressTransportError) as ctx:
+                client._call("demo.method")
+            output = str(ctx.exception) + stream.getvalue()
+            self.assertNotIn("fake-secret", output)
+        finally:
+            logger.removeHandler(handler)
+
+
+class NormalizerTests(SimpleTestCase):
+    def test_complete_product_is_normalized(self):
+        product = normalize_product(
+            {
+                "product_id": "42",
+                "product_title": "HIFU device",
+                "product_main_image_url": "https://example.test/image.jpg",
+                "product_detail_url": "https://example.test/product/42",
+                "target_sale_price": "99.90",
+                "target_sale_price_currency": "EUR",
+                "target_original_price": "120.00",
+                "evaluate_rate": "4.8",
+                "lastest_volume": "21",
+                "commission_rate": "7.5%",
+                "estimated_delivery_days": "4",
+            },
+            "PT",
+        )
+        self.assertEqual(product.product_id, "42")
+        self.assertEqual(str(product.price), "99.90")
+        self.assertEqual(product.currency, "EUR")
+        self.assertEqual(product.delivery_days, 4)
+        self.assertEqual(product.destination_country, "PT")
+
+    def test_missing_optional_fields_are_none(self):
+        product = normalize_product({"product_id": "42"}, "PT")
+        self.assertIsNone(product.rating)
+        self.assertIsNone(product.sales_count)
+        self.assertIsNone(product.delivery_days)
+        self.assertIsNone(product.affiliate_url)
