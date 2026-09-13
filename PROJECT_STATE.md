@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-005 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **LE-005 ACCEPTED AND MERGED — LE-006 AUTHORIZED**.
 
 ## Strategic state
 
@@ -30,17 +30,15 @@ Measure and understand before automating critical decisions.
 - LE-002 AliExpress integration layer was approved at Gate 2 and merged into `main` through PR #5.
 - LE-003 minimal catalog data model was approved at Gate 3 and merged into `main` through PR #8.
 - LE-004 controlled AliExpress persistence was approved at Gate 4 and merged into `main` through PR #11.
-- The deep audit through Gate 4 is archived at `docs/audits/AUDIT_GATE_4.md`.
-- The post-Gate-4 checkpoint was reviewed by the owner, partner and consultant and approved externally.
+- The deep audit through Gate 4 is archived at `docs/audits/AUDIT_GATE_4.md` and the post-Gate-4 checkpoint was approved externally.
+- LE-005 controlled Portugal discovery was approved at Gate 5 and merged into `main` through PR #17.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
-- Environment-specific settings, PostgreSQL configuration, health checks, automated tests, Ruff and GitHub Actions CI are in place.
-- AliExpress integration provides environment-based configuration, HMAC-SHA256 signing, categories, product search, product detail, affiliate-link generation, semantic normalization, bounded retries/timeouts, structured errors, tests and documentation.
-- Live AliExpress smoke tests passed for categories, HIFU search using PT/EUR, product detail and affiliate-link generation.
-- The catalog contains ProductFamily, Offer and OfferObservation with PostgreSQL constraints, protected history, Django Admin, tests and documentation.
-- Controlled persistence proves `AliExpressClient -> AliExpressProduct -> Offer / OfferObservation` for one explicitly supplied product ID.
-- Controlled Portugal discovery is implemented for one explicit keyword per run, fixed PT/EUR, default limit 10, hard cap 25, sequential processing, deduplication, per-product failure accounting and dry-run.
-- The first live HIFU/PT dry-run received 9 unique candidates and processed 9/9 successfully; price/currency/sales/commission were present for 9/9, evaluation rate for 4/9, and normalized logistics/delivery days for 0/9. The batch also exposed substantial HIFU/Hanfu semantic search noise.
-- No scoring, ranking, frontend, public deployment or autonomous scheduling has been started.
+- AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
+- LE-005 final suite passed 69 tests with no migration drift and no new infrastructure cost.
+- The first HIFU/PT study showed two key findings: plain `HIFU` search produced strong Hanfu/cosplay semantic noise, and the initial batch exposed no normalized delivery data.
+- Supervisor verification after Gate 5 confirmed that more specific keywords such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` return relevant professional HIFU products.
+- Supervisor verification also confirmed that the documented AliExpress `delivery_days=5` query filter returns HIFU candidates with normalized `Ship to PT in 5 days` / `delivery_days=5` in the observed live sample.
+- No scoring, ranking, winner selection, frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
 
@@ -48,13 +46,13 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-005 — Controlled Discovery Portugal` is implemented on its builder branch and awaits Supervisor review.
+`LE-006 — Controlled search precision and delivery filtering` is authorized as GitHub Issue #18.
 
-LE-005 must study small, bounded batches of real AliExpress candidates for Portugal before any automatic scoring or publication. Each execution uses one explicit keyword, PT/EUR, default 10 results and a hard cap of 25 results. It must reuse the existing AliExpress integration and controlled persistence pipeline rather than creating a parallel importer.
+LE-006 must add only the minimal explicit search controls needed to study search precision and source-supported fast-delivery filtering for Portugal. It must remain bounded, manual and measurable, reuse the existing integration/discovery/persistence pipeline and introduce no scoring or automatic commercial decisions.
 
-The phase must measure data quality and coverage, including price, currency, evaluation rate, sales count, commission and logistics. `delivery_days <= 5` may be reported as an observational metric when data exists, but must not yet become an automatic commercial filter or selection decision.
+The phase may support the documented AliExpress search parameters `target_language` and `delivery_days` in a controlled way. Initial live studies use PT/EUR, `target_language=EN`, `delivery_days=5` and explicit professional HIFU keyword variants. `delivery_days=5` is a source query/filter, not by itself a customer promise; future presentation still requires per-product normalized evidence.
 
-No ProductFamily auto-assignment, scoring, ranking, winner selection, scheduler, cron, mass import or publication is authorized.
+No ProductFamily auto-assignment, relevance scoring, ranking, winner selection, automated keyword expansion, scheduler, cron, mass import or publication is authorized.
 
 ## Planned later task
 
@@ -62,4 +60,4 @@ No ProductFamily auto-assignment, scoring, ranking, winner selection, scheduler,
 
 ## Gate
 
-Gate 4 and the post-Gate-4 audit checkpoint are closed. LE-005 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 5 before merge. No LE-006, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 5 is closed. LE-006 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 6 before merge. No LE-007, scoring, LE-UX-001, frontend or public deployment is authorized.
