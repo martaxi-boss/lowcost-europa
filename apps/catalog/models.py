@@ -1,6 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 
 
@@ -25,7 +25,21 @@ class ProductFamily(models.Model):
             models.CheckConstraint(
                 condition=~Q(slug=""),
                 name="catalog_family_slug_not_blank",
-            )
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    status__in=[
+                        "NEW",
+                        "TESTING",
+                        "VERIFIED",
+                        "PROVEN",
+                        "WINNER",
+                        "OBSERVATION",
+                        "RETIRED",
+                    ]
+                ),
+                name="catalog_family_status_valid",
+            ),
         ]
         ordering = ["name"]
 
@@ -65,6 +79,14 @@ class Offer(models.Model):
             models.CheckConstraint(
                 condition=~Q(external_product_id=""),
                 name="catalog_offer_external_id_not_blank",
+            ),
+            models.CheckConstraint(
+                condition=Q(source__in=["ALIEXPRESS"]),
+                name="catalog_offer_source_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(last_seen_at__gte=F("first_seen_at")),
+                name="catalog_offer_seen_timeline_valid",
             ),
         ]
         ordering = ["-last_seen_at"]
@@ -107,6 +129,40 @@ class OfferObservation(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    availability__in=[
+                        "UNKNOWN",
+                        "AVAILABLE",
+                        "UNAVAILABLE",
+                    ]
+                ),
+                name="catalog_obs_availability_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(evaluation_rate_percent__isnull=True)
+                    | (Q(evaluation_rate_percent__gte=0) & Q(evaluation_rate_percent__lte=100))
+                ),
+                name="catalog_obs_eval_rate_range",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(commission_rate__isnull=True)
+                    | (Q(commission_rate__gte=0) & Q(commission_rate__lte=100))
+                ),
+                name="catalog_obs_commission_range",
+            ),
+            models.CheckConstraint(
+                condition=Q(price__isnull=True) | Q(price__gte=0),
+                name="catalog_obs_price_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=Q(original_price__isnull=True) | Q(original_price__gte=0),
+                name="catalog_obs_original_price_nonnegative",
+            ),
+        ]
         indexes = [
             models.Index(fields=["offer", "-observed_at"], name="catalog_obs_offer_time_idx")
         ]

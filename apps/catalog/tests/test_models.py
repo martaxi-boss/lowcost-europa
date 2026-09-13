@@ -1,9 +1,10 @@
+from datetime import timedelta
 from decimal import Decimal
 
-from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
+from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation, ProductFamily
 
@@ -15,10 +16,10 @@ class ProductFamilyTests(TestCase):
             with transaction.atomic():
                 ProductFamily.objects.create(name="HIFU 2", slug="hifu")
 
-    def test_lifecycle_status_validation(self):
-        family = ProductFamily(name="HIFU", slug="hifu", status="INVALID")
-        with self.assertRaises(ValidationError):
-            family.full_clean()
+    def test_invalid_lifecycle_status_is_rejected_by_database(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ProductFamily.objects.create(name="HIFU", slug="hifu", status="INVALID")
 
     def test_slug_cannot_be_blank(self):
         with self.assertRaises(IntegrityError):
@@ -41,6 +42,22 @@ class OfferTests(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="")
+
+    def test_invalid_source_is_rejected_by_database(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Offer.objects.create(source="INVALID", external_product_id="123")
+
+    def test_last_seen_cannot_precede_first_seen(self):
+        first_seen = timezone.now()
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Offer.objects.create(
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id="timeline-invalid",
+                    first_seen_at=first_seen,
+                    last_seen_at=first_seen - timedelta(days=1),
+                )
 
     def test_offer_can_exist_without_family_and_be_linked_later(self):
         offer = Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="123")
@@ -111,6 +128,46 @@ class OfferObservationTests(TestCase):
         )
         self.assertEqual(unknown.availability, OfferObservation.Availability.UNKNOWN)
         self.assertEqual(unavailable.availability, OfferObservation.Availability.UNAVAILABLE)
+
+    def test_invalid_availability_is_rejected_by_database(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OfferObservation.objects.create(offer=self.offer, availability="INVALID")
+
+    def test_evaluation_rate_database_range(self):
+        for invalid in (Decimal("-1"), Decimal("100.01")):
+            with self.assertRaises(IntegrityError):
+                with transaction.atomic():
+                    OfferObservation.objects.create(
+                        offer=self.offer, evaluation_rate_percent=invalid
+                    )
+        valid = OfferObservation.objects.create(
+            offer=self.offer, evaluation_rate_percent=Decimal("96.5")
+        )
+        unknown = OfferObservation.objects.create(offer=self.offer, evaluation_rate_percent=None)
+        self.assertEqual(valid.evaluation_rate_percent, Decimal("96.5"))
+        self.assertIsNone(unknown.evaluation_rate_percent)
+
+    def test_commission_rate_database_range(self):
+        for invalid in (Decimal("-0.01"), Decimal("100.0001")):
+            with self.assertRaises(IntegrityError):
+                with transaction.atomic():
+                    OfferObservation.objects.create(offer=self.offer, commission_rate=invalid)
+        valid = OfferObservation.objects.create(offer=self.offer, commission_rate=Decimal("7.5"))
+        unknown = OfferObservation.objects.create(offer=self.offer, commission_rate=None)
+        self.assertEqual(valid.commission_rate, Decimal("7.5"))
+        self.assertIsNone(unknown.commission_rate)
+
+    def test_prices_cannot_be_negative_but_may_be_unknown(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OfferObservation.objects.create(offer=self.offer, price=Decimal("-0.01"))
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OfferObservation.objects.create(offer=self.offer, original_price=Decimal("-0.01"))
+        unknown = OfferObservation.objects.create(offer=self.offer, price=None, original_price=None)
+        self.assertIsNone(unknown.price)
+        self.assertIsNone(unknown.original_price)
 
     def test_offer_with_observation_is_protected_from_delete(self):
         OfferObservation.objects.create(offer=self.offer)

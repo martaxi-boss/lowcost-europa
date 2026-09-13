@@ -41,3 +41,7 @@ A single composite index on Offer + descending `observed_at` supports normal his
 ## History accumulation
 
 Future tasks may create new observations over time for the same Offer. They must append factual snapshots rather than overwrite history. LE-003 deliberately does not connect the AliExpress API to these models and creates no importer, discovery command, cron job, scoring or frontend.
+
+## Database integrity
+
+Essential structural invariants are also protected by PostgreSQL constraints, so future importers cannot write impossible states merely by bypassing form validation or model `full_clean()`.
