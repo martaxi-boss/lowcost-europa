@@ -35,3 +35,6 @@ supports_current_5d_candidate =
 Therefore fresh conflicting/unknown evidence is false, stale positive evidence is false, and any `FUTURE` observation is false.
 
 This value is diagnostic only. It does not filter persistence, rank products, create a score, choose a winner or authorize a customer-facing delivery claim.
+## Relation to longitudinal history
+
+Freshness evaluates one observation. LE-010 logistics history aggregates multiple observations read-only, reusing this assessment without defining commercial stability. Evidence quality and freshness remain per-observation facts; history summarizes them over time.

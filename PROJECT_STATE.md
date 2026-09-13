@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **GATE 9 CLOSED — LE-010 AUTHORIZED**.
+Current state: **LE-010 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -50,6 +50,8 @@ Measure and understand before automating critical decisions.
 - LE-009 composes freshness with LE-008 only for internal `supports_current_5d_candidate`; one shared `as_of` is used per discovery batch, with no automatic filtering, ranking or persistence changes.
 - LE-009 final validation passed 110 tests with PostgreSQL 16 and exact-head CI green.
 - A single fresh positive observation is not sufficient, by itself, to authorize a public delivery promise. No final minimum-history threshold has been defined.
+- LE-010 adds a read-only longitudinal logistics history diagnostic for one Offer, reusing LE-008 evidence and LE-009 freshness over existing append-only observations.
+- LE-010 reports chronological counts, span, latest diagnostics, conflict/future flags and current-support counts with no schema change, score, percentage or commercial stability threshold.
 - No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
@@ -58,7 +60,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-010 — Longitudinal logistics history diagnostics` is authorized as GitHub Issue #30.
+`LE-010 — Longitudinal logistics history diagnostics` is implemented on the dedicated Builder branch and awaits Supervisor review at Gate 10.
 
 LE-010 must add a derived, read-only diagnostic of the historical `OfferObservation` sequence for one Offer. It must summarize observation count, first/last observation, span, evidence-state counts, freshness-state counts, positive <=5-day evidence counts, current <=5-day support counts, latest observation diagnostics, and whether conflicts or future timestamps exist.
 
