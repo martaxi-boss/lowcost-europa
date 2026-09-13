@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
 from apps.integrations.aliexpress.client import AliExpressClient
+from apps.integrations.aliexpress.exceptions import AliExpressResponseError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 
@@ -32,6 +33,10 @@ def import_aliexpress_product(
 
     # All network work happens before opening the database transaction.
     product = client.get_product_detail(product_id, country, currency)
+    if product.product_id != product_id:
+        raise AliExpressResponseError(
+            "detail product_id does not match requested product_id"
+        )
     affiliate_url = product.affiliate_url
     if product.product_url:
         affiliate_url = client.generate_affiliate_link(product.product_url)
