@@ -73,7 +73,7 @@ class Command(BaseCommand):
             lines.append("Candidates:")
             lines.append(
                 "product_id | title | price | currency | eval% | sales | commission% | "
-                "search_days | detail_days | obs_search_days | obs_detail_days | outcome"
+                "search_days | detail_days | evidence_state | supports_5d | outcome"
             )
             for candidate in result.candidates[:25]:
                 title = " ".join((candidate.title or "").split())[:70]
@@ -107,14 +107,12 @@ class Command(BaseCommand):
                                 if candidate.detail_delivery_days is not None
                                 else "-"
                             ),
+                            candidate.evidence_state or "-",
                             (
-                                str(candidate.observation_search_delivery_days)
-                                if candidate.observation_search_delivery_days is not None
-                                else "-"
-                            ),
-                            (
-                                str(candidate.observation_detail_delivery_days)
-                                if candidate.observation_detail_delivery_days is not None
+                                "yes"
+                                if candidate.supports_within_5_days is True
+                                else "no"
+                                if candidate.supports_within_5_days is False
                                 else "-"
                             ),
                             candidate.outcome,

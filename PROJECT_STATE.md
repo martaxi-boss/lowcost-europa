@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **GATE 7 CLOSED — LE-008 AUTHORIZED**.
+Current state: **LE-008 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -51,7 +51,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-008 — Conservative logistics evidence assessment` is authorized as GitHub Issue #24.
+`LE-008 — Conservative logistics evidence assessment` is implemented on its Builder branch and awaits Supervisor review as GitHub Issue #24.
 
 LE-008 must create a small, derived, non-persisted assessment of logistics evidence for a single `OfferObservation`. It must classify observations as `UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` or `CONFLICT` according to the separately persisted search/detail delivery values.
 
@@ -59,10 +59,14 @@ At observation level only, the assessment may report whether the available non-c
 
 LE-008 must not create `effective_delivery_days`, database fields, migrations, precedence between search/detail, numeric confidence/scoring, automatic filtering of persistence, ranking, winners or customer-facing delivery claims. The assessment may appear in diagnostic discovery output for human review only.
 
+The implemented derived service classifies exactly five states (`UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT`, `CONFLICT`). Non-conflicting source evidence supports the <=5-day candidate criterion only when its interpreted day value is <=5; every conflict returns false, including conflicts where both values are <=5. No schema change or scoring was introduced.
+
+The LE-008 live dry-run (`HIFU machine`, PT/EUR, EN, delivery filter 5, limit 3) returned two search candidates with 5-day search evidence, but both detail operations returned sanitized `AliExpressAPIError`; therefore no integrated evidence state was asserted from that live batch. Database counts remained zero before and after.
+
 ## Planned later task
 
 `LE-UX-001 — UX/UI e Design System inicial` remains recorded as GitHub Issue #2. It must not start until a later explicit Supervisor decision after the data motor is sufficiently understood for truthful presentation.
 
 ## Gate
 
-Gate 7 is closed. LE-008 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 8 before merge. No LE-009, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 8 is active. LE-008 is implemented on its dedicated Builder branch and awaits Supervisor review. The Builder must stop before merge. No LE-009, scoring, LE-UX-001, frontend or public deployment is authorized.

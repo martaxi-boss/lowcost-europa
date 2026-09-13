@@ -176,6 +176,10 @@ class DiscoveryTests(TransactionTestCase):
             ],
             [(5, None), (None, 5), (5, 5)],
         )
+        self.assertEqual(
+            [(c.evidence_state, c.supports_within_5_days) for c in result.candidates],
+            [("SEARCH_ONLY", True), ("DETAIL_ONLY", True), ("CONSISTENT", True)],
+        )
 
     def test_invalid_delivery_filter_is_rejected_before_search(self):
         client = FakeDiscoveryClient([product("42")])

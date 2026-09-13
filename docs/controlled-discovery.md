@@ -12,6 +12,8 @@ Search and detail provenance remain separate. Search-level `ship_to_days_raw` / 
 
 The existing data-coverage metrics for price, currency, evaluation percentage, sales, commission and detail logistics remain factual observations. LE-006 adds separate search logistics metrics and a delivery mismatch count. Missing logistics means unknown data, not rejection or slow delivery.
 
+LE-008 adds a derived diagnostic assessment for each successful candidate. Output may show `evidence_state` (`UNKNOWN`, `SEARCH_ONLY`, `DETAIL_ONLY`, `CONSISTENT` or `CONFLICT`) and `supports_5d`. This is an in-memory interpretation of the already-separated delivery values only. It does not filter, rank, deactivate or skip persistence, and it does not create a final/effective delivery value or customer-facing promise.
+
 Example:
 
 ```text
