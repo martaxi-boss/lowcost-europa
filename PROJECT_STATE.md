@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-010 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 10 CLOSED — LE-011 AUTHORIZED**.
 
 ## Strategic state
 
@@ -36,6 +36,7 @@ Measure and understand before automating critical decisions.
 - LE-007 provenance-aware logistics persistence was approved at Gate 7 and merged into `main` through PR #23.
 - LE-008 conservative logistics evidence assessment was approved at Gate 8 and merged into `main` through PR #26.
 - LE-009 temporal validity of logistics evidence was approved at Gate 9 and merged into `main` through PR #29.
+- LE-010 longitudinal logistics history diagnostics was approved at Gate 10 and merged into `main` through PR #32.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
 - AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
 - Plain `HIFU` search previously showed strong Hanfu/cosplay semantic noise; specific queries such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` produced relevant professional HIFU products in the observed studies.
@@ -48,10 +49,10 @@ Measure and understand before automating critical decisions.
 - LE-008 reports only whether one observation contains non-conflicting source evidence compatible with the <=5-day candidate criterion. `CONFLICT` never supports the criterion automatically, even when both values are <=5.
 - LE-009 added a pure, derived, timezone-aware freshness assessment with `FRESH`, `STALE` and `FUTURE`; its 24-hour window remains provisional diagnostic configuration, not commercial policy.
 - LE-009 composes freshness with LE-008 only for internal `supports_current_5d_candidate`; one shared `as_of` is used per discovery batch, with no automatic filtering, ranking or persistence changes.
-- LE-009 final validation passed 110 tests with PostgreSQL 16 and exact-head CI green.
 - A single fresh positive observation is not sufficient, by itself, to authorize a public delivery promise. No final minimum-history threshold has been defined.
-- LE-010 adds a read-only longitudinal logistics history diagnostic for one Offer, reusing LE-008 evidence and LE-009 freshness over existing append-only observations.
-- LE-010 reports chronological counts, span, latest diagnostics, conflict/future flags and current-support counts with no schema change, score, percentage or commercial stability threshold.
+- LE-010 added a read-only longitudinal logistics history diagnostic for one Offer, using one ordered query plus O(n) in-memory evaluation. It reports chronological counts, span, latest diagnostics, conflict/future flags and current-support counts without score, percentage or stability decision.
+- LE-010 final validation passed 120 tests with PostgreSQL 16 and exact-head CI green. The live study DB remained empty and the read-only `Offer not found` path was validated honestly.
+- The live catalog study database still has no real longitudinal cohort; therefore no commercial stability threshold is authorized.
 - No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
@@ -60,15 +61,15 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-010 — Longitudinal logistics history diagnostics` is implemented on the dedicated Builder branch and awaits Supervisor review at Gate 10.
+`LE-011 — Controlled real logistics observation cohort` is authorized as GitHub Issue #33.
 
-LE-010 must add a derived, read-only diagnostic of the historical `OfferObservation` sequence for one Offer. It must summarize observation count, first/last observation, span, evidence-state counts, freshness-state counts, positive <=5-day evidence counts, current <=5-day support counts, latest observation diagnostics, and whether conflicts or future timestamps exist.
+LE-011 must create a tiny, explicit, non-commercial live cohort for future longitudinal study: PT/EUR, professional HIFU, at most 3 Offers, manually identified and documented, with one real baseline `OfferObservation` per Offer.
 
-The implementation should reuse the approved LE-008 evidence assessment and LE-009 freshness assessment, use one explicit `as_of` and `max_age` for the full history evaluation, and keep deterministic ordering by `observed_at`.
+Before any live write, the exact selection must be exercised in dry-run. Commit mode must require explicit intent and must reject a cohort larger than 3 products. The implementation must reuse existing LE-007 persistence/provenance and must not create a Cohort model, migration, score, ranking or automatic selection.
 
-LE-010 must not define a commercial stability threshold, `commercially_usable`, `verified_delivery`, numeric confidence/score, ranking, winner selection, automatic filtering, scheduler, cron or customer-facing delivery claim. It must not add schema or migrations or alter catalog persistence.
+The baseline study must be archived at `docs/studies/LE-011-INITIAL-LOGISTICS-COHORT.md`. After the baseline, `aliexpress_logistics_history` must confirm exactly one Observation per cohort Offer. The Builder must not immediately repeat observations merely to fabricate history.
 
-A read-only manual history-inspection command may be added. If the live study database has no history, that fact must be reported honestly; no writes should be introduced merely to fabricate longitudinal evidence.
+No commercial stability threshold, customer-facing delivery claim, automatic filtering, scheduler, cron, ProductFamily automation, frontend, deployment or infrastructure increase is authorized.
 
 ## Planned later task
 
@@ -76,4 +77,4 @@ A read-only manual history-inspection command may be added. If the live study da
 
 ## Gate
 
-Gate 9 is closed. LE-010 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 10 before merge. No LE-011, commercial stability threshold, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 10 is closed. LE-011 is authorized on a dedicated Builder branch. The Builder must stop at Gate 11 before merge. No LE-012, commercial stability threshold, scoring, LE-UX-001, frontend or public deployment is authorized.
