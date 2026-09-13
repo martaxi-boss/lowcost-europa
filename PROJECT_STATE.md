@@ -2,7 +2,7 @@
 
 Updated: 2026-09-13.
 
-Current state: **LE-006 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 6 CLOSED — LE-007 AUTHORIZED**.
 
 ## Strategic state
 
@@ -32,18 +32,16 @@ Measure and understand before automating critical decisions.
 - LE-004 controlled AliExpress persistence was approved at Gate 4 and merged into `main` through PR #11.
 - The deep audit through Gate 4 is archived at `docs/audits/AUDIT_GATE_4.md` and the post-Gate-4 checkpoint was approved externally.
 - LE-005 controlled Portugal discovery was approved at Gate 5 and merged into `main` through PR #17.
+- LE-006 controlled search precision and delivery filtering was approved at Gate 6 and merged into `main` through PR #20.
 - Python 3.12, Django 5.2 LTS and PostgreSQL 16 remain the approved foundation.
 - AliExpress integration, catalog persistence and bounded discovery are implemented with automated tests and GitHub Actions CI.
-- LE-005 final suite passed 69 tests with no migration drift and no new infrastructure cost.
-- The first HIFU/PT study showed two key findings: plain `HIFU` search produced strong Hanfu/cosplay semantic noise, and the initial batch exposed no normalized delivery data.
-- Supervisor verification after Gate 5 confirmed that more specific keywords such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` return relevant professional HIFU products.
-- Supervisor verification also confirmed that the documented AliExpress `delivery_days=5` query filter returns HIFU candidates with normalized `Ship to PT in 5 days` / `delivery_days=5` in the observed live sample.
-- No scoring, ranking, winner selection, frontend, public deployment or autonomous scheduling has started.
-- LE-006 adds optional `target_language` and documented `delivery_days` search controls without schema changes.
-- Three LE-006 dry-run studies used `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` with PT/EUR, EN and `delivery_days=5`.
-- Across those studies, search returned normalized 5-day logistics for all 25 candidates; detail returned no interpretable delivery days for 24 successful details, producing 24 search/detail mismatches.
-- One Study B candidate returned a sanitized external `AliExpressAPIError`; no rate-limit subtype was confirmed from retained evidence.
-- The specific HIFU machine queries removed the obvious Hanfu/cosplay noise seen with plain `HIFU`; this remains human-review evidence, not scoring.
+- LE-006 final suite passed 76 tests with no migration drift and no new infrastructure cost.
+- Plain `HIFU` search previously showed strong Hanfu/cosplay semantic noise; specific queries such as `HIFU machine`, `7D HIFU machine` and `professional HIFU machine` produced relevant professional HIFU products in the observed studies.
+- LE-006 added optional `target_language` and documented `delivery_days` search controls while preserving backward compatibility.
+- Across three LE-006 PT/EUR/EN dry-run studies with `delivery_days=5`, search returned normalized 5-day logistics for all 25 observed candidates.
+- 24 detail operations succeeded, and none of those 24 reproduced `delivery_days`; 24 search/detail logistics mismatches were therefore observed.
+- Search and detail logistics remain separate. No data fusion, scoring, ranking, winner selection or customer-facing delivery claim has been authorized.
+- No frontend, public deployment or autonomous scheduling has started.
 
 ## Infrastructure classification
 
@@ -51,13 +49,13 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-006 — Controlled search precision and delivery filtering` is implemented on its Builder branch and awaits Supervisor review.
+`LE-007 — Provenance-aware logistics persistence` is authorized as GitHub Issue #21.
 
-LE-006 must add only the minimal explicit search controls needed to study search precision and source-supported fast-delivery filtering for Portugal. It must remain bounded, manual and measurable, reuse the existing integration/discovery/persistence pipeline and introduce no scoring or automatic commercial decisions.
+LE-007 must persist logistics evidence with explicit provenance before any scoring or customer-facing use. The current `OfferObservation.ship_to_days_raw` and `OfferObservation.delivery_days` remain detail-level evidence. The phase may add separate nullable search-level logistics fields and pass search evidence from controlled discovery into persistence only for the same product ID.
 
-The phase may support the documented AliExpress search parameters `target_language` and `delivery_days` in a controlled way. Initial live studies use PT/EUR, `target_language=EN`, `delivery_days=5` and explicit professional HIFU keyword variants. `delivery_days=5` is a source query/filter, not by itself a customer promise; future presentation still requires per-product normalized evidence.
+LE-007 must use a normal new migration; the already-merged catalog initial migration must not be rewritten. Manual product imports without search context must leave search-level logistics fields NULL. Search values must never be silently copied into detail fields, and detail values must never be silently copied into search fields.
 
-No ProductFamily auto-assignment, relevance scoring, ranking, winner selection, automated keyword expansion, scheduler, cron, mass import or publication is authorized.
+No `effective_delivery_days`, ProductFamily auto-assignment, scoring, ranking, winner selection, scheduler, cron, mass import, publication or customer-facing delivery promise is authorized.
 
 ## Planned later task
 
@@ -65,4 +63,4 @@ No ProductFamily auto-assignment, relevance scoring, ranking, winner selection, 
 
 ## Gate
 
-Gate 5 is closed. LE-006 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 6 before merge. No LE-007, scoring, LE-UX-001, frontend or public deployment is authorized.
+Gate 6 is closed. LE-007 is authorized on a dedicated Builder branch. The Builder must open a Pull Request and stop at Gate 7 before merge. No LE-008, scoring, LE-UX-001, frontend or public deployment is authorized.
