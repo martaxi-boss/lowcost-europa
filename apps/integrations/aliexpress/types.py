@@ -25,3 +25,9 @@ class AliExpressProduct:
     delivery_days: int | None = None
     destination_country: str | None = None
     affiliate_url: str | None = None
+
+
+@dataclass(frozen=True)
+class AliExpressSearchResult:
+    products: list[AliExpressProduct]
+    invalid_items: int = 0

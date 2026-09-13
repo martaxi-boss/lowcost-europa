@@ -12,6 +12,7 @@ from .exceptions import (
 )
 from .normalizers import normalize_category, normalize_product
 from .signing import sign_hmac_sha256
+from .types import AliExpressSearchResult
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +37,9 @@ class AliExpressClient:
             "v": "2.0",
         }
 
-    def _call(
-        self, method: str, business_params: dict[str, object] | None = None
-    ) -> dict:
+    def _call(self, method: str, business_params: dict[str, object] | None = None) -> dict:
         params = self._base_params(method)
-        params.update(
-            {k: v for k, v in (business_params or {}).items() if v is not None}
-        )
+        params.update({k: v for k, v in (business_params or {}).items() if v is not None})
         params["sign"] = sign_hmac_sha256(params, self.config.app_secret)
         encoded = parse.urlencode(params).encode("utf-8")
         req = request.Request(self.config.gateway, data=encoded, method="POST")
@@ -67,9 +64,7 @@ class AliExpressClient:
                         exc.code,
                     )
                     continue
-                raise AliExpressTransportError(
-                    f"AliExpress HTTP error {exc.code}"
-                ) from exc
+                raise AliExpressTransportError(f"AliExpress HTTP error {exc.code}") from exc
             except (error.URLError, TimeoutError) as exc:
                 if attempt < attempts:
                     logger.warning(
@@ -80,9 +75,7 @@ class AliExpressClient:
                     continue
                 raise AliExpressTransportError("AliExpress transport error") from exc
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-                raise AliExpressResponseError(
-                    "Invalid AliExpress response payload"
-                ) from exc
+                raise AliExpressResponseError("Invalid AliExpress response payload") from exc
         raise AliExpressTransportError("AliExpress request failed")
 
     @staticmethod
@@ -97,9 +90,7 @@ class AliExpressClient:
                 or "appkey" in sub_code.lower()
                 or "signature" in sub_code.lower()
             ):
-                raise AliExpressAuthenticationError(
-                    f"AliExpress authentication error: {message}"
-                )
+                raise AliExpressAuthenticationError(f"AliExpress authentication error: {message}")
             raise AliExpressAPIError(f"AliExpress API error {code}: {message}")
         return payload
 
@@ -121,14 +112,14 @@ class AliExpressClient:
         categories = result.get("categories", {}).get("category", [])
         return [normalize_category(item) for item in categories]
 
-    def search_products(
+    def search_products_diagnostic(
         self,
         keyword: str,
         country: str = "PT",
         currency: str = "EUR",
         page_no: int = 1,
         page_size: int = 20,
-    ):
+    ) -> AliExpressSearchResult:
         result = self._result(
             self._call(
                 self.SEARCH_METHOD,
@@ -143,12 +134,37 @@ class AliExpressClient:
             ),
             self.SEARCH_METHOD,
         )
-        products = result.get("products", {}).get("product", [])
-        return [normalize_product(item, country) for item in products]
+        if not isinstance(result, dict):
+            raise AliExpressResponseError("Unexpected product search response")
+        raw_products = result.get("products", {}).get("product", [])
+        if not isinstance(raw_products, list):
+            raise AliExpressResponseError("Unexpected product search list")
 
-    def get_product_detail(
-        self, product_id: str, country: str = "PT", currency: str = "EUR"
+        products = []
+        invalid_items = 0
+        for item in raw_products:
+            if not isinstance(item, dict):
+                invalid_items += 1
+                continue
+            try:
+                products.append(normalize_product(item, country))
+            except AliExpressResponseError:
+                invalid_items += 1
+        return AliExpressSearchResult(products=products, invalid_items=invalid_items)
+
+    def search_products(
+        self,
+        keyword: str,
+        country: str = "PT",
+        currency: str = "EUR",
+        page_no: int = 1,
+        page_size: int = 20,
     ):
+        return self.search_products_diagnostic(
+            keyword, country, currency, page_no, page_size
+        ).products
+
+    def get_product_detail(self, product_id: str, country: str = "PT", currency: str = "EUR"):
         result = self._result(
             self._call(
                 self.DETAIL_METHOD,
@@ -161,11 +177,7 @@ class AliExpressClient:
             ),
             self.DETAIL_METHOD,
         )
-        products = (
-            result.get("products", {}).get("product", [])
-            if isinstance(result, dict)
-            else []
-        )
+        products = result.get("products", {}).get("product", []) if isinstance(result, dict) else []
         item = products[0] if products else result
         if not isinstance(item, dict):
             raise AliExpressResponseError("Unexpected product detail response")
