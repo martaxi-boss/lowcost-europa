@@ -71,8 +71,9 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - A technical HTTPS staging deployment now exists on the current Droplet; it is explicitly noindex and is not a public MVP launch or production release.
 - The approved Admin, storefront shell and production-settings hardening integrations are now merged into `main`.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
-- Offers `1005012522304882` and `1005013116584854` are manually associated with that family; `1005013002556821` remains unassigned because it is explicitly a distinct 22D MAX model.
-- Current live catalog state is 1 ProductFamily / 3 Offers / 6 OfferObservations. No new Offer or Observation was created during curation.
+- Offers `1005012522304882` and `1005013116584854` remain manually associated with the 7D family.
+- MVP LIVE CATALOG 002 created the second real ProductFamily: `Máquinas HIFU 22D MAX` (`maquinas-hifu-22d-max`), status `NEW`; existing Offer `1005013002556821` is its sole active Offer and explicit editorial primary.
+- Current live catalog state is 2 ProductFamilies / 3 Offers / 6 OfferObservations / 1 OfferClick. No new Offer, Observation, or OfferClick was created during the second-family curation.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
 - `/go/<offer_id>/` and privacy-minimal raw outbound click tracking are implemented in code with no user identification, impressions, conversion or revenue tracking.
@@ -111,7 +112,7 @@ MVP construction is active. Manual live catalog curation, editorial primary sele
 8. Add minimal, privacy-respecting click tracking — operational as raw outbound `OfferClick` events only, with no user identification; no real-user click claim yet.
 9. Establish real staging — completed on the current Droplet with HTTPS Nginx, local Gunicorn, systemd, production settings and noindex.
 10. Add operational hardening and backup — local daily backup + restore drill completed; off-server backup still pending.
-11. Expand to 5–10 ProductFamilies.
+11. Expand to 5–10 ProductFamilies — started conservatively; 2 real ProductFamilies are now live using only the existing 3 Offers.
 12. Complete mobile/desktop QA — real Chromium desktop/mobile visual QA completed on staging with PASS; second Offer image quality (123x123 source) remains a non-blocking pre-launch data-quality finding.
 13. Add basic technical SEO and legal/affiliate transparency.
 14. Launch the Portugal MVP.
