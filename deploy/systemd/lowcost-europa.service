@@ -1,0 +1,17 @@
+[Unit]
+Description=Lowcost Europa Django staging
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=le001_1789265592
+WorkingDirectory=/srv/lowcost-europa
+EnvironmentFile=/etc/lowcost-europa/lowcost-europa.env
+ExecStart=/srv/lowcost-europa/.venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8001 --access-logfile - --error-logfile - config.wsgi:application
+Restart=on-failure
+RestartSec=3
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
