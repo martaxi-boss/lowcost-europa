@@ -68,7 +68,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - LE-013 longitudinal work is not authorized. Any further longitudinal research requires a concrete blocker and explicit Supervisor approval.
 - The default direction is now MVP transition, not an automatic third longitudinal research round.
 - No commercial stability threshold has been authorized.
-- No public deployment or autonomous scheduling has started; the server-rendered storefront shell is integrated but not publicly deployed.
+- A technical HTTPS staging deployment now exists on the current Droplet; it is explicitly noindex and is not a public MVP launch or production release.
 - The approved Admin, storefront shell and production-settings hardening integrations are now merged into `main`.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
 - Offers `1005012522304882` and `1005013116584854` are manually associated with that family; `1005013002556821` remains unassigned because it is explicitly a distinct 22D MAX model.
@@ -76,7 +76,9 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
 - `/go/<offer_id>/` and privacy-minimal raw outbound click tracking are implemented in code with no user identification, impressions, conversion or revenue tracking.
-- `catalog.0004_offerclick` is not applied live in this task; no live click rows exist and no public deployment has occurred.
+- `catalog.0004_offerclick` is applied live. OfferClick is operational with exactly one controlled STAGING VALIDATION CLICK and no real user click claim.
+- Real Django staging is established through Nginx -> Gunicorn -> Django production settings -> PostgreSQL; systemd and HTTPS are active, while public MVP launch remains unauthorized.
+- Conversion, revenue and external analytics tracking remain unimplemented.
 
 ## Infrastructure classification
 
@@ -84,7 +86,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-MVP construction is active. The approved preparatory components are integrated, and manual live catalog curation has started with one real ProductFamily while preserving conservative logistics language and zero public deployment.
+MVP construction is active. Manual live catalog curation, editorial primary selection, privacy-minimal click tracking and a noindex technical staging environment are operational while preserving conservative logistics language. Public MVP launch is not authorized.
 
 ### MVP integrations completed
 
@@ -101,9 +103,9 @@ MVP construction is active. The approved preparatory components are integrated, 
 4. First real ProductFamily creation — completed.
 5. Associate 1–3 real Offers — completed for the first family with 2 coherent 7D Offers.
 6. Explicit editorial primary Offer selection — completed for the first family with `1005012522304882`; no scoring or winner inference.
-7. Implement `/go/<offer>/` — implemented in code; live migration/deployment still pending Supervisor authorization.
-8. Add minimal, privacy-respecting click tracking — implemented as raw outbound `OfferClick` events only, with no user identification.
-9. Establish real staging.
+7. Implement `/go/<offer>/` — operational in technical staging after live `catalog.0004`; exactly one controlled validation click exists.
+8. Add minimal, privacy-respecting click tracking — operational as raw outbound `OfferClick` events only, with no user identification; no real-user click claim yet.
+9. Establish real staging — completed on the current Droplet with HTTPS Nginx, local Gunicorn, systemd, production settings and noindex.
 10. Add operational hardening and backup.
 11. Expand to 5–10 ProductFamilies.
 12. Complete mobile/desktop QA.
