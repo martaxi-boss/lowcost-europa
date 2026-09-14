@@ -1,7 +1,13 @@
+import logging
+
+from django.db import IntegrityError, OperationalError
 from django.db.models import Prefetch
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from apps.catalog.models import Offer, OfferObservation, ProductFamily
+from apps.catalog.models import Offer, OfferClick, OfferObservation, ProductFamily
+
+logger = logging.getLogger(__name__)
 
 PUBLIC_STATUS_LABELS = {
     ProductFamily.Status.NEW: "Em preparação",
@@ -30,6 +36,9 @@ def _prepare_family(family):
             offer.latest_observations[0] if offer.latest_observations else None
         )
         offer.logistics_text = _logistics_text(offer.latest_observation)
+        offer.can_redirect = bool(
+            family.status != ProductFamily.Status.RETIRED and offer.affiliate_url
+        )
     family.display_offer = next(
         (offer for offer in family.active_offers if offer.is_primary),
         family.active_offers[0] if family.active_offers else None,
@@ -83,3 +92,21 @@ def product_family_detail(request, slug):
             "meta_description": f"Ofertas atuais e informação factual para {family.name}.",
         },
     )
+
+
+def offer_go(request, offer_id):
+    eligible = Offer.objects.select_related("product_family").filter(
+        pk=offer_id,
+        is_active=True,
+        product_family__isnull=False,
+    ).exclude(product_family__status=ProductFamily.Status.RETIRED)
+    offer = get_object_or_404(eligible)
+    if not offer.affiliate_url:
+        raise Http404
+
+    destination = offer.affiliate_url
+    try:
+        OfferClick.objects.create(offer=offer)
+    except (IntegrityError, OperationalError):
+        logger.warning("Offer click persistence failed offer_id=%s", offer.pk)
+    return HttpResponseRedirect(destination)

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import Offer, OfferObservation, ProductFamily
+from .models import Offer, OfferClick, OfferObservation, ProductFamily
 
 
 class ProductFamilyAdminForm(forms.ModelForm):
@@ -102,6 +102,24 @@ class OfferObservationAdmin(admin.ModelAdmin):
     list_filter = ("availability", "destination_country", "currency")
     list_select_related = ("offer",)
     ordering = ("-observed_at", "-pk")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(OfferClick)
+class OfferClickAdmin(admin.ModelAdmin):
+    list_display = ("offer", "clicked_at")
+    search_fields = ("offer__external_product_id", "offer__title")
+    list_filter = ("clicked_at",)
+    list_select_related = ("offer",)
+    ordering = ("-clicked_at", "-pk")
 
     def has_add_permission(self, request):
         return False

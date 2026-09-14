@@ -109,6 +109,24 @@ class Offer(models.Model):
         return f"{self.source}:{self.external_product_id}"
 
 
+class OfferClick(models.Model):
+    offer = models.ForeignKey(
+        Offer,
+        on_delete=models.PROTECT,
+        related_name="clicks",
+    )
+    clicked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["offer", "-clicked_at"], name="catalog_click_offer_time_idx")
+        ]
+        ordering = ["-clicked_at", "-pk"]
+
+    def __str__(self):
+        return f"{self.offer} @ {self.clicked_at.isoformat()}"
+
+
 class OfferObservation(models.Model):
     class Availability(models.TextChoices):
         UNKNOWN = "UNKNOWN", "Unknown"

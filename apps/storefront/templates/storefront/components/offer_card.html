@@ -18,6 +18,11 @@
   {% else %}
     <p class="muted">Ainda não existe uma observação factual para esta oferta.</p>
   {% endif %}
-  <button class="button" type="button" disabled aria-disabled="true">Ver oferta</button>
-  <p class="meta">O acesso comercial será ativado através do futuro redirect com medição de clique.</p>
+  {% if offer.can_redirect %}
+    <a class="button" href="{% url 'storefront:offer-go' offer.pk %}">Ver oferta</a>
+    <p class="meta">Será encaminhado para o vendedor. O Lowcost Europa pode receber uma comissão, sem custo adicional necessário para si.</p>
+  {% else %}
+    <button class="button" type="button" disabled aria-disabled="true">Ver oferta</button>
+    <p class="meta">Esta oferta não está disponível para encaminhamento neste momento.</p>
+  {% endif %}
 </article>
