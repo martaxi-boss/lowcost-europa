@@ -82,7 +82,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - Staging deploy workspace is reconciled to merged main `c1b96768b23ae4a34c907e8ef24c4dad44e5a7d6`; health, storefront and AliExpress callback remain HTTP 200 with noindex preserved.
 - PostgreSQL restore drill passed: the pre-0004 backup restored into an isolated temporary DB, retained 1/3/6 and the editorial primary, migrated forward through catalog.0004, then the temporary DB was dropped.
 - A local daily PostgreSQL backup timer is operational with 7-day retention; off-server backup remains pending Supervisor/owner decision.
-- Desktop/mobile technical QA baseline passed; MVP UX 002 now implements factual remote product imagery in code with placeholder fallback, but this imagery change is not yet deployed to staging and pixel-level graphical QA remains pending. No additional OfferClick was created.
+- Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; this is a non-blocking pre-launch data-quality finding. No additional OfferClick was created.
 
 ## Infrastructure classification
 
@@ -112,7 +112,7 @@ MVP construction is active. Manual live catalog curation, editorial primary sele
 9. Establish real staging — completed on the current Droplet with HTTPS Nginx, local Gunicorn, systemd, production settings and noindex.
 10. Add operational hardening and backup — local daily backup + restore drill completed; off-server backup still pending.
 11. Expand to 5–10 ProductFamilies.
-12. Complete mobile/desktop QA — technical baseline completed and product imagery implemented in code; staging deployment of imagery and pixel-level visual QA remain follow-up work.
+12. Complete mobile/desktop QA — real Chromium desktop/mobile visual QA completed on staging with PASS; second Offer image quality (123x123 source) remains a non-blocking pre-launch data-quality finding.
 13. Add basic technical SEO and legal/affiliate transparency.
 14. Launch the Portugal MVP.
 15. Measure business outcomes.
