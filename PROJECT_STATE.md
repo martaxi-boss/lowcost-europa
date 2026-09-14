@@ -79,6 +79,10 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - `catalog.0004_offerclick` is applied live. OfferClick is operational with exactly one controlled STAGING VALIDATION CLICK and no real user click claim.
 - Real Django staging is established through Nginx -> Gunicorn -> Django production settings -> PostgreSQL; systemd and HTTPS are active, while public MVP launch remains unauthorized.
 - Conversion, revenue and external analytics tracking remain unimplemented.
+- Staging deploy workspace is reconciled to merged main `c1b96768b23ae4a34c907e8ef24c4dad44e5a7d6`; health, storefront and AliExpress callback remain HTTP 200 with noindex preserved.
+- PostgreSQL restore drill passed: the pre-0004 backup restored into an isolated temporary DB, retained 1/3/6 and the editorial primary, migrated forward through catalog.0004, then the temporary DB was dropped.
+- A local daily PostgreSQL backup timer is operational with 7-day retention; off-server backup remains pending Supervisor/owner decision.
+- Desktop/mobile technical QA baseline passed with a known UX gap: the current storefront shell still uses placeholder media and renders no product image element. No additional OfferClick was created.
 
 ## Infrastructure classification
 
@@ -106,9 +110,9 @@ MVP construction is active. Manual live catalog curation, editorial primary sele
 7. Implement `/go/<offer>/` — operational in technical staging after live `catalog.0004`; exactly one controlled validation click exists.
 8. Add minimal, privacy-respecting click tracking — operational as raw outbound `OfferClick` events only, with no user identification; no real-user click claim yet.
 9. Establish real staging — completed on the current Droplet with HTTPS Nginx, local Gunicorn, systemd, production settings and noindex.
-10. Add operational hardening and backup.
+10. Add operational hardening and backup — local daily backup + restore drill completed; off-server backup still pending.
 11. Expand to 5–10 ProductFamilies.
-12. Complete mobile/desktop QA.
+12. Complete mobile/desktop QA — technical baseline completed; pixel-level visual QA/product imagery remain follow-up work.
 13. Add basic technical SEO and legal/affiliate transparency.
 14. Launch the Portugal MVP.
 15. Measure business outcomes.
