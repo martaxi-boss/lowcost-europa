@@ -79,3 +79,26 @@ assert settings.SECURE_HSTS_SECONDS == 3600
             "DJANGO_SECURE_HSTS_SECONDS must be an integer",
             result.stderr,
         )
+
+    def test_boolean_environment_values_are_strict(self):
+        true_probe = self._run_settings_probe(
+            "from config.settings.base import env_bool; assert env_bool('FLAG') is True",
+            FLAG="  TrUe  ",
+        )
+        false_probe = self._run_settings_probe(
+            "from config.settings.base import env_bool; assert env_bool('FLAG') is False",
+            FLAG="false",
+        )
+        self.assertEqual(true_probe.returncode, 0, true_probe.stderr)
+        self.assertEqual(false_probe.returncode, 0, false_probe.stderr)
+
+    def test_invalid_secure_ssl_redirect_boolean_fails_startup(self):
+        result = self._run_settings_probe(
+            "from config.settings import production",
+            DJANGO_SECURE_SSL_REDIRECT="not-a-boolean",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "DJANGO_SECURE_SSL_REDIRECT must be a boolean",
+            result.stderr,
+        )

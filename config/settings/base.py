@@ -12,7 +12,12 @@ def env(name: str, default: str | None = None) -> str:
 
 
 def env_bool(name: str, default: bool = False) -> bool:
-    return env(name, "true" if default else "false").strip().lower() in {"1", "true", "yes", "on"}
+    raw_value = env(name, "true" if default else "false").strip().lower()
+    if raw_value in {"1", "true", "yes", "on"}:
+        return True
+    if raw_value in {"0", "false", "no", "off"}:
+        return False
+    raise RuntimeError(f"Environment variable {name} must be a boolean")
 
 
 def env_list(name: str, default: str = "") -> list[str]:
