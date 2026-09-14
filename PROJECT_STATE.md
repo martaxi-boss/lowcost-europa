@@ -1,8 +1,8 @@
 # Lowcost Europa — Project State
 
-Updated: 2026-09-13.
+Updated: 2026-09-14.
 
-Current state: **GATE 11 CLOSED — LE-012 AUTHORIZED**.
+Current state: **LE-012 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
 
 ## Strategic state
 
@@ -56,6 +56,11 @@ Measure and understand before automating critical decisions.
 - LE-011 created the first controlled live longitudinal baseline: 3 professional-HIFU AliExpress Offers and 3 OfferObservations for PT/EUR, one baseline Observation per Offer.
 - All three baseline Observations preserve search delivery=5 and detail delivery=NULL as separate provenance; each diagnosed as SEARCH_ONLY and FRESH at baseline time.
 - LE-011 used one explicit live commit after exact-cohort dry-run, kept ProductFamily unassigned, did not run a second observation, passed 130 tests and exact-head CI, and was independently revalidated against the live DB by the Supervisor.
+- LE-012 executed one controlled second live observation round after more than 24 real hours, using exactly the three fixed LE-011 product IDs after a zero-write dry-run.
+- LE-012 completed 3/3 successfully: ProductFamily remains 0, Offers remain 3, OfferObservations are now 6, with exactly two Observations per Offer.
+- All three second Observations preserve search delivery=5, detail delivery=NULL, SEARCH_ONLY evidence and UNKNOWN availability; latest freshness is FRESH and the older baseline is now diagnostically STALE.
+- Prices changed in the second round; sales counts and 7% commission rates did not change. No external failure, conflict, future timestamp, third observation, score, ranking or automatic commercial decision occurred.
+- After Gate 12, the default direction is transition to MVP, not an automatic third longitudinal research round.
 - No commercial stability threshold has been authorized.
 - No frontend, public deployment or autonomous scheduling has started.
 
