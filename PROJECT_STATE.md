@@ -2,7 +2,7 @@
 
 Updated: 2026-09-14.
 
-Current state: **LE-012 IMPLEMENTED — AWAITING SUPERVISOR REVIEW**.
+Current state: **GATE 12 CLOSED — MVP TRANSITION AUTHORIZED**.
 
 ## Strategic state
 
@@ -19,7 +19,9 @@ Prioritize products with estimated/verifiable delivery in up to **5 days**. Neve
 Professional aesthetics. This does not limit the project to this niche.
 
 ### Automation
-Measure and understand before automating critical decisions.
+Do not require automation before validating the business manually.
+
+Não automatizar totalmente uma decisão que ainda não compreendemos.
 
 ## Technical state
 
@@ -60,7 +62,11 @@ Measure and understand before automating critical decisions.
 - LE-012 completed 3/3 successfully: ProductFamily remains 0, Offers remain 3, OfferObservations are now 6, with exactly two Observations per Offer.
 - All three second Observations preserve search delivery=5, detail delivery=NULL, SEARCH_ONLY evidence and UNKNOWN availability; latest freshness is FRESH and the older baseline is now diagnostically STALE.
 - Prices changed in the second round; sales counts and 7% commission rates did not change. No external failure, conflict, future timestamp, third observation, score, ranking or automatic commercial decision occurred.
-- After Gate 12, the default direction is transition to MVP, not an automatic third longitudinal research round.
+- LE-012 was approved at Gate 12 and merged to `main` through PR #38. Gate 12 is closed.
+- The second round completed 3/3 with live DB state 0 ProductFamilies / 3 Offers / 6 Observations, exactly 2 Observations per fixed Offer.
+- Both time points remained SEARCH_ONLY; two observations do not prove commercial logistics stability and no public 5-day delivery guarantee is authorized.
+- LE-013 longitudinal work is not authorized. Any further longitudinal research requires a concrete blocker and explicit Supervisor approval.
+- The default direction is now MVP transition, not an automatic third longitudinal research round.
 - No commercial stability threshold has been authorized.
 - No frontend, public deployment or autonomous scheduling has started.
 
@@ -70,24 +76,49 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-`LE-012 — Controlled second longitudinal logistics observation` is authorized as GitHub Issue #36.
+MVP transition is authorized. The immediate priority is controlled integration of already approved preparatory work, followed by manual catalog curation and a small Portugal MVP.
 
-LE-012 must reobserve exactly the same three LE-011 cohort Offers, with no additions or substitutions: `1005012522304882`, `1005013116584854` and `1005013002556821`.
+### Approved preparatory branches — frozen awaiting integration
 
-The second live observation round must not occur until at least 24 real hours have elapsed since the LE-011 baseline. This 24-hour delay is an experimental study cadence only; it is not a commercial SLA, final freshness policy or customer-facing delivery guarantee.
+- LE-UX-001A — `195075f5616af2a79ef8f9797c1c99be589daf9e` — APPROVED / FROZEN AWAITING INTEGRATION.
+- LE-MVP-001A — `499a70c753e29747e3da5a38ce7d3802c16a9611` — APPROVED / FROZEN AWAITING INTEGRATION.
+- LE-OPS-001A — `ce503013d014e228c9e8b3ed0992f3ee1565e294` — APPROVED / FROZEN AWAITING INTEGRATION.
 
-Before the single LE-012 live commit, the exact fixed cohort must pass dry-run with zero permanent writes. The phase must reuse the existing append-only persistence, search/detail provenance and longitudinal history tools. No model, table or migration is authorized.
+These branches are not yet merged or active.
 
-If all three products succeed, each Offer should end with exactly two Observations. Partial external failures must be recorded honestly and must not trigger immediate retries or replacement products. The study must compare factual changes in price, commission, sales, search/detail logistics, evidence/freshness and conflicts without deriving a stability score, confidence percentage or commercial threshold.
+## Immediate MVP roadmap
 
-The second-round study must be archived at `docs/studies/LE-012-SECOND-LOGISTICS-OBSERVATION.md`.
+1. Integrate manual catalog curation tooling.
+2. Integrate the storefront shell.
+3. Integrate production settings hardening.
+4. Create the first real ProductFamily.
+5. Associate 1–3 real Offers.
+6. Make an explicit editorial selection of the displayed/primary Offer; do not infer a winner from unapproved scoring.
+7. Implement `/go/<offer>/`.
+8. Add minimal, privacy-respecting click tracking.
+9. Establish real staging.
+10. Add operational hardening and backup.
+11. Expand to 5–10 ProductFamilies.
+12. Complete mobile/desktop QA.
+13. Add basic technical SEO and legal/affiliate transparency.
+14. Launch the Portugal MVP.
+15. Measure business outcomes.
+16. Only then decide whether scoring, scheduling or additional automation is justified.
 
-No third observation, scheduler, cron, automatic revalidation, commercial stability threshold, customer-facing delivery claim, scoring, ranking, winner selection, ProductFamily automation, frontend, deployment or infrastructure increase is authorized.
+## Infrastructure after Gate 12
 
-## Planned later task
+The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the approved initial target. No second server, managed database, Redis, Celery, Elasticsearch, Kubernetes or additional paid infrastructure is authorized. Upgrade only on measured need and Supervisor approval.
 
-`LE-UX-001 — UX/UI e Design System inicial` remains recorded as GitHub Issue #2. It must not start until a later explicit Supervisor decision after the data motor is sufficiently understood for truthful presentation.
+## Security and honesty invariants
+
+- Never promise guaranteed delivery without supporting proof; SEARCH_ONLY requires conservative language.
+- ProductFamily remains permanent; Offer remains replaceable.
+- Observation history remains factual and append-only.
+- Affiliate nature must be disclosed.
+- No fake reviews, cloaking or invasive fingerprinting.
 
 ## Gate
 
-Gate 11 is closed. LE-012 is authorized on a dedicated Builder branch under Issue #36. The Builder must stop at Gate 12 before merge. No LE-013, third longitudinal observation, commercial stability threshold, scoring, LE-UX-001, frontend or public deployment is authorized.
+**GATE 12 CLOSED — MVP TRANSITION AUTHORIZED.**
+
+LE-012 is approved and merged. LE-013 is not authorized. Further longitudinal work requires a concrete blocker plus explicit Supervisor approval. The next phase is controlled MVP construction and integration, not additional research by default.
