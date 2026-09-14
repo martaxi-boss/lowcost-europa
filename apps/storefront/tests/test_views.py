@@ -179,3 +179,93 @@ class StorefrontViewTests(TestCase):
         self.assertNotIn("Entrega garantida", content)
         self.assertNotIn("Estimativa indicada pela pesquisa: 3 dias", content)
         self.assertNotIn("Estimativa indicada no detalhe: 5 dias", content)
+
+    def test_editorial_primary_is_display_offer_even_when_older(self):
+        family = ProductFamily.objects.create(name="Primary Display", slug="primary-display")
+        now = timezone.now()
+        primary = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="primary-display-offer",
+            product_family=family, title="Editorial Primary", is_primary=True,
+            first_seen_at=now - timedelta(days=2), last_seen_at=now - timedelta(days=1),
+        )
+        newer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="newer-display-offer",
+            product_family=family, title="Newer Fallback",
+            first_seen_at=now - timedelta(days=1), last_seen_at=now,
+        )
+        OfferObservation.objects.create(offer=primary, price=Decimal("111.00"), currency="EUR")
+        OfferObservation.objects.create(offer=newer, price=Decimal("222.00"), currency="EUR")
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "111,00 EUR")
+        self.assertNotContains(response, "222,00 EUR")
+
+    def test_editorial_primary_appears_first_on_detail(self):
+        family = ProductFamily.objects.create(name="Primary Order", slug="primary-order")
+        now = timezone.now()
+        primary = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="primary-order-offer",
+            product_family=family, title="Editorial Primary First", is_primary=True,
+            first_seen_at=now - timedelta(days=2), last_seen_at=now - timedelta(days=1),
+        )
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="other-order-offer",
+            product_family=family, title="Other Offer Second",
+            first_seen_at=now - timedelta(days=1), last_seen_at=now,
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        content = response.content.decode()
+        self.assertLess(content.index(primary.title), content.index("Other Offer Second"))
+
+    def test_no_primary_keeps_deterministic_latest_offer_fallback(self):
+        family = ProductFamily.objects.create(name="Fallback Order", slug="fallback-order")
+        now = timezone.now()
+        older = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="older-fallback",
+            product_family=family, title="Older Fallback",
+            first_seen_at=now - timedelta(days=2), last_seen_at=now - timedelta(days=1),
+        )
+        newer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="newer-fallback",
+            product_family=family, title="Newer Fallback",
+            first_seen_at=now - timedelta(days=1), last_seen_at=now,
+        )
+        OfferObservation.objects.create(offer=older, price=Decimal("111.00"), currency="EUR")
+        OfferObservation.objects.create(offer=newer, price=Decimal("222.00"), currency="EUR")
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "222,00 EUR")
+        self.assertNotContains(response, "111,00 EUR")
+
+    def test_inactive_offer_is_never_used_as_primary(self):
+        family = ProductFamily.objects.create(
+            name="Inactive Primary Family", slug="inactive-primary"
+        )
+        active = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="active-fallback",
+            product_family=family, title="Active Fallback",
+        )
+        inactive = Offer(
+            source=Offer.Source.ALIEXPRESS, external_product_id="inactive-primary-invalid",
+            product_family=family, title="Hidden Inactive Offer", is_active=False, is_primary=False,
+        )
+        inactive.save()
+        OfferObservation.objects.create(offer=active, price=Decimal("333.00"), currency="EUR")
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertContains(response, "Active Fallback")
+        self.assertNotContains(response, "Hidden Inactive Offer")
+
+    def test_primary_selection_adds_no_promotional_language(self):
+        family = ProductFamily.objects.create(name="Neutral Primary", slug="neutral-primary")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="neutral-primary-offer",
+            product_family=family, title="Neutral Offer", is_primary=True,
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        content = response.content.decode().lower()
+        for phrase in ("winner", "recomendado", "melhor oferta", "escolha nº 1"):
+            self.assertNotIn(phrase, content)

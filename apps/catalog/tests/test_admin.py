@@ -85,6 +85,22 @@ class CatalogAdminTests(TestCase):
         self.assertTrue(expected_readonly.issubset(readonly))
         self.assertNotIn("product_family", readonly)
         self.assertNotIn("is_active", readonly)
+        self.assertNotIn("is_primary", readonly)
+
+
+    def test_offer_admin_rejects_inactive_primary(self):
+        model_admin = admin.site._registry[Offer]
+        form_class = model_admin.get_form(self.request, self.offer)
+        form = form_class(
+            data={
+                "product_family": self.family.pk,
+                "is_active": False,
+                "is_primary": True,
+            },
+            instance=self.offer,
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("catalog_offer_primary_requires_active", str(form.errors))
 
     def test_observation_is_inspection_only(self):
         model_admin = admin.site._registry[OfferObservation]
