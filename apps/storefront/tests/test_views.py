@@ -1,7 +1,9 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation, ProductFamily
 
@@ -110,3 +112,70 @@ class StorefrontViewTests(TestCase):
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
         self.assertContains(response, "Sem ofertas ativas neste momento")
+
+    def test_latest_observation_is_used_for_display(self):
+        family = ProductFamily.objects.create(name="Latest", slug="latest")
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="latest-offer",
+            product_family=family,
+        )
+        now = timezone.now()
+        OfferObservation.objects.create(
+            offer=offer,
+            price=Decimal("100.00"),
+            currency="EUR",
+            observed_at=now - timedelta(days=1),
+        )
+        OfferObservation.objects.create(
+            offer=offer, price=Decimal("150.00"), currency="EUR", observed_at=now
+        )
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "150,00 EUR")
+        self.assertNotContains(response, "100,00 EUR")
+
+    def test_retired_family_hidden_from_home_but_detail_remains_accessible(self):
+        family = ProductFamily.objects.create(
+            name="Retired Family", slug="retired-family", status=ProductFamily.Status.RETIRED
+        )
+        home = self.client.get(reverse("storefront:home"))
+        detail = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertNotContains(home, "Retired Family")
+        self.assertEqual(detail.status_code, 200)
+        self.assertContains(detail, "Retired Family")
+
+    def test_inactive_offer_is_not_rendered_publicly(self):
+        family = ProductFamily.objects.create(name="Inactive Test", slug="inactive-test")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="inactive-offer",
+            product_family=family,
+            title="Hidden inactive offer",
+            is_active=False,
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertNotContains(response, "Hidden inactive offer")
+        self.assertContains(response, "Sem ofertas ativas neste momento")
+
+    def test_conflicting_logistics_are_presented_neutrally(self):
+        family = ProductFamily.objects.create(name="Conflict", slug="conflict")
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="conflict-offer",
+            product_family=family,
+        )
+        OfferObservation.objects.create(
+            offer=offer, search_delivery_days=3, delivery_days=5
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        content = response.content.decode()
+        self.assertIn("As fontes apresentam estimativas diferentes", content)
+        self.assertNotIn("Entrega garantida", content)
+        self.assertNotIn("Estimativa indicada pela pesquisa: 3 dias", content)
+        self.assertNotIn("Estimativa indicada no detalhe: 5 dias", content)

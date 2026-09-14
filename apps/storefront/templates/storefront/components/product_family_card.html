@@ -3,10 +3,10 @@
   <div class="product-card__body">
     <span class="badge">{{ family.public_status }}</span>
     <h3><a href="{% url 'storefront:product-family-detail' family.slug %}">{{ family.name }}</a></h3>
-    {% if family.primary_offer and family.primary_offer.latest_observation %}
-      {% with obs=family.primary_offer.latest_observation %}
+    {% if family.display_offer and family.display_offer.latest_observation %}
+      {% with obs=family.display_offer.latest_observation %}
         <p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Preço não disponível{% endif %}</p>
-        {% if family.primary_offer.logistics_text %}<p class="muted">{{ family.primary_offer.logistics_text }}</p>{% endif %}
+        {% if family.display_offer.logistics_text %}<p class="muted">{{ family.display_offer.logistics_text }}</p>{% endif %}
         <p class="meta">Última verificação: {{ obs.observed_at|date:"d/m/Y H:i" }}</p>
       {% endwith %}
     {% else %}

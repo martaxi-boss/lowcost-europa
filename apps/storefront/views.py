@@ -12,9 +12,9 @@ PUBLIC_STATUS_LABELS = {
 
 
 def _family_queryset():
-    observations = OfferObservation.objects.order_by("-observed_at")
-    offers = Offer.objects.filter(is_active=True).prefetch_related(
-        Prefetch("observations", queryset=observations, to_attr="ordered_observations")
+    observations = OfferObservation.objects.order_by("-observed_at", "-pk")[:1]
+    offers = Offer.objects.filter(is_active=True).order_by("-last_seen_at", "-pk").prefetch_related(
+        Prefetch("observations", queryset=observations, to_attr="latest_observations")
     )
     return ProductFamily.objects.prefetch_related(
         Prefetch("offers", queryset=offers, to_attr="active_offers")
@@ -25,10 +25,10 @@ def _prepare_family(family):
     family.public_status = PUBLIC_STATUS_LABELS.get(family.status, "Em avaliação")
     for offer in family.active_offers:
         offer.latest_observation = (
-            offer.ordered_observations[0] if offer.ordered_observations else None
+            offer.latest_observations[0] if offer.latest_observations else None
         )
         offer.logistics_text = _logistics_text(offer.latest_observation)
-    family.primary_offer = family.active_offers[0] if family.active_offers else None
+    family.display_offer = family.active_offers[0] if family.active_offers else None
     return family
 
 
@@ -49,7 +49,10 @@ def _logistics_text(observation):
 
 
 def home(request):
-    families = [_prepare_family(family) for family in _family_queryset()]
+    families = [
+        _prepare_family(family)
+        for family in _family_queryset().exclude(status=ProductFamily.Status.RETIRED)
+    ]
     return render(
         request,
         "storefront/home.html",

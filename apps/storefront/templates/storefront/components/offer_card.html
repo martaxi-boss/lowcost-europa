@@ -10,7 +10,7 @@
       <dl class="facts">
         <div><dt>Preço</dt><dd>{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}</dd></div>
         <div><dt>Avaliação</dt><dd>{% if obs.evaluation_rate_percent is not None %}{{ obs.evaluation_rate_percent }}%{% else %}Não disponível{% endif %}</dd></div>
-        <div><dt>Vendas observadas</dt><dd>{% if obs.sales_count is not None %}{{ obs.sales_count }}{% else %}Não disponível{% endif %}</dd></div>
+        <div><dt>Vendas indicadas pela fonte</dt><dd>{% if obs.sales_count is not None %}{{ obs.sales_count }}{% else %}Não disponível{% endif %}</dd></div>
         <div><dt>Logística</dt><dd>{{ offer.logistics_text|default:"Informação não disponível" }}</dd></div>
         <div><dt>Última verificação</dt><dd>{{ obs.observed_at|date:"d/m/Y H:i" }}</dd></div>
       </dl>
