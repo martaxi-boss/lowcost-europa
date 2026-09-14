@@ -1,0 +1,7 @@
+[Unit]
+Description=Lowcost Europa PostgreSQL backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lowcost-europa-backup
