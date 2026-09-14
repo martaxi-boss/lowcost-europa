@@ -68,7 +68,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - LE-013 longitudinal work is not authorized. Any further longitudinal research requires a concrete blocker and explicit Supervisor approval.
 - The default direction is now MVP transition, not an automatic third longitudinal research round.
 - No commercial stability threshold has been authorized.
-- No frontend, public deployment or autonomous scheduling has started.
+- No public deployment or autonomous scheduling has started; the server-rendered storefront shell is integrated but not publicly deployed.
 - The approved Admin, storefront shell and production-settings hardening integrations are now merged into `main`.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
 - Offers `1005012522304882` and `1005013116584854` are manually associated with that family; `1005013002556821` remains unassigned because it is explicitly a distinct 22D MAX model.
@@ -92,11 +92,11 @@ MVP construction is active. The approved preparatory components are integrated, 
 
 ## Immediate MVP roadmap
 
-1. Integrate manual catalog curation tooling.
-2. Integrate the storefront shell.
-3. Integrate production settings hardening.
-4. Create the first real ProductFamily.
-5. Associate 1–3 real Offers.
+1. Manual catalog curation tooling — completed.
+2. Storefront shell integration — completed.
+3. Production settings hardening integration — completed.
+4. First real ProductFamily creation — completed.
+5. Associate 1–3 real Offers — completed for the first family with 2 coherent 7D Offers.
 6. Make an explicit editorial selection of the displayed/primary Offer; do not infer a winner from unapproved scoring.
 7. Implement `/go/<offer>/`.
 8. Add minimal, privacy-respecting click tracking.
