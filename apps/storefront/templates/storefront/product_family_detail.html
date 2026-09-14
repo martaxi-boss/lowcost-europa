@@ -1,0 +1,34 @@
+{% extends "storefront/base.html" %}
+{% block content %}
+<section class="section">
+  <div class="container detail-header">
+    <p class="eyebrow">Produto</p>
+    <span class="badge">{{ family.public_status }}</span>
+    <h1>{{ family.name }}</h1>
+    <p class="lead">Ofertas atuais e informação factual disponível. Valores e condições podem mudar.</p>
+  </div>
+</section>
+<section class="section section--muted">
+  <div class="container">
+    <h2>Ofertas disponíveis</h2>
+    {% if family.active_offers %}
+      <div class="offer-list">
+        {% for offer in family.active_offers %}
+          {% include "storefront/components/offer_card.html" with offer=offer %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>Sem ofertas ativas neste momento.</h3>
+        <p>Esta página pode continuar disponível enquanto procuramos uma alternativa adequada.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+<section class="section">
+  <div class="container disclosure">
+    <h2>Transparência</h2>
+    <p>O Lowcost Europa pode receber uma comissão quando compra através de alguns links, sem custo adicional para si.</p>
+  </div>
+</section>
+{% endblock %}
