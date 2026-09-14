@@ -1,0 +1,17 @@
+<article class="product-card">
+  <div class="product-card__media" aria-hidden="true">LE</div>
+  <div class="product-card__body">
+    <span class="badge">{{ family.public_status }}</span>
+    <h3><a href="{% url 'storefront:product-family-detail' family.slug %}">{{ family.name }}</a></h3>
+    {% if family.display_offer and family.display_offer.latest_observation %}
+      {% with obs=family.display_offer.latest_observation %}
+        <p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Preço não disponível{% endif %}</p>
+        {% if family.display_offer.logistics_text %}<p class="muted">{{ family.display_offer.logistics_text }}</p>{% endif %}
+        <p class="meta">Última verificação: {{ obs.observed_at|date:"d/m/Y H:i" }}</p>
+      {% endwith %}
+    {% else %}
+      <p class="muted">Informação de oferta ainda não disponível.</p>
+    {% endif %}
+    <a class="button button--secondary" href="{% url 'storefront:product-family-detail' family.slug %}">Ver detalhes</a>
+  </div>
+</article>

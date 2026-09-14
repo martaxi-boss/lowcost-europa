@@ -1,0 +1,36 @@
+{% extends "storefront/base.html" %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">Portugal primeiro</p>
+      <h1>Produtos selecionados com critérios claros.</h1>
+      <p class="lead">Filtramos ofertas e apresentamos apenas informação que conseguimos observar e distinguir por fonte.</p>
+    </div>
+    <div class="hero-panel" aria-label="Compromisso Lowcost Europa">
+      <strong>Sem promessas inventadas.</strong>
+      <p>Preço, disponibilidade e logística são apresentados de forma conservadora e podem mudar.</p>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">Seleção</p>
+      <h2>Produtos em análise</h2>
+    </div>
+    {% if families %}
+      <div class="card-grid">
+        {% for family in families %}
+          {% include "storefront/components/product_family_card.html" with family=family %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>A seleção pública está a ser preparada.</h3>
+        <p>Estamos a validar produtos e fontes antes de os apresentar aqui.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

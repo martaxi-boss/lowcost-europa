@@ -1,0 +1,29 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title|default:"Lowcost Europa" }}</title>
+  <meta name="description" content="{{ meta_description|default:'Produtos selecionados com informação factual e transparência.' }}">
+  <link rel="stylesheet" href="{% static 'storefront/storefront.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{% url 'storefront:home' %}" aria-label="Lowcost Europa - início">Lowcost Europa</a>
+      <span class="header-note">Seleção simples. Informação transparente.</span>
+    </div>
+  </header>
+  <main id="conteudo">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><strong>Lowcost Europa</strong></p>
+      <p>Podemos receber uma comissão quando compra através de alguns links, sem custo adicional para si.</p>
+    </div>
+  </footer>
+</body>
+</html>

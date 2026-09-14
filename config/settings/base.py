@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.integrations",
     "apps.catalog",
+    "apps.storefront",
 ]
 
 MIDDLEWARE = [
