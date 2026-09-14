@@ -75,7 +75,8 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - Current live catalog state is 1 ProductFamily / 3 Offers / 6 OfferObservations. No new Offer or Observation was created during curation.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
-- `/go/` and click tracking are not implemented, and no public deployment has occurred.
+- `/go/<offer_id>/` and privacy-minimal raw outbound click tracking are implemented in code with no user identification, impressions, conversion or revenue tracking.
+- `catalog.0004_offerclick` is not applied live in this task; no live click rows exist and no public deployment has occurred.
 
 ## Infrastructure classification
 
@@ -100,8 +101,8 @@ MVP construction is active. The approved preparatory components are integrated, 
 4. First real ProductFamily creation — completed.
 5. Associate 1–3 real Offers — completed for the first family with 2 coherent 7D Offers.
 6. Explicit editorial primary Offer selection — completed for the first family with `1005012522304882`; no scoring or winner inference.
-7. Implement `/go/<offer>/`.
-8. Add minimal, privacy-respecting click tracking.
+7. Implement `/go/<offer>/` — implemented in code; live migration/deployment still pending Supervisor authorization.
+8. Add minimal, privacy-respecting click tracking — implemented as raw outbound `OfferClick` events only, with no user identification.
 9. Establish real staging.
 10. Add operational hardening and backup.
 11. Expand to 5–10 ProductFamilies.

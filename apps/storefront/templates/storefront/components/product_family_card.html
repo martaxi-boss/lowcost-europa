@@ -12,6 +12,9 @@
     {% else %}
       <p class="muted">Informação de oferta ainda não disponível.</p>
     {% endif %}
+    {% if family.display_offer and family.display_offer.can_redirect %}
+      <a class="button" href="{% url 'storefront:offer-go' family.display_offer.pk %}">Ver oferta</a>
+    {% endif %}
     <a class="button button--secondary" href="{% url 'storefront:product-family-detail' family.slug %}">Ver detalhes</a>
   </div>
 </article>
