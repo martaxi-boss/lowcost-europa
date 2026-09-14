@@ -2,7 +2,7 @@
 
 Updated: 2026-09-14.
 
-Current state: **GATE 12 CLOSED — MVP TRANSITION AUTHORIZED**.
+Current state: **MVP MANUAL CURATION STARTED — FIRST LIVE PRODUCTFAMILY CREATED**.
 
 ## Strategic state
 
@@ -69,6 +69,11 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - The default direction is now MVP transition, not an automatic third longitudinal research round.
 - No commercial stability threshold has been authorized.
 - No frontend, public deployment or autonomous scheduling has started.
+- The approved Admin, storefront shell and production-settings hardening integrations are now merged into `main`.
+- MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
+- Offers `1005012522304882` and `1005013116584854` are manually associated with that family; `1005013002556821` remains unassigned because it is explicitly a distinct 22D MAX model.
+- Current live catalog state is 1 ProductFamily / 3 Offers / 6 OfferObservations. No new Offer or Observation was created during curation.
+- Explicit editorial primary/recommended Offer selection is not implemented. `/go/` and click tracking are not implemented, and no public deployment has occurred.
 
 ## Infrastructure classification
 
@@ -76,15 +81,14 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-MVP transition is authorized. The immediate priority is controlled integration of already approved preparatory work, followed by manual catalog curation and a small Portugal MVP.
+MVP construction is active. The approved preparatory components are integrated, and manual live catalog curation has started with one real ProductFamily while preserving conservative logistics language and zero public deployment.
 
-### Approved preparatory branches — frozen awaiting integration
+### MVP integrations completed
 
-- LE-UX-001A — `195075f5616af2a79ef8f9797c1c99be589daf9e` — APPROVED / FROZEN AWAITING INTEGRATION.
-- LE-MVP-001A — `499a70c753e29747e3da5a38ce7d3802c16a9611` — APPROVED / FROZEN AWAITING INTEGRATION.
-- LE-OPS-001A — `ce503013d014e228c9e8b3ed0992f3ee1565e294` — APPROVED / FROZEN AWAITING INTEGRATION.
-
-These branches are not yet merged or active.
+- Manual catalog curation Admin was integrated through PR #40.
+- Storefront shell was integrated through PR #41.
+- Production settings security baseline was integrated through PR #42.
+- Manual live catalog curation has now started with the first ProductFamily.
 
 ## Immediate MVP roadmap
 
