@@ -65,6 +65,7 @@ class Offer(models.Model):
     image_url = models.URLField(max_length=1000, blank=True)
     affiliate_url = models.URLField(max_length=1000, blank=True)
     is_active = models.BooleanField(default=True)
+    is_primary = models.BooleanField(default=False)
     first_seen_at = models.DateTimeField(default=timezone.now)
     last_seen_at = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,6 +88,19 @@ class Offer(models.Model):
             models.CheckConstraint(
                 condition=Q(last_seen_at__gte=F("first_seen_at")),
                 name="catalog_offer_seen_timeline_valid",
+            ),
+            models.UniqueConstraint(
+                fields=["product_family"],
+                condition=Q(is_primary=True, product_family__isnull=False),
+                name="catalog_offer_one_primary_per_family",
+            ),
+            models.CheckConstraint(
+                condition=Q(is_primary=False) | Q(product_family__isnull=False),
+                name="catalog_offer_primary_requires_family",
+            ),
+            models.CheckConstraint(
+                condition=Q(is_primary=False) | Q(is_active=True),
+                name="catalog_offer_primary_requires_active",
             ),
         ]
         ordering = ["-last_seen_at"]

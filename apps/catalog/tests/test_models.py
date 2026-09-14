@@ -74,6 +74,73 @@ class OfferTests(TestCase):
         )
         self.assertFalse(Offer.objects.get(pk=offer.pk).is_active)
 
+
+    def test_primary_defaults_false(self):
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="primary-default"
+        )
+        self.assertFalse(offer.is_primary)
+
+    def test_family_offer_can_be_primary(self):
+        family = ProductFamily.objects.create(name="Primary Family", slug="primary-family")
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="primary-ok",
+            product_family=family,
+            is_primary=True,
+        )
+        self.assertTrue(offer.is_primary)
+
+    def test_two_primary_offers_in_same_family_are_rejected(self):
+        family = ProductFamily.objects.create(name="One Primary", slug="one-primary")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="primary-one",
+            product_family=family,
+            is_primary=True,
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Offer.objects.create(
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id="primary-two",
+                    product_family=family,
+                    is_primary=True,
+                )
+
+    def test_primary_offers_in_different_families_are_allowed(self):
+        first = ProductFamily.objects.create(name="First", slug="first-primary")
+        second = ProductFamily.objects.create(name="Second", slug="second-primary")
+        for family, external_id in ((first, "primary-first"), (second, "primary-second")):
+            Offer.objects.create(
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=external_id,
+                product_family=family,
+                is_primary=True,
+            )
+        self.assertEqual(Offer.objects.filter(is_primary=True).count(), 2)
+
+    def test_primary_offer_requires_family(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Offer.objects.create(
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id="primary-no-family",
+                    is_primary=True,
+                )
+
+    def test_primary_offer_must_be_active(self):
+        family = ProductFamily.objects.create(name="Active Primary", slug="active-primary")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Offer.objects.create(
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id="primary-inactive",
+                    product_family=family,
+                    is_active=False,
+                    is_primary=True,
+                )
+
     def test_family_with_offer_is_protected_from_delete(self):
         family = ProductFamily.objects.create(name="HIFU", slug="hifu")
         Offer.objects.create(

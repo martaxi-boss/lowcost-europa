@@ -44,10 +44,11 @@ class OfferAdmin(admin.ModelAdmin):
         "title",
         "product_family",
         "is_active",
+        "is_primary",
         "last_seen_at",
     )
     search_fields = ("external_product_id", "title")
-    list_filter = ("source", "is_active", "product_family")
+    list_filter = ("source", "is_active", "is_primary", "product_family")
     list_select_related = ("product_family",)
     fields = (
         "source",
@@ -58,6 +59,7 @@ class OfferAdmin(admin.ModelAdmin):
         "affiliate_url",
         "product_family",
         "is_active",
+        "is_primary",
         "first_seen_at",
         "last_seen_at",
         "created_at",

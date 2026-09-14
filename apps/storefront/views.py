@@ -13,7 +13,9 @@ PUBLIC_STATUS_LABELS = {
 
 def _family_queryset():
     observations = OfferObservation.objects.order_by("-observed_at", "-pk")[:1]
-    offers = Offer.objects.filter(is_active=True).order_by("-last_seen_at", "-pk").prefetch_related(
+    offers = Offer.objects.filter(is_active=True).order_by(
+        "-is_primary", "-last_seen_at", "-pk"
+    ).prefetch_related(
         Prefetch("observations", queryset=observations, to_attr="latest_observations")
     )
     return ProductFamily.objects.prefetch_related(
@@ -28,7 +30,10 @@ def _prepare_family(family):
             offer.latest_observations[0] if offer.latest_observations else None
         )
         offer.logistics_text = _logistics_text(offer.latest_observation)
-    family.display_offer = family.active_offers[0] if family.active_offers else None
+    family.display_offer = next(
+        (offer for offer in family.active_offers if offer.is_primary),
+        family.active_offers[0] if family.active_offers else None,
+    )
     return family
 
 
