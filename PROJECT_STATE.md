@@ -73,7 +73,9 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
 - Offers `1005012522304882` and `1005013116584854` are manually associated with that family; `1005013002556821` remains unassigned because it is explicitly a distinct 22D MAX model.
 - Current live catalog state is 1 ProductFamily / 3 Offers / 6 OfferObservations. No new Offer or Observation was created during curation.
-- Explicit editorial primary/recommended Offer selection is not implemented. `/go/` and click tracking are not implemented, and no public deployment has occurred.
+- `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
+- Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
+- `/go/` and click tracking are not implemented, and no public deployment has occurred.
 
 ## Infrastructure classification
 
@@ -97,7 +99,7 @@ MVP construction is active. The approved preparatory components are integrated, 
 3. Production settings hardening integration — completed.
 4. First real ProductFamily creation — completed.
 5. Associate 1–3 real Offers — completed for the first family with 2 coherent 7D Offers.
-6. Make an explicit editorial selection of the displayed/primary Offer; do not infer a winner from unapproved scoring.
+6. Explicit editorial primary Offer selection — completed for the first family with `1005012522304882`; no scoring or winner inference.
 7. Implement `/go/<offer>/`.
 8. Add minimal, privacy-respecting click tracking.
 9. Establish real staging.
