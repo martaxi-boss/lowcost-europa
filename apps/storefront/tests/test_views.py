@@ -269,3 +269,91 @@ class StorefrontViewTests(TestCase):
         content = response.content.decode().lower()
         for phrase in ("winner", "recomendado", "melhor oferta", "escolha nº 1"):
             self.assertNotIn(phrase, content)
+
+    def test_homepage_renders_display_offer_image(self):
+        family = ProductFamily.objects.create(name="Image Family", slug="image-family")
+        primary = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="image-primary",
+            product_family=family,
+            title="Primary image offer",
+            image_url="https://images.example.test/primary.jpg",
+            is_primary=True,
+        )
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="image-other",
+            product_family=family,
+            title="Other image offer",
+            image_url="https://images.example.test/other.jpg",
+        )
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, primary.image_url)
+        self.assertContains(response, 'alt="Primary image offer"')
+        self.assertNotContains(response, "https://images.example.test/other.jpg")
+
+    def test_detail_renders_each_offers_own_image(self):
+        family = ProductFamily.objects.create(name="Detail Images", slug="detail-images")
+        first = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="detail-image-one",
+            product_family=family,
+            title="First image offer",
+            image_url="https://images.example.test/one.jpg",
+        )
+        second = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="detail-image-two",
+            product_family=family,
+            title="Second image offer",
+            image_url="http://images.example.test/two.jpg",
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertContains(response, first.image_url)
+        self.assertContains(response, second.image_url)
+        self.assertContains(response, 'alt="First image offer"')
+        self.assertContains(response, 'alt="Second image offer"')
+        self.assertContains(response, 'loading="lazy"', count=2)
+
+    def test_missing_or_invalid_image_url_keeps_placeholder(self):
+        family = ProductFamily.objects.create(name="Image Fallback", slug="image-fallback")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="missing-image",
+            product_family=family,
+            title="Missing image offer",
+            image_url="",
+        )
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="invalid-image",
+            product_family=family,
+            title="Invalid image offer",
+            image_url="javascript:broken",
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        content = response.content.decode()
+        self.assertEqual(content.count("offer-card__media--placeholder"), 2)
+        self.assertNotIn("javascript:broken", content)
+
+    def test_product_images_do_not_expose_affiliate_url(self):
+        family = ProductFamily.objects.create(name="Safe Image", slug="safe-image")
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="safe-image-offer",
+            product_family=family,
+            title="Safe image offer",
+            image_url="https://images.example.test/safe.jpg",
+            affiliate_url="https://affiliate.example.test/private-destination",
+        )
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, offer.image_url)
+        self.assertNotContains(response, offer.affiliate_url)
+        self.assertContains(
+            response,
+            reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}),
+        )
