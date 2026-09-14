@@ -12,11 +12,24 @@ def env(name: str, default: str | None = None) -> str:
 
 
 def env_bool(name: str, default: bool = False) -> bool:
-    return env(name, "true" if default else "false").strip().lower() in {"1", "true", "yes", "on"}
+    raw_value = env(name, "true" if default else "false").strip().lower()
+    if raw_value in {"1", "true", "yes", "on"}:
+        return True
+    if raw_value in {"0", "false", "no", "off"}:
+        return False
+    raise RuntimeError(f"Environment variable {name} must be a boolean")
 
 
 def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in env(name, default).split(",") if item.strip()]
+
+
+def env_int(name: str, default: int = 0) -> int:
+    raw_value = env(name, str(default)).strip()
+    try:
+        return int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(f"Environment variable {name} must be an integer") from exc
 
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
