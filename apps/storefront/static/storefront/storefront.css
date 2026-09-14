@@ -41,8 +41,10 @@ a:focus-visible, button:focus-visible { outline: 3px solid #0b6bcc; outline-offs
 .section-heading h2, .section h2 { margin: 6px 0 20px; font-size: 1.7rem; }
 .card-grid, .offer-list { display: grid; gap: 18px; }
 .product-card, .offer-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-.product-card__media { min-height: 160px; display: grid; place-items: center; background: linear-gradient(135deg, #dfeaf5, #f4f7fa); color: var(--accent); font-size: 2rem; font-weight: 800; }
-.product-card__body, .offer-card { padding: 20px; }
+.product-card__media, .offer-card__media { aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; background: #f4f7fa; }
+.product-card__media--placeholder, .offer-card__media--placeholder { background: linear-gradient(135deg, #dfeaf5, #f4f7fa); color: var(--accent); font-size: 2rem; font-weight: 800; }
+.product-card__image, .offer-card__image { width: 100%; height: 100%; display: block; object-fit: contain; background: var(--surface); }
+.product-card__body, .offer-card__body { padding: 20px; }
 .product-card h3, .offer-card h3 { margin: 8px 0 10px; }
 .product-card h3 a { text-decoration: none; }
 .badge { display: inline-flex; border-radius: 999px; background: var(--accent-soft); color: var(--accent); padding: 5px 9px; font-size: .8rem; font-weight: 700; }
