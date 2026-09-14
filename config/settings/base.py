@@ -19,6 +19,14 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in env(name, default).split(",") if item.strip()]
 
 
+def env_int(name: str, default: int = 0) -> int:
+    raw_value = env(name, str(default)).strip()
+    try:
+        return int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(f"Environment variable {name} must be an integer") from exc
+
+
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
