@@ -51,6 +51,11 @@ class Offer(models.Model):
     class Source(models.TextChoices):
         ALIEXPRESS = "ALIEXPRESS", "AliExpress"
 
+    class EquipmentType(models.TextChoices):
+        UNKNOWN = "UNKNOWN", "Unknown"
+        DEDICATED = "DEDICATED", "Dedicated"
+        COMBO = "COMBO", "Combo"
+
     source = models.CharField(max_length=30, choices=Source.choices)
     external_product_id = models.CharField(max_length=120)
     product_family = models.ForeignKey(
@@ -66,6 +71,9 @@ class Offer(models.Model):
     affiliate_url = models.URLField(max_length=1000, blank=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
+    equipment_type = models.CharField(
+        max_length=20, choices=EquipmentType.choices, default=EquipmentType.UNKNOWN
+    )
     first_seen_at = models.DateTimeField(default=timezone.now)
     last_seen_at = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -102,11 +110,57 @@ class Offer(models.Model):
                 condition=Q(is_primary=False) | Q(is_active=True),
                 name="catalog_offer_primary_requires_active",
             ),
+            models.CheckConstraint(
+                condition=Q(equipment_type__in=["UNKNOWN", "DEDICATED", "COMBO"]),
+                name="catalog_offer_equipment_type_valid",
+            ),
         ]
         ordering = ["-last_seen_at"]
 
     def __str__(self):
         return f"{self.source}:{self.external_product_id}"
+
+
+class OfferFamilyPlacement(models.Model):
+    offer = models.ForeignKey(
+        Offer,
+        on_delete=models.PROTECT,
+        related_name="family_placements",
+    )
+    product_family = models.ForeignKey(
+        ProductFamily,
+        on_delete=models.PROTECT,
+        related_name="offer_placements",
+    )
+    selection_position = models.PositiveSmallIntegerField(null=True, blank=True)
+    display_order = models.PositiveSmallIntegerField(default=0)
+    selection_reason = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["offer", "product_family"],
+                name="catalog_placement_offer_family_uniq",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(selection_position__isnull=True)
+                    | (Q(selection_position__gte=1) & Q(selection_position__lte=5))
+                ),
+                name="catalog_placement_selection_position_range",
+            ),
+            models.UniqueConstraint(
+                fields=["product_family", "selection_position"],
+                condition=Q(selection_position__isnull=False),
+                name="catalog_placement_family_selection_uniq",
+            ),
+        ]
+        ordering = ["product_family", "selection_position", "display_order", "pk"]
+
+    def __str__(self):
+        return f"{self.product_family}: {self.offer}"
 
 
 class OfferClick(models.Model):
