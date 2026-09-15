@@ -12,6 +12,8 @@
     <h2>Cookies no storefront</h2>
     <p>As páginas públicas atuais são server-rendered e não usam analytics. Nas verificações técnicas de homepage e detalhe não foi emitido Set-Cookie.</p>
     <p>O projeto inclui middleware Django de sessão e CSRF, mas o storefront atual não usa sessão para estas páginas e não apresenta formulários que criem um cookie CSRF.</p>
+    <h2>Contacto</h2>
+    <p>Para questões de privacidade, transparência ou correções factuais, contacte <a href="mailto:help.onlinefuture@gmail.com">help.onlinefuture@gmail.com</a> ou consulte a página <a href="{% url 'storefront:contacto' %}">Contacto</a>.</p>
     <h2>Logs técnicos</h2>
     <p>Separadamente do OfferClick, a infraestrutura HTTP pode manter logs técnicos de acesso e erro para operação e segurança. Esses logs podem incluir dados de rede e do pedido, como endereço IP e URL solicitada.</p>
   </div>
