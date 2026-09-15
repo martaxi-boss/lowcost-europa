@@ -73,19 +73,20 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
 - Offers `1005012522304882` and `1005013116584854` remain manually associated with the 7D family.
 - MVP LIVE CATALOG 002 created the second real ProductFamily: `Máquinas HIFU 22D MAX` (`maquinas-hifu-22d-max`), status `NEW`; existing Offer `1005013002556821` is its sole active Offer and explicit editorial primary.
-- Current live catalog state is 5 ProductFamilies / 6 Offers / 9 OfferObservations / 5 raw staging OfferClick records. The minimum five-family MVP catalog target is reached; additional discovery is paused for pre-launch work.
+- Current live catalog state is 5 ProductFamilies / 6 Offers / 9 OfferObservations / 28 raw staging OfferClick records. Eighteen were added by an audited automated external batch and five more by later audited external mobile-browser traffic after temporary DuckDNS staging exposure; they are not unique users or conversions. The minimum five-family MVP catalog target is reached; additional discovery is paused for pre-launch work.
 - MVP DISCOVERY 001 and subsequent live revalidation established the fresh-candidate workflow. MVP LIVE CATALOG 004 selected current API candidates rather than automatically reusing previously absent IDs; RF Microneedling remains on hold after its earlier detail-normalization failure.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
 - `/go/<offer_id>/` and privacy-minimal raw outbound click tracking are implemented in code with no user identification, impressions, conversion or revenue tracking.
-- `catalog.0004_offerclick` is applied live. There are 5 raw staging OfferClick records: the original staging validation click plus additional browser-like staging traffic audited by the Supervisor. These records are not unique users, customers, purchases, conversions or commissions.
+- `catalog.0004_offerclick` is applied live. LAUNCH READINESS 001 began from 5 raw staging OfferClick records; after the temporary DuckDNS hostname became reachable, 18 additional automated-looking external `/go/` requests were audited across three remote sources, followed by five external mobile-browser requests, producing an audited snapshot total of 28. These raw records are not unique users, customers, purchases, conversions or commissions.
 - Real Django staging is established through Nginx -> Gunicorn -> Django production settings -> PostgreSQL; systemd and HTTPS are active, while public MVP launch remains unauthorized.
 - Conversion, revenue and external analytics tracking remain unimplemented.
 - MVP OPERATIONAL CLOSEOUT 001 final-completion pass reconciled staging to current merged main `1b5e9f30d2606bf030463a4f5a571e7b4fcb4bb6`; health, homepage, Contacto, robots and AliExpress callback returned HTTP 200 with noindex preserved. The commercial validation report is therefore present on staging as a repository document, with no runtime restart required.
 - PostgreSQL restore drill passed: the pre-0004 backup restored into an isolated temporary DB, retained 1/3/6 and the editorial primary, migrated forward through catalog.0004, then the temporary DB was dropped.
 - A local daily PostgreSQL backup timer is operational with 7-day retention; MVP OPERATIONAL CLOSEOUT 001 validated the latest daily dump/checksum and a tested root-only local AliExpress secret restore link. Off-server backup remains OWNER BLOCKED pending explicit authorization for private Cloudflare R2 + restic activation; an off-Droplet recovery key is required.
 - Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; MVP PRELAUNCH 003 performed one fresh detail lookup for the same product ID and AliExpress returned the same image URL, so this finding remains OPEN.
-- VISUAL + COMMERCIAL READINESS 001 is implemented on `builder/visual-commercial-readiness-001` from authorized base `d9705909f631237694fc0ed580e6268b88490e69`, pending Supervisor audit. Final post-correction Chromium QA passed at 390x844 and 1440x900 with zero horizontal overflow/JS errors, visible desktop navigation, 48 px mobile menu/CTA targets, no raw AliExpress affiliate href exposure, and live DB unchanged at 5 / 6 / 9 / 5. The HIFU 123x123 source-image finding remains OPEN / NON-BLOCKING.
+- VISUAL + COMMERCIAL READINESS 001 is approved, merged and deployed in official main `ea390319bcf9d4b8023a24140828f049a7fba10a`. Its final Chromium QA passed at 390x844 and 1440x900 with zero horizontal overflow/JS errors, visible desktop navigation, 48 px mobile menu/CTA targets and no raw AliExpress affiliate href exposure. The HIFU 123x123 source-image finding remains OPEN / NON-BLOCKING.
+- LAUNCH READINESS 001 configured temporary staging hostname `lowcost-europa.duckdns.org` -> `165.22.114.67` with a dedicated valid Let's Encrypt certificate, preserved sslip compatibility, HTTP->HTTPS, noindex, callback reachability and real mobile/desktop QA. Public launch remains unauthorized. The external OfferClick audit during DuckDNS exposure is documented in `docs/launch/LAUNCH-READINESS-001.md`.
 - MVP PRELAUNCH 001 is merged and its transparency/privacy/affiliate/terms pages plus conservative technical SEO baseline are deployed to noindex staging through MVP PRELAUNCH 002. Fail-closed indexing was validated with PUBLIC_INDEXING_ENABLED=false and PUBLIC_SITE_URL empty. Authorized public contact channels are now defined in PRELAUNCH 004; operator legal identity remains PENDING OWNER INPUT, off-server backup remains pending, final public domain remains pending, and public launch is not authorized.
 
 ## Infrastructure classification
@@ -94,7 +95,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-The minimum five-family catalog is preserved and VISUAL + COMMERCIAL READINESS 001 is complete on its review branch, pending Supervisor audit. Staging remains noindex and public MVP launch is not authorized.
+The minimum five-family catalog is preserved. VISUAL + COMMERCIAL READINESS 001 is approved/merged/deployed, and LAUNCH READINESS 001 is now implemented on its review branch with DuckDNS staging validated. Staging remains noindex and public MVP launch is not authorized.
 
 ### MVP integrations completed
 
@@ -111,7 +112,7 @@ The minimum five-family catalog is preserved and VISUAL + COMMERCIAL READINESS 0
 4. First real ProductFamily creation — completed.
 5. Associate 1–3 real Offers — completed for the first family with 2 coherent 7D Offers.
 6. Explicit editorial primary Offer selection — completed for the first family with `1005012522304882`; no scoring or winner inference.
-7. Implement `/go/<offer>/` — operational in technical staging after live `catalog.0004`; current baseline is 5 preserved raw staging OfferClick records, not unique users or conversions.
+7. Implement `/go/<offer>/` — operational in technical staging after live `catalog.0004`; audited snapshot total is 28 raw staging OfferClick records after an 18-request automated external batch plus five later external mobile-browser requests on temporary DuckDNS staging. These are not unique users or conversions.
 8. Add minimal, privacy-respecting click tracking — operational as raw outbound `OfferClick` events only, with no user identification; no real-user click claim yet.
 9. Establish real staging — completed on the current Droplet with HTTPS Nginx, local Gunicorn, systemd, production settings and noindex.
 10. Add operational hardening and backup — local daily backup + restore drill completed; local AliExpress secret recovery is tested; legacy firewall ports were removed and the inactive legacy AliExpress panel was quarantined root-only with checksum verification. Off-server R2/restic recovery remains OWNER BLOCKED pending explicit authorization, and GitHub main protection remains BLOCKED pending account/admin capability.
