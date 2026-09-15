@@ -98,3 +98,6 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+PUBLIC_SITE_URL = env("DJANGO_PUBLIC_SITE_URL", "").rstrip("/")
+PUBLIC_INDEXING_ENABLED = env_bool("DJANGO_PUBLIC_INDEXING_ENABLED", False)

@@ -73,7 +73,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
 - Offers `1005012522304882` and `1005013116584854` remain manually associated with the 7D family.
 - MVP LIVE CATALOG 002 created the second real ProductFamily: `Máquinas HIFU 22D MAX` (`maquinas-hifu-22d-max`), status `NEW`; existing Offer `1005013002556821` is its sole active Offer and explicit editorial primary.
-- Current live catalog state is 5 ProductFamilies / 6 Offers / 9 OfferObservations / 1 OfferClick after MVP LIVE CATALOG 004 added fresh Diode Laser Hair Removal and Hydro Dermabrasion / Aqua Peel families.
+- Current live catalog state is 5 ProductFamilies / 6 Offers / 9 OfferObservations / 1 OfferClick. The minimum five-family MVP catalog target is reached; additional discovery is paused for pre-launch work.
 - MVP DISCOVERY 001 and subsequent live revalidation established the fresh-candidate workflow. MVP LIVE CATALOG 004 selected current API candidates rather than automatically reusing previously absent IDs; RF Microneedling remains on hold after its earlier detail-normalization failure.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
@@ -84,7 +84,8 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - Staging deploy workspace is reconciled to merged main `c1b96768b23ae4a34c907e8ef24c4dad44e5a7d6`; health, storefront and AliExpress callback remain HTTP 200 with noindex preserved.
 - PostgreSQL restore drill passed: the pre-0004 backup restored into an isolated temporary DB, retained 1/3/6 and the editorial primary, migrated forward through catalog.0004, then the temporary DB was dropped.
 - A local daily PostgreSQL backup timer is operational with 7-day retention; off-server backup remains pending Supervisor/owner decision.
-- Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; this is a non-blocking pre-launch data-quality finding. No additional OfferClick was created.
+- Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; this remains a pre-launch data-quality finding.
+- MVP PRELAUNCH 001 adds transparency/privacy/affiliate/terms pages and a conservative technical SEO baseline in code. Public deployment of that branch is still pending merge and a separate Supervisor deploy order; operator identity/contact remain PENDING OWNER INPUT, off-server backup remains pending, and public launch is not authorized.
 
 ## Infrastructure classification
 
@@ -92,7 +93,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-MVP construction is active. Manual live catalog curation, editorial primary selection, privacy-minimal click tracking and a noindex technical staging environment are operational while preserving conservative logistics language. Public MVP launch is not authorized.
+MVP construction has reached the minimum five-family catalog and is now in controlled pre-launch preparation. Transparency, privacy, affiliate disclosure and technical SEO baseline work is underway while staging remains noindex. Public MVP launch is not authorized.
 
 ### MVP integrations completed
 
@@ -115,7 +116,7 @@ MVP construction is active. Manual live catalog curation, editorial primary sele
 10. Add operational hardening and backup — local daily backup + restore drill completed; off-server backup still pending.
 11. Expand to 5–10 ProductFamilies — in progress conservatively; 5 real ProductFamilies / 6 Offers are now live. Further imports still require fresh validation and Supervisor approval.
 12. Complete mobile/desktop QA — real Chromium desktop/mobile visual QA completed on staging with PASS; second Offer image quality (123x123 source) remains a non-blocking pre-launch data-quality finding.
-13. Add basic technical SEO and legal/affiliate transparency.
+13. Add basic technical SEO and legal/affiliate transparency — implemented in MVP PRELAUNCH 001 code; merge/deploy pending, with operator legal identity/contact still required before public launch.
 14. Launch the Portugal MVP.
 15. Measure business outcomes.
 16. Only then decide whether scoring, scheduling or additional automation is justified.

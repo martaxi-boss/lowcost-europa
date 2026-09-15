@@ -1,7 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -357,3 +357,92 @@ class StorefrontViewTests(TestCase):
             response,
             reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}),
         )
+
+
+class PrelaunchTransparencyTests(TestCase):
+    def test_institutional_pages_return_200_and_footer_links_are_present(self):
+        names = ("como-funciona", "afiliados", "privacidade", "termos")
+        for name in names:
+            response = self.client.get(reverse(f"storefront:{name}"))
+            self.assertEqual(response.status_code, 200)
+            for footer_name in names:
+                self.assertContains(response, reverse(f"storefront:{footer_name}"))
+
+    def test_affiliate_disclosure_is_explicit_and_not_guaranteed(self):
+        response = self.client.get(reverse("storefront:afiliados"))
+        content = response.content.decode().lower()
+        self.assertIn("links de afiliado", content)
+        self.assertIn("pode receber uma comissão", content)
+        self.assertIn("não é garantida", content)
+
+    def test_privacy_page_describes_minimal_offer_click_and_server_logs(self):
+        response = self.client.get(reverse("storefront:privacidade"))
+        content = response.content.decode().lower()
+        self.assertIn("offerclick", content)
+        self.assertIn("não guarda ip", content)
+        self.assertIn("não significa utilizador único", content)
+        self.assertIn("logs técnicos", content)
+        self.assertIn("endereço ip", content)
+        self.assertNotIn("nenhum ip é processado", content)
+
+    def test_terms_are_explicitly_prelaunch_and_owner_fields_pending(self):
+        response = self.client.get(reverse("storefront:termos"))
+        self.assertContains(response, "PRE-LAUNCH / NOT PUBLIC READY")
+        self.assertContains(response, "PENDING OWNER INPUT")
+        self.assertContains(response, "NIF/VAT")
+        self.assertContains(response, "Email oficial")
+
+    def test_default_seo_is_noindex_and_staging_has_no_canonical(self):
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
+        self.assertNotContains(response, 'rel="canonical"')
+
+    @override_settings(PUBLIC_SITE_URL="", PUBLIC_INDEXING_ENABLED=True)
+    def test_indexing_flag_without_public_site_url_fails_closed(self):
+        home = self.client.get(reverse("storefront:home"))
+        robots = self.client.get(reverse("storefront:robots"))
+        self.assertContains(home, '<meta name="robots" content="noindex, nofollow">', html=True)
+        self.assertNotContains(home, 'rel="canonical"')
+        self.assertContains(robots, "Disallow: /")
+        self.assertNotContains(robots, "Allow: /")
+
+    @override_settings(PUBLIC_SITE_URL="https://example.test", PUBLIC_INDEXING_ENABLED=True)
+    def test_canonical_and_indexing_can_be_enabled_with_explicit_public_site_url(self):
+        home = self.client.get(reverse("storefront:home"))
+        robots = self.client.get(reverse("storefront:robots"))
+        self.assertContains(
+            home, '<link rel="canonical" href="https://example.test/">', html=True
+        )
+        self.assertContains(home, '<meta name="robots" content="index, follow">', html=True)
+        self.assertContains(
+            home, '<meta property="og:url" content="https://example.test/">', html=True
+        )
+        self.assertContains(robots, "Allow: /")
+        self.assertContains(robots, "Sitemap: https://example.test/sitemap.xml")
+        self.assertNotContains(robots, "Disallow: /")
+
+    def test_robots_disallows_indexing_by_default(self):
+        response = self.client.get(reverse("storefront:robots"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/plain; charset=utf-8")
+        self.assertContains(response, "User-agent: *")
+        self.assertContains(response, "Disallow: /")
+
+    def test_sitemap_lists_public_pages_and_non_retired_families(self):
+        active = ProductFamily.objects.create(name="Active", slug="active-family")
+        ProductFamily.objects.create(
+            name="Retired", slug="retired-family-sitemap", status=ProductFamily.Status.RETIRED
+        )
+        response = self.client.get(reverse("storefront:sitemap"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/xml")
+        self.assertContains(response, reverse("storefront:home"))
+        self.assertContains(response, reverse("storefront:como-funciona"))
+        self.assertContains(response, reverse("storefront:afiliados"))
+        self.assertContains(response, reverse("storefront:privacidade"))
+        self.assertContains(response, reverse("storefront:termos"))
+        self.assertContains(
+            response,
+            reverse("storefront:product-family-detail", kwargs={"slug": active.slug}),
+        )
+        self.assertNotContains(response, "retired-family-sitemap")
