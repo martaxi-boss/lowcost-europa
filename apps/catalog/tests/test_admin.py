@@ -39,6 +39,14 @@ class CatalogAdminTests(TestCase):
         )
         self.assertEqual(response.status_code, 403)
 
+    def test_product_family_admin_exposes_editable_display_order(self):
+        model_admin = admin.site._registry[ProductFamily]
+        self.assertIn("display_order", model_admin.list_display)
+        self.assertNotIn(
+            "display_order", model_admin.get_readonly_fields(self.request, self.family)
+        )
+        self.assertEqual(model_admin.ordering[:1], ("display_order",))
+
     def test_product_family_form_limits_lifecycle_choices(self):
         model_admin = admin.site._registry[ProductFamily]
         form_class = model_admin.get_form(self.request)
@@ -86,7 +94,6 @@ class CatalogAdminTests(TestCase):
         self.assertNotIn("product_family", readonly)
         self.assertNotIn("is_active", readonly)
         self.assertNotIn("is_primary", readonly)
-
 
     def test_offer_admin_rejects_inactive_primary(self):
         model_admin = admin.site._registry[Offer]

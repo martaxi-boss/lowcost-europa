@@ -17,6 +17,7 @@ class ProductFamily(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
+    display_order = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -41,7 +42,7 @@ class ProductFamily(models.Model):
                 name="catalog_family_status_valid",
             ),
         ]
-        ordering = ["name"]
+        ordering = ["display_order", "name", "pk"]
 
     def __str__(self):
         return self.name

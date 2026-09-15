@@ -25,10 +25,10 @@ class ProductFamilyAdminForm(forms.ModelForm):
 @admin.register(ProductFamily)
 class ProductFamilyAdmin(admin.ModelAdmin):
     form = ProductFamilyAdminForm
-    list_display = ("name", "slug", "status", "created_at", "updated_at")
+    list_display = ("name", "slug", "status", "display_order", "created_at", "updated_at")
     search_fields = ("name", "slug")
     list_filter = ("status",)
-    ordering = ("name", "pk")
+    ordering = ("display_order", "name", "pk")
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
 
