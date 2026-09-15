@@ -81,19 +81,21 @@ Backfill rules:
 
 The migration does not change Offer identity/source/title/image/product URL/affiliate URL/active state, ProductFamily data, OfferObservation, or OfferClick.
 
+The data backfill is intentionally forward-only. Reversing `0006` uses a no-op reverse and does not delete existing placements, because the migration cannot safely distinguish historical backfill rows from later editorial placements.
+
 An isolated clone of the current staging database was migrated successfully. Counts remained `5 ProductFamilies / 6 Offers / 15 OfferObservations / 35 OfferClicks`, and exactly `6 OfferFamilyPlacement` rows were produced with selection positions `[1, NULL, 1, 1, 1, 1]`. The temporary database was then dropped.
 
 ## Admin
 
 Django Admin now exposes `equipment_type` on Offer and a simple `OfferFamilyPlacement` interface showing Offer, ProductFamily, selection position, display order, selection reason, and the Offer equipment type through filters.
 
-The interface remains manual/editorial. No automated scoring or ranking was added.
+The interface remains manual/editorial. Django Admin permissions allow creating, editing, and deleting an `OfferFamilyPlacement`; deleting a placement removes only the editorial relation. The `Offer` and `ProductFamily` foreign keys remain protected and OfferObservation/OfferClick history is not deleted. No automated scoring or ranking was added.
 
 ## Validation
 
-New model/backfill/Admin tests cover multi-family placement, duplicate prevention, valid and invalid selection positions, unique highlighted positions per family, repeated NULL positions, authorized equipment types, six-row backfill, history preservation, and Admin rendering.
+New model/backfill/Admin tests cover multi-family placement, duplicate prevention, valid and invalid selection positions, unique highlighted positions per family, repeated NULL positions, authorized equipment types, six-row backfill, history preservation, safe no-op reverse behavior, Admin rendering, and placement deletion without deleting related catalog/history records.
 
-The complete project test suite passes with 238 tests. `python manage.py check`, migration drift check, Ruff, `git diff --check`, and `pip check` also pass.
+The complete project test suite passes with 240 tests. `python manage.py check`, migration drift check, Ruff, `git diff --check`, and `pip check` also pass.
 
 The current storefront regression suite remains green and continues to instantiate no AliExpress client during visitor requests. No AliExpress live operation was made during this phase.
 

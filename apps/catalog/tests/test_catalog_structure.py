@@ -152,3 +152,24 @@ class PlacementBackfillTests(TestCase):
             [(offer.id, offer.product_family_id) for offer in offers],
         )
         self.assertEqual((OfferObservation.objects.count(), OfferClick.objects.count()), before)
+
+    def test_reverse_backfill_is_noop_and_preserves_editorial_placements(self):
+        family = ProductFamily.objects.create(name="Editorial Family", slug="editorial-family")
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="editorial-after-backfill",
+        )
+        editorial = OfferFamilyPlacement.objects.create(
+            offer=offer,
+            product_family=family,
+            display_order=9,
+            selection_reason="Created after the historical backfill",
+        )
+        migration = importlib.import_module(
+            "apps.catalog.migrations.0006_backfill_offer_family_placements"
+        )
+        operation = migration.Migration.operations[0]
+
+        operation.reverse_code(apps, None)
+
+        self.assertTrue(OfferFamilyPlacement.objects.filter(pk=editorial.pk).exists())

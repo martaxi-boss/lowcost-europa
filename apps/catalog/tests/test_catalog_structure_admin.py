@@ -4,7 +4,13 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from apps.catalog.admin import OfferAdmin, OfferFamilyPlacementAdmin
-from apps.catalog.models import Offer, OfferFamilyPlacement, ProductFamily
+from apps.catalog.models import (
+    Offer,
+    OfferClick,
+    OfferFamilyPlacement,
+    OfferObservation,
+    ProductFamily,
+)
 
 
 class CatalogStructureAdminTests(TestCase):
@@ -46,7 +52,7 @@ class CatalogStructureAdminTests(TestCase):
         self.assertIn("selection_position", model_admin.list_display)
         self.assertIn("display_order", model_admin.list_display)
         self.assertIn("selection_reason", model_admin.list_display)
-        self.assertFalse(model_admin.has_delete_permission(self.request, self.placement))
+        self.assertTrue(model_admin.has_delete_permission(self.request, self.placement))
 
     def test_placement_admin_pages_render(self):
         urls = (
@@ -57,3 +63,23 @@ class CatalogStructureAdminTests(TestCase):
         for url in urls:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url, secure=True).status_code, 200)
+
+    def test_admin_can_delete_placement_without_deleting_related_catalog_data(self):
+        observation = OfferObservation.objects.create(offer=self.offer)
+        click = OfferClick.objects.create(offer=self.offer)
+        placement_pk = self.placement.pk
+        offer_pk = self.offer.pk
+        family_pk = self.family.pk
+
+        response = self.client.post(
+            reverse("admin:catalog_offerfamilyplacement_delete", args=[placement_pk]),
+            {"post": "yes"},
+            secure=True,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(OfferFamilyPlacement.objects.filter(pk=placement_pk).exists())
+        self.assertTrue(Offer.objects.filter(pk=offer_pk).exists())
+        self.assertTrue(ProductFamily.objects.filter(pk=family_pk).exists())
+        self.assertTrue(OfferObservation.objects.filter(pk=observation.pk).exists())
+        self.assertTrue(OfferClick.objects.filter(pk=click.pk).exists())

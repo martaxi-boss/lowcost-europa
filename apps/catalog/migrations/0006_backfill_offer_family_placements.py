@@ -20,16 +20,11 @@ def backfill_offer_family_placements(apps, schema_editor):
     OfferFamilyPlacement.objects.bulk_create(placements)
 
 
-def reverse_backfill(apps, schema_editor):
-    OfferFamilyPlacement = apps.get_model("catalog", "OfferFamilyPlacement")
-    OfferFamilyPlacement.objects.all().delete()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("catalog", "0005_offerfamilyplacement_offer_equipment_type_and_more"),
     ]
 
     operations = [
-        migrations.RunPython(backfill_offer_family_placements, reverse_backfill),
+        migrations.RunPython(backfill_offer_family_placements, migrations.RunPython.noop),
     ]

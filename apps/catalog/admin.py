@@ -102,9 +102,6 @@ class OfferFamilyPlacementAdmin(admin.ModelAdmin):
     ordering = ("product_family", "selection_position", "display_order", "pk")
     readonly_fields = ("created_at", "updated_at")
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 @admin.register(OfferObservation)
 class OfferObservationAdmin(admin.ModelAdmin):
