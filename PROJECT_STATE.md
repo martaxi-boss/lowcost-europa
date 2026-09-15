@@ -85,6 +85,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - PostgreSQL restore drill passed: the pre-0004 backup restored into an isolated temporary DB, retained 1/3/6 and the editorial primary, migrated forward through catalog.0004, then the temporary DB was dropped.
 - A local daily PostgreSQL backup timer is operational with 7-day retention; MVP OPERATIONAL CLOSEOUT 001 validated the latest daily dump/checksum and a tested root-only local AliExpress secret restore link. Off-server backup remains OWNER BLOCKED pending explicit authorization for private Cloudflare R2 + restic activation; an off-Droplet recovery key is required.
 - Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; MVP PRELAUNCH 003 performed one fresh detail lookup for the same product ID and AliExpress returned the same image URL, so this finding remains OPEN.
+- VISUAL + COMMERCIAL READINESS 001 is implemented on `builder/visual-commercial-readiness-001` from authorized base `d9705909f631237694fc0ed580e6268b88490e69`, pending Supervisor audit. Final post-correction Chromium QA passed at 390x844 and 1440x900 with zero horizontal overflow/JS errors, visible desktop navigation, 48 px mobile menu/CTA targets, no raw AliExpress affiliate href exposure, and live DB unchanged at 5 / 6 / 9 / 5. The HIFU 123x123 source-image finding remains OPEN / NON-BLOCKING.
 - MVP PRELAUNCH 001 is merged and its transparency/privacy/affiliate/terms pages plus conservative technical SEO baseline are deployed to noindex staging through MVP PRELAUNCH 002. Fail-closed indexing was validated with PUBLIC_INDEXING_ENABLED=false and PUBLIC_SITE_URL empty. Authorized public contact channels are now defined in PRELAUNCH 004; operator legal identity remains PENDING OWNER INPUT, off-server backup remains pending, final public domain remains pending, and public launch is not authorized.
 
 ## Infrastructure classification
@@ -93,7 +94,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-MVP construction has reached the minimum five-family catalog and is now in controlled pre-launch preparation. Transparency, privacy, affiliate disclosure and technical SEO baseline work is underway while staging remains noindex. Public MVP launch is not authorized.
+The minimum five-family catalog is preserved and VISUAL + COMMERCIAL READINESS 001 is complete on its review branch, pending Supervisor audit. Staging remains noindex and public MVP launch is not authorized.
 
 ### MVP integrations completed
 

@@ -1,30 +1,41 @@
 <article class="product-card">
-  {% if family.display_offer and family.display_offer.image_url %}
-    {% with image_url=family.display_offer.image_url %}
-      {% if image_url|slice:":8" == "https://" or image_url|slice:":7" == "http://" %}
-        <div class="product-card__media">
-          <img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480">
-        </div>
-      {% else %}
-        <div class="product-card__media product-card__media--placeholder" aria-hidden="true">LE</div>
-      {% endif %}
-    {% endwith %}
-  {% else %}
-    <div class="product-card__media product-card__media--placeholder" aria-hidden="true">LE</div>
-  {% endif %}
+  <a class="product-card__media-link" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Ver {{ family.name }}">
+    {% if family.display_offer and family.display_offer.image_url %}
+      {% with image_url=family.display_offer.image_url %}
+        {% if image_url|slice:":8" == "https://" or image_url|slice:":7" == "http://" %}
+          <div class="product-card__media">
+            <img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480" loading="lazy">
+          </div>
+        {% else %}
+          <div class="product-card__media product-card__media--placeholder" aria-hidden="true">LE</div>
+        {% endif %}
+      {% endwith %}
+    {% else %}
+      <div class="product-card__media product-card__media--placeholder" aria-hidden="true">LE</div>
+    {% endif %}
+  </a>
   <div class="product-card__body">
-    <span class="badge">{{ family.public_status }}</span>
+    <div class="card-topline">
+      <span class="badge">{{ family.public_status }}</span>
+      <span class="card-kicker">Seleção editorial</span>
+    </div>
     <h3><a href="{% url 'storefront:product-family-detail' family.slug %}">{{ family.name }}</a></h3>
     {% if family.display_offer and family.display_offer.latest_observation %}
       {% with obs=family.display_offer.latest_observation %}
-        <p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Preço não disponível{% endif %}</p>
-        {% if family.display_offer.logistics_text %}<p class="muted">{{ family.display_offer.logistics_text }}</p>{% endif %}
-        <p class="meta">Última verificação: {{ obs.observed_at|date:"d/m/Y H:i" }}</p>
+        <p class="fact-label">Preço observado</p>
+        <p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Indisponível{% endif %}</p>
+        {% if family.display_offer.logistics_text %}<p class="logistics-note">{{ family.display_offer.logistics_text }}</p>{% endif %}
+        <div class="card-facts">
+          <span>{% if obs.sales_count is not None %}{{ obs.sales_count }} vendas indicadas{% else %}Vendas indisponíveis{% endif %}</span>
+          <span>{% if obs.evaluation_rate_percent is not None %}Avaliação {{ obs.evaluation_rate_percent }}%{% else %}Avaliação indisponível{% endif %}</span>
+        </div>
       {% endwith %}
     {% else %}
       <p class="muted">Informação de oferta ainda não disponível.</p>
     {% endif %}
-    {% if family.display_offer and family.display_offer.can_redirect %}<a class="button" href="{% url 'storefront:offer-go' family.display_offer.pk %}">Ver oferta</a>{% endif %}
-    <a class="button button--secondary" href="{% url 'storefront:product-family-detail' family.slug %}">Ver detalhes</a>
+    <div class="card-actions">
+      <a class="button button--secondary" href="{% url 'storefront:product-family-detail' family.slug %}">Ver detalhes</a>
+      {% if family.display_offer and family.display_offer.can_redirect %}<a class="button" href="{% url 'storefront:offer-go' family.display_offer.pk %}">Ver oferta no parceiro <span aria-hidden="true">↗</span></a>{% endif %}
+    </div>
   </div>
 </article>

@@ -14,30 +14,33 @@
   {% endif %}
   <div class="offer-card__body">
     <div class="offer-card__header">
-      <div>
-        <p class="eyebrow">{{ offer.get_source_display }}</p>
-        <h3>{{ offer.title|default:"Oferta disponível" }}</h3>
-      </div>
+      <p class="eyebrow">{{ offer.get_source_display }}</p>
+      <h3>{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
     {% if offer.latest_observation %}
       {% with obs=offer.latest_observation %}
+        <div class="offer-price-block">
+          <p class="fact-label">Preço observado</p>
+          <p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}</p>
+          <p class="meta">Verificado em {{ obs.observed_at|date:"d/m/Y H:i" }}</p>
+        </div>
         <dl class="facts">
-          <div><dt>Preço</dt><dd>{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}</dd></div>
           <div><dt>Avaliação</dt><dd>{% if obs.evaluation_rate_percent is not None %}{{ obs.evaluation_rate_percent }}%{% else %}Não disponível{% endif %}</dd></div>
           <div><dt>Vendas indicadas pela fonte</dt><dd>{% if obs.sales_count is not None %}{{ obs.sales_count }}{% else %}Não disponível{% endif %}</dd></div>
-          <div><dt>Logística</dt><dd>{{ offer.logistics_text|default:"Informação não disponível" }}</dd></div>
-          <div><dt>Última verificação</dt><dd>{{ obs.observed_at|date:"d/m/Y H:i" }}</dd></div>
+          <div><dt>Logística</dt><dd>{{ offer.logistics_text|default:"Não disponível" }}</dd></div>
         </dl>
       {% endwith %}
     {% else %}
       <p class="muted">Ainda não existe uma observação factual para esta oferta.</p>
     {% endif %}
-    {% if offer.can_redirect %}
-      <a class="button" href="{% url 'storefront:offer-go' offer.pk %}">Ver oferta</a>
-      <p class="meta">Será encaminhado para o vendedor. O Lowcost Europa pode receber uma comissão, sem custo adicional necessário para si.</p>
-    {% else %}
-      <button class="button" type="button" disabled aria-disabled="true">Ver oferta</button>
-      <p class="meta">Esta oferta não está disponível para encaminhamento neste momento.</p>
-    {% endif %}
+    <div class="offer-cta">
+      {% if offer.can_redirect %}
+        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}">Ver oferta no parceiro <span aria-hidden="true">↗</span></a>
+        <p class="meta">Vai sair do Lowcost Europa e continuar no vendedor. Podemos receber comissão afiliada.</p>
+      {% else %}
+        <button class="button button--large" type="button" disabled aria-disabled="true">Oferta indisponível</button>
+        <p class="meta">Esta oferta não está disponível para encaminhamento neste momento.</p>
+      {% endif %}
+    </div>
   </div>
 </article>
