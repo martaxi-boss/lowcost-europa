@@ -15,6 +15,7 @@ urlpatterns = [
     path("afiliados/", views.institutional_page, {"page": "afiliados"}, name="afiliados"),
     path("privacidade/", views.institutional_page, {"page": "privacidade"}, name="privacidade"),
     path("termos/", views.institutional_page, {"page": "termos"}, name="termos"),
+    path("contacto/", views.institutional_page, {"page": "contacto"}, name="contacto"),
     path("sitemap.xml", views.sitemap_xml, name="sitemap"),
     path("robots.txt", views.robots_txt, name="robots"),
     path("products/<slug:slug>/", views.product_family_detail, name="product-family-detail"),

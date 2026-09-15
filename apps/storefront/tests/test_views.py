@@ -361,12 +361,38 @@ class StorefrontViewTests(TestCase):
 
 class PrelaunchTransparencyTests(TestCase):
     def test_institutional_pages_return_200_and_footer_links_are_present(self):
-        names = ("como-funciona", "afiliados", "privacidade", "termos")
+        names = ("como-funciona", "afiliados", "privacidade", "termos", "contacto")
         for name in names:
             response = self.client.get(reverse(f"storefront:{name}"))
             self.assertEqual(response.status_code, 200)
             for footer_name in names:
                 self.assertContains(response, reverse(f"storefront:{footer_name}"))
+
+
+    def test_contact_page_uses_only_authorized_public_channels(self):
+        response = self.client.get(reverse("storefront:contacto"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "help.onlinefuture@gmail.com")
+        self.assertContains(response, "mailto:help.onlinefuture@gmail.com")
+        self.assertContains(response, "+351 961 726 755")
+        self.assertContains(response, "https://wa.me/351961726755")
+        self.assertContains(response, reverse("storefront:contacto"))
+        self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
+
+    def test_privacy_and_affiliates_link_to_contact(self):
+        for name in ("privacidade", "afiliados"):
+            response = self.client.get(reverse(f"storefront:{name}"))
+            self.assertContains(response, reverse("storefront:contacto"))
+        privacy = self.client.get(reverse("storefront:privacidade"))
+        self.assertContains(privacy, "help.onlinefuture@gmail.com")
+
+    def test_sitemap_has_eleven_urls_for_five_active_families(self):
+        for index in range(5):
+            ProductFamily.objects.create(name=f"Family {index}", slug=f"family-{index}")
+        response = self.client.get(reverse("storefront:sitemap"))
+        content = response.content.decode()
+        self.assertEqual(content.count("<url>"), 11)
+        self.assertIn(reverse("storefront:contacto"), content)
 
     def test_affiliate_disclosure_is_explicit_and_not_guaranteed(self):
         response = self.client.get(reverse("storefront:afiliados"))
@@ -390,7 +416,8 @@ class PrelaunchTransparencyTests(TestCase):
         self.assertContains(response, "PRE-LAUNCH / NOT PUBLIC READY")
         self.assertContains(response, "PENDING OWNER INPUT")
         self.assertContains(response, "NIF/VAT")
-        self.assertContains(response, "Email oficial")
+        self.assertContains(response, "help.onlinefuture@gmail.com")
+        self.assertContains(response, "PENDING OWNER INPUT")
 
     def test_default_seo_is_noindex_and_staging_has_no_canonical(self):
         response = self.client.get(reverse("storefront:home"))
@@ -441,6 +468,7 @@ class PrelaunchTransparencyTests(TestCase):
         self.assertContains(response, reverse("storefront:afiliados"))
         self.assertContains(response, reverse("storefront:privacidade"))
         self.assertContains(response, reverse("storefront:termos"))
+        self.assertContains(response, reverse("storefront:contacto"))
         self.assertContains(
             response,
             reverse("storefront:product-family-detail", kwargs={"slug": active.slug}),

@@ -35,6 +35,11 @@ INSTITUTIONAL_PAGES = {
         "Termos — pré-lançamento | Lowcost Europa",
         "Estrutura de termos ainda não pronta para lançamento público.",
     ),
+    "contacto": (
+        "Contacto | Lowcost Europa",
+        "Contactos institucionais do Lowcost Europa para informação, "
+        "transparência e correções factuais.",
+    ),
 }
 
 
@@ -155,6 +160,7 @@ def sitemap_xml(request):
         reverse("storefront:afiliados"),
         reverse("storefront:privacidade"),
         reverse("storefront:termos"),
+        reverse("storefront:contacto"),
     ]
     paths.extend(
         reverse("storefront:product-family-detail", kwargs={"slug": slug})

@@ -85,7 +85,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - PostgreSQL restore drill passed: the pre-0004 backup restored into an isolated temporary DB, retained 1/3/6 and the editorial primary, migrated forward through catalog.0004, then the temporary DB was dropped.
 - A local daily PostgreSQL backup timer is operational with 7-day retention; off-server backup remains pending Supervisor/owner decision.
 - Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; MVP PRELAUNCH 003 performed one fresh detail lookup for the same product ID and AliExpress returned the same image URL, so this finding remains OPEN.
-- MVP PRELAUNCH 001 is merged and its transparency/privacy/affiliate/terms pages plus conservative technical SEO baseline are deployed to noindex staging through MVP PRELAUNCH 002. Fail-closed indexing was validated with PUBLIC_INDEXING_ENABLED=false and PUBLIC_SITE_URL empty. Operator identity/contact remain PENDING OWNER INPUT, off-server backup remains pending, and public launch is not authorized.
+- MVP PRELAUNCH 001 is merged and its transparency/privacy/affiliate/terms pages plus conservative technical SEO baseline are deployed to noindex staging through MVP PRELAUNCH 002. Fail-closed indexing was validated with PUBLIC_INDEXING_ENABLED=false and PUBLIC_SITE_URL empty. Authorized public contact channels are now defined in PRELAUNCH 004; operator legal identity remains PENDING OWNER INPUT, off-server backup remains pending, final public domain remains pending, and public launch is not authorized.
 
 ## Infrastructure classification
 
@@ -116,7 +116,7 @@ MVP construction has reached the minimum five-family catalog and is now in contr
 10. Add operational hardening and backup — local daily backup + restore drill completed; off-server backup still pending.
 11. Expand to 5–10 ProductFamilies — in progress conservatively; 5 real ProductFamilies / 6 Offers are now live. Further imports still require fresh validation and Supervisor approval.
 12. Complete mobile/desktop QA — real Chromium desktop/mobile visual QA completed on staging with PASS; second Offer image quality (123x123 source) remains an OPEN non-blocking pre-launch data-quality finding after PRELAUNCH 003 returned the same factual image URL.
-13. Add basic technical SEO and legal/affiliate transparency — implemented, merged and deployed to noindex staging; operator legal identity/contact still required before public launch.
+13. Add basic technical SEO and legal/affiliate transparency — implemented, merged and deployed to noindex staging; authorized public contact channels are implemented in PRELAUNCH 004, while operator legal identity still requires owner input before public launch.
 14. Launch the Portugal MVP.
 15. Measure business outcomes.
 16. Only then decide whether scoring, scheduling or additional automation is justified.
