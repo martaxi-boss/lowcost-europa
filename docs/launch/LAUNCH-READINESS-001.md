@@ -80,7 +80,7 @@ Across all measured pages:
 - raw AliExpress affiliate href exposure in rendered links: ZERO;
 - footer present.
 
-Final evidence is stored in `docs/qa/launch-readiness-001/`, including eight screenshots and `qa-results.json`.
+Final evidence is stored in `docs/qa/launch-readiness-001/`, including eight screenshots and `qa-results.json`. A final independent revalidation against the live DuckDNS HTTPS hostname reproduced zero horizontal overflow, zero JavaScript errors, visible desktop navigation, 48 px mobile targets, zero raw affiliate href exposure and zero browser requests to `/go/`.
 
 The factual second HIFU 7D source image remains 123x123. Status: **OPEN / NON-BLOCKING**. It was not replaced or masked.
 ## OfferClick audit during staging QA
@@ -91,24 +91,24 @@ During the public-hostname QA window, OfferClicks first increased from 5 to 23. 
 
 The Builder Chromium QA identified itself as Linux `HeadlessChrome/140.0.7339.16`; its script only navigated to storefront/institutional pages and did not request `/go/`. The initial 18 records are therefore classified as external automated staging traffic, not Builder QA clicks.
 
-A later pre-commit snapshot found five more external mobile-browser `/go/` requests, bringing the audited total to 28. These later requests used Android Chrome variants, some with the DuckDNS homepage as referer, and were also distinct from the Builder HeadlessChrome QA. Source IP values were not retained in project documentation.
+A later pre-commit snapshot found five more external mobile-browser `/go/` requests, bringing the audited total to 28. Final revalidation found six further external mobile-browser requests, bringing the audited snapshot to 34. These later requests used Android Chrome variants, some with DuckDNS pages as referer, and were distinct from the Builder HeadlessChrome QA. Source IP values are intentionally not retained in project documentation.
 
-No OfferClick records were deleted or modified. Audited live state at this snapshot is:
+No OfferClick records were deleted or modified. The counter may continue to increase while the publicly reachable staging hostname receives external traffic. Audited live state at the final validation snapshot is:
 
 - ProductFamilies = 5
 - Offers = 6
 - OfferObservations = 9
-- OfferClicks = 28
+- OfferClicks = 34
 
 These raw staging events are not unique users, buyers, purchases, conversions or commissions.
 ## Performance and resources
 
-One simple HTTPS sample on DuckDNS measured approximately 0.096 s total for the homepage, with about 0.072 s TLS application-connect time, about 0.096 s TTFB and 15,707 bytes of HTML. The storefront CSS returned 200 in about 0.037 s and was 14,044 bytes. No load test was performed.
+A final simple HTTPS sample on DuckDNS measured approximately 0.061 s total for the homepage, with about 0.036 s TLS application-connect time, about 0.061 s TTFB and 15,707 bytes of HTML. The storefront CSS returned 200 in about 0.039 s and was 14,044 bytes. No load test was performed.
 
 Resource snapshot after configuration:
 
-- RAM: 961 MiB total, 377 MiB available;
-- swap: 4095 MiB total, 342 MiB used;
+- RAM: 961 MiB total, 415 MiB available;
+- swap: 4095 MiB total, 422 MiB used;
 - root filesystem: 24 GiB total, 16 GiB used, 7.5 GiB available (68%).
 
 No Droplet upgrade or heavy stack was added.
