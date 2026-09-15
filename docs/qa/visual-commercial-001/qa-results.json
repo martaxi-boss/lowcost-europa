@@ -1,0 +1,666 @@
+[
+  {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "scrollWidth": 390,
+    "overflow": false,
+    "robots": "noindex, nofollow",
+    "h1Count": 1,
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Produtos profissionais, informação organizada, decisão mais simples."
+      },
+      {
+        "tag": "H2",
+        "text": "Sem urgência artificial. Sem promessas que não conseguimos provar."
+      },
+      {
+        "tag": "H2",
+        "text": "Famílias selecionadas"
+      },
+      {
+        "tag": "H2",
+        "text": "Produtos em destaque"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas Cavitation + RF Body Shaping"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas Diode Laser Hair Removal"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas HIFU 22D MAX"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas HIFU 7D"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas Hydro Dermabrasion / Aqua Peel"
+      },
+      {
+        "tag": "H2",
+        "text": "Menos ruído. Mais contexto para comparar."
+      },
+      {
+        "tag": "H3",
+        "text": "Catálogo selecionado"
+      },
+      {
+        "tag": "H3",
+        "text": "Informação organizada"
+      },
+      {
+        "tag": "H3",
+        "text": "Transparência"
+      },
+      {
+        "tag": "H2",
+        "text": "Da descoberta à compra, sem esconder quem vende."
+      },
+      {
+        "tag": "H2",
+        "text": "O que vê aqui pode mudar no parceiro."
+      }
+    ],
+    "headingSkip": false,
+    "menuTarget": {
+      "w": 80,
+      "h": 48
+    },
+    "ctas": [
+      {
+        "text": "Explorar produtos",
+        "href": "#familias",
+        "w": 201,
+        "h": 48
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-cavitation-rf-body-shaping/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/54/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-diode-laser-hair-removal/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/55/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-hifu-22d-max/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/53/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-hifu-7d/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/51/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-hydro-dermabrasion-aqua-peel/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/56/",
+        "w": 314,
+        "h": 48
+      }
+    ],
+    "minCtaHeight": 48,
+    "desktopNavVisible": false,
+    "desktopNavLinks": [],
+    "rawAffiliateUrls": [],
+    "goLinks": 5,
+    "images": [
+      {
+        "alt": "Slimming Machine Body Shaping Equipment Fat Burning Beauty Device with Cryo Cooling Vacuum Cavitation Lipo RF Light Therapy",
+        "complete": true,
+        "nw": 400,
+        "nh": 400
+      },
+      {
+        "alt": "Portable Diode Laser Hair Removal Machine 755 808 940 1064nm 4 Wavelength Ice Cooling Skin Care Device 10‑16 Bar Customizable Power 15.6 Inch Touch Screen Full Body Hair Remover for Salon Home Beauty Use CE Certified",
+        "complete": true,
+        "nw": 1873,
+        "nh": 1873
+      },
+      {
+        "alt": "22D MAX HIFU Beauty Equipment Latest Model Popular Machine for Facial Tightening Slimming Fat Reduction",
+        "complete": true,
+        "nw": 529,
+        "nh": 529
+      },
+      {
+        "alt": "7D HIFU Ultrasound RF Skin Care Slimming Device Professional Anti Aging Facial Lifting Salon Beauty Machine",
+        "complete": false,
+        "nw": 0,
+        "nh": 0
+      },
+      {
+        "alt": "New Hydra Oxygen Facial Machine – Deep Clean, Extract, Hydrate & Photon Skin Repair for a Healthy Complexion",
+        "complete": false,
+        "nw": 0,
+        "nh": 0
+      }
+    ],
+    "mobile": true,
+    "focus": {
+      "tag": "A",
+      "text": "Saltar para o conteúdo",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineOffset": "3px"
+    },
+    "jsErrors": [],
+    "name": "mobile-home",
+    "url": "/"
+  },
+  {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "scrollWidth": 390,
+    "overflow": false,
+    "robots": "noindex, nofollow",
+    "h1Count": 1,
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Máquinas HIFU 7D"
+      },
+      {
+        "tag": "H2",
+        "text": "Opções disponíveis"
+      },
+      {
+        "tag": "H3",
+        "text": "7D HIFU Ultrasound RF Skin Care Slimming Device Professional Anti Aging Facial Lifting Salon Beauty Machine"
+      },
+      {
+        "tag": "H3",
+        "text": "7D HIFU Ultrasound RF Professional Beauty Device for Full Body Slimming Skin Lifting Tightening Anti-Aging Salon Machine"
+      },
+      {
+        "tag": "H2",
+        "text": "Compra externa, informação observada."
+      }
+    ],
+    "headingSkip": false,
+    "menuTarget": {
+      "w": 80,
+      "h": 48
+    },
+    "ctas": [
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/51/",
+        "w": 314,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/52/",
+        "w": 314,
+        "h": 48
+      }
+    ],
+    "minCtaHeight": 48,
+    "desktopNavVisible": false,
+    "desktopNavLinks": [],
+    "rawAffiliateUrls": [],
+    "goLinks": 2,
+    "images": [
+      {
+        "alt": "7D HIFU Ultrasound RF Skin Care Slimming Device Professional Anti Aging Facial Lifting Salon Beauty Machine",
+        "complete": true,
+        "nw": 1080,
+        "nh": 1080
+      },
+      {
+        "alt": "7D HIFU Ultrasound RF Professional Beauty Device for Full Body Slimming Skin Lifting Tightening Anti-Aging Salon Machine",
+        "complete": true,
+        "nw": 123,
+        "nh": 123
+      }
+    ],
+    "mobile": true,
+    "focus": {
+      "tag": "A",
+      "text": "Saltar para o conteúdo",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineOffset": "3px"
+    },
+    "jsErrors": [],
+    "name": "mobile-hifu",
+    "url": "/products/maquinas-hifu-7d/"
+  },
+  {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "scrollWidth": 390,
+    "overflow": false,
+    "robots": "noindex, nofollow",
+    "h1Count": 1,
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Máquinas Cavitation + RF Body Shaping"
+      },
+      {
+        "tag": "H2",
+        "text": "Opções disponíveis"
+      },
+      {
+        "tag": "H3",
+        "text": "Slimming Machine Body Shaping Equipment Fat Burning Beauty Device with Cryo Cooling Vacuum Cavitation Lipo RF Light Therapy"
+      },
+      {
+        "tag": "H2",
+        "text": "Compra externa, informação observada."
+      }
+    ],
+    "headingSkip": false,
+    "menuTarget": {
+      "w": 80,
+      "h": 48
+    },
+    "ctas": [
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/54/",
+        "w": 314,
+        "h": 48
+      }
+    ],
+    "minCtaHeight": 48,
+    "desktopNavVisible": false,
+    "desktopNavLinks": [],
+    "rawAffiliateUrls": [],
+    "goLinks": 1,
+    "images": [
+      {
+        "alt": "Slimming Machine Body Shaping Equipment Fat Burning Beauty Device with Cryo Cooling Vacuum Cavitation Lipo RF Light Therapy",
+        "complete": true,
+        "nw": 400,
+        "nh": 400
+      }
+    ],
+    "mobile": true,
+    "focus": {
+      "tag": "A",
+      "text": "Saltar para o conteúdo",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineOffset": "3px"
+    },
+    "jsErrors": [],
+    "name": "mobile-cavitation",
+    "url": "/products/maquinas-cavitation-rf-body-shaping/"
+  },
+  {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "scrollWidth": 390,
+    "overflow": false,
+    "robots": "noindex, nofollow",
+    "h1Count": 1,
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Contacto"
+      }
+    ],
+    "headingSkip": false,
+    "menuTarget": {
+      "w": 80,
+      "h": 48
+    },
+    "ctas": [],
+    "minCtaHeight": null,
+    "desktopNavVisible": false,
+    "desktopNavLinks": [],
+    "rawAffiliateUrls": [],
+    "goLinks": 0,
+    "images": [],
+    "mobile": true,
+    "focus": {
+      "tag": "A",
+      "text": "Saltar para o conteúdo",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineOffset": "3px"
+    },
+    "jsErrors": [],
+    "name": "mobile-contacto",
+    "url": "/contacto/"
+  },
+  {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "scrollWidth": 1440,
+    "overflow": false,
+    "robots": "noindex, nofollow",
+    "h1Count": 1,
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Produtos profissionais, informação organizada, decisão mais simples."
+      },
+      {
+        "tag": "H2",
+        "text": "Sem urgência artificial. Sem promessas que não conseguimos provar."
+      },
+      {
+        "tag": "H2",
+        "text": "Famílias selecionadas"
+      },
+      {
+        "tag": "H2",
+        "text": "Produtos em destaque"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas Cavitation + RF Body Shaping"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas Diode Laser Hair Removal"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas HIFU 22D MAX"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas HIFU 7D"
+      },
+      {
+        "tag": "H3",
+        "text": "Máquinas Hydro Dermabrasion / Aqua Peel"
+      },
+      {
+        "tag": "H2",
+        "text": "Menos ruído. Mais contexto para comparar."
+      },
+      {
+        "tag": "H3",
+        "text": "Catálogo selecionado"
+      },
+      {
+        "tag": "H3",
+        "text": "Informação organizada"
+      },
+      {
+        "tag": "H3",
+        "text": "Transparência"
+      },
+      {
+        "tag": "H2",
+        "text": "Da descoberta à compra, sem esconder quem vende."
+      },
+      {
+        "tag": "H2",
+        "text": "O que vê aqui pode mudar no parceiro."
+      }
+    ],
+    "headingSkip": false,
+    "menuTarget": {
+      "w": 0,
+      "h": 0
+    },
+    "ctas": [
+      {
+        "text": "Explorar produtos",
+        "href": "#familias",
+        "w": 201,
+        "h": 48
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-cavitation-rf-body-shaping/",
+        "w": 146,
+        "h": 73
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/54/",
+        "w": 184,
+        "h": 73
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-diode-laser-hair-removal/",
+        "w": 146,
+        "h": 73
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/55/",
+        "w": 184,
+        "h": 73
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-hifu-22d-max/",
+        "w": 146,
+        "h": 73
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/53/",
+        "w": 184,
+        "h": 73
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-hifu-7d/",
+        "w": 146,
+        "h": 73
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/51/",
+        "w": 184,
+        "h": 73
+      },
+      {
+        "text": "Ver detalhes",
+        "href": "/products/maquinas-hydro-dermabrasion-aqua-peel/",
+        "w": 146,
+        "h": 73
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/56/",
+        "w": 184,
+        "h": 73
+      }
+    ],
+    "minCtaHeight": 48,
+    "desktopNavVisible": true,
+    "desktopNavLinks": [
+      "Início",
+      "Produtos",
+      "Como funciona",
+      "Afiliados",
+      "Contacto"
+    ],
+    "rawAffiliateUrls": [],
+    "goLinks": 5,
+    "images": [
+      {
+        "alt": "Slimming Machine Body Shaping Equipment Fat Burning Beauty Device with Cryo Cooling Vacuum Cavitation Lipo RF Light Therapy",
+        "complete": true,
+        "nw": 400,
+        "nh": 400
+      },
+      {
+        "alt": "Portable Diode Laser Hair Removal Machine 755 808 940 1064nm 4 Wavelength Ice Cooling Skin Care Device 10‑16 Bar Customizable Power 15.6 Inch Touch Screen Full Body Hair Remover for Salon Home Beauty Use CE Certified",
+        "complete": true,
+        "nw": 1873,
+        "nh": 1873
+      },
+      {
+        "alt": "22D MAX HIFU Beauty Equipment Latest Model Popular Machine for Facial Tightening Slimming Fat Reduction",
+        "complete": true,
+        "nw": 529,
+        "nh": 529
+      },
+      {
+        "alt": "7D HIFU Ultrasound RF Skin Care Slimming Device Professional Anti Aging Facial Lifting Salon Beauty Machine",
+        "complete": true,
+        "nw": 1080,
+        "nh": 1080
+      },
+      {
+        "alt": "New Hydra Oxygen Facial Machine – Deep Clean, Extract, Hydrate & Photon Skin Repair for a Healthy Complexion",
+        "complete": true,
+        "nw": 2000,
+        "nh": 2000
+      }
+    ],
+    "mobile": false,
+    "focus": {
+      "tag": "A",
+      "text": "Saltar para o conteúdo",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineOffset": "3px"
+    },
+    "jsErrors": [],
+    "name": "desktop-home",
+    "url": "/"
+  },
+  {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "scrollWidth": 1440,
+    "overflow": false,
+    "robots": "noindex, nofollow",
+    "h1Count": 1,
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Máquinas HIFU 7D"
+      },
+      {
+        "tag": "H2",
+        "text": "Opções disponíveis"
+      },
+      {
+        "tag": "H3",
+        "text": "7D HIFU Ultrasound RF Skin Care Slimming Device Professional Anti Aging Facial Lifting Salon Beauty Machine"
+      },
+      {
+        "tag": "H3",
+        "text": "7D HIFU Ultrasound RF Professional Beauty Device for Full Body Slimming Skin Lifting Tightening Anti-Aging Salon Machine"
+      },
+      {
+        "tag": "H2",
+        "text": "Compra externa, informação observada."
+      }
+    ],
+    "headingSkip": false,
+    "menuTarget": {
+      "w": 0,
+      "h": 0
+    },
+    "ctas": [
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/51/",
+        "w": 537,
+        "h": 48
+      },
+      {
+        "text": "Ver oferta no parceiro ↗",
+        "href": "/go/52/",
+        "w": 537,
+        "h": 48
+      }
+    ],
+    "minCtaHeight": 48,
+    "desktopNavVisible": true,
+    "desktopNavLinks": [
+      "Início",
+      "Produtos",
+      "Como funciona",
+      "Afiliados",
+      "Contacto"
+    ],
+    "rawAffiliateUrls": [],
+    "goLinks": 2,
+    "images": [
+      {
+        "alt": "7D HIFU Ultrasound RF Skin Care Slimming Device Professional Anti Aging Facial Lifting Salon Beauty Machine",
+        "complete": true,
+        "nw": 1080,
+        "nh": 1080
+      },
+      {
+        "alt": "7D HIFU Ultrasound RF Professional Beauty Device for Full Body Slimming Skin Lifting Tightening Anti-Aging Salon Machine",
+        "complete": true,
+        "nw": 123,
+        "nh": 123
+      }
+    ],
+    "mobile": false,
+    "focus": {
+      "tag": "A",
+      "text": "Saltar para o conteúdo",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "outlineOffset": "3px"
+    },
+    "jsErrors": [],
+    "name": "desktop-hifu",
+    "url": "/products/maquinas-hifu-7d/"
+  }
+]

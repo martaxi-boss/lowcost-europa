@@ -1,16 +1,26 @@
 {% extends "storefront/base.html" %}
 {% block content %}
-<section class="section">
-  <div class="container detail-header">
-    <p class="eyebrow">Produto</p>
-    <span class="badge">{{ family.public_status }}</span>
-    <h1>{{ family.name }}</h1>
-    <p class="lead">Ofertas atuais e informação factual disponível. Valores e condições podem mudar.</p>
+<section class="detail-hero">
+  <div class="container detail-hero__inner">
+    <div>
+      <a class="back-link" href="{% url 'storefront:home' %}#familias">← Voltar aos produtos</a>
+      <p class="eyebrow">Família selecionada</p>
+      <div class="detail-title-row"><h1>{{ family.name }}</h1><span class="badge">{{ family.public_status }}</span></div>
+      <p class="lead">Compare as ofertas atuais desta família com base na informação factual disponível. Valores, disponibilidade e condições podem mudar no parceiro.</p>
+    </div>
+    <div class="detail-note">
+      <strong>Como ler esta página</strong>
+      <p>O primeiro produto apresentado é uma escolha editorial de organização. A ordem serve apenas para estruturar a página e não atribui superioridade comercial.</p>
+    </div>
   </div>
 </section>
-<section class="section section--muted">
+
+<section class="section section--surface">
   <div class="container">
-    <h2>Ofertas disponíveis</h2>
+    <div class="section-heading section-heading--split">
+      <div><p class="eyebrow">Ofertas atuais</p><h2>Opções disponíveis</h2></div>
+      <p class="section-intro">A compra, o pagamento, a expedição e o apoio à encomenda são tratados pelo vendedor ou plataforma externa.</p>
+    </div>
     {% if family.active_offers %}
       <div class="offer-list">
         {% for offer in family.active_offers %}
@@ -25,10 +35,12 @@
     {% endif %}
   </div>
 </section>
+
 <section class="section">
-  <div class="container disclosure">
-    <h2>Transparência</h2>
-    <p>O Lowcost Europa pode receber uma comissão quando compra através de alguns links, sem custo adicional para si.</p>
+  <div class="container transparency-box transparency-box--detail">
+    <div><p class="eyebrow">Transparência</p><h2>Compra externa, informação observada.</h2></div>
+    <p>O Lowcost Europa organiza a informação e encaminha para o parceiro. Alguns links podem ser afiliados e gerar comissão. Isso não altera o facto de a compra acontecer diretamente no vendedor ou plataforma externa.</p>
+    <a class="text-link" href="{% url 'storefront:afiliados' %}">Como funcionam os links de afiliado <span aria-hidden="true">→</span></a>
   </div>
 </section>
 {% endblock %}

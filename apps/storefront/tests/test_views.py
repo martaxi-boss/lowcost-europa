@@ -359,6 +359,75 @@ class StorefrontViewTests(TestCase):
         )
 
 
+    def test_homepage_has_commercial_readiness_sections_and_navigation(self):
+        family = ProductFamily.objects.create(name="Visual Family", slug="visual-family")
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "Produtos profissionais, informação organizada")
+        self.assertContains(response, "Famílias selecionadas")
+        self.assertContains(response, "Produtos em destaque")
+        self.assertContains(response, "Porquê Lowcost Europa")
+        self.assertContains(response, "Como funciona")
+        self.assertContains(response, "Transparência comercial")
+        self.assertContains(response, family.name)
+        self.assertContains(response, 'aria-label="Navegação principal"')
+        self.assertContains(response, reverse("storefront:contacto"))
+
+    def test_external_offer_cta_is_explicit_without_live_click(self):
+        family = ProductFamily.objects.create(name="CTA Family", slug="cta-family")
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="cta-offer",
+            product_family=family,
+            title="CTA Product",
+            affiliate_url="https://affiliate.example.test/destination",
+        )
+        OfferObservation.objects.create(
+            offer=offer, price=Decimal("499.00"), currency="EUR", search_delivery_days=5
+        )
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "Preço observado")
+        self.assertContains(response, "Ver oferta no parceiro")
+        self.assertContains(
+            response, reverse("storefront:offer-go", kwargs={"offer_id": offer.pk})
+        )
+        self.assertNotContains(response, "Comprar agora")
+        self.assertNotContains(response, offer.affiliate_url)
+
+    def test_homepage_does_not_present_editorial_selection_as_ranking(self):
+        family = ProductFamily.objects.create(name="Editorial Family", slug="editorial-family")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="editorial-offer",
+            product_family=family,
+            title="Editorial Product",
+            is_primary=True,
+        )
+        response = self.client.get(reverse("storefront:home"))
+        content = response.content.decode().lower()
+        self.assertIn("seleção editorial", content)
+        self.assertIn("escolha editorial de apresentação", content)
+        for phrase in ("melhor produto", "mais vendido", "ranking automático", "winner"):
+            self.assertNotIn(phrase, content)
+        self.assertNotIn('class="badge">winner', content)
+        self.assertNotIn('class="badge">proven', content)
+
+    def test_family_page_explains_external_purchase_and_editorial_ordering(self):
+        family = ProductFamily.objects.create(name="Clear Family", slug="clear-family")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="clear-offer",
+            product_family=family,
+            title="Clear Product",
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertContains(response, "escolha editorial de organização")
+        self.assertContains(response, "compra acontecer diretamente no vendedor")
+        self.assertNotContains(response, "melhor oferta")
+
+
+
 class PrelaunchTransparencyTests(TestCase):
     def test_institutional_pages_return_200_and_footer_links_are_present(self):
         names = ("como-funciona", "afiliados", "privacidade", "termos", "contacto")

@@ -18,26 +18,58 @@
   <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="{% url 'storefront:home' %}" aria-label="Lowcost Europa - início">Lowcost Europa</a>
-      <span class="header-note">Seleção simples. Informação transparente.</span>
+      <a class="brand" href="{% url 'storefront:home' %}" aria-label="Lowcost Europa - início">
+        <span class="brand-mark" aria-hidden="true">LE</span>
+        <span class="brand-copy"><strong>LOWCOST EUROPA</strong><small>Seleção clara. Compra no parceiro.</small></span>
+      </a>
+      <nav class="desktop-nav" aria-label="Navegação principal">
+        <a href="{% url 'storefront:home' %}">Início</a>
+        <a href="{% url 'storefront:home' %}#familias">Produtos</a>
+        <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
+        <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
+        <a href="{% url 'storefront:contacto' %}">Contacto</a>
+      </nav>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="site-nav" aria-label="Navegação mobile">
+          <a href="{% url 'storefront:home' %}">Início</a>
+          <a href="{% url 'storefront:home' %}#familias">Produtos</a>
+          <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
+          <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
+          <a href="{% url 'storefront:contacto' %}">Contacto</a>
+        </nav>
+      </details>
     </div>
   </header>
   <main id="conteudo">
     {% block content %}{% endblock %}
   </main>
   <footer class="site-footer">
-    <div class="container footer-inner">
-      <div>
-        <p><strong>Lowcost Europa</strong></p>
-        <p>Podemos receber uma comissão quando compra através de alguns links. Preços e condições são definidos pelo vendedor e podem mudar.</p>
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <p class="footer-wordmark">LOWCOST EUROPA</p>
+        <p>Uma plataforma de seleção e organização de produtos de parceiros externos. A compra acontece no vendedor ou plataforma parceira.</p>
       </div>
-      <nav class="footer-nav" aria-label="Informação e transparência">
-        <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
-        <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
-        <a href="{% url 'storefront:privacidade' %}">Privacidade</a>
-        <a href="{% url 'storefront:termos' %}">Termos</a>
-        <a href="{% url 'storefront:contacto' %}">Contacto</a>
-      </nav>
+      <div>
+        <p class="footer-title">Explorar</p>
+        <nav class="footer-nav" aria-label="Explorar">
+          <a href="{% url 'storefront:home' %}">Início</a>
+          <a href="{% url 'storefront:home' %}#familias">Produtos</a>
+          <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
+        </nav>
+      </div>
+      <div>
+        <p class="footer-title">Transparência</p>
+        <nav class="footer-nav" aria-label="Informação e transparência">
+          <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
+          <a href="{% url 'storefront:privacidade' %}">Privacidade</a>
+          <a href="{% url 'storefront:termos' %}">Termos</a>
+          <a href="{% url 'storefront:contacto' %}">Contacto</a>
+        </nav>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>Alguns links podem ser afiliados. Preços, disponibilidade, entrega e condições são definidos pelo parceiro e podem mudar.</p>
     </div>
   </footer>
 </body>
