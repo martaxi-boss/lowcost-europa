@@ -74,6 +74,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - Offers `1005012522304882` and `1005013116584854` remain manually associated with the 7D family.
 - MVP LIVE CATALOG 002 created the second real ProductFamily: `Máquinas HIFU 22D MAX` (`maquinas-hifu-22d-max`), status `NEW`; existing Offer `1005013002556821` is its sole active Offer and explicit editorial primary.
 - Current live catalog state is 2 ProductFamilies / 3 Offers / 6 OfferObservations / 1 OfferClick. No new Offer, Observation, or OfferClick was created during the second-family curation.
+- MVP DISCOVERY 001 completed a bounded read-only commercial scan across RF microneedling, diode laser hair removal, hydrafacial, and cavitation/RF queries. The live catalog remains 2 ProductFamilies / 3 Offers / 6 OfferObservations / 1 OfferClick; the resulting 4-candidate shortlist is non-persisted and any import requires explicit Supervisor approval.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
 - `/go/<offer_id>/` and privacy-minimal raw outbound click tracking are implemented in code with no user identification, impressions, conversion or revenue tracking.
