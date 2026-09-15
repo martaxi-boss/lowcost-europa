@@ -83,10 +83,14 @@ def _logistics_text(observation):
     return None
 
 
+def _public_indexing_active():
+    return settings.PUBLIC_INDEXING_ENABLED and bool(settings.PUBLIC_SITE_URL)
+
+
 def _seo_context(path, page_title, meta_description):
     base_url = settings.PUBLIC_SITE_URL
     canonical_url = f"{base_url}{path}" if base_url else None
-    robots_directive = "index, follow" if settings.PUBLIC_INDEXING_ENABLED else "noindex, nofollow"
+    robots_directive = "index, follow" if _public_indexing_active() else "noindex, nofollow"
     return {
         "page_title": page_title,
         "meta_description": meta_description,
@@ -135,10 +139,9 @@ def institutional_page(request, page):
 
 
 def robots_txt(request):
-    if settings.PUBLIC_INDEXING_ENABLED:
+    if _public_indexing_active():
         body = "User-agent: *\nAllow: /\n"
-        if settings.PUBLIC_SITE_URL:
-            body += f"Sitemap: {settings.PUBLIC_SITE_URL}{reverse('storefront:sitemap')}\n"
+        body += f"Sitemap: {settings.PUBLIC_SITE_URL}{reverse('storefront:sitemap')}\n"
     else:
         body = "User-agent: *\nDisallow: /\n"
     return HttpResponse(body, content_type="text/plain; charset=utf-8")

@@ -397,16 +397,29 @@ class PrelaunchTransparencyTests(TestCase):
         self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
         self.assertNotContains(response, 'rel="canonical"')
 
+    @override_settings(PUBLIC_SITE_URL="", PUBLIC_INDEXING_ENABLED=True)
+    def test_indexing_flag_without_public_site_url_fails_closed(self):
+        home = self.client.get(reverse("storefront:home"))
+        robots = self.client.get(reverse("storefront:robots"))
+        self.assertContains(home, '<meta name="robots" content="noindex, nofollow">', html=True)
+        self.assertNotContains(home, 'rel="canonical"')
+        self.assertContains(robots, "Disallow: /")
+        self.assertNotContains(robots, "Allow: /")
+
     @override_settings(PUBLIC_SITE_URL="https://example.test", PUBLIC_INDEXING_ENABLED=True)
     def test_canonical_and_indexing_can_be_enabled_with_explicit_public_site_url(self):
-        response = self.client.get(reverse("storefront:home"))
+        home = self.client.get(reverse("storefront:home"))
+        robots = self.client.get(reverse("storefront:robots"))
         self.assertContains(
-            response, '<link rel="canonical" href="https://example.test/">', html=True
+            home, '<link rel="canonical" href="https://example.test/">', html=True
         )
-        self.assertContains(response, '<meta name="robots" content="index, follow">', html=True)
+        self.assertContains(home, '<meta name="robots" content="index, follow">', html=True)
         self.assertContains(
-            response, '<meta property="og:url" content="https://example.test/">', html=True
+            home, '<meta property="og:url" content="https://example.test/">', html=True
         )
+        self.assertContains(robots, "Allow: /")
+        self.assertContains(robots, "Sitemap: https://example.test/sitemap.xml")
+        self.assertNotContains(robots, "Disallow: /")
 
     def test_robots_disallows_indexing_by_default(self):
         response = self.client.get(reverse("storefront:robots"))
