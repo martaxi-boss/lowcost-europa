@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.catalog.models import Offer, ProductFamily
+from apps.catalog.models import Offer, OfferFamilyPlacement, ProductFamily
 
 
 class StorefrontAliExpressIsolationTests(TestCase):
@@ -17,6 +17,9 @@ class StorefrontAliExpressIsolationTests(TestCase):
             affiliate_url="https://affiliate.example.test/42",
             is_active=True,
             is_primary=True,
+        )
+        OfferFamilyPlacement.objects.create(
+            offer=self.offer, product_family=self.family, selection_position=1
         )
 
     @patch("apps.integrations.aliexpress.client.AliExpressClient.__init__")
