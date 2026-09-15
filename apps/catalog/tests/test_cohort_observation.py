@@ -11,6 +11,7 @@ from apps.catalog.services.cohort_observation import (
     normalize_product_ids,
     observe_aliexpress_products,
 )
+from apps.integrations.aliexpress.client import AliExpressCallMetrics
 from apps.integrations.aliexpress.exceptions import AliExpressAPIError
 from apps.integrations.aliexpress.types import AliExpressProduct, AliExpressSearchResult
 
@@ -39,6 +40,8 @@ class FakeClient:
         self.failing_ids = set(failing_ids or [])
         self.search_calls = 0
         self.detail_calls = []
+        self.execution_metrics = AliExpressCallMetrics()
+
     def search_products_diagnostic(self, *args, **kwargs):
         self.search_calls += 1
         return AliExpressSearchResult(products=self.search_products, invalid_items=0)
@@ -84,6 +87,7 @@ class CohortObservationTests(TransactionTestCase):
             list(OfferObservation.objects.values_list("search_delivery_days", "delivery_days")),
             [(5, None), (5, None), (5, None)],
         )
+
     def test_duplicate_id_creates_one_baseline(self):
         client = FakeClient(["42"])
         result = observe_aliexpress_products(["42", "42"], client=client, commit=True)
@@ -113,7 +117,7 @@ class CohortObservationTests(TransactionTestCase):
             from unittest.mock import patch
 
             with patch(
-                "apps.catalog.services.cohort_observation.AliExpressClient",
+                "apps.catalog.management.commands.aliexpress_observe_products.AliExpressClient",
                 return_value=fake,
             ):
                 out = StringIO()

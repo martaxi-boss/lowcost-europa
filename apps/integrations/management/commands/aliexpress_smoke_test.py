@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.integrations.aliexpress.client import AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError
+from apps.integrations.aliexpress.client import AliExpressClient, format_execution_metrics
+from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
 
 class Command(BaseCommand):
@@ -31,8 +31,7 @@ class Command(BaseCommand):
             self.stdout.write(f"Search: OK ({len(products)} returned)")
             self.stdout.write(f"Search logistics present: {logistics_count}/{len(products)}")
             self.stdout.write(
-                "Search evaluation_rate_percent present: "
-                f"{evaluation_count}/{len(products)}"
+                f"Search evaluation_rate_percent present: {evaluation_count}/{len(products)}"
             )
             if interpreted_days:
                 self.stdout.write(f"Search interpreted delivery_days: {interpreted_days}")
@@ -62,6 +61,12 @@ class Command(BaseCommand):
             else:
                 self.stdout.write("Affiliate link: SKIPPED (source URL unavailable)")
 
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             self.stdout.write(self.style.SUCCESS("LIVE_SMOKE_PASS"))
+        except AliExpressRateLimitError as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
+            self.stdout.write("RATE_LIMIT_ABORT = YES")
+            raise CommandError("AliExpress rate-limit abort") from exc
         except AliExpressError as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError(str(exc)) from exc

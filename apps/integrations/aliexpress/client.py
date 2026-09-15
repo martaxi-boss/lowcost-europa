@@ -1,12 +1,20 @@
+import errno
+import fcntl
 import json
 import logging
+import os
+import random
+import stat
 import time
+from dataclasses import dataclass
+from email.utils import parsedate_to_datetime
 from urllib import error, parse, request
 
 from .config import AliExpressConfig
 from .exceptions import (
     AliExpressAPIError,
     AliExpressAuthenticationError,
+    AliExpressRateLimitError,
     AliExpressResponseError,
     AliExpressTransportError,
 )
@@ -17,6 +25,95 @@ from .types import AliExpressSearchResult
 logger = logging.getLogger(__name__)
 
 SUPPORTED_DELIVERY_DAYS = frozenset({3, 5, 7, 10})
+MAX_SEARCH_PAGE_SIZE = 25
+DEFAULT_LOCK_PATH = "/tmp/lowcost-europa-aliexpress.lock"
+DEFAULT_CADENCE_PATH = "/tmp/lowcost-europa-aliexpress.last-start"
+
+
+def _secure_state_open(path: str, flags: int, mode: int = 0o600):
+    secure_flags = flags | os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        secure_flags |= os.O_NOFOLLOW
+    fd = os.open(path, secure_flags, mode)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode):
+            raise AliExpressTransportError("AliExpress runtime state is not a regular file")
+        if info.st_uid != os.geteuid():
+            raise AliExpressTransportError("AliExpress runtime state ownership mismatch")
+        os.fchmod(fd, mode)
+        return fd
+    except Exception:
+        os.close(fd)
+        raise
+
+
+@dataclass
+class AliExpressCallMetrics:
+    logical_operations: int = 0
+    attempts: int = 0
+    successful: int = 0
+    retries: int = 0
+    http_429: int = 0
+    http_5xx: int = 0
+    transport_failures: int = 0
+    rate_limit_abort: bool = False
+    duration_ms: int = 0
+    lock_wait_ms: int = 0
+
+
+def format_execution_metrics(metrics: AliExpressCallMetrics) -> list[str]:
+    return [
+        f"Logical operations: {metrics.logical_operations}",
+        f"HTTP attempts: {metrics.attempts}",
+        f"Retries: {metrics.retries}",
+        f"429 responses: {metrics.http_429}",
+        f"5xx responses: {metrics.http_5xx}",
+        f"Transport failures: {metrics.transport_failures}",
+        f"Rate-limit abort: {'YES' if metrics.rate_limit_abort else 'NO'}",
+        f"Total duration ms: {metrics.duration_ms}",
+        f"Lock wait ms: {metrics.lock_wait_ms}",
+    ]
+
+
+class _LocalOperationLock:
+    def __init__(self, path, timeout, monotonic, sleeper):
+        self.path = path
+        self.timeout = timeout
+        self.monotonic = monotonic
+        self.sleeper = sleeper
+        self.handle = None
+        self.wait_ms = 0
+
+    def __enter__(self):
+        started = self.monotonic()
+        try:
+            fd = _secure_state_open(self.path, os.O_RDWR | os.O_CREAT)
+            self.handle = os.fdopen(fd, "a+", encoding="utf-8")
+        except OSError as exc:
+            raise AliExpressTransportError("AliExpress operation lock unavailable") from exc
+        while True:
+            try:
+                fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                self.wait_ms = int((self.monotonic() - started) * 1000)
+                return self
+            except OSError as exc:
+                if exc.errno not in {errno.EACCES, errno.EAGAIN}:
+                    raise
+                if self.monotonic() - started >= self.timeout:
+                    self.handle.close()
+                    self.handle = None
+                    raise AliExpressTransportError("AliExpress operation lock timeout") from exc
+                self.sleeper(min(0.05, self.timeout))
+
+    def __exit__(self, *_args):
+        if self.handle is not None:
+            try:
+                fcntl.flock(self.handle.fileno(), fcntl.LOCK_UN)
+            finally:
+                self.handle.close()
+                self.handle = None
+        return False
 
 
 class AliExpressClient:
@@ -25,59 +122,227 @@ class AliExpressClient:
     DETAIL_METHOD = "aliexpress.affiliate.productdetail.get"
     LINK_METHOD = "aliexpress.affiliate.link.generate"
 
-    def __init__(self, config: AliExpressConfig | None = None, opener=None):
+    def __init__(
+        self,
+        config: AliExpressConfig | None = None,
+        opener=None,
+        *,
+        sleeper=time.sleep,
+        monotonic=time.monotonic,
+        wall_clock=time.time,
+        jitter_source=random.uniform,
+        lock_path: str = DEFAULT_LOCK_PATH,
+        cadence_path: str = DEFAULT_CADENCE_PATH,
+    ):
         self.config = config or AliExpressConfig.from_env()
         self._opener = opener or request.urlopen
+        self._sleeper = sleeper
+        self._monotonic = monotonic
+        self._wall_clock = wall_clock
+        self._jitter_source = jitter_source
+        self._lock_path = lock_path
+        self._cadence_path = cadence_path
+        self.last_call_metrics = AliExpressCallMetrics()
+        self.execution_metrics = AliExpressCallMetrics()
+
+    def _accumulate_metrics(self, metrics: AliExpressCallMetrics) -> None:
+        total = self.execution_metrics
+        total.logical_operations += metrics.logical_operations
+        total.attempts += metrics.attempts
+        total.successful += metrics.successful
+        total.retries += metrics.retries
+        total.http_429 += metrics.http_429
+        total.http_5xx += metrics.http_5xx
+        total.transport_failures += metrics.transport_failures
+        total.rate_limit_abort = total.rate_limit_abort or metrics.rate_limit_abort
+        total.duration_ms += metrics.duration_ms
+        total.lock_wait_ms += metrics.lock_wait_ms
 
     def _base_params(self, method: str) -> dict[str, object]:
         return {
             "app_key": self.config.app_key,
-            "timestamp": str(int(time.time() * 1000)),
+            "timestamp": str(int(self._wall_clock() * 1000)),
             "sign_method": "sha256",
             "method": method,
             "format": "json",
             "v": "2.0",
         }
 
-    def _call(self, method: str, business_params: dict[str, object] | None = None) -> dict:
+    def _build_request(self, method: str, business_params: dict[str, object] | None):
         params = self._base_params(method)
         params.update({k: v for k, v in (business_params or {}).items() if v is not None})
         params["sign"] = sign_hmac_sha256(params, self.config.app_secret)
         encoded = parse.urlencode(params).encode("utf-8")
-        req = request.Request(self.config.gateway, data=encoded, method="POST")
-        started = time.monotonic()
-        attempts = self.config.max_retries + 1
-        for attempt in range(1, attempts + 1):
+        return request.Request(self.config.gateway, data=encoded, method="POST")
+
+    def _pace(self) -> None:
+        now = self._wall_clock()
+        last = None
+        try:
+            fd = _secure_state_open(self._cadence_path, os.O_RDONLY)
+            with os.fdopen(fd, encoding="utf-8") as handle:
+                last = float(handle.read().strip())
+        except FileNotFoundError:
+            last = None
+        except ValueError:
+            last = None
+        except OSError as exc:
+            raise AliExpressTransportError("AliExpress cadence state unavailable") from exc
+        if last is not None:
+            remaining = self.config.min_interval_seconds - (now - last)
+            if remaining > 0:
+                self._sleeper(remaining)
+        started = self._wall_clock()
+        try:
+            fd = _secure_state_open(
+                self._cadence_path,
+                os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+            )
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write(f"{started:.6f}")
+        except OSError as exc:
+            raise AliExpressTransportError("AliExpress cadence state unavailable") from exc
+
+    def _retry_after_seconds(self, exc: error.HTTPError) -> float | None:
+        raw = exc.headers.get("Retry-After") if exc.headers else None
+        if not raw:
+            return None
+        try:
+            delay = float(raw)
+        except ValueError:
             try:
-                with self._opener(req, timeout=self.config.timeout_seconds) as response:
-                    payload = json.loads(response.read().decode("utf-8"))
-                logger.info(
-                    "AliExpress operation=%s success duration_ms=%d",
-                    method,
-                    int((time.monotonic() - started) * 1000),
-                )
-                return self._validate_response(payload)
-            except error.HTTPError as exc:
-                if exc.code in {429, 500, 502, 503, 504} and attempt < attempts:
-                    logger.warning(
-                        "AliExpress operation=%s retry=%d http_status=%d",
-                        method,
-                        attempt,
-                        exc.code,
-                    )
-                    continue
-                raise AliExpressTransportError(f"AliExpress HTTP error {exc.code}") from exc
-            except (error.URLError, TimeoutError) as exc:
-                if attempt < attempts:
-                    logger.warning(
-                        "AliExpress operation=%s retry=%d transport_error",
-                        method,
-                        attempt,
-                    )
-                    continue
-                raise AliExpressTransportError("AliExpress transport error") from exc
-            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-                raise AliExpressResponseError("Invalid AliExpress response payload") from exc
+                dt = parsedate_to_datetime(raw)
+                delay = dt.timestamp() - self._wall_clock()
+            except (TypeError, ValueError, OverflowError):
+                return None
+        if delay < 0:
+            delay = 0.0
+        capped = min(delay, self.config.max_retry_after_seconds)
+        if delay > capped:
+            logger.warning(
+                "AliExpress retry_after capped retry_after_seconds=%.3f",
+                capped,
+            )
+        return capped
+
+    def _backoff_seconds(self, retry_number: int) -> float:
+        base = self.config.backoff_base_seconds * (2 ** (retry_number - 1))
+        delay = min(base, self.config.backoff_max_seconds)
+        jitter = self._jitter_source(0.0, self.config.jitter_max_seconds)
+        return delay + jitter
+
+    def _sleep_before_retry(self, retry_number: int, retry_after: float | None) -> float:
+        delay = retry_after if retry_after is not None else self._backoff_seconds(retry_number)
+        if delay > 0:
+            self._sleeper(delay)
+        return delay
+
+    def _call(self, method: str, business_params: dict[str, object] | None = None) -> dict:
+        metrics = AliExpressCallMetrics(logical_operations=1)
+        self.last_call_metrics = metrics
+        started = self._monotonic()
+        consecutive_429 = 0
+        attempts = self.config.max_retries + 1
+        operation_lock = _LocalOperationLock(
+            self._lock_path,
+            self.config.lock_timeout_seconds,
+            self._monotonic,
+            self._sleeper,
+        )
+        try:
+            with operation_lock:
+                metrics.lock_wait_ms = operation_lock.wait_ms
+                for attempt in range(1, attempts + 1):
+                    self._pace()
+                    req = self._build_request(method, business_params)
+                    metrics.attempts += 1
+                    try:
+                        with self._opener(req, timeout=self.config.timeout_seconds) as response:
+                            payload = json.loads(response.read().decode("utf-8"))
+                        result = self._validate_response(payload)
+                        metrics.successful = 1
+                        logger.info(
+                            (
+                                "AliExpress operation=%s success attempt=%d "
+                                "duration_ms=%d lock_wait_ms=%d"
+                            ),
+                            method,
+                            attempt,
+                            int((self._monotonic() - started) * 1000),
+                            metrics.lock_wait_ms,
+                        )
+                        return result
+                    except error.HTTPError as exc:
+                        status = exc.code
+                        if status == 429:
+                            metrics.http_429 += 1
+                            consecutive_429 += 1
+                            if (
+                                consecutive_429 >= self.config.max_consecutive_429
+                                or attempt >= attempts
+                            ):
+                                metrics.rate_limit_abort = True
+                                raise AliExpressRateLimitError(
+                                    "AliExpress rate limit reached"
+                                ) from exc
+                            retry_after = self._retry_after_seconds(exc)
+                            delay = self._sleep_before_retry(attempt, retry_after)
+                            metrics.retries += 1
+                            logger.warning(
+                                (
+                                    "AliExpress operation=%s retry=%d http_status=429 "
+                                    "rate_limited=yes retry_after_seconds=%s "
+                                    "backoff_seconds=%.3f"
+                                ),
+                                method,
+                                attempt,
+                                f"{retry_after:.3f}" if retry_after is not None else "none",
+                                delay,
+                            )
+                            continue
+                        consecutive_429 = 0
+                        if status in {500, 502, 503, 504}:
+                            metrics.http_5xx += 1
+                            if attempt < attempts:
+                                delay = self._sleep_before_retry(attempt, None)
+                                metrics.retries += 1
+                                logger.warning(
+                                    (
+                                        "AliExpress operation=%s retry=%d http_status=%d "
+                                        "rate_limited=no backoff_seconds=%.3f"
+                                    ),
+                                    method,
+                                    attempt,
+                                    status,
+                                    delay,
+                                )
+                                continue
+                        raise AliExpressTransportError(f"AliExpress HTTP error {status}") from exc
+                    except (error.URLError, TimeoutError) as exc:
+                        consecutive_429 = 0
+                        metrics.transport_failures += 1
+                        if attempt < attempts:
+                            delay = self._sleep_before_retry(attempt, None)
+                            metrics.retries += 1
+                            logger.warning(
+                                (
+                                    "AliExpress operation=%s retry=%d transport_error "
+                                    "backoff_seconds=%.3f"
+                                ),
+                                method,
+                                attempt,
+                                delay,
+                            )
+                            continue
+                        raise AliExpressTransportError("AliExpress transport error") from exc
+                    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                        raise AliExpressResponseError(
+                            "Invalid AliExpress response payload"
+                        ) from exc
+        finally:
+            metrics.lock_wait_ms = operation_lock.wait_ms
+            metrics.duration_ms = int((self._monotonic() - started) * 1000)
+            self._accumulate_metrics(metrics)
         raise AliExpressTransportError("AliExpress request failed")
 
     @staticmethod
@@ -127,6 +392,10 @@ class AliExpressClient:
         if delivery_days is not None and delivery_days not in SUPPORTED_DELIVERY_DAYS:
             allowed = ", ".join(str(value) for value in sorted(SUPPORTED_DELIVERY_DAYS))
             raise ValueError(f"delivery_days must be one of: {allowed}")
+        if page_no < 1:
+            raise ValueError("page_no must be >= 1")
+        if not 1 <= page_size <= MAX_SEARCH_PAGE_SIZE:
+            raise ValueError(f"page_size must be between 1 and {MAX_SEARCH_PAGE_SIZE}")
         result = self._result(
             self._call(
                 self.SEARCH_METHOD,

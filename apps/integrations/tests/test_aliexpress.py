@@ -61,6 +61,10 @@ class ClientTests(SimpleTestCase):
             tracking_id="lowcost_europa",
             timeout_seconds=3,
             max_retries=1,
+            min_interval_seconds=0,
+            backoff_base_seconds=0,
+            backoff_max_seconds=0,
+            jitter_max_seconds=0,
         )
 
     def test_request_uses_gateway_and_timeout(self):
@@ -83,9 +87,7 @@ class ClientTests(SimpleTestCase):
                 "v": "2.0",
             },
         ):
-            client._call(
-                "demo.method", {"ship_to_country": "PT", "target_currency": "EUR"}
-            )
+            client._call("demo.method", {"ship_to_country": "PT", "target_currency": "EUR"})
         self.assertEqual(calls[0][0], "https://api-sg.aliexpress.com/sync")
         self.assertEqual(calls[0][1], 3)
         self.assertIn("ship_to_country=PT", calls[0][2])
@@ -165,6 +167,7 @@ class NormalizerTests(SimpleTestCase):
         self.assertIsNone(product.sales_count)
         self.assertIsNone(product.delivery_days)
         self.assertIsNone(product.affiliate_url)
+
     def test_evaluation_rate_percent_is_not_star_rating(self):
         product = normalize_product({"product_id": "42", "evaluate_rate": "96.5%"}, "PT")
         self.assertEqual(product.evaluation_rate_percent, Decimal("96.5"))
@@ -194,4 +197,3 @@ class NormalizerTests(SimpleTestCase):
     def test_category_without_id_is_rejected(self):
         with self.assertRaises(AliExpressResponseError):
             normalize_category({"category_name": "Missing ID"})
-
