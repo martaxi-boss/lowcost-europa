@@ -1,14 +1,31 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.db.models.signals import post_save
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.catalog.models import Offer, OfferObservation, ProductFamily
+from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, ProductFamily
 
 
 class StorefrontViewTests(TestCase):
+    def setUp(self):
+        def add_legacy_equivalent_placement(sender, instance, created, **kwargs):
+            if created and instance.product_family_id:
+                OfferFamilyPlacement.objects.create(
+                    offer=instance,
+                    product_family_id=instance.product_family_id,
+                    selection_position=1 if instance.is_primary else None,
+                )
+
+        self._placement_receiver = add_legacy_equivalent_placement
+        post_save.connect(self._placement_receiver, sender=Offer, weak=False)
+
+    def tearDown(self):
+        post_save.disconnect(self._placement_receiver, sender=Offer)
+        super().tearDown()
+
     def test_homepage_returns_200_with_empty_state(self):
         response = self.client.get(reverse("storefront:home"))
         self.assertEqual(response.status_code, 200)
@@ -168,9 +185,7 @@ class StorefrontViewTests(TestCase):
             external_product_id="conflict-offer",
             product_family=family,
         )
-        OfferObservation.objects.create(
-            offer=offer, search_delivery_days=3, delivery_days=5
-        )
+        OfferObservation.objects.create(offer=offer, search_delivery_days=3, delivery_days=5)
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
@@ -184,14 +199,21 @@ class StorefrontViewTests(TestCase):
         family = ProductFamily.objects.create(name="Primary Display", slug="primary-display")
         now = timezone.now()
         primary = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="primary-display-offer",
-            product_family=family, title="Editorial Primary", is_primary=True,
-            first_seen_at=now - timedelta(days=2), last_seen_at=now - timedelta(days=1),
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="primary-display-offer",
+            product_family=family,
+            title="Editorial Primary",
+            is_primary=True,
+            first_seen_at=now - timedelta(days=2),
+            last_seen_at=now - timedelta(days=1),
         )
         newer = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="newer-display-offer",
-            product_family=family, title="Newer Fallback",
-            first_seen_at=now - timedelta(days=1), last_seen_at=now,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="newer-display-offer",
+            product_family=family,
+            title="Newer Fallback",
+            first_seen_at=now - timedelta(days=1),
+            last_seen_at=now,
         )
         OfferObservation.objects.create(offer=primary, price=Decimal("111.00"), currency="EUR")
         OfferObservation.objects.create(offer=newer, price=Decimal("222.00"), currency="EUR")
@@ -203,14 +225,21 @@ class StorefrontViewTests(TestCase):
         family = ProductFamily.objects.create(name="Primary Order", slug="primary-order")
         now = timezone.now()
         primary = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="primary-order-offer",
-            product_family=family, title="Editorial Primary First", is_primary=True,
-            first_seen_at=now - timedelta(days=2), last_seen_at=now - timedelta(days=1),
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="primary-order-offer",
+            product_family=family,
+            title="Editorial Primary First",
+            is_primary=True,
+            first_seen_at=now - timedelta(days=2),
+            last_seen_at=now - timedelta(days=1),
         )
         Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="other-order-offer",
-            product_family=family, title="Other Offer Second",
-            first_seen_at=now - timedelta(days=1), last_seen_at=now,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="other-order-offer",
+            product_family=family,
+            title="Other Offer Second",
+            first_seen_at=now - timedelta(days=1),
+            last_seen_at=now,
         )
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
@@ -222,14 +251,20 @@ class StorefrontViewTests(TestCase):
         family = ProductFamily.objects.create(name="Fallback Order", slug="fallback-order")
         now = timezone.now()
         older = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="older-fallback",
-            product_family=family, title="Older Fallback",
-            first_seen_at=now - timedelta(days=2), last_seen_at=now - timedelta(days=1),
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="older-fallback",
+            product_family=family,
+            title="Older Fallback",
+            first_seen_at=now - timedelta(days=2),
+            last_seen_at=now - timedelta(days=1),
         )
         newer = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="newer-fallback",
-            product_family=family, title="Newer Fallback",
-            first_seen_at=now - timedelta(days=1), last_seen_at=now,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="newer-fallback",
+            product_family=family,
+            title="Newer Fallback",
+            first_seen_at=now - timedelta(days=1),
+            last_seen_at=now,
         )
         OfferObservation.objects.create(offer=older, price=Decimal("111.00"), currency="EUR")
         OfferObservation.objects.create(offer=newer, price=Decimal("222.00"), currency="EUR")
@@ -242,12 +277,18 @@ class StorefrontViewTests(TestCase):
             name="Inactive Primary Family", slug="inactive-primary"
         )
         active = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="active-fallback",
-            product_family=family, title="Active Fallback",
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="active-fallback",
+            product_family=family,
+            title="Active Fallback",
         )
         inactive = Offer(
-            source=Offer.Source.ALIEXPRESS, external_product_id="inactive-primary-invalid",
-            product_family=family, title="Hidden Inactive Offer", is_active=False, is_primary=False,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="inactive-primary-invalid",
+            product_family=family,
+            title="Hidden Inactive Offer",
+            is_active=False,
+            is_primary=False,
         )
         inactive.save()
         OfferObservation.objects.create(offer=active, price=Decimal("333.00"), currency="EUR")
@@ -260,8 +301,11 @@ class StorefrontViewTests(TestCase):
     def test_primary_selection_adds_no_promotional_language(self):
         family = ProductFamily.objects.create(name="Neutral Primary", slug="neutral-primary")
         Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="neutral-primary-offer",
-            product_family=family, title="Neutral Offer", is_primary=True,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="neutral-primary-offer",
+            product_family=family,
+            title="Neutral Offer",
+            is_primary=True,
         )
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
@@ -358,7 +402,6 @@ class StorefrontViewTests(TestCase):
             reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}),
         )
 
-
     def test_homepage_has_commercial_readiness_sections_and_navigation(self):
         family = ProductFamily.objects.create(name="Visual Family", slug="visual-family")
         response = self.client.get(reverse("storefront:home"))
@@ -387,9 +430,7 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(response, "Preço observado")
         self.assertContains(response, "Ver oferta no parceiro")
-        self.assertContains(
-            response, reverse("storefront:offer-go", kwargs={"offer_id": offer.pk})
-        )
+        self.assertContains(response, reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}))
         self.assertNotContains(response, "Comprar agora")
         self.assertNotContains(response, offer.affiliate_url)
 
@@ -427,7 +468,6 @@ class StorefrontViewTests(TestCase):
         self.assertNotContains(response, "melhor oferta")
 
 
-
 class PrelaunchTransparencyTests(TestCase):
     def test_institutional_pages_return_200_and_footer_links_are_present(self):
         names = ("como-funciona", "afiliados", "privacidade", "termos", "contacto")
@@ -436,7 +476,6 @@ class PrelaunchTransparencyTests(TestCase):
             self.assertEqual(response.status_code, 200)
             for footer_name in names:
                 self.assertContains(response, reverse(f"storefront:{footer_name}"))
-
 
     def test_contact_page_uses_only_authorized_public_channels(self):
         response = self.client.get(reverse("storefront:contacto"))
@@ -506,9 +545,7 @@ class PrelaunchTransparencyTests(TestCase):
     def test_canonical_and_indexing_can_be_enabled_with_explicit_public_site_url(self):
         home = self.client.get(reverse("storefront:home"))
         robots = self.client.get(reverse("storefront:robots"))
-        self.assertContains(
-            home, '<link rel="canonical" href="https://example.test/">', html=True
-        )
+        self.assertContains(home, '<link rel="canonical" href="https://example.test/">', html=True)
         self.assertContains(home, '<meta name="robots" content="index, follow">', html=True)
         self.assertContains(
             home, '<meta property="og:url" content="https://example.test/">', html=True

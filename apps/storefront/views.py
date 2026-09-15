@@ -2,12 +2,18 @@ import logging
 
 from django.conf import settings
 from django.db import IntegrityError, OperationalError
-from django.db.models import Prefetch
+from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from apps.catalog.models import Offer, OfferClick, OfferObservation, ProductFamily
+from apps.catalog.models import (
+    Offer,
+    OfferClick,
+    OfferFamilyPlacement,
+    OfferObservation,
+    ProductFamily,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,30 +51,53 @@ INSTITUTIONAL_PAGES = {
 
 def _family_queryset():
     observations = OfferObservation.objects.order_by("-observed_at", "-pk")[:1]
-    offers = Offer.objects.filter(is_active=True).order_by(
-        "-is_primary", "-last_seen_at", "-pk"
-    ).prefetch_related(
-        Prefetch("observations", queryset=observations, to_attr="latest_observations")
+    placements = (
+        OfferFamilyPlacement.objects.filter(offer__is_active=True)
+        .select_related("offer")
+        .prefetch_related(
+            Prefetch(
+                "offer__observations",
+                queryset=observations,
+                to_attr="latest_observations",
+            )
+        )
+        .order_by(
+            F("selection_position").asc(nulls_last=True),
+            "display_order",
+            "-offer__last_seen_at",
+            "-offer__pk",
+        )
     )
-    return ProductFamily.objects.prefetch_related(
-        Prefetch("offers", queryset=offers, to_attr="active_offers")
+    return ProductFamily.objects.order_by("display_order", "name", "pk").prefetch_related(
+        Prefetch("offer_placements", queryset=placements, to_attr="public_placements")
     )
+
+
+def _prepare_offer(offer, family):
+    offer.latest_observation = offer.latest_observations[0] if offer.latest_observations else None
+    offer.logistics_text = _logistics_text(offer.latest_observation)
+    offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
+    return offer
 
 
 def _prepare_family(family):
     family.public_status = PUBLIC_STATUS_LABELS.get(family.status, "Em avaliação")
-    for offer in family.active_offers:
-        offer.latest_observation = (
-            offer.latest_observations[0] if offer.latest_observations else None
-        )
-        offer.logistics_text = _logistics_text(offer.latest_observation)
-        offer.can_redirect = bool(
-            family.status != ProductFamily.Status.RETIRED and offer.affiliate_url
-        )
-    family.display_offer = next(
-        (offer for offer in family.active_offers if offer.is_primary),
-        family.active_offers[0] if family.active_offers else None,
-    )
+    if family.status == ProductFamily.Status.RETIRED:
+        placements = []
+    else:
+        placements = family.public_placements
+
+    for placement in placements:
+        _prepare_offer(placement.offer, family)
+
+    family.selection_placements = [
+        placement for placement in placements if placement.selection_position is not None
+    ]
+    family.other_placements = [
+        placement for placement in placements if placement.selection_position is None
+    ]
+    family.active_offers = [placement.offer for placement in placements]
+    family.display_offer = placements[0].offer if placements else None
     return family
 
 
@@ -174,11 +203,18 @@ def sitemap_xml(request):
 
 
 def offer_go(request, offer_id):
-    eligible = Offer.objects.select_related("product_family").filter(
+    eligible = Offer.objects.filter(
         pk=offer_id,
         is_active=True,
-        product_family__isnull=False,
-    ).exclude(product_family__status=ProductFamily.Status.RETIRED)
+        family_placements__product_family__status__in=[
+            ProductFamily.Status.NEW,
+            ProductFamily.Status.TESTING,
+            ProductFamily.Status.VERIFIED,
+            ProductFamily.Status.PROVEN,
+            ProductFamily.Status.WINNER,
+            ProductFamily.Status.OBSERVATION,
+        ],
+    ).distinct()
     offer = get_object_or_404(eligible)
     if not offer.affiliate_url:
         raise Http404

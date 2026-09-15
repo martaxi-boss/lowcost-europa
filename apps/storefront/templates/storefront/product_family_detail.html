@@ -10,24 +10,37 @@
     </div>
     <div class="detail-note">
       <strong>Como ler esta página</strong>
-      <p>O primeiro produto apresentado é uma escolha editorial de organização. A ordem serve apenas para estruturar a página e não atribui superioridade comercial.</p>
+      <p>Cada posição é uma escolha editorial de organização para facilitar a comparação e não significa que uma oferta seja objetivamente melhor do que outra.</p>
     </div>
   </div>
 </section>
 
 <section class="section section--surface">
   <div class="container">
-    <div class="section-heading section-heading--split">
-      <div><p class="eyebrow">Ofertas atuais</p><h2>Opções disponíveis</h2></div>
-      <p class="section-intro">A compra, o pagamento, a expedição e o apoio à encomenda são tratados pelo vendedor ou plataforma externa.</p>
-    </div>
-    {% if family.active_offers %}
+    {% if family.selection_placements %}
+      <div class="section-heading section-heading--split">
+        <div><p class="eyebrow">Seleção editorial</p><h2>Seleções Lowcost Europa</h2></div>
+        <p class="section-intro">Uma seleção editorial para facilitar a comparação. A posição serve para organizar a página e não significa que uma oferta seja objetivamente melhor do que outra.</p>
+      </div>
       <div class="offer-list">
-        {% for offer in family.active_offers %}
-          {% include "storefront/components/offer_card.html" with offer=offer %}
+        {% for placement in family.selection_placements %}
+          {% include "storefront/components/offer_card.html" with offer=placement.offer placement=placement %}
         {% endfor %}
       </div>
-    {% else %}
+    {% endif %}
+    {% if family.other_placements %}
+      <div class="section-heading section-heading--split">
+        <div><p class="eyebrow">Catálogo selecionado</p><h2>Outras ofertas selecionadas</h2></div>
+        <p class="section-intro">Outras ofertas desta família, apresentadas pela ordem editorial definida no catálogo.</p>
+      </div>
+      <div class="offer-list">
+        {% for placement in family.other_placements %}
+          {% include "storefront/components/offer_card.html" with offer=placement.offer placement=placement %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not family.selection_placements and not family.other_placements %}
       <div class="empty-state">
         <h3>Sem ofertas ativas neste momento.</h3>
         <p>Esta página pode continuar disponível enquanto procuramos uma alternativa adequada.</p>
@@ -39,8 +52,7 @@
 <section class="section">
   <div class="container transparency-box transparency-box--detail">
     <div><p class="eyebrow">Transparência</p><h2>Compra externa, informação observada.</h2></div>
-    <p>O Lowcost Europa organiza a informação e encaminha para o parceiro. Alguns links podem ser afiliados e gerar comissão. Isso não altera o facto de a compra acontecer diretamente no vendedor ou plataforma externa.</p>
-    <a class="text-link" href="{% url 'storefront:afiliados' %}">Como funcionam os links de afiliado <span aria-hidden="true">→</span></a>
+    <p>O Lowcost Europa organiza a informação e encaminha para o parceiro. Alguns links podem ser afiliados e gerar comissão. Isso não altera o facto de a compra acontecer diretamente no vendedor ou plataforma externa.</p>    <a class="text-link" href="{% url 'storefront:afiliados' %}">Como funcionam os links de afiliado <span aria-hidden="true">→</span></a>
   </div>
 </section>
 {% endblock %}

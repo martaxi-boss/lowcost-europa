@@ -17,6 +17,9 @@
       <p class="eyebrow">{{ offer.get_source_display }}</p>
       <h3>{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
+    {% if placement and placement.selection_reason %}
+      <div class="detail-note"><strong>Porque está aqui</strong><p>{{ placement.selection_reason }}</p></div>
+    {% endif %}
     {% if offer.latest_observation %}
       {% with obs=offer.latest_observation %}
         <div class="offer-price-block">

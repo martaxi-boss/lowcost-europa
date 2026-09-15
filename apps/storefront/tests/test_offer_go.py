@@ -4,7 +4,7 @@ from django.db import OperationalError
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.catalog.models import Offer, OfferClick, ProductFamily
+from apps.catalog.models import Offer, OfferClick, OfferFamilyPlacement, ProductFamily
 
 
 class OfferGoTests(TestCase):
@@ -17,6 +17,7 @@ class OfferGoTests(TestCase):
             title="Eligible offer",
             affiliate_url="https://affiliate.example/item/123",
         )
+        OfferFamilyPlacement.objects.create(offer=self.offer, product_family=self.family)
         self.url = reverse("storefront:offer-go", args=[self.offer.pk])
 
     def test_eligible_offer_redirects_and_records_raw_click(self):
@@ -41,9 +42,8 @@ class OfferGoTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 404)
         self.assertEqual(OfferClick.objects.count(), 0)
 
-    def test_offer_without_family_returns_404(self):
-        self.offer.product_family = None
-        self.offer.save(update_fields=["product_family"])
+    def test_offer_without_placement_returns_404(self):
+        OfferFamilyPlacement.objects.filter(offer=self.offer).delete()
         self.assertEqual(self.client.get(self.url).status_code, 404)
         self.assertEqual(OfferClick.objects.count(), 0)
 
@@ -73,7 +73,9 @@ class OfferGoTests(TestCase):
             self.client.get(self.url)
 
     def test_user_supplied_destination_is_ignored(self):
-        response = self.client.get(f"{self.url}?url=https://evil.example/&next=https://evil.example/")
+        response = self.client.get(
+            f"{self.url}?url=https://evil.example/&next=https://evil.example/"
+        )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], self.offer.affiliate_url)
 
@@ -88,6 +90,9 @@ class StorefrontCtaTests(TestCase):
             affiliate_url="https://affiliate.example/primary",
             is_primary=True,
         )
+        OfferFamilyPlacement.objects.create(
+            offer=offer, product_family=family, selection_position=1
+        )
         response = self.client.get(reverse("storefront:home"))
         go_url = reverse("storefront:offer-go", args=[offer.pk])
         self.assertContains(response, f'href="{go_url}"')
@@ -97,12 +102,18 @@ class StorefrontCtaTests(TestCase):
         family = ProductFamily.objects.create(name="Two Offers", slug="two-offers")
         offers = []
         for suffix in ("one", "two"):
-            offers.append(Offer.objects.create(
-                source=Offer.Source.ALIEXPRESS,
-                external_product_id=f"detail-{suffix}",
-                product_family=family,
-                affiliate_url=f"https://affiliate.example/{suffix}",
-            ))
+            offers.append(
+                Offer.objects.create(
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id=f"detail-{suffix}",
+                    product_family=family,
+                    affiliate_url=f"https://affiliate.example/{suffix}",
+                )
+            )
+        for index, offer in enumerate(offers):
+            OfferFamilyPlacement.objects.create(
+                offer=offer, product_family=family, display_order=index
+            )
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
