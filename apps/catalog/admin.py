@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import Offer, OfferClick, OfferObservation, ProductFamily
+from .models import Offer, OfferClick, OfferFamilyPlacement, OfferObservation, ProductFamily
 
 
 class ProductFamilyAdminForm(forms.ModelForm):
@@ -43,12 +43,13 @@ class OfferAdmin(admin.ModelAdmin):
         "external_product_id",
         "title",
         "product_family",
+        "equipment_type",
         "is_active",
         "is_primary",
         "last_seen_at",
     )
     search_fields = ("external_product_id", "title")
-    list_filter = ("source", "is_active", "is_primary", "product_family")
+    list_filter = ("source", "equipment_type", "is_active", "is_primary", "product_family")
     list_select_related = ("product_family",)
     fields = (
         "source",
@@ -58,6 +59,7 @@ class OfferAdmin(admin.ModelAdmin):
         "image_url",
         "affiliate_url",
         "product_family",
+        "equipment_type",
         "is_active",
         "is_primary",
         "first_seen_at",
@@ -83,6 +85,22 @@ class OfferAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(OfferFamilyPlacement)
+class OfferFamilyPlacementAdmin(admin.ModelAdmin):
+    list_display = (
+        "offer",
+        "product_family",
+        "selection_position",
+        "display_order",
+        "selection_reason",
+    )
+    search_fields = ("offer__external_product_id", "offer__title", "product_family__name")
+    list_filter = ("product_family", "selection_position", "offer__equipment_type")
+    list_select_related = ("offer", "product_family")
+    ordering = ("product_family", "selection_position", "display_order", "pk")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(OfferObservation)
