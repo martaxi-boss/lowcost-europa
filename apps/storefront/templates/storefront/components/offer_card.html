@@ -1,10 +1,8 @@
-<article class="offer-card">
+<article class="offer-card{% if selection_card %} offer-card--featured{% endif %}">
   {% if offer.image_url %}
     {% with image_url=offer.image_url %}
       {% if image_url|slice:":8" == "https://" or image_url|slice:":7" == "http://" %}
-        <div class="offer-card__media">
-          <img class="offer-card__image" src="{{ image_url }}" alt="{{ offer.title|default:'Oferta disponível' }}" width="640" height="480" loading="lazy">
-        </div>
+        <div class="offer-card__media"><img class="offer-card__image" src="{{ image_url }}" alt="{{ offer.title|default:'Oferta disponível' }}" width="640" height="480" loading="lazy"></div>
       {% else %}
         <div class="offer-card__media offer-card__media--placeholder" aria-hidden="true">LE</div>
       {% endif %}
@@ -14,35 +12,28 @@
   {% endif %}
   <div class="offer-card__body">
     <div class="offer-card__header">
-      <p class="eyebrow">{{ offer.get_source_display }}</p>
-      <h3>{{ offer.title|default:"Oferta disponível" }}</h3>
+      <div class="offer-card__labels"><span class="source-label">{{ offer.get_source_display }}</span>{% if offer.equipment_type == "DEDICATED" %}<span class="equipment-badge">Equipamento dedicado</span>{% elif offer.equipment_type == "COMBO" %}<span class="equipment-badge">Combo multifunções</span>{% endif %}</div>
+      <h3 class="offer-title" title="{{ offer.title|default:'Oferta disponível' }}">{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
-    {% if placement and placement.selection_reason %}
-      <div class="detail-note"><strong>Porque está aqui</strong><p>{{ placement.selection_reason }}</p></div>
-    {% endif %}
+    {% if placement and placement.selection_reason %}<div class="selection-reason"><strong>Porque está aqui</strong><p>{{ placement.selection_reason }}</p></div>{% endif %}
     {% if offer.latest_observation %}
       {% with obs=offer.latest_observation %}
-        <div class="offer-price-block">
-          <p class="fact-label">Preço observado</p>
-          <p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}</p>
-          <p class="meta">Verificado em {{ obs.observed_at|date:"d/m/Y H:i" }}</p>
-        </div>
+        <div class="offer-price-block"><p class="fact-label">Preço observado</p><p class="price">{% if obs.price is not None and obs.currency %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}</p><p class="meta">Observado em {{ obs.observed_at|date:"d/m/Y H:i" }} · pode mudar no parceiro</p></div>
         <dl class="facts">
-          <div><dt>Avaliação</dt><dd>{% if obs.evaluation_rate_percent is not None %}{{ obs.evaluation_rate_percent }}%{% else %}Não disponível{% endif %}</dd></div>
-          <div><dt>Vendas indicadas pela fonte</dt><dd>{% if obs.sales_count is not None %}{{ obs.sales_count }}{% else %}Não disponível{% endif %}</dd></div>
-          <div><dt>Logística</dt><dd>{{ offer.logistics_text|default:"Não disponível" }}</dd></div>
+          <div><dt>Logística observada</dt><dd>{{ offer.logistics_text|default:"Prazo não confirmado" }}</dd></div>
+          <div><dt>Avaliação no parceiro</dt><dd>{% if obs.evaluation_rate_percent is not None %}{{ obs.evaluation_rate_percent }}%{% else %}Não disponível{% endif %}</dd></div>
+          <div><dt>Vendas indicadas</dt><dd>{% if obs.sales_count is not None %}{{ obs.sales_count }}{% else %}Não disponível{% endif %}</dd></div>
         </dl>
       {% endwith %}
     {% else %}
-      <p class="muted">Ainda não existe uma observação factual para esta oferta.</p>
+      <div class="offer-data-empty"><strong>Dados comerciais em preparação</strong><p>Ainda não existe uma observação factual para esta oferta.</p></div>
     {% endif %}
     <div class="offer-cta">
       {% if offer.can_redirect %}
         <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}">Ver oferta no parceiro <span aria-hidden="true">↗</span></a>
-        <p class="meta">Vai sair do Lowcost Europa e continuar no vendedor. Podemos receber comissão afiliada.</p>
+        <p class="meta"><strong>Compra externa.</strong> Vai continuar no parceiro; alguns links podem gerar comissão afiliada.</p>
       {% else %}
-        <button class="button button--large" type="button" disabled aria-disabled="true">Oferta indisponível</button>
-        <p class="meta">Esta oferta não está disponível para encaminhamento neste momento.</p>
+        <button class="button button--large" type="button" disabled aria-disabled="true">Oferta indisponível</button><p class="meta">Esta oferta não está disponível para encaminhamento neste momento.</p>
       {% endif %}
     </div>
   </div>
