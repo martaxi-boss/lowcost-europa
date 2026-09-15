@@ -1,9 +1,11 @@
 import logging
 
+from django.conf import settings
 from django.db import IntegrityError, OperationalError
 from django.db.models import Prefetch
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 
 from apps.catalog.models import Offer, OfferClick, OfferObservation, ProductFamily
 
@@ -14,6 +16,25 @@ PUBLIC_STATUS_LABELS = {
     ProductFamily.Status.TESTING: "Em avaliação",
     ProductFamily.Status.OBSERVATION: "Em observação",
     ProductFamily.Status.RETIRED: "Indisponível",
+}
+
+INSTITUTIONAL_PAGES = {
+    "como-funciona": (
+        "Como funciona | Lowcost Europa",
+        "Como o Lowcost Europa seleciona ofertas e encaminha a compra para o vendedor.",
+    ),
+    "afiliados": (
+        "Afiliados | Lowcost Europa",
+        "Transparência sobre a relação de afiliado do Lowcost Europa.",
+    ),
+    "privacidade": (
+        "Privacidade | Lowcost Europa",
+        "Informação factual sobre tracking de cliques, cookies e logs técnicos.",
+    ),
+    "termos": (
+        "Termos — pré-lançamento | Lowcost Europa",
+        "Estrutura de termos ainda não pronta para lançamento público.",
+    ),
 }
 
 
@@ -62,36 +83,85 @@ def _logistics_text(observation):
     return None
 
 
+def _seo_context(path, page_title, meta_description):
+    base_url = settings.PUBLIC_SITE_URL
+    canonical_url = f"{base_url}{path}" if base_url else None
+    robots_directive = "index, follow" if settings.PUBLIC_INDEXING_ENABLED else "noindex, nofollow"
+    return {
+        "page_title": page_title,
+        "meta_description": meta_description,
+        "canonical_url": canonical_url,
+        "robots_directive": robots_directive,
+    }
+
+
 def home(request):
     families = [
         _prepare_family(family)
         for family in _family_queryset().exclude(status=ProductFamily.Status.RETIRED)
     ]
-    return render(
-        request,
-        "storefront/home.html",
-        {
-            "families": families,
-            "page_title": "Lowcost Europa",
-            "meta_description": (
-                "Produtos selecionados com informação factual de preço, oferta e logística."
-            ),
-        },
-    )
+    context = {
+        "families": families,
+        **_seo_context(
+            request.path,
+            "Lowcost Europa",
+            "Produtos selecionados com informação factual de preço, oferta e logística.",
+        ),
+    }
+    return render(request, "storefront/home.html", context)
 
 
 def product_family_detail(request, slug):
     family = get_object_or_404(_family_queryset(), slug=slug)
     _prepare_family(family)
-    return render(
-        request,
-        "storefront/product_family_detail.html",
-        {
-            "family": family,
-            "page_title": f"{family.name} | Lowcost Europa",
-            "meta_description": f"Ofertas atuais e informação factual para {family.name}.",
-        },
+    context = {
+        "family": family,
+        **_seo_context(
+            request.path,
+            f"{family.name} | Lowcost Europa",
+            f"Ofertas atuais e informação factual para {family.name}.",
+        ),
+    }
+    return render(request, "storefront/product_family_detail.html", context)
+
+
+def institutional_page(request, page):
+    page_title, meta_description = INSTITUTIONAL_PAGES[page]
+    context = {
+        "page_key": page,
+        **_seo_context(request.path, page_title, meta_description),
+    }
+    return render(request, f"storefront/{page}.html", context)
+
+
+def robots_txt(request):
+    if settings.PUBLIC_INDEXING_ENABLED:
+        body = "User-agent: *\nAllow: /\n"
+        if settings.PUBLIC_SITE_URL:
+            body += f"Sitemap: {settings.PUBLIC_SITE_URL}{reverse('storefront:sitemap')}\n"
+    else:
+        body = "User-agent: *\nDisallow: /\n"
+    return HttpResponse(body, content_type="text/plain; charset=utf-8")
+
+
+def sitemap_xml(request):
+    base_url = settings.PUBLIC_SITE_URL or request.build_absolute_uri("/").rstrip("/")
+    paths = [
+        reverse("storefront:home"),
+        reverse("storefront:como-funciona"),
+        reverse("storefront:afiliados"),
+        reverse("storefront:privacidade"),
+        reverse("storefront:termos"),
+    ]
+    paths.extend(
+        reverse("storefront:product-family-detail", kwargs={"slug": slug})
+        for slug in ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
+        .order_by("slug")
+        .values_list("slug", flat=True)
     )
+    urls = "".join(f"<url><loc>{base_url}{path}</loc></url>" for path in paths)
+    body = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return HttpResponse(body, content_type="application/xml")
 
 
 def offer_go(request, offer_id):
