@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.catalog.services.cohort_observation import observe_aliexpress_products
-from apps.integrations.aliexpress.exceptions import AliExpressError
+from apps.integrations.aliexpress.client import AliExpressClient, format_execution_metrics
+from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
 
 class Command(BaseCommand):
@@ -16,13 +17,20 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["commit"] and options["dry_run"]:
             raise CommandError("--commit and --dry-run cannot be used together")
+        client = AliExpressClient()
         try:
             result = observe_aliexpress_products(
                 options["product_id"],
                 keyword=options["keyword"],
                 commit=options["commit"],
+                client=client,
             )
+        except AliExpressRateLimitError as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
+            self.stdout.write("RATE_LIMIT_ABORT = YES")
+            raise CommandError("AliExpress rate-limit abort") from exc
         except (ValueError, AliExpressError) as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError(str(exc)) from exc
 
         mode = "COMMIT" if result.commit else "DRY_RUN"
@@ -65,16 +73,21 @@ class Command(BaseCommand):
                             else "-",
                             candidate.evidence_state or "-",
                             candidate.freshness_state or "-",
-                            "yes" if candidate.supports_5d is True else "no"
+                            "yes"
+                            if candidate.supports_5d is True
+                            else "no"
                             if candidate.supports_5d is False
                             else "-",
-                            "yes" if candidate.supports_current_5d is True else "no"
+                            "yes"
+                            if candidate.supports_current_5d is True
+                            else "no"
                             if candidate.supports_current_5d is False
                             else "-",
                             candidate.outcome,
                         ]
                     )
                 )
+        lines.extend(format_execution_metrics(client.execution_metrics))
         if result.commit:
             lines.append("COMMIT — baseline observations persisted")
         else:

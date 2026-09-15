@@ -9,7 +9,8 @@ from apps.catalog.services.discovery import (
     validate_limit,
     validate_target_language,
 )
-from apps.integrations.aliexpress.exceptions import AliExpressError
+from apps.integrations.aliexpress.client import AliExpressClient, format_execution_metrics
+from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
 
 def _format_age(age: timedelta | None) -> str:
@@ -46,14 +47,25 @@ class Command(BaseCommand):
             validate_limit(options["limit"])
             target_language = validate_target_language(options["target_language"])
             delivery_days = validate_delivery_days(options["delivery_days"])
+        except ValueError as exc:
+            raise CommandError(str(exc)) from exc
+
+        client = AliExpressClient()
+        try:
             result = discover_aliexpress(
                 options["keyword"],
                 options["limit"],
                 target_language=target_language,
                 delivery_days=delivery_days,
                 dry_run=options["dry_run"],
+                client=client,
             )
-        except (ValueError, AliExpressError) as exc:
+        except AliExpressRateLimitError as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
+            self.stdout.write("RATE_LIMIT_ABORT = YES")
+            raise CommandError("AliExpress rate-limit abort") from exc
+        except AliExpressError as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError(str(exc)) from exc
 
         m = result.metrics
@@ -150,6 +162,7 @@ class Command(BaseCommand):
                         ]
                     )
                 )
+        lines.extend(format_execution_metrics(client.execution_metrics))
         if options["dry_run"]:
             lines.append("DRY_RUN — no database changes persisted")
         else:

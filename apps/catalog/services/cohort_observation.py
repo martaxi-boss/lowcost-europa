@@ -8,7 +8,7 @@ from apps.catalog.services.aliexpress_persistence import import_aliexpress_produ
 from apps.catalog.services.logistics_evidence import assess_logistics_evidence
 from apps.catalog.services.logistics_freshness import assess_logistics_freshness
 from apps.integrations.aliexpress.client import AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError
+from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
 COUNTRY = "PT"
 CURRENCY = "EUR"
@@ -128,6 +128,8 @@ def observe_aliexpress_products(
                 dry_run=not commit,
                 search_product=search_product,
             )
+        except AliExpressRateLimitError:
+            raise
         except AliExpressError as exc:
             result.failed += 1
             result.errors.append(f"product {product_id}: {exc.__class__.__name__}")
@@ -190,9 +192,7 @@ def observe_aliexpress_products(
             **{
                 **candidate.__dict__,
                 "freshness_state": freshness.state.value,
-                "supports_current_5d": bool(
-                    evidence.supports_within_5_days and freshness.is_fresh
-                ),
+                "supports_current_5d": bool(evidence.supports_within_5_days and freshness.is_fresh),
             }
         )
         result.candidates.append(enriched)

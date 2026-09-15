@@ -12,7 +12,7 @@ from apps.catalog.services.logistics_freshness import (
     supports_current_5d_candidate,
 )
 from apps.integrations.aliexpress.client import SUPPORTED_DELIVERY_DAYS, AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError
+from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 DEFAULT_LIMIT = 10
@@ -264,6 +264,8 @@ def discover_aliexpress(
                 dry_run=dry_run,
                 search_product=search_product,
             )
+        except AliExpressRateLimitError:
+            raise
         except AliExpressError as exc:
             result.failed += 1
             result.external_errors += 1

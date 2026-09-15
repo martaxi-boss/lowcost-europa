@@ -68,3 +68,40 @@ The command checks configuration, categories, search, product detail and affilia
 ## Scope boundaries
 
 LE-002 does not add commercial database models, discovery, scoring, public UI, catalog mirroring, background workers, Redis, Celery or deployment infrastructure.
+
+## MVP API safety policy
+
+ALIEXPRESS API SAFETY 001 centralizes operational protection in `AliExpressClient`.
+The storefront is deliberately isolated from the external API: normal public requests read PostgreSQL only, and `/go/<offer>/` redirects using the already persisted affiliate URL.
+
+External-call concurrency is one operation at a time through local `flock`.
+The lock is held across the whole logical operation, including automatic retries.
+A shared cadence state enforces `ALIEXPRESS_MIN_INTERVAL_SECONDS` (default 1.0 second) between HTTP-attempt starts, including retries.
+The default runtime files are `/tmp/lowcost-europa-aliexpress.lock` and `/tmp/lowcost-europa-aliexpress.last-start`; they use secure no-follow opening, regular-file/owner validation and mode `0600` to prevent symlink-based path attacks.
+Kernel `flock` release on file-descriptor/process exit provides crash safety without PID files.
+
+Retries are allowed only for HTTP 429, HTTP 500/502/503/504, `URLError` and `TimeoutError`.
+HTTP 400/401/403/404 and other ordinary 4xx are not automatically retried; authentication and invalid payload/normalization failures fail fast.
+Each retry rebuilds timestamp, signature and request.
+
+Operational defaults:
+
+- `ALIEXPRESS_TIMEOUT_SECONDS=10`
+- `ALIEXPRESS_MAX_RETRIES=2`
+- `ALIEXPRESS_MIN_INTERVAL_SECONDS=1.0`
+- `ALIEXPRESS_BACKOFF_BASE_SECONDS=1.0`
+- `ALIEXPRESS_BACKOFF_MAX_SECONDS=30.0`
+- `ALIEXPRESS_JITTER_MAX_SECONDS=0.5`
+- `ALIEXPRESS_MAX_RETRY_AFTER_SECONDS=60`
+- `ALIEXPRESS_MAX_CONSECUTIVE_429=3`
+- `ALIEXPRESS_LOCK_TIMEOUT_SECONDS=15`
+
+HTTP 429 honors valid Retry-After seconds or HTTP-date values, capped at the configured maximum. Without valid Retry-After, exponential backoff plus bounded jitter is used.
+Three consecutive 429 responses by default trigger `AliExpressRateLimitError`, a rate-limit circuit-breaker abort rather than a persistent cooldown.
+Multi-product discovery and cohort observation explicitly propagate this exception so the entire batch stops; they do not continue to the next product.
+
+`observe_existing_offer_detail()` provides an exact-ID, detail-only refresh for an already persisted Offer. It never generates an affiliate link or mutates Offer identity/family/primary/active/title/image/product URL/affiliate URL, and creates one OfferObservation only after a valid response.
+Failures preserve last-known-good data and create no empty observation.
+
+Management commands report safe logical-operation/HTTP-attempt/retry/429/5xx/transport/rate-limit counters. They do not log signed requests, APP_KEY, APP_SECRET, tracking-ID values or affiliate URLs.
+See `docs/integrations/ALIEXPRESS-API-SAFETY-001.md` for the implementation and validation record.
