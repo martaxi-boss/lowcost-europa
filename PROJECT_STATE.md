@@ -89,6 +89,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - LAUNCH READINESS 001 configured temporary staging hostname `lowcost-europa.duckdns.org` -> `165.22.114.67` with a dedicated valid Let's Encrypt certificate, preserved sslip compatibility, HTTP->HTTPS, noindex, callback reachability and real mobile/desktop QA. Public launch remains unauthorized. The external OfferClick audit during DuckDNS exposure is documented in `docs/launch/LAUNCH-READINESS-001.md`.
 - CATALOG + COMMERCIAL READINESS 001 audited exactly the 6 existing Offers: 4 exact-ID detail refreshes succeeded and received one new factual OfferObservation each; Diode and Hydro detail refreshes failed once with AliExpressAPIError and remain REVIEW REQUIRED without persistence. Decisions are 3 KEEP, 1 KEEP WITH FINDING (the known 123x123 HIFU image), and 2 REVIEW REQUIRED. No new Offer or ProductFamily was created.
 - ALIEXPRESS API SAFETY 001 centralizes serial external calls, secure local flock/cadence state, 1.0s minimum cadence, bounded Retry-After/backoff/jitter retries and batch-wide rate-limit abort. After a 224/224 full test gate, the authorized detail-only refreshes for existing Offers 55 and 56 both returned exact IDs with 2 logical operations / 2 HTTP attempts / zero retries and created one factual OfferObservation each; no Offer fields or affiliate URLs changed.
+- AUDIT + OPERATIONAL HYGIENE CLOSEOUT 001 is READY FOR SUPERVISOR AUDIT on its review branch: production DB integrity is 5/6/15/35 with zero invalid/duplicate primaries or orphan observations; latest local backup checksum/list/isolated restore passed; 224/224 regression tests passed; journal was reduced from 812.4M to 215.2M; audited historical Lowcost `/tmp` artifacts were removed while AliExpress runtime files and legacy quarantine were preserved. Public launch remains unauthorized.
 - MVP PRELAUNCH 001 is merged and its transparency/privacy/affiliate/terms pages plus conservative technical SEO baseline are deployed to noindex staging through MVP PRELAUNCH 002. Fail-closed indexing was validated with PUBLIC_INDEXING_ENABLED=false and PUBLIC_SITE_URL empty. Authorized public contact channels are now defined in PRELAUNCH 004; operator legal identity remains PENDING OWNER INPUT, off-server backup remains pending, final public domain remains pending, and public launch is not authorized.
 
 ## Infrastructure classification
@@ -97,7 +98,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-The minimum five-family catalog is preserved. LAUNCH READINESS 001 and CATALOG + COMMERCIAL READINESS 001 are approved/merged/deployed. ALIEXPRESS API SAFETY 001 is implemented on its review branch, including batch-abort propagation and successful detail-only validation of Offers 55/56. Staging remains noindex and public MVP launch is not authorized.
+The minimum five-family catalog is preserved. LAUNCH READINESS 001, CATALOG + COMMERCIAL READINESS 001 and ALIEXPRESS API SAFETY 001 are merged/deployed in official main. AUDIT + OPERATIONAL HYGIENE CLOSEOUT 001 is READY FOR SUPERVISOR AUDIT on its review branch after cleanup, isolated restore and 224/224 regression validation. Staging remains noindex and public MVP launch is not authorized.
 
 ### MVP integrations completed
 
