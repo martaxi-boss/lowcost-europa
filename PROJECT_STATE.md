@@ -73,7 +73,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - MVP LIVE CATALOG 001 created the first real ProductFamily: `Máquinas HIFU 7D` (`maquinas-hifu-7d`), status `NEW`.
 - Offers `1005012522304882` and `1005013116584854` remain manually associated with the 7D family.
 - MVP LIVE CATALOG 002 created the second real ProductFamily: `Máquinas HIFU 22D MAX` (`maquinas-hifu-22d-max`), status `NEW`; existing Offer `1005013002556821` is its sole active Offer and explicit editorial primary.
-- Current live catalog state is 5 ProductFamilies / 6 Offers / 9 OfferObservations / 34 raw staging OfferClick records. Eighteen were added by an audited automated external batch, followed by eleven audited external mobile-browser requests after temporary DuckDNS staging exposure; they are not unique users or conversions. The minimum five-family MVP catalog target is reached; additional discovery is paused for pre-launch work.
+- Current live catalog state is 5 ProductFamilies / 6 Offers / 13 OfferObservations / 34 raw staging OfferClick records. Eighteen were added by an audited automated external batch, followed by eleven audited external mobile-browser requests after temporary DuckDNS staging exposure; they are not unique users or conversions. The minimum five-family MVP catalog target is reached; additional discovery is paused for pre-launch work.
 - MVP DISCOVERY 001 and subsequent live revalidation established the fresh-candidate workflow. MVP LIVE CATALOG 004 selected current API candidates rather than automatically reusing previously absent IDs; RF Microneedling remains on hold after its earlier detail-normalization failure.
 - `catalog.0003_offer_is_primary_and_more` is applied live and explicit editorial primary selection is operational.
 - Initial editorial primary for `Máquinas HIFU 7D` is `1005012522304882`; the choice is manual and reversible, not scoring, ranking, winner, proven, or verified status.
@@ -87,6 +87,7 @@ Não automatizar totalmente uma decisão que ainda não compreendemos.
 - Product imagery is deployed to the noindex staging environment. Real Chromium visual QA at desktop 1440x900 and mobile 390x844 passed with no overflow or broken images. The second 7D Offer image is factual but only 123x123 and visibly pixelated at card size; MVP PRELAUNCH 003 performed one fresh detail lookup for the same product ID and AliExpress returned the same image URL, so this finding remains OPEN.
 - VISUAL + COMMERCIAL READINESS 001 is approved, merged and deployed in official main `ea390319bcf9d4b8023a24140828f049a7fba10a`. Its final Chromium QA passed at 390x844 and 1440x900 with zero horizontal overflow/JS errors, visible desktop navigation, 48 px mobile menu/CTA targets and no raw AliExpress affiliate href exposure. The HIFU 123x123 source-image finding remains OPEN / NON-BLOCKING.
 - LAUNCH READINESS 001 configured temporary staging hostname `lowcost-europa.duckdns.org` -> `165.22.114.67` with a dedicated valid Let's Encrypt certificate, preserved sslip compatibility, HTTP->HTTPS, noindex, callback reachability and real mobile/desktop QA. Public launch remains unauthorized. The external OfferClick audit during DuckDNS exposure is documented in `docs/launch/LAUNCH-READINESS-001.md`.
+- CATALOG + COMMERCIAL READINESS 001 audited exactly the 6 existing Offers: 4 exact-ID detail refreshes succeeded and received one new factual OfferObservation each; Diode and Hydro detail refreshes failed once with AliExpressAPIError and remain REVIEW REQUIRED without persistence. Decisions are 3 KEEP, 1 KEEP WITH FINDING (the known 123x123 HIFU image), and 2 REVIEW REQUIRED. No new Offer or ProductFamily was created.
 - MVP PRELAUNCH 001 is merged and its transparency/privacy/affiliate/terms pages plus conservative technical SEO baseline are deployed to noindex staging through MVP PRELAUNCH 002. Fail-closed indexing was validated with PUBLIC_INDEXING_ENABLED=false and PUBLIC_SITE_URL empty. Authorized public contact channels are now defined in PRELAUNCH 004; operator legal identity remains PENDING OWNER INPUT, off-server backup remains pending, final public domain remains pending, and public launch is not authorized.
 
 ## Infrastructure classification
@@ -95,7 +96,7 @@ The existing DigitalOcean Droplet (1 vCPU / 1 GB RAM / 25 GB) remains the initia
 
 ## Current task
 
-The minimum five-family catalog is preserved. VISUAL + COMMERCIAL READINESS 001 is approved/merged/deployed, and LAUNCH READINESS 001 is now implemented on its review branch with DuckDNS staging validated. Staging remains noindex and public MVP launch is not authorized.
+The minimum five-family catalog is preserved. LAUNCH READINESS 001 is approved/merged/deployed. CATALOG + COMMERCIAL READINESS 001 is implemented on its review branch with the existing six Offers audited and four fresh factual observations added. Staging remains noindex and public MVP launch is not authorized.
 
 ### MVP integrations completed
 
