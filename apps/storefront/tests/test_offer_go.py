@@ -81,7 +81,7 @@ class OfferGoTests(TestCase):
 
 
 class StorefrontCtaTests(TestCase):
-    def test_homepage_primary_cta_uses_internal_go_route(self):
+    def test_homepage_category_cta_keeps_partner_destination_private(self):
         family = ProductFamily.objects.create(name="Primary", slug="primary-cta")
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
@@ -94,9 +94,11 @@ class StorefrontCtaTests(TestCase):
             offer=offer, product_family=family, selection_position=1
         )
         response = self.client.get(reverse("storefront:home"))
-        go_url = reverse("storefront:offer-go", args=[offer.pk])
-        self.assertContains(response, f'href="{go_url}"')
+        family_url = reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        self.assertContains(response, f'href="{family_url}"')
+        self.assertContains(response, "Ver seleção")
         self.assertNotContains(response, offer.affiliate_url)
+        self.assertNotContains(response, reverse("storefront:offer-go", args=[offer.pk]))
 
     def test_detail_has_separate_internal_cta_for_each_eligible_offer(self):
         family = ProductFamily.objects.create(name="Two Offers", slug="two-offers")

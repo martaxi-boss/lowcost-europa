@@ -128,7 +128,7 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
-        self.assertContains(response, "Sem ofertas ativas neste momento")
+        self.assertContains(response, "Seleção em preparação")
 
     def test_latest_observation_is_used_for_display(self):
         family = ProductFamily.objects.create(name="Latest", slug="latest")
@@ -176,7 +176,7 @@ class StorefrontViewTests(TestCase):
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
         self.assertNotContains(response, "Hidden inactive offer")
-        self.assertContains(response, "Sem ofertas ativas neste momento")
+        self.assertContains(response, "Seleção em preparação")
 
     def test_conflicting_logistics_are_presented_neutrally(self):
         family = ProductFamily.objects.create(name="Conflict", slug="conflict")
@@ -397,18 +397,14 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(response, offer.image_url)
         self.assertNotContains(response, offer.affiliate_url)
-        self.assertContains(
-            response,
-            reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}),
-        )
 
     def test_homepage_has_commercial_readiness_sections_and_navigation(self):
         family = ProductFamily.objects.create(name="Visual Family", slug="visual-family")
         response = self.client.get(reverse("storefront:home"))
-        self.assertContains(response, "Produtos profissionais, informação organizada")
-        self.assertContains(response, "Famílias selecionadas")
+        self.assertContains(response, "Selecionamos. Organizamos. Comparamos.")
+        self.assertContains(response, "8 categorias")
         self.assertContains(response, "Produtos em destaque")
-        self.assertContains(response, "Porquê Lowcost Europa")
+        self.assertContains(response, "Como ajudamos")
         self.assertContains(response, "Como funciona")
         self.assertContains(response, "Transparência comercial")
         self.assertContains(response, family.name)
@@ -427,7 +423,9 @@ class StorefrontViewTests(TestCase):
         OfferObservation.objects.create(
             offer=offer, price=Decimal("499.00"), currency="EUR", search_delivery_days=5
         )
-        response = self.client.get(reverse("storefront:home"))
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
         self.assertContains(response, "Preço observado")
         self.assertContains(response, "Ver oferta no parceiro")
         self.assertContains(response, reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}))
@@ -446,7 +444,7 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         content = response.content.decode().lower()
         self.assertIn("seleção editorial", content)
-        self.assertIn("escolha editorial de apresentação", content)
+        self.assertIn("sem transformar a escolha editorial num ranking", content)
         for phrase in ("melhor produto", "mais vendido", "ranking automático", "winner"):
             self.assertNotIn(phrase, content)
         self.assertNotIn('class="badge">winner', content)
@@ -463,8 +461,8 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
-        self.assertContains(response, "escolha editorial de organização")
-        self.assertContains(response, "compra acontecer diretamente no vendedor")
+        self.assertContains(response, "não representa um ranking objetivo")
+        self.assertContains(response, "A compra acontece fora do Lowcost Europa")
         self.assertNotContains(response, "melhor oferta")
 
 

@@ -79,7 +79,7 @@ class StorefrontPlacementReadPathTests(TestCase):
         self.assertLess(content.index("Normal One"), content.index("Normal Two"))
         self.assertNotIn("Top 5", content)
         self.assertNotIn("melhores", content.lower())
-        self.assertNotIn("ranking", content.lower())
+        self.assertIn("não representa um ranking objetivo", content.lower())
 
     def test_homepage_uses_first_selection_as_representative_offer(self):
         family = ProductFamily.objects.create(
@@ -116,7 +116,7 @@ class StorefrontPlacementReadPathTests(TestCase):
         )
         self.assertEqual(detail.status_code, 200)
         self.assertNotContains(detail, offer.title)
-        self.assertContains(detail, "Sem ofertas ativas neste momento")
+        self.assertContains(detail, "Seleção em preparação")
 
     def test_homepage_lists_eight_active_families_in_display_order(self):
         for order in range(8, 0, -1):
@@ -147,7 +147,7 @@ class StorefrontPlacementReadPathTests(TestCase):
                 reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
             )
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, "Sem ofertas ativas neste momento")
+            self.assertContains(response, "Seleção em preparação")
 
     def test_hifu_real_grouping_uses_placements_only(self):
         hifu = ProductFamily.objects.create(name="HIFU", slug="hifu", display_order=6)
@@ -172,3 +172,86 @@ class StorefrontPlacementReadPathTests(TestCase):
         self.assertLess(content.index("Offer 51"), content.index("Offer 53"))
         self.assertLess(content.index("Offer 53"), others_start)
         self.assertLess(others_start, content.index("Offer 52"))
+
+
+class StorefrontVisualCommercialTests(TestCase):
+    def make_placed_offer(self, family, external_id, **kwargs):
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id=external_id,
+            product_family=family,
+            **kwargs,
+        )
+        placement = OfferFamilyPlacement.objects.create(offer=offer, product_family=family)
+        return offer, placement
+
+    def test_selection_reason_is_conditional(self):
+        family = ProductFamily.objects.create(name="Reason", slug="reason", display_order=1)
+        offer, placement = self.make_placed_offer(family, "reason-offer", title="Reason Offer")
+        detail_url = reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        self.assertNotContains(self.client.get(detail_url), "Porque está aqui")
+        placement.selection_reason = "Incluída para comparação editorial factual."
+        placement.save(update_fields=["selection_reason"])
+        response = self.client.get(detail_url)
+        self.assertContains(response, "Porque está aqui")
+        self.assertContains(response, placement.selection_reason)
+
+    def test_equipment_badge_only_appears_for_factual_types(self):
+        family = ProductFamily.objects.create(name="Types", slug="types", display_order=1)
+        unknown, _ = self.make_placed_offer(family, "unknown", title="Unknown Type")
+        dedicated, _ = self.make_placed_offer(
+            family,
+            "dedicated",
+            title="Dedicated Type",
+            equipment_type=Offer.EquipmentType.DEDICATED,
+        )
+        combo, _ = self.make_placed_offer(
+            family, "combo", title="Combo Type", equipment_type=Offer.EquipmentType.COMBO
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertContains(response, "Equipamento dedicado")
+        self.assertContains(response, "Combo multifunções")
+        self.assertNotContains(response, 'class="equipment-badge">Unknown')
+        self.assertEqual(unknown.equipment_type, Offer.EquipmentType.UNKNOWN)
+        self.assertEqual(dedicated.equipment_type, Offer.EquipmentType.DEDICATED)
+        self.assertEqual(combo.equipment_type, Offer.EquipmentType.COMBO)
+
+    def test_unproven_europe_claims_are_absent(self):
+        family = ProductFamily.objects.create(name="Claims", slug="claims", display_order=1)
+        self.make_placed_offer(family, "claims-offer", title="Claims Offer")
+        responses = [
+            self.client.get(reverse("storefront:home")),
+            self.client.get(
+                reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+            ),
+        ]
+        forbidden = (
+            "Armazém europeu",
+            "Stock europeu",
+            "Enviado da Europa",
+            "Envio desde Portugal",
+            "Sem alfândega",
+            "Compra mais barato. Recebe a partir da Europa.",
+        )
+        for response in responses:
+            content = response.content.decode()
+            for phrase in forbidden:
+                self.assertNotIn(phrase, content)
+
+    def test_offer_cta_is_internal_and_transparent(self):
+        family = ProductFamily.objects.create(name="Partner", slug="partner", display_order=1)
+        offer, _ = self.make_placed_offer(
+            family,
+            "partner-offer",
+            title="Partner Offer",
+            affiliate_url="https://affiliate.example/private",
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertContains(response, "Ver oferta no parceiro")
+        self.assertContains(response, "Compra externa")
+        self.assertContains(response, reverse("storefront:offer-go", args=[offer.pk]))
+        self.assertNotContains(response, offer.affiliate_url)
