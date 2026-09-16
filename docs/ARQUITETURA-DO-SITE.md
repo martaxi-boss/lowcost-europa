@@ -168,20 +168,29 @@ Information officially presented by the partner on an offer/page may in the futu
 
 The commercial architecture must not assume that AliExpress is permanently the only provider. If another officially authorized partner can provide seller identity, dispatch country, EU warehouse or inventory as structured factual data, a future provider-specific adapter may be considered. No Banggood or other supplier integration is authorized in this operation.
 
+## GATE 2 — ALIEXPRESS STORE IDENTITY RECOVERY 001
+
+Official AliExpress Affiliate API documentation reviewed for this gate documents `shop_id` and `shop_url` as response fields for both `aliexpress.affiliate.product.query` and `aliexpress.affiliate.productdetail.get`, and documents optional `fields` request selection. The current Lowcost Europa client did not send `fields`, and `AliExpressProduct` / `normalize_product()` did not map `shop_id` or `shop_url`.
+
+The authorized recovery gate invoked exactly one DETAIL logical operation and one SEARCH logical operation, each requesting `shop_id,shop_url,product_id` through the central `AliExpressClient`. Both were stopped by the client's secure runtime-state ownership check before an HTTP attempt because the lock/cadence files are owned by the application service user with mode `0600` while the probe process ran as root. Metrics were 2 logical operations, 0 HTTP attempts, 0 retries, 0 HTTP 429 and no rate-limit abort. No AliExpress response payload was therefore observed in this gate.
+
+Per the Supervisor's absolute two-logical-operation ceiling, the probes were not retried under a different execution user. Operational outcome for the MVP is `STORE_IDENTITY_CAPABILITY = NOT AVAILABLE IN CURRENT ACCOUNT/OBSERVED PATH`. This outcome means store identity was not recoverable in this authorized gate; it is **not** evidence that the AliExpress account or platform universally omits `shop_id` or `shop_url`. No seller name, seller reputation, seller verification or trust inference is authorized.
+
+`HIFU PILOT MUST NOT BE BLOCKED BY STORE IDENTITY`. European-origin evidence remains independent: `ship_from_country`, `origin_country`, `warehouse`, `warehouse_id` and `local_stock` remain `UNKNOWN`. None may be inferred from shop identity, delivery estimates, price, evaluation, sales count, title or image.
+
 ## 16. Próxima sequência autorizável
 
-This document records a possible Supervisor-controlled sequence; it does not authorize execution:
+This document records the Supervisor-controlled sequence after the store-identity recovery gate; it does not authorize execution:
 
-1. `SELLER & EUROPEAN ORIGIN DATA CAPABILITY AUDIT 001` — current phase;
-2. `EUROPEAN EVIDENCE SOURCE DECISION` — decide whether an additional authorized source can provide seller/origin/warehouse evidence;
-3. `MINIMAL MODEL DECISION` — only if factual source data justifies model change;
-4. `HIFU CONTROLLED CATALOG PILOT`;
-5. `HIFU AUDIT`;
-6. `CAVITAÇÃO + RF + VACUUM PILOT`;
-7. `PROGRESSIVE EIGHT-FAMILY EXPANSION`;
-8. `FINAL PUBLIC-LAUNCH GATE` — separate authorization.
+1. `SELLER & EUROPEAN ORIGIN DATA CAPABILITY AUDIT 001` — closed;
+2. `ALIEXPRESS STORE IDENTITY RECOVERY GATE 001` — completed with store identity not recovered for MVP use;
+3. `HIFU CONTROLLED CATALOG PILOT 001` — next work, under a separate Supervisor order and using the current model;
+4. `HIFU AUDIT`;
+5. `CAVITAÇÃO + RF + VACUUM PILOT`;
+6. `PROGRESSIVE EIGHT-FAMILY EXPANSION`;
+7. `FINAL PUBLIC-LAUNCH GATE` — separate authorization.
 
-No next phase starts automatically.
+No HIFU execution starts automatically from this document. No further seller/store or provider investigation precedes HIFU without a new explicit Supervisor order.
 ## 17. Estado de lançamento
 
 `PUBLIC LAUNCH NOT AUTHORIZED`
