@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Lowcost Europa catalog maintenance every 6 hours
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=6h
+Persistent=true
+Unit=lowcost-europa-catalog-maintenance.service
+
+[Install]
+WantedBy=timers.target

@@ -40,6 +40,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Skipped accessory/part: {result.skipped_accessory_part}")
         self.stdout.write(f"Skipped existing offer: {result.skipped_existing_offer}")
         self.stdout.write(f"Skipped existing candidate: {result.skipped_existing_candidate}")
+        self.stdout.write(f"Skipped known other family: {result.skipped_known_other_family}")
         self.stdout.write(f"Skipped previously rejected: {result.skipped_previously_rejected}")
         self.stdout.write(f"Skipped not shippable to PT: {result.skipped_not_shippable_to_pt}")
         self.stdout.write(f"Detail attempts: {result.detail_attempts}")

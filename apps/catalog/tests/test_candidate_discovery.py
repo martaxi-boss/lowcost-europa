@@ -167,7 +167,7 @@ class CandidateDiscoveryTests(TestCase):
             products=[self.product("known-global", "Professional 22D MAX HIFU machine")]
         )
         result = discover_family_candidates(self.family, "HIFU", client=client)
-        self.assertEqual(result.skipped_existing_candidate, 1)
+        self.assertEqual(result.skipped_known_other_family, 1)
         client.get_product_detail.assert_not_called()
 
     def test_same_title_with_different_ids_can_both_be_candidates(self):

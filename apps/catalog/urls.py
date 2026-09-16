@@ -6,11 +6,6 @@ app_name = "catalog"
 urlpatterns = [
     path("candidates/<slug:family_slug>/", views.candidate_queue, name="candidate-queue"),
     path(
-        "candidates/<slug:family_slug>/<int:candidate_id>/qualify/",
-        views.candidate_qualify,
-        name="candidate-qualify",
-    ),
-    path(
         "candidates/<slug:family_slug>/<int:candidate_id>/approve/",
         views.candidate_approve,
         name="candidate-approve",

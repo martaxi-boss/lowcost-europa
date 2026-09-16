@@ -73,6 +73,7 @@ class Offer(models.Model):
     affiliate_url = models.URLField(max_length=1000, blank=True)
     ship_from_country = models.CharField(max_length=2, null=True, blank=True)
     ship_from_verified_at = models.DateTimeField(null=True, blank=True)
+    protocol_verified_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     equipment_type = models.CharField(
@@ -311,8 +312,8 @@ class OfferCandidate(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["product_family", "source", "external_product_id"],
-                name="catalog_candidate_family_source_ext_uniq",
+                fields=["source", "external_product_id"],
+                name="catalog_candidate_source_external_id_uniq",
             ),
             models.CheckConstraint(
                 condition=Q(status__in=["PENDING", "APPROVED", "REJECTED"]),
@@ -374,9 +375,12 @@ class CandidateDecision(models.Model):
                 name="catalog_candidate_decision_valid",
             ),
             models.CheckConstraint(
-                condition=Q(decision="REJECT")
-                | Q(ship_from_country__in=["PL", "CZ", "FR", "ES", "DE"]),
-                name="catalog_candidate_approve_country_allowed",
+                condition=(
+                    Q(decision="REJECT")
+                    | Q(ship_from_country="")
+                    | Q(ship_from_country__in=["PL", "CZ", "FR", "ES", "DE"])
+                ),
+                name="catalog_candidate_approve_country_optional_allowed",
             ),
         ]
 

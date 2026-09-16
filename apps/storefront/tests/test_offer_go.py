@@ -18,7 +18,7 @@ class OfferGoTests(TestCase):
             title="Eligible offer",
             affiliate_url="https://affiliate.example/item/123",
             ship_from_country="PL",
-            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(),
         )
         OfferFamilyPlacement.objects.create(offer=self.offer, product_family=self.family)
         self.url = reverse("storefront:offer-go", args=[self.offer.pk])
@@ -92,7 +92,7 @@ class StorefrontCtaTests(TestCase):
             product_family=family,
             affiliate_url="https://affiliate.example/primary",
             ship_from_country="PL",
-            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(),
             is_primary=True,
         )
         OfferFamilyPlacement.objects.create(
@@ -116,7 +116,7 @@ class StorefrontCtaTests(TestCase):
                     product_family=family,
                     affiliate_url=f"https://affiliate.example/{suffix}",
                     ship_from_country="PL",
-                    ship_from_verified_at=timezone.now(),
+                    protocol_verified_at=timezone.now(),
                 )
             )
         for index, offer in enumerate(offers):

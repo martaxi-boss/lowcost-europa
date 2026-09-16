@@ -11,8 +11,7 @@ from apps.catalog.services.candidate_approval import (
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.public_eligibility import (
-    ALLOWED_SHIP_FROM_COUNTRIES,
-    is_ship_from_verification_fresh,
+    is_protocol_verification_fresh,
     public_eligibility_q,
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
@@ -29,12 +28,12 @@ def _decorate_candidate(candidate):
     candidate.review_required = bool(
         offer
         and candidate.status == OfferCandidate.Status.APPROVED
-        and not is_ship_from_verification_fresh(offer)
+        and not is_protocol_verification_fresh(offer)
     )
     candidate.fresh_approved = bool(
         offer
         and candidate.status == OfferCandidate.Status.APPROVED
-        and is_ship_from_verification_fresh(offer)
+        and is_protocol_verification_fresh(offer)
     )
     candidate.history = list(candidate.decisions.all()[:5])
     return candidate
@@ -86,13 +85,6 @@ def candidate_queue(request, family_slug):
             "counts": counts,
             "active_view": view,
             "families": ProductFamily.objects.exclude(pk=family.pk).order_by("display_order", "pk"),
-            "countries": [
-                ("PL", "Polonia"),
-                ("CZ", "Republica Checa"),
-                ("FR", "Franca"),
-                ("ES", "Espanha"),
-                ("DE", "Alemanha"),
-            ],
             "reasons": [
                 choice
                 for choice in CandidateDecision.Reason.choices
@@ -116,14 +108,7 @@ def _candidate_for_family(candidate_id, family_slug):
 def candidate_approve(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        approve_candidate(
-            candidate,
-            ships_to_pt_confirmed=request.POST.get("ships_to_pt") == "yes",
-            ship_from_country=request.POST.get("ship_from_country"),
-            evidence_url=request.POST.get("evidence_url", ""),
-            note=request.POST.get("note", ""),
-            user=request.user,
-        )
+        approve_candidate(candidate, user=request.user)
     except AliExpressRateLimitError:
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
@@ -153,21 +138,9 @@ def candidate_reject(request, family_slug, candidate_id):
 @staff_member_required(login_url="admin:login")
 def candidate_revalidate(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
-    confirmed = request.POST.get("confirmed") == "yes"
     try:
-        revalidate_candidate(
-            candidate,
-            user=request.user,
-            ship_from_country=request.POST.get("ship_from_country"),
-            confirmed=confirmed,
-            ships_to_pt_confirmed=request.POST.get("ships_to_pt") == "yes",
-            reason=request.POST.get("reason", CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED),
-            evidence_url=request.POST.get("evidence_url", ""),
-            note=request.POST.get("note", ""),
-        )
-    except AliExpressRateLimitError:
-        raise
-    except (AliExpressError, CandidateApprovalError) as exc:
+        revalidate_candidate(candidate, user=request.user)
+    except CandidateApprovalError as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)
 
@@ -180,61 +153,5 @@ def candidate_move(request, family_slug, candidate_id):
     try:
         move_candidate_to_family(candidate, target_family=target, user=request.user)
     except CandidateMoveError as exc:
-        request.session["ops_error"] = str(exc)
-    return redirect("catalog:candidate-queue", family_slug=family_slug)
-
-
-def _qualification_rejection(request):
-    ships_to_pt = request.POST.get("ships_to_pt")
-    country = (request.POST.get("ship_from_country") or "").upper()
-    observed_country = (request.POST.get("observed_country") or "").upper()[:2]
-    if ships_to_pt == "no":
-        return CandidateDecision.Reason.DOES_NOT_SHIP_TO_PT, observed_country
-    if ships_to_pt != "yes":
-        return CandidateDecision.Reason.PT_DELIVERY_NOT_CONFIRMED, observed_country
-    if country in {"", "UNKNOWN"}:
-        return CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED, observed_country
-    if country not in ALLOWED_SHIP_FROM_COUNTRIES:
-        return CandidateDecision.Reason.ORIGIN_NOT_ALLOWED, observed_country
-    return None, country
-
-
-@require_POST
-@staff_member_required(login_url="admin:login")
-def candidate_qualify(request, family_slug, candidate_id):
-    candidate = _candidate_for_family(candidate_id, family_slug)
-    reason, country = _qualification_rejection(request)
-    try:
-        if reason:
-            reject_candidate(
-                candidate,
-                user=request.user,
-                reason=reason,
-                ship_from_country=country,
-                evidence_url=request.POST.get("evidence_url", ""),
-                note=request.POST.get("note", ""),
-            )
-        elif candidate.status == OfferCandidate.Status.APPROVED:
-            revalidate_candidate(
-                candidate,
-                user=request.user,
-                ships_to_pt_confirmed=True,
-                ship_from_country=country,
-                confirmed=True,
-                evidence_url=request.POST.get("evidence_url", ""),
-                note=request.POST.get("note", ""),
-            )
-        else:
-            approve_candidate(
-                candidate,
-                ships_to_pt_confirmed=True,
-                ship_from_country=country,
-                user=request.user,
-                evidence_url=request.POST.get("evidence_url", ""),
-                note=request.POST.get("note", ""),
-            )
-    except AliExpressRateLimitError:
-        raise
-    except (AliExpressError, CandidateApprovalError) as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)

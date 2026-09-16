@@ -2,15 +2,25 @@ from dataclasses import dataclass, field
 
 from django.utils import timezone
 
-from apps.catalog.models import Offer, OfferCandidate, ProductFamily
+from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
 from apps.catalog.services.candidate_priority import (
-    hifu_candidate_priority,
-    learned_hifu_variants,
+    learned_family_variants,
+    priority_for_family,
 )
 from apps.catalog.services.candidate_relevance import family_candidate_relevance
+from apps.catalog.services.family_profiles import get_family_profile
 from apps.catalog.services.shipping_qualification import is_factually_not_shippable_to_pt
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
+
+SEMANTIC_REJECTION_REASONS = frozenset(
+    {
+        CandidateDecision.Reason.WRONG_FAMILY,
+        CandidateDecision.Reason.ACCESSORY_OR_PART,
+        CandidateDecision.Reason.IRRELEVANT,
+        CandidateDecision.Reason.POOR_LISTING,
+    }
+)
 
 
 @dataclass
@@ -27,9 +37,33 @@ class CandidateDiscoveryResult:
     skipped_existing_offer: int = 0
     skipped_existing_candidate: int = 0
     skipped_previously_rejected: int = 0
+    skipped_known_other_family: int = 0
     skipped_not_shippable_to_pt: int = 0
     failures: list[str] = field(default_factory=list)
     raw_product_ids: set[str] = field(default_factory=set)
+
+
+def _learning_inputs(family):
+    profile = get_family_profile(family.slug)
+    approved_titles = OfferCandidate.objects.filter(
+        product_family=family,
+        status=OfferCandidate.Status.APPROVED,
+    ).values_list("title", flat=True)
+    learned_variants = learned_family_variants(profile, approved_titles)
+    semantic_negative_titles = OfferCandidate.objects.filter(
+        product_family=family,
+        status=OfferCandidate.Status.REJECTED,
+        decisions__decision=CandidateDecision.Decision.REJECT,
+        decisions__reason__in=SEMANTIC_REJECTION_REASONS,
+    ).values_list("title", flat=True)
+    return profile, learned_variants, tuple(semantic_negative_titles)
+
+
+def _count_irrelevant(result, reason):
+    if reason == "ACCESSORY_OR_PART":
+        result.skipped_accessory_part += 1
+    else:
+        result.skipped_irrelevant_family += 1
 
 
 def discover_family_candidates(family, keyword, *, limit=10, max_details=10, client=None):
@@ -42,7 +76,12 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
     client = client or AliExpressClient()
     result = CandidateDiscoveryResult()
     search = client.search_products_diagnostic(
-        keyword, country="PT", currency="EUR", page_no=1, page_size=limit, target_language="EN"
+        keyword,
+        country="PT",
+        currency="EUR",
+        page_no=1,
+        page_size=limit,
+        target_language="EN",
     )
     products = search.products[:limit]
     result.search_results = len(products) + search.invalid_items
@@ -56,10 +95,7 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
         seen.add(pid)
         relevant, reason = family_candidate_relevance(family.slug, product.title)
         if not relevant:
-            if reason == "ACCESSORY_OR_PART":
-                result.skipped_accessory_part += 1
-            else:
-                result.skipped_irrelevant_family += 1
+            _count_irrelevant(result, reason)
             continue
         if is_factually_not_shippable_to_pt(product):
             result.skipped_not_shippable_to_pt += 1
@@ -78,23 +114,27 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
         if existing:
             if existing.status == OfferCandidate.Status.REJECTED:
                 result.skipped_previously_rejected += 1
+            elif existing.product_family_id != family.pk:
+                result.skipped_known_other_family += 1
             else:
                 result.skipped_existing_candidate += 1
             continue
         shortlist.append(product)
-    if family.slug == "hifu":
-        approved_titles = OfferCandidate.objects.filter(
-            product_family=family, status=OfferCandidate.Status.APPROVED
-        ).values_list("title", flat=True)
-        learned_variants = learned_hifu_variants(approved_titles)
+
+    profile, learned_variants, semantic_negative_titles = _learning_inputs(family)
+    if profile:
         shortlist.sort(
-            key=lambda product: hifu_candidate_priority(product, learned_variants=learned_variants)[
-                0
-            ],
+            key=lambda product: priority_for_family(
+                product,
+                family.slug,
+                learned_variants=learned_variants,
+                semantic_negative_titles=semantic_negative_titles,
+            )[0],
             reverse=True,
         )
     shortlist = shortlist[:max_details]
     result.shortlisted = len(shortlist)
+
     for search_product in shortlist:
         result.detail_attempts += 1
         try:
@@ -115,13 +155,12 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
             family.slug, detail.title or search_product.title
         )
         if not relevant:
-            if reason == "ACCESSORY_OR_PART":
-                result.skipped_accessory_part += 1
-            else:
-                result.skipped_irrelevant_family += 1
+            _count_irrelevant(result, reason)
             continue
+
         now = timezone.now()
         defaults = {
+            "product_family": family,
             "title": detail.title or search_product.title or "",
             "image_url": detail.image_url or search_product.image_url or "",
             "product_url": detail.product_url or search_product.product_url or "",
@@ -138,7 +177,6 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
             "last_observed_at": now,
         }
         candidate, created = OfferCandidate.objects.get_or_create(
-            product_family=family,
             source=Offer.Source.ALIEXPRESS,
             external_product_id=detail.product_id,
             defaults={**defaults, "discovered_at": now},
@@ -146,10 +184,12 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
         if created:
             result.created += 1
         else:
-            for key, value in defaults.items():
-                setattr(candidate, key, value)
-            candidate.save(update_fields=[*defaults.keys(), "updated_at"])
-            result.updated += 1
+            if candidate.status == OfferCandidate.Status.REJECTED:
+                result.skipped_previously_rejected += 1
+            elif candidate.product_family_id != family.pk:
+                result.skipped_known_other_family += 1
+            else:
+                result.skipped_existing_candidate += 1
     return result
 
 
@@ -161,6 +201,7 @@ def seed_candidates_from_existing_offers(family):
         offer = placement.offer
         latest = offer.observations.order_by("-observed_at", "-pk").first()
         defaults = {
+            "product_family": family,
             "title": offer.title,
             "image_url": offer.image_url,
             "product_url": offer.product_url,
@@ -177,11 +218,12 @@ def seed_candidates_from_existing_offers(family):
             "last_observed_at": latest.observed_at if latest else offer.last_seen_at,
             "approved_offer": offer,
         }
-        _, was_created = OfferCandidate.objects.get_or_create(
-            product_family=family,
+        candidate, was_created = OfferCandidate.objects.get_or_create(
             source=offer.source,
             external_product_id=offer.external_product_id,
             defaults=defaults,
         )
+        if not was_created and candidate.product_family_id != family.pk:
+            continue
         created += int(was_created)
     return created

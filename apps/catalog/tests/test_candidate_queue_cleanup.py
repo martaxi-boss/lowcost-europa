@@ -1,12 +1,13 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
-from apps.catalog.services.candidate_approval import reject_candidate
+from apps.catalog.services.candidate_approval import approve_candidate, reject_candidate
 from apps.catalog.services.candidate_move import move_candidate_to_family
 
 
@@ -18,12 +19,12 @@ class CandidateQueueFilteringTests(TestCase):
         )
         self.client.force_login(self.staff)
         self.url = reverse("catalog:candidate-queue", kwargs={"family_slug": "hifu"})
-
         self.pending = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
             external_product_id="pending-id",
             title="Pending HIFU",
+            product_url="https://example.com/pending",
         )
         self.rejected = OfferCandidate.objects.create(
             product_family=self.family,
@@ -35,8 +36,7 @@ class CandidateQueueFilteringTests(TestCase):
         fresh_offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="fresh-offer",
-            ship_from_country="PL",
-            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(),
         )
         self.fresh_approved = OfferCandidate.objects.create(
             product_family=self.family,
@@ -49,8 +49,7 @@ class CandidateQueueFilteringTests(TestCase):
         stale_offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="stale-offer",
-            ship_from_country="ES",
-            ship_from_verified_at=timezone.now() - timedelta(days=8),
+            protocol_verified_at=timezone.now() - timedelta(days=8),
         )
         self.review_required = OfferCandidate.objects.create(
             product_family=self.family,
@@ -70,26 +69,28 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertContains(response, "Rejected 1")
         self.assertContains(response, "Review required 1")
 
-    def test_rejected_tab_shows_rejected(self):
-        response = self.client.get(self.url + "?view=rejected")
-        self.assertContains(response, "rejected-id")
-        self.assertNotContains(response, "pending-id")
+    def test_one_click_ui_has_no_country_or_pt_question(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, ">APROVAR<", html=False)
+        self.assertContains(response, ">REVALIDAR<", html=False)
+        self.assertNotContains(response, 'name="ships_to_pt"')
+        self.assertNotContains(response, 'name="ship_from_country" value="PL"')
+        self.assertContains(response, "protocolo Lowcost Europa")
 
-    def test_approved_tab_shows_approved(self):
-        response = self.client.get(self.url + "?view=approved")
-        self.assertContains(response, "fresh-approved")
-        self.assertContains(response, "review-required")
-        self.assertNotContains(response, "rejected-id")
-
-    def test_all_tab_shows_everything(self):
-        response = self.client.get(self.url + "?view=all")
+    def test_rejected_approved_and_all_tabs(self):
+        rejected = self.client.get(self.url + "?view=rejected")
+        approved = self.client.get(self.url + "?view=approved")
+        all_items = self.client.get(self.url + "?view=all")
+        self.assertContains(rejected, "rejected-id")
+        self.assertContains(approved, "fresh-approved")
+        self.assertContains(approved, "review-required")
         for external_id in (
             "pending-id",
             "rejected-id",
             "fresh-approved",
             "review-required",
         ):
-            self.assertContains(response, external_id)
+            self.assertContains(all_items, external_id)
 
     def test_reject_redirects_to_default_and_candidate_disappears(self):
         url = reverse(
@@ -101,6 +102,14 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertNotContains(self.client.get(self.url), "pending-id")
         self.assertContains(self.client.get(self.url + "?view=rejected"), "pending-id")
 
+    def test_one_click_approve_endpoint_requires_no_country(self):
+        api = __import__("unittest.mock").mock.Mock()
+        api.generate_affiliate_link.return_value = "https://affiliate.example/pending"
+        result = approve_candidate(self.pending, user=self.staff, client=api)
+        result.offer.refresh_from_db()
+        self.assertIsNone(result.offer.ship_from_country)
+        self.assertIsNotNone(result.offer.protocol_verified_at)
+
 
 class CandidateMoveTests(TestCase):
     def setUp(self):
@@ -110,7 +119,7 @@ class CandidateMoveTests(TestCase):
             username="staff", password="x", is_staff=True
         )
 
-    def test_move_preserves_history_and_enters_target_pending(self):
+    def test_move_preserves_same_candidate_history_and_enters_target_pending(self):
         candidate = OfferCandidate.objects.create(
             product_family=self.hifu,
             source=Offer.Source.ALIEXPRESS,
@@ -120,50 +129,33 @@ class CandidateMoveTests(TestCase):
         reject_candidate(
             candidate,
             user=self.staff,
-            reason=CandidateDecision.Reason.IRRELEVANT,
+            reason=CandidateDecision.Reason.WRONG_FAMILY,
         )
         decision_id = candidate.decisions.get().pk
+        original_pk = candidate.pk
         moved, changed_family = move_candidate_to_family(
             candidate, target_family=self.target, user=self.staff
         )
         moved.refresh_from_db()
         self.assertTrue(changed_family)
+        self.assertEqual(moved.pk, original_pk)
         self.assertEqual(moved.product_family, self.target)
         self.assertEqual(moved.status, OfferCandidate.Status.PENDING)
-        self.assertIsNone(moved.approved_offer_id)
         self.assertTrue(moved.decisions.filter(pk=decision_id).exists())
 
-    def test_duplicate_destination_candidate_is_reused_without_auto_approval(self):
-        source = OfferCandidate.objects.create(
+    def test_global_duplicate_candidate_in_other_family_is_blocked(self):
+        OfferCandidate.objects.create(
             product_family=self.hifu,
             source=Offer.Source.ALIEXPRESS,
-            external_product_id="duplicate-move",
-            status=OfferCandidate.Status.REJECTED,
-            title="Newer snapshot",
+            external_product_id="global-id",
         )
-        destination = OfferCandidate.objects.create(
-            product_family=self.target,
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id="duplicate-move",
-            status=OfferCandidate.Status.REJECTED,
-            title="Old snapshot",
-        )
-        moved, changed_family = move_candidate_to_family(
-            source, target_family=self.target, user=self.staff
-        )
-        moved.refresh_from_db()
-        self.assertFalse(changed_family)
-        self.assertEqual(moved.pk, destination.pk)
-        self.assertEqual(moved.status, OfferCandidate.Status.PENDING)
-        self.assertEqual(moved.title, "Newer snapshot")
-        self.assertEqual(
-            OfferCandidate.objects.filter(
-                product_family=self.target,
-                source=Offer.Source.ALIEXPRESS,
-                external_product_id="duplicate-move",
-            ).count(),
-            1,
-        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OfferCandidate.objects.create(
+                    product_family=self.target,
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id="global-id",
+                )
 
     def test_move_endpoint_is_post_only_and_csrf_protected(self):
         candidate = OfferCandidate.objects.create(
@@ -183,82 +175,3 @@ class CandidateMoveTests(TestCase):
             csrf_client.post(url, {"target_family": self.target.pk}).status_code,
             403,
         )
-
-
-class ShippingQualificationUXTests(TestCase):
-    def setUp(self):
-        self.family = ProductFamily.objects.create(name="HIFU", slug="hifu-qualification")
-        self.staff = get_user_model().objects.create_user(
-            username="shipping-staff", password="x", is_staff=True
-        )
-        self.client.force_login(self.staff)
-        self.candidate = OfferCandidate.objects.create(
-            product_family=self.family,
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id="shipping-ux",
-            title="Professional HIFU",
-            product_url="https://example.com/item",
-        )
-        self.queue = reverse("catalog:candidate-queue", kwargs={"family_slug": self.family.slug})
-        self.qualify = reverse(
-            "catalog:candidate-qualify",
-            kwargs={"family_slug": self.family.slug, "candidate_id": self.candidate.pk},
-        )
-
-    def test_reason_labels_are_portuguese_and_mobile_choices_present(self):
-        response = self.client.get(self.queue)
-        for text in (
-            "Entrega este produto/variante em Portugal?",
-            "Sim — entrega em Portugal",
-            "Não — não entrega em Portugal",
-            "Não consigo confirmar",
-            "De que país é enviado?",
-            "Não envia para Portugal",
-            "País de envio não aparece / não consigo confirmar",
-            "Produto pertence a outra família",
-        ):
-            self.assertContains(response, text)
-        self.assertContains(response, "min-height:46px")
-
-    def test_qualification_rejects_not_shipping_to_pt_with_structured_reason(self):
-        response = self.client.post(
-            self.qualify, {"ships_to_pt": "no", "ship_from_country": "UNKNOWN"}
-        )
-        self.assertRedirects(response, self.queue)
-        self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
-        self.assertEqual(
-            self.candidate.decisions.get().reason,
-            CandidateDecision.Reason.DOES_NOT_SHIP_TO_PT,
-        )
-        self.assertNotContains(self.client.get(self.queue), "shipping-ux")
-
-    def test_qualification_rejects_pt_unknown(self):
-        self.client.post(self.qualify, {"ships_to_pt": "unknown", "ship_from_country": "PL"})
-        self.assertEqual(
-            self.candidate.decisions.get().reason,
-            CandidateDecision.Reason.PT_DELIVERY_NOT_CONFIRMED,
-        )
-
-    def test_qualification_rejects_origin_unknown_and_not_allowed(self):
-        self.client.post(self.qualify, {"ships_to_pt": "yes", "ship_from_country": "UNKNOWN"})
-        self.assertEqual(
-            self.candidate.decisions.get().reason,
-            CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED,
-        )
-        second = OfferCandidate.objects.create(
-            product_family=self.family,
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id="shipping-ux-2",
-        )
-        url = reverse(
-            "catalog:candidate-qualify",
-            kwargs={"family_slug": self.family.slug, "candidate_id": second.pk},
-        )
-        self.client.post(
-            url,
-            {"ships_to_pt": "yes", "ship_from_country": "OTHER", "observed_country": "CN"},
-        )
-        decision = second.decisions.get()
-        self.assertEqual(decision.reason, CandidateDecision.Reason.ORIGIN_NOT_ALLOWED)
-        self.assertEqual(decision.ship_from_country, "CN")

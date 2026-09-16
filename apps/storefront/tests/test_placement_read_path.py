@@ -11,7 +11,7 @@ class StorefrontPlacementReadPathTests(TestCase):
             source=Offer.Source.ALIEXPRESS,
             external_product_id=external_id,
             ship_from_country="PL",
-            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(),
             **kwargs,
         )
 
@@ -184,7 +184,7 @@ class StorefrontVisualCommercialTests(TestCase):
             external_product_id=external_id,
             product_family=family,
             ship_from_country="PL",
-            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(),
             **kwargs,
         )
         placement = OfferFamilyPlacement.objects.create(offer=offer, product_family=family)
