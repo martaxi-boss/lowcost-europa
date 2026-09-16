@@ -18,7 +18,7 @@ class PublicEligibilityTests(TestCase):
             title=ext,
             affiliate_url=f"https://affiliate.example/{ext}",
             ship_from_country=country,
-            ship_from_verified_at=when,
+            protocol_verified_at=when,
         )
         OfferFamilyPlacement.objects.create(offer=o, product_family=self.family)
         return o

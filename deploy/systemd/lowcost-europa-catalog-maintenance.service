@@ -1,0 +1,12 @@
+[Unit]
+Description=Lowcost Europa catalog offer maintenance
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=le001_1789265592
+WorkingDirectory=/srv/lowcost-europa
+EnvironmentFile=/etc/lowcost-europa/lowcost-europa.env
+ExecStart=/srv/lowcost-europa/.venv/bin/python manage.py maintain_catalog_offers
+PrivateTmp=true
+NoNewPrivileges=true

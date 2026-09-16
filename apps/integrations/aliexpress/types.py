@@ -24,6 +24,7 @@ class AliExpressProduct:
     ship_to_days_raw: str | None = None
     delivery_days: int | None = None
     destination_country: str | None = None
+    availability_raw: str | None = None
     affiliate_url: str | None = None
 
 

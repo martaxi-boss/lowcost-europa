@@ -20,10 +20,7 @@ from apps.catalog.services.candidate_approval import (
     reject_candidate,
     revalidate_candidate,
 )
-from apps.catalog.services.public_eligibility import (
-    ALLOWED_SHIP_FROM_COUNTRIES,
-    is_ship_from_verification_fresh,
-)
+from apps.catalog.services.public_eligibility import is_protocol_verification_fresh
 
 
 class CandidateApprovalTests(TestCase):
@@ -45,44 +42,65 @@ class CandidateApprovalTests(TestCase):
         self.client_api = Mock()
         self.client_api.generate_affiliate_link.return_value = "https://affiliate.example/1"
 
-    def test_allowed_countries_approve(self):
-        for code in sorted(ALLOWED_SHIP_FROM_COUNTRIES):
-            candidate = OfferCandidate.objects.create(
-                product_family=self.family,
-                source=Offer.Source.ALIEXPRESS,
-                external_product_id=f"id-{code}",
-                product_url=f"https://example.com/{code}",
-            )
-            result = approve_candidate(
-                candidate,
-                ships_to_pt_confirmed=True,
-                ship_from_country=code,
-                user=self.user,
-                client=self.client_api,
-            )
-            self.assertEqual(result.offer.ship_from_country, code)
-            self.assertTrue(is_ship_from_verification_fresh(result.offer))
+    def test_one_click_approve_sets_protocol_without_inventing_country(self):
+        result = approve_candidate(self.candidate, user=self.user, client=self.client_api)
+        result.offer.refresh_from_db()
+        self.assertIsNotNone(result.offer.protocol_verified_at)
+        self.assertIsNone(result.offer.ship_from_country)
+        self.assertIsNone(result.offer.ship_from_verified_at)
+        self.assertEqual(result.decision.ship_from_country, "")
+        self.assertTrue(is_protocol_verification_fresh(result.offer))
 
-    def test_cn_blank_unknown_are_blocked(self):
-        for code in ("CN", "", "UNKNOWN"):
-            with self.assertRaises(CandidateApprovalError):
-                approve_candidate(
-                    self.candidate,
-                    ships_to_pt_confirmed=True,
-                    ship_from_country=code,
-                    user=self.user,
-                    client=self.client_api,
+    def test_approval_creates_affiliate_observation_placement_and_history(self):
+        result = approve_candidate(self.candidate, user=self.user, client=self.client_api)
+        self.candidate.refresh_from_db()
+        self.assertEqual(result.offer.affiliate_url, "https://affiliate.example/1")
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
+        self.assertEqual(self.candidate.approved_offer_id, result.offer.pk)
+        self.assertEqual(result.offer.observations.count(), 1)
+        self.assertIsNone(result.placement.selection_position)
+        self.assertEqual(self.candidate.decisions.count(), 1)
+
+    def test_candidate_identity_is_global_across_families(self):
+        other = ProductFamily.objects.create(name="RF", slug="rf")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OfferCandidate.objects.create(
+                    product_family=other,
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id=self.candidate.external_product_id,
                 )
 
-    def test_approval_without_pt_confirmation_is_blocked(self):
-        with self.assertRaises(CandidateApprovalError):
-            approve_candidate(
-                self.candidate,
-                ships_to_pt_confirmed=False,
-                ship_from_country="PL",
-                user=self.user,
-                client=self.client_api,
-            )
+    def test_offer_identity_is_global(self):
+        Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="same")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="same")
+
+    def test_candidate_and_linked_offer_can_coexist(self):
+        result = approve_candidate(self.candidate, user=self.user, client=self.client_api)
+        self.assertEqual(OfferCandidate.objects.filter(external_product_id="new-1").count(), 1)
+        self.assertEqual(Offer.objects.filter(external_product_id="new-1").count(), 1)
+        self.assertEqual(result.candidate.approved_offer_id, result.offer.pk)
+
+    def test_database_allows_blank_country_for_approve_decision(self):
+        decision = CandidateDecision.objects.create(
+            candidate=self.candidate,
+            decision=CandidateDecision.Decision.APPROVE,
+            ship_from_country="",
+            decided_by=self.user,
+        )
+        self.assertEqual(decision.ship_from_country, "")
+
+    def test_database_blocks_invalid_country_if_approve_decision_records_one(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                CandidateDecision.objects.create(
+                    candidate=self.candidate,
+                    decision=CandidateDecision.Decision.APPROVE,
+                    ship_from_country="CN",
+                    decided_by=self.user,
+                )
 
     def test_other_rejection_requires_note(self):
         with self.assertRaises(CandidateApprovalError):
@@ -95,126 +113,46 @@ class CandidateApprovalTests(TestCase):
         )
         self.assertEqual(decision.note, "Razão específica")
 
-    def test_candidate_unique_within_family_source_and_external_id(self):
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                OfferCandidate.objects.create(
-                    product_family=self.family,
-                    source=Offer.Source.ALIEXPRESS,
-                    external_product_id=self.candidate.external_product_id,
-                )
-
-    def test_invalid_candidate_status_is_blocked(self):
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                OfferCandidate.objects.create(
-                    product_family=self.family,
-                    source=Offer.Source.ALIEXPRESS,
-                    external_product_id="invalid-status",
-                    status="INVALID",
-                )
-
-    def test_decision_records_staff_identity_and_timestamp(self):
-        decision = reject_candidate(
-            self.candidate,
-            user=self.user,
-            reason=CandidateDecision.Reason.DUPLICATE,
+    def test_reject_preserves_country_history_but_invalidates_protocol(self):
+        legacy = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="legacy-country",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now() - timedelta(days=2),
+            protocol_verified_at=timezone.now(),
         )
-        self.assertEqual(decision.decided_by, self.user)
-        self.assertIsNotNone(decision.decided_at)
-
-    def test_database_blocks_invalid_offer_country(self):
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                Offer.objects.create(
-                    source=Offer.Source.ALIEXPRESS,
-                    external_product_id="bad-country",
-                    ship_from_country="CN",
-                )
-
-    def test_database_blocks_approve_decision_with_invalid_country(self):
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                CandidateDecision.objects.create(
-                    candidate=self.candidate,
-                    decision="APPROVE",
-                    ship_from_country="CN",
-                    decided_by=self.user,
-                )
-
-    def test_approval_is_atomic_and_creates_offer_observation_placement_decision(self):
-        result = approve_candidate(
-            self.candidate,
-            ships_to_pt_confirmed=True,
-            ship_from_country="ES",
-            user=self.user,
-            client=self.client_api,
-        )
-        self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
-        self.assertEqual(self.candidate.approved_offer_id, result.offer.pk)
-        self.assertEqual(result.offer.observations.count(), 1)
-        self.assertEqual(result.placement.selection_position, None)
-        self.assertEqual(self.candidate.decisions.count(), 1)
-
-    def test_reject_persists_history_and_no_offer(self):
+        self.candidate.approved_offer = legacy
+        self.candidate.status = OfferCandidate.Status.APPROVED
+        self.candidate.save(update_fields=["approved_offer", "status", "updated_at"])
         reject_candidate(
             self.candidate,
             user=self.user,
-            reason=CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED,
-            note="not clear",
-        )
-        self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
-        self.assertIsNone(self.candidate.approved_offer_id)
-        self.assertEqual(
-            self.candidate.decisions.get().reason, CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED
-        )
-
-    def test_reapproval_refreshes_timestamp_and_preserves_history(self):
-        past = timezone.now() - timedelta(days=8)
-        result = approve_candidate(
-            self.candidate,
-            ships_to_pt_confirmed=True,
-            ship_from_country="PL",
-            user=self.user,
-            client=self.client_api,
-            now=past,
-        )
-        self.assertFalse(is_ship_from_verification_fresh(result.offer))
-        revalidate_candidate(
-            self.candidate,
-            user=self.user,
-            ship_from_country="DE",
-            confirmed=True,
-            ships_to_pt_confirmed=True,
-            now=timezone.now(),
-        )
-        self.candidate.refresh_from_db()
-        self.candidate.approved_offer.refresh_from_db()
-        self.assertTrue(is_ship_from_verification_fresh(self.candidate.approved_offer))
-        self.assertEqual(self.candidate.approved_offer.ship_from_country, "DE")
-        self.assertEqual(self.candidate.decisions.count(), 2)
-
-    def test_invalid_revalidation_hides_offer_without_deleting_history(self):
-        approve_candidate(
-            self.candidate,
-            ships_to_pt_confirmed=True,
-            ship_from_country="FR",
-            user=self.user,
-            client=self.client_api,
-        )
-        revalidate_candidate(
-            self.candidate,
-            user=self.user,
-            confirmed=False,
             reason=CandidateDecision.Reason.LISTING_CHANGED,
         )
-        self.candidate.refresh_from_db()
-        self.candidate.approved_offer.refresh_from_db()
-        self.assertIsNone(self.candidate.approved_offer.ship_from_country)
-        self.assertEqual(self.candidate.decisions.count(), 2)
-        self.assertEqual(Offer.objects.count(), 1)
+        legacy.refresh_from_db()
+        self.assertEqual(legacy.ship_from_country, "PL")
+        self.assertIsNotNone(legacy.ship_from_verified_at)
+        self.assertIsNone(legacy.protocol_verified_at)
+
+    def test_one_click_revalidate_only_renews_protocol_and_preserves_country(self):
+        old_protocol = timezone.now() - timedelta(days=8)
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="revalidate",
+            ship_from_country="ES",
+            ship_from_verified_at=timezone.now() - timedelta(days=30),
+            protocol_verified_at=old_protocol,
+        )
+        self.candidate.approved_offer = offer
+        self.candidate.status = OfferCandidate.Status.APPROVED
+        self.candidate.save(update_fields=["approved_offer", "status", "updated_at"])
+        now = timezone.now()
+        revalidate_candidate(self.candidate, user=self.user, now=now)
+        offer.refresh_from_db()
+        self.assertEqual(offer.protocol_verified_at, now)
+        self.assertEqual(offer.ship_from_country, "ES")
+        self.assertNotEqual(offer.ship_from_verified_at, now)
+        self.assertEqual(self.candidate.decisions.count(), 1)
 
     def test_legacy_offer_is_reused_not_duplicated(self):
         legacy = Offer.objects.create(
@@ -229,26 +167,19 @@ class CandidateApprovalTests(TestCase):
             approved_offer=legacy,
             product_url="https://example.com/legacy",
         )
-        result = approve_candidate(
-            c,
-            ships_to_pt_confirmed=True,
-            ship_from_country="CZ",
-            user=self.user,
-            client=self.client_api,
-        )
+        result = approve_candidate(c, user=self.user, client=self.client_api)
         self.assertEqual(result.offer.pk, legacy.pk)
         self.assertEqual(Offer.objects.filter(external_product_id="legacy").count(), 1)
 
     def test_21st_fresh_offer_is_blocked_without_partial_records(self):
         now = timezone.now()
         for i in range(20):
-            o = Offer.objects.create(
+            offer = Offer.objects.create(
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=f"existing-{i}",
-                ship_from_country="PL",
-                ship_from_verified_at=now,
+                protocol_verified_at=now,
             )
-            OfferFamilyPlacement.objects.create(offer=o, product_family=self.family)
+            OfferFamilyPlacement.objects.create(offer=offer, product_family=self.family)
         before = (
             Offer.objects.count(),
             OfferFamilyPlacement.objects.count(),
@@ -257,8 +188,6 @@ class CandidateApprovalTests(TestCase):
         with self.assertRaises(CandidateApprovalError):
             approve_candidate(
                 self.candidate,
-                ships_to_pt_confirmed=True,
-                ship_from_country="PL",
                 user=self.user,
                 client=self.client_api,
                 now=now,
@@ -279,9 +208,9 @@ class CandidateQueueAccessTests(TestCase):
     def setUp(self):
         self.family = ProductFamily.objects.create(name="HIFU", slug="hifu")
         self.url = reverse("catalog:candidate-queue", kwargs={"family_slug": "hifu"})
-        U = get_user_model()
-        self.staff = U.objects.create_user(username="staff", password="x", is_staff=True)
-        self.normal = U.objects.create_user(username="normal", password="x", is_staff=False)
+        users = get_user_model()
+        self.staff = users.objects.create_user(username="staff", password="x", is_staff=True)
+        self.normal = users.objects.create_user(username="normal", password="x", is_staff=False)
 
     def test_anonymous_and_nonstaff_denied_staff_allowed(self):
         self.assertNotEqual(self.client.get(self.url).status_code, 200)
@@ -294,16 +223,21 @@ class CandidateQueueAccessTests(TestCase):
         self.assertEqual(response["Cache-Control"], "private, no-store")
 
     def test_actions_are_post_only(self):
-        c = OfferCandidate.objects.create(
-            product_family=self.family, source=Offer.Source.ALIEXPRESS, external_product_id="x"
+        candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="x",
         )
         self.client.force_login(self.staff)
         for name in ("candidate-approve", "candidate-reject", "candidate-revalidate"):
-            url = reverse(f"catalog:{name}", kwargs={"family_slug": "hifu", "candidate_id": c.pk})
+            url = reverse(
+                f"catalog:{name}",
+                kwargs={"family_slug": "hifu", "candidate_id": candidate.pk},
+            )
             self.assertEqual(self.client.get(url).status_code, 405)
 
     def test_approve_requires_csrf(self):
-        c = OfferCandidate.objects.create(
+        candidate = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
             external_product_id="csrf",
@@ -312,6 +246,7 @@ class CandidateQueueAccessTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.staff)
         url = reverse(
-            "catalog:candidate-approve", kwargs={"family_slug": "hifu", "candidate_id": c.pk}
+            "catalog:candidate-approve",
+            kwargs={"family_slug": "hifu", "candidate_id": candidate.pk},
         )
-        self.assertEqual(client.post(url, {"ship_from_country": "PL"}).status_code, 403)
+        self.assertEqual(client.post(url).status_code, 403)

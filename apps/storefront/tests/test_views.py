@@ -15,10 +15,10 @@ class StorefrontViewTests(TestCase):
             if created:
                 verified_at = timezone.now()
                 Offer.objects.filter(pk=instance.pk).update(
-                    ship_from_country="PL", ship_from_verified_at=verified_at
+                    ship_from_country="PL", protocol_verified_at=verified_at
                 )
                 instance.ship_from_country = "PL"
-                instance.ship_from_verified_at = verified_at
+                instance.protocol_verified_at = verified_at
             if created and instance.product_family_id:
                 OfferFamilyPlacement.objects.create(
                     offer=instance,

@@ -80,5 +80,6 @@ def normalize_product(data: dict, destination_country: str | None = None) -> Ali
         ship_to_days_raw=shipping_raw,
         delivery_days=delivery_days,
         destination_country=destination_country,
+        availability_raw=_first(data, "availability", "product_status", "item_status", "status"),
         affiliate_url=_first(data, "promotion_link", "affiliate_url"),
     )

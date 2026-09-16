@@ -32,6 +32,13 @@ def env_int(name: str, default: int = 0) -> int:
         raise RuntimeError(f"Environment variable {name} must be an integer") from exc
 
 
+def env_int_range(name: str, default: int, *, minimum: int, maximum: int) -> int:
+    value = env_int(name, default)
+    if not minimum <= value <= maximum:
+        raise RuntimeError(f"Environment variable {name} must be between {minimum} and {maximum}")
+    return value
+
+
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
@@ -60,16 +67,20 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-TEMPLATES = [{
-    "BACKEND": "django.template.backends.django.DjangoTemplates",
-    "DIRS": [BASE_DIR / "templates"],
-    "APP_DIRS": True,
-    "OPTIONS": {"context_processors": [
-        "django.template.context_processors.request",
-        "django.contrib.auth.context_processors.auth",
-        "django.contrib.messages.context_processors.messages",
-    ]},
-}]
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ]
+        },
+    }
+]
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
@@ -101,3 +112,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 PUBLIC_SITE_URL = env("DJANGO_PUBLIC_SITE_URL", "").rstrip("/")
 PUBLIC_INDEXING_ENABLED = env_bool("DJANGO_PUBLIC_INDEXING_ENABLED", False)
+
+CATALOG_PROTOCOL_FRESHNESS_DAYS = env_int_range(
+    "CATALOG_PROTOCOL_FRESHNESS_DAYS", 7, minimum=1, maximum=365
+)
+CATALOG_MAINTENANCE_BATCH_SIZE = env_int_range(
+    "CATALOG_MAINTENANCE_BATCH_SIZE", 5, minimum=1, maximum=20
+)
