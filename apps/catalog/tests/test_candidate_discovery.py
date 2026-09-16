@@ -40,7 +40,7 @@ class CandidateDiscoveryTests(TestCase):
         self.assertEqual(Offer.objects.count(), 0)
         client.generate_affiliate_link.assert_not_called()
 
-    def test_existing_candidate_snapshot_updates_without_resetting_rejected_status(self):
+    def test_existing_rejected_candidate_is_skipped_before_detail(self):
         candidate = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
@@ -52,12 +52,12 @@ class CandidateDiscoveryTests(TestCase):
         client.search_products_diagnostic.return_value = AliExpressSearchResult(
             products=[self.product("101")]
         )
-        client.get_product_detail.return_value = self.product("101", title="Updated")
         result = discover_family_candidates(self.family, "HIFU", client=client)
         candidate.refresh_from_db()
-        self.assertEqual(result.updated, 1)
+        self.assertEqual(result.skipped_existing_candidate, 1)
         self.assertEqual(candidate.status, OfferCandidate.Status.REJECTED)
-        self.assertEqual(candidate.title, "Updated")
+        self.assertEqual(candidate.title, "Old")
+        client.get_product_detail.assert_not_called()
 
     def test_existing_offer_is_skipped_without_detail(self):
         Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="102")

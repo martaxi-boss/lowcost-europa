@@ -41,6 +41,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Candidates created: {result.created}")
         self.stdout.write(f"Candidates updated: {result.updated}")
         self.stdout.write(f"Existing offers skipped: {result.skipped_existing_offer}")
+        self.stdout.write(f"Existing candidates skipped: {result.skipped_existing_candidate}")
         if result.failures:
             self.stdout.write("Failures: " + ", ".join(result.failures))
         self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
