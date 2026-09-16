@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q
@@ -70,6 +71,8 @@ class Offer(models.Model):
     product_url = models.URLField(max_length=1000, blank=True)
     image_url = models.URLField(max_length=1000, blank=True)
     affiliate_url = models.URLField(max_length=1000, blank=True)
+    ship_from_country = models.CharField(max_length=2, null=True, blank=True)
+    ship_from_verified_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     equipment_type = models.CharField(
@@ -114,6 +117,11 @@ class Offer(models.Model):
             models.CheckConstraint(
                 condition=Q(equipment_type__in=["UNKNOWN", "DEDICATED", "COMBO"]),
                 name="catalog_offer_equipment_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(ship_from_country__isnull=True)
+                | Q(ship_from_country__in=["PL", "CZ", "FR", "ES", "DE"]),
+                name="catalog_offer_ship_from_allowed",
             ),
         ]
         ordering = ["-last_seen_at"]
@@ -263,3 +271,100 @@ class OfferObservation(models.Model):
 
     def __str__(self):
         return f"{self.offer} @ {self.observed_at.isoformat()}"
+
+
+class OfferCandidate(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
+    product_family = models.ForeignKey(
+        ProductFamily, on_delete=models.PROTECT, related_name="candidates"
+    )
+    source = models.CharField(max_length=30, choices=Offer.Source.choices)
+    external_product_id = models.CharField(max_length=120)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    title = models.CharField(max_length=500, blank=True)
+    image_url = models.URLField(max_length=1000, blank=True)
+    product_url = models.URLField(max_length=1000, blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    original_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=3, null=True, blank=True)
+    evaluation_rate_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    sales_count = models.PositiveBigIntegerField(null=True, blank=True)
+    commission_rate = models.DecimalField(max_digits=7, decimal_places=4, null=True, blank=True)
+    search_ship_to_days_raw = models.CharField(max_length=255, null=True, blank=True)
+    search_delivery_days = models.PositiveSmallIntegerField(null=True, blank=True)
+    detail_ship_to_days_raw = models.CharField(max_length=255, null=True, blank=True)
+    detail_delivery_days = models.PositiveSmallIntegerField(null=True, blank=True)
+    discovered_at = models.DateTimeField(default=timezone.now)
+    last_observed_at = models.DateTimeField(default=timezone.now)
+    approved_offer = models.ForeignKey(
+        Offer, null=True, blank=True, on_delete=models.PROTECT, related_name="approved_candidates"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product_family", "source", "external_product_id"],
+                name="catalog_candidate_family_source_ext_uniq",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=["PENDING", "APPROVED", "REJECTED"]),
+                name="catalog_candidate_status_valid",
+            ),
+        ]
+        ordering = ["status", "-last_observed_at", "pk"]
+
+    def __str__(self):
+        return f"{self.product_family}:{self.source}:{self.external_product_id}"
+
+
+class CandidateDecision(models.Model):
+    class Decision(models.TextChoices):
+        APPROVE = "APPROVE", "Approve"
+        REJECT = "REJECT", "Reject"
+
+    class Reason(models.TextChoices):
+        ORIGIN_NOT_ALLOWED = "ORIGIN_NOT_ALLOWED", "Origin not allowed"
+        ORIGIN_NOT_CONFIRMED = "ORIGIN_NOT_CONFIRMED", "Origin not confirmed"
+        IRRELEVANT = "IRRELEVANT", "Irrelevant"
+        DUPLICATE = "DUPLICATE", "Duplicate"
+        POOR_LISTING = "POOR_LISTING", "Poor listing"
+        LISTING_CHANGED = "LISTING_CHANGED", "Listing changed"
+        OTHER = "OTHER", "Other"
+
+    candidate = models.ForeignKey(
+        OfferCandidate, on_delete=models.PROTECT, related_name="decisions"
+    )
+    decision = models.CharField(max_length=10, choices=Decision.choices)
+    ship_from_country = models.CharField(max_length=2, blank=True)
+    reason = models.CharField(max_length=30, choices=Reason.choices, blank=True)
+    note = models.TextField(blank=True)
+    evidence_url = models.URLField(max_length=1000, blank=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="candidate_decisions"
+    )
+    decided_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-decided_at", "-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(decision__in=["APPROVE", "REJECT"]),
+                name="catalog_candidate_decision_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(decision="REJECT")
+                | Q(ship_from_country__in=["PL", "CZ", "FR", "ES", "DE"]),
+                name="catalog_candidate_approve_country_allowed",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.candidate} {self.decision} {self.decided_at.isoformat()}"

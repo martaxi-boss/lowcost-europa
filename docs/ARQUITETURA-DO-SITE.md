@@ -210,3 +210,22 @@ Database counts before live diagnostic: ProductFamily=9, Offer=6, OfferObservati
 Immediate model-change recommendation: NO. Preserve the current schema until an official, repeatable source for the missing identity/origin fields is demonstrated and its object-level semantics are understood.
 
 Application code changes: ZERO. Model changes: ZERO. Migrations: ZERO. Schema changes: ZERO. Storefront changes: ZERO. Infrastructure changes: ZERO. Deploy: ZERO.
+
+## SEMI-AUTOMATIC FAMILY APPROVAL FLOW
+
+Catalog discovery now feeds an `OfferCandidate` review queue instead of publishing newly
+discovered products directly. Staff review records immutable `CandidateDecision` history;
+approval may create or reuse the Offer only after factual ship-from confirmation.
+
+Public eligibility is fail-closed. An Offer must have a valid placement, be active, and have
+`ship_from_country` in `PL`, `CZ`, `FR`, `ES` or `DE` with `ship_from_verified_at` no more
+than seven days old and not in the future. The same centralized rule protects catalog reads
+and `/go/<offer>/`. Legacy Offers receive no exception and remain hidden until reviewed.
+
+A family may have at most 20 currently fresh public-eligible Offers. Stale Offers do not count
+toward that cap. Approval does not assign editorial selection positions automatically; new
+placements enter the non-ranked "Outras ofertas selecionadas" group.
+
+The private `/ops/candidates/<family-slug>/` flow is staff-only, POST/CSRF protected for
+mutations, noindex and private/no-store. Discovery and review continue to reuse the existing
+AliExpress client and its concurrency, cadence, retry and rate-limit protections.

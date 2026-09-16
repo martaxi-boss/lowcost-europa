@@ -12,6 +12,13 @@ from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, P
 class StorefrontViewTests(TestCase):
     def setUp(self):
         def add_legacy_equivalent_placement(sender, instance, created, **kwargs):
+            if created:
+                verified_at = timezone.now()
+                Offer.objects.filter(pk=instance.pk).update(
+                    ship_from_country="PL", ship_from_verified_at=verified_at
+                )
+                instance.ship_from_country = "PL"
+                instance.ship_from_verified_at = verified_at
             if created and instance.product_family_id:
                 OfferFamilyPlacement.objects.create(
                     offer=instance,
