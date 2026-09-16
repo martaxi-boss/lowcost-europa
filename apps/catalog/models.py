@@ -331,6 +331,13 @@ class CandidateDecision(models.Model):
         APPROVE = "APPROVE", "Approve"
         REJECT = "REJECT", "Reject"
 
+    class ReviewSignal(models.TextChoices):
+        DELIVERS_TO_PT_CONFIRMED = "DELIVERS_TO_PT_CONFIRMED", "Sim, entrega em Portugal"
+        DOES_NOT_DELIVER_TO_PT = "DOES_NOT_DELIVER_TO_PT", "Não entrega em Portugal"
+        DOES_NOT_SHIP_TO_PT = "DOES_NOT_SHIP_TO_PT", "Não envia para Portugal"
+        ORIGIN_NOT_ALLOWED = "ORIGIN_NOT_ALLOWED", "País de envio fora dos cinco permitidos"
+        LISTING_UNAVAILABLE = "LISTING_UNAVAILABLE", "Anúncio indisponível"
+
     class Reason(models.TextChoices):
         DOES_NOT_SHIP_TO_PT = "DOES_NOT_SHIP_TO_PT", "Não envia para Portugal"
         PT_DELIVERY_NOT_CONFIRMED = (
@@ -360,6 +367,7 @@ class CandidateDecision(models.Model):
     decision = models.CharField(max_length=10, choices=Decision.choices)
     ship_from_country = models.CharField(max_length=2, blank=True)
     reason = models.CharField(max_length=30, choices=Reason.choices, blank=True)
+    review_signals = models.JSONField(default=list, blank=True)
     note = models.TextField(blank=True)
     evidence_url = models.URLField(max_length=1000, blank=True)
     decided_by = models.ForeignKey(

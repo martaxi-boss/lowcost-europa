@@ -66,8 +66,8 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertContains(response, "review-required")
         self.assertNotContains(response, "rejected-id")
         self.assertNotContains(response, "fresh-approved")
-        self.assertContains(response, "Rejected 1")
-        self.assertContains(response, "Review required 1")
+        self.assertContains(response, "Rejeitados 1")
+        self.assertContains(response, "Revalidação necessária 1")
 
     def test_one_click_ui_has_no_country_or_pt_question(self):
         response = self.client.get(self.url)
@@ -97,7 +97,10 @@ class CandidateQueueFilteringTests(TestCase):
             "catalog:candidate-reject",
             kwargs={"family_slug": "hifu", "candidate_id": self.pending.pk},
         )
-        response = self.client.post(url, {"reason": CandidateDecision.Reason.IRRELEVANT})
+        response = self.client.post(
+            url,
+            {"review_signals": CandidateDecision.ReviewSignal.LISTING_UNAVAILABLE},
+        )
         self.assertRedirects(response, self.url)
         self.assertNotContains(self.client.get(self.url), "pending-id")
         self.assertContains(self.client.get(self.url + "?view=rejected"), "pending-id")
@@ -175,3 +178,100 @@ class CandidateMoveTests(TestCase):
             csrf_client.post(url, {"target_family": self.target.pk}).status_code,
             403,
         )
+
+
+class CandidateRejectionUITests(TestCase):
+    def setUp(self):
+        self.family = ProductFamily.objects.create(name="HIFU UI", slug="hifu-ui")
+        self.staff = get_user_model().objects.create_user(
+            username="ui-staff", password="x", is_staff=True
+        )
+        self.candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="ui-reject",
+            title="Professional HIFU UI",
+            product_url="https://example.com/ui-reject",
+        )
+        self.client.force_login(self.staff)
+        self.queue_url = reverse(
+            "catalog:candidate-queue", kwargs={"family_slug": self.family.slug}
+        )
+        self.reject_url = reverse(
+            "catalog:candidate-reject",
+            kwargs={"family_slug": self.family.slug, "candidate_id": self.candidate.pk},
+        )
+
+    def test_rejection_ui_has_exact_five_portuguese_checkboxes_and_no_legacy_fields(self):
+        content = self.client.get(self.queue_url).content.decode()
+        labels = [label for _, label in CandidateDecision.ReviewSignal.choices]
+        self.assertEqual(content.count('name="review_signals"'), 5)
+        reject_panel = content.split('class="panel reject-panel"', 1)[1].split("</form>", 1)[0]
+        self.assertEqual(reject_panel.count('type="checkbox"'), 5)
+        self.assertNotIn('type="radio"', content)
+        for label in labels:
+            self.assertIn(label, content)
+        self.assertNotIn('name="ship_from_country"', content)
+        self.assertNotIn('name="evidence_url"', content)
+        self.assertNotIn('name="note"', content)
+        self.assertNotIn('name="reason"', content)
+
+    def test_reject_panel_has_one_submit_button_and_mobile_checkbox_css(self):
+        content = self.client.get(self.queue_url).content.decode()
+        panel = content.split('class="panel reject-panel"', 1)[1].split("</form>", 1)[0]
+        self.assertEqual(panel.count('type="submit"'), 1)
+        self.assertIn('reject-choice input[type="checkbox"]', content)
+        self.assertIn('width:22px', content)
+        self.assertIn('min-height:52px', content)
+        self.assertIn(':has(input:checked)', content)
+        self.assertIn('overflow-x:hidden', content)
+
+    def test_ops_status_text_is_portuguese(self):
+        content = self.client.get(self.queue_url).content.decode()
+        for translated in ("A rever", "Revalidação necessária", "Aprovados", "Rejeitados"):
+            self.assertIn(translated, content)
+        for english in ("Pending ", "Review required", "Approved/fresh", "Rejected "):
+            self.assertNotIn(english, content)
+
+    def test_multi_select_http_submission_persists_one_decision(self):
+        signals = [
+            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
+            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
+        ]
+        response = self.client.post(self.reject_url, {"review_signals": signals})
+        self.assertRedirects(response, self.queue_url)
+        self.candidate.refresh_from_db()
+        decision = self.candidate.decisions.get()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
+        self.assertEqual(decision.review_signals, signals)
+        self.assertEqual(decision.reason, "")
+
+    def test_zero_http_signals_shows_simple_error_and_does_not_reject(self):
+        response = self.client.post(self.reject_url, {})
+        self.assertRedirects(response, self.queue_url, fetch_redirect_response=False)
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+        page = self.client.get(self.queue_url)
+        self.assertContains(page, "Selecione pelo menos uma opção para rejeitar")
+
+    def test_new_signal_history_is_rendered_in_portuguese_not_codes(self):
+        signals = [
+            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
+            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
+        ]
+        self.client.post(self.reject_url, {"review_signals": signals})
+        page = self.client.get(self.queue_url + "?view=rejected")
+        self.assertContains(page, "Rejeitado · Sim, entrega em Portugal")
+        self.assertContains(page, "País de envio fora dos cinco permitidos")
+        self.assertNotContains(page, "DELIVERS_TO_PT_CONFIRMED")
+        self.assertNotContains(page, "ORIGIN_NOT_ALLOWED")
+
+    def test_legacy_reason_history_remains_human_readable(self):
+        reject_candidate(
+            self.candidate,
+            user=self.staff,
+            reason=CandidateDecision.Reason.WRONG_FAMILY,
+        )
+        page = self.client.get(self.queue_url + "?view=rejected")
+        self.assertContains(page, "Produto pertence a outra família")
+        self.assertNotContains(page, "WRONG_FAMILY")

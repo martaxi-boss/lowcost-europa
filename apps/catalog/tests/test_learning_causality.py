@@ -58,3 +58,28 @@ class LearningCausalityTests(TestCase):
         _, cav_variants, _ = _learning_inputs(self.cav)
         self.assertNotIn("6-IN-1", hifu_variants)
         self.assertIn("6-IN-1", cav_variants)
+
+class MultiSignalLearningIsolationTests(TestCase):
+    def setUp(self):
+        self.family = ProductFamily.objects.create(name="HIFU Signals", slug="hifu")
+        self.user = get_user_model().objects.create_user(
+            username="learning-signal-staff", password="x", is_staff=True
+        )
+
+    def test_protocol_review_signals_never_become_semantic_negatives(self):
+        for index, signal in enumerate(CandidateDecision.ReviewSignal.values):
+            candidate = OfferCandidate.objects.create(
+                product_family=self.family,
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=f"signal-learning-{index}",
+                title=f"Professional HIFU machine signal {index}",
+                status=OfferCandidate.Status.REJECTED,
+            )
+            CandidateDecision.objects.create(
+                candidate=candidate,
+                decision=CandidateDecision.Decision.REJECT,
+                review_signals=[signal],
+                decided_by=self.user,
+            )
+        _, _, semantic_negative_titles = _learning_inputs(self.family)
+        self.assertEqual(semantic_negative_titles, ())

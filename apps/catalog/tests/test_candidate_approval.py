@@ -204,6 +204,81 @@ class CandidateApprovalTests(TestCase):
         self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
 
 
+class CandidateRejectionSignalTests(TestCase):
+    def setUp(self):
+        self.family = ProductFamily.objects.create(name="HIFU", slug="hifu-signals")
+        self.user = get_user_model().objects.create_user(
+            username="signal-staff", password="x", is_staff=True
+        )
+        self.candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="signal-candidate",
+            title="Professional HIFU machine",
+        )
+
+    def reject(self, signals):
+        return reject_candidate(self.candidate, user=self.user, review_signals=signals)
+
+    def test_zero_signals_is_blocked_without_rejecting_candidate(self):
+        with self.assertRaises(CandidateApprovalError):
+            self.reject([])
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.candidate.decisions.count(), 0)
+
+    def test_each_signal_can_be_persisted_individually(self):
+        for index, signal in enumerate(CandidateDecision.ReviewSignal.values):
+            candidate = OfferCandidate.objects.create(
+                product_family=self.family,
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=f"single-{index}",
+            )
+            decision = reject_candidate(candidate, user=self.user, review_signals=[signal])
+            self.assertEqual(decision.review_signals, [signal])
+            self.assertEqual(decision.reason, "")
+
+    def test_two_signals_are_persisted_in_one_decision(self):
+        signals = [
+            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
+            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
+        ]
+        decision = self.reject(signals)
+        self.assertEqual(decision.review_signals, signals)
+        self.assertEqual(self.candidate.decisions.count(), 1)
+
+    def test_all_five_signals_are_persisted_in_one_decision(self):
+        decision = self.reject(list(CandidateDecision.ReviewSignal.values))
+        self.assertEqual(decision.review_signals, list(CandidateDecision.ReviewSignal.values))
+        self.assertEqual(self.candidate.decisions.count(), 1)
+
+    def test_duplicate_signal_is_stored_once(self):
+        signal = CandidateDecision.ReviewSignal.LISTING_UNAVAILABLE
+        decision = self.reject([signal, signal])
+        self.assertEqual(decision.review_signals, [signal])
+
+    def test_unknown_signal_is_rejected_server_side(self):
+        with self.assertRaises(CandidateApprovalError):
+            self.reject(["UNKNOWN_SIGNAL"])
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.candidate.decisions.count(), 0)
+
+    def test_rejection_sets_candidate_rejected(self):
+        self.reject([CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED])
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
+
+    def test_legacy_reason_history_is_preserved(self):
+        decision = reject_candidate(
+            self.candidate,
+            user=self.user,
+            reason=CandidateDecision.Reason.WRONG_FAMILY,
+        )
+        self.assertEqual(decision.reason, CandidateDecision.Reason.WRONG_FAMILY)
+        self.assertEqual(decision.review_signals, [])
+
+
 class CandidateQueueAccessTests(TestCase):
     def setUp(self):
         self.family = ProductFamily.objects.create(name="HIFU", slug="hifu")

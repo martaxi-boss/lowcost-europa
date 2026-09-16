@@ -25,6 +25,12 @@ def _ops_headers(response):
 
 def _decorate_candidate(candidate):
     offer = candidate.approved_offer
+    status_labels = {
+        OfferCandidate.Status.PENDING: "A rever",
+        OfferCandidate.Status.APPROVED: "Aprovado",
+        OfferCandidate.Status.REJECTED: "Rejeitado",
+    }
+    candidate.status_label = status_labels[candidate.status]
     candidate.review_required = bool(
         offer
         and candidate.status == OfferCandidate.Status.APPROVED
@@ -36,6 +42,18 @@ def _decorate_candidate(candidate):
         and is_protocol_verification_fresh(offer)
     )
     candidate.history = list(candidate.decisions.all()[:5])
+    signal_labels = dict(CandidateDecision.ReviewSignal.choices)
+    for decision in candidate.history:
+        decision.decision_label = (
+            "Aprovado"
+            if decision.decision == CandidateDecision.Decision.APPROVE
+            else "Rejeitado"
+        )
+        decision.review_signal_labels = [
+            signal_labels[signal]
+            for signal in decision.review_signals
+            if signal in signal_labels
+        ]
     return candidate
 
 
@@ -85,11 +103,7 @@ def candidate_queue(request, family_slug):
             "counts": counts,
             "active_view": view,
             "families": ProductFamily.objects.exclude(pk=family.pk).order_by("display_order", "pk"),
-            "reasons": [
-                choice
-                for choice in CandidateDecision.Reason.choices
-                if choice[0] != CandidateDecision.Reason.IRRELEVANT
-            ],
+            "review_signals": CandidateDecision.ReviewSignal.choices,
         },
     )
     return _ops_headers(response)
@@ -124,10 +138,7 @@ def candidate_reject(request, family_slug, candidate_id):
         reject_candidate(
             candidate,
             user=request.user,
-            reason=request.POST.get("reason", ""),
-            ship_from_country=request.POST.get("ship_from_country", ""),
-            evidence_url=request.POST.get("evidence_url", ""),
-            note=request.POST.get("note", ""),
+            review_signals=request.POST.getlist("review_signals"),
         )
     except CandidateApprovalError as exc:
         request.session["ops_error"] = str(exc)
