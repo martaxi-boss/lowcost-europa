@@ -82,7 +82,7 @@ def maintenance_run_lock(path=MAINTENANCE_LOCK_PATH):
 
 def select_maintenance_batch(batch_size):
     return list(
-        Offer.objects.filter(source=Offer.Source.ALIEXPRESS)
+        Offer.objects.filter(source=Offer.Source.ALIEXPRESS, is_active=True)
         .annotate(last_check=Max("observations__observed_at"))
         .order_by(F("last_check").asc(nulls_first=True), "pk")[:batch_size]
     )
@@ -171,14 +171,12 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
             offer.product_url = detail.product_url or offer.product_url
             offer.image_url = detail.image_url or offer.image_url
             offer.last_seen_at = now
-            offer.is_active = True
             offer.save(
                 update_fields=[
                     "title",
                     "product_url",
                     "image_url",
                     "last_seen_at",
-                    "is_active",
                     "updated_at",
                 ]
             )
