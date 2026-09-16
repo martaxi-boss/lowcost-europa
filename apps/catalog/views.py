@@ -9,6 +9,7 @@ from apps.catalog.services.candidate_approval import (
     reject_candidate,
     revalidate_candidate,
 )
+from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.public_eligibility import (
     is_ship_from_verification_fresh,
     public_eligibility_q,
@@ -22,33 +23,53 @@ def _ops_headers(response):
     return response
 
 
+def _decorate_candidate(candidate):
+    offer = candidate.approved_offer
+    candidate.review_required = bool(
+        offer
+        and candidate.status == OfferCandidate.Status.APPROVED
+        and not is_ship_from_verification_fresh(offer)
+    )
+    candidate.fresh_approved = bool(
+        offer
+        and candidate.status == OfferCandidate.Status.APPROVED
+        and is_ship_from_verification_fresh(offer)
+    )
+    candidate.history = list(candidate.decisions.all()[:5])
+    return candidate
+
+
 @staff_member_required(login_url="admin:login")
 def candidate_queue(request, family_slug):
     family = get_object_or_404(ProductFamily, slug=family_slug)
-    candidates = list(
-        OfferCandidate.objects.filter(product_family=family)
+    all_candidates = [
+        _decorate_candidate(candidate)
+        for candidate in OfferCandidate.objects.filter(product_family=family)
         .select_related("approved_offer")
         .prefetch_related("decisions__decided_by")
         .order_by("status", "-last_observed_at", "pk")
-    )
-    for candidate in candidates:
-        offer = candidate.approved_offer
-        candidate.review_required = bool(
-            offer
-            and candidate.status == OfferCandidate.Status.APPROVED
-            and not is_ship_from_verification_fresh(offer)
-        )
-        candidate.fresh_approved = bool(
-            offer
-            and candidate.status == OfferCandidate.Status.APPROVED
-            and is_ship_from_verification_fresh(offer)
-        )
-        candidate.history = list(candidate.decisions.all()[:5])
+    ]
+    view = request.GET.get("view", "review")
+    if view not in {"review", "approved", "rejected", "all"}:
+        view = "review"
+    if view == "review":
+        candidates = [
+            c
+            for c in all_candidates
+            if c.status == OfferCandidate.Status.PENDING or c.review_required
+        ]
+    elif view == "approved":
+        candidates = [c for c in all_candidates if c.status == OfferCandidate.Status.APPROVED]
+    elif view == "rejected":
+        candidates = [c for c in all_candidates if c.status == OfferCandidate.Status.REJECTED]
+    else:
+        candidates = all_candidates
+
     counts = {
-        "pending": sum(c.status == OfferCandidate.Status.PENDING for c in candidates),
-        "review_required": sum(c.review_required for c in candidates),
-        "approved_fresh": sum(c.fresh_approved for c in candidates),
-        "rejected": sum(c.status == OfferCandidate.Status.REJECTED for c in candidates),
+        "pending": sum(c.status == OfferCandidate.Status.PENDING for c in all_candidates),
+        "review_required": sum(c.review_required for c in all_candidates),
+        "approved_fresh": sum(c.fresh_approved for c in all_candidates),
+        "rejected": sum(c.status == OfferCandidate.Status.REJECTED for c in all_candidates),
         "eligible": family.offer_placements.filter(
             offer__in=Offer.objects.filter(public_eligibility_q())
         ).count(),
@@ -60,10 +81,12 @@ def candidate_queue(request, family_slug):
             "family": family,
             "candidates": candidates,
             "counts": counts,
+            "active_view": view,
+            "families": ProductFamily.objects.exclude(pk=family.pk).order_by("display_order", "pk"),
             "countries": [
-                ("PL", "Polónia"),
-                ("CZ", "República Checa"),
-                ("FR", "França"),
+                ("PL", "Polonia"),
+                ("CZ", "Republica Checa"),
+                ("FR", "Franca"),
                 ("ES", "Espanha"),
                 ("DE", "Alemanha"),
             ],
@@ -136,5 +159,17 @@ def candidate_revalidate(request, family_slug, candidate_id):
     except AliExpressRateLimitError:
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
+        request.session["ops_error"] = str(exc)
+    return redirect("catalog:candidate-queue", family_slug=family_slug)
+
+
+@require_POST
+@staff_member_required(login_url="admin:login")
+def candidate_move(request, family_slug, candidate_id):
+    candidate = _candidate_for_family(candidate_id, family_slug)
+    target = get_object_or_404(ProductFamily, pk=request.POST.get("target_family"))
+    try:
+        move_candidate_to_family(candidate, target_family=target, user=request.user)
+    except CandidateMoveError as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)

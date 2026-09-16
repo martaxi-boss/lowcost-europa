@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferCandidate, ProductFamily
+from apps.catalog.services.candidate_relevance import is_family_candidate_relevant
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
@@ -15,21 +16,8 @@ class CandidateDiscoveryResult:
     created: int = 0
     updated: int = 0
     skipped_existing_offer: int = 0
+    skipped_existing_candidate: int = 0
     failures: list[str] = field(default_factory=list)
-
-
-def _obviously_irrelevant(title):
-    text = (title or "").lower()
-    blocked = (
-        "cartridge only",
-        "replacement cartridge",
-        "probe only",
-        "handle only",
-        "accessory",
-        "gel",
-        "cream",
-    )
-    return any(term in text for term in blocked)
 
 
 def discover_family_candidates(family, keyword, *, limit=10, max_details=10, client=None):
@@ -50,11 +38,20 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
     shortlist = []
     for product in products:
         pid = product.product_id
-        if not pid or pid in seen or _obviously_irrelevant(product.title):
+        if not pid or pid in seen:
+            continue
+        if not is_family_candidate_relevant(family.slug, product.title):
             continue
         seen.add(pid)
         if Offer.objects.filter(source=Offer.Source.ALIEXPRESS, external_product_id=pid).exists():
             result.skipped_existing_offer += 1
+            continue
+        if OfferCandidate.objects.filter(
+            product_family=family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id=pid,
+        ).exists():
+            result.skipped_existing_candidate += 1
             continue
         shortlist.append(product)
     shortlist = shortlist[:max_details]

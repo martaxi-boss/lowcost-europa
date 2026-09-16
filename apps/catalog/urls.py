@@ -20,4 +20,9 @@ urlpatterns = [
         views.candidate_revalidate,
         name="candidate-revalidate",
     ),
+    path(
+        "candidates/<slug:family_slug>/<int:candidate_id>/move/",
+        views.candidate_move,
+        name="candidate-move",
+    ),
 ]
