@@ -53,6 +53,12 @@ class FamilyLearningTests(SimpleTestCase):
                 "cavitacao-rf-vacuum-corpo", "Cavitation replacement handles only accessory"
             )
         )
+        self.assertFalse(
+            is_family_candidate_relevant(
+                "cavitacao-rf-vacuum-corpo",
+                "Plastic Stowage Plate Stand Support Accesories For 40K Cavitation Machine",
+            )
+        )
 
     def test_profiles_are_family_specific_and_ready(self):
         self.assertEqual(HIFU_PROFILE.slug, "hifu")
