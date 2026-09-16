@@ -140,17 +140,46 @@ The existing low-cost DigitalOcean Droplet remains the correct MVP target while 
 
 Do not add Redis, Celery, managed database, Kubernetes, microservices, a second Droplet or other paid infrastructure by convention. Scale only when measured traffic, CPU, RAM, latency, background-work contention, database growth or revenue justifies it.
 
+## GATE 1 — RESULTADO DA DATA CAPABILITY AUDIT
+
+`OUTCOME: CURRENT OFFICIAL IMPLEMENTED CAPABILITY INSUFFICIENT FOR EUROPEAN-ORIGIN PROOF`
+
+The audit demonstrated that, across the currently implemented official endpoints and the bounded live sample authorized for this phase, seller identity, store identity, ship-from country, origin country, warehouse / warehouse ID and local stock were not found.
+
+This does **not** abandon the European objective of Lowcost Europa. It means only that the project does not yet have a sufficiently factual source to publish European-origin or European-warehouse claims. These findings remain scoped to the **current implemented and bounded observed capability** and are not universal claims about the whole AliExpress platform or future official capabilities.
+
+The fact that the current integration cannot prove European origin does **not** redefine the project as simple selection by delivery time. The commercial priority remains: `EUROPEAN ORIGIN / EUROPEAN WAREHOUSE WHEN FACTUALLY PROVABLE`. Delivery estimates to Portugal remain only complementary logistics signals and never proof of origin.
+
+## AUTHORIZED EVIDENCE SOURCE PATH
+
+### A. Official AliExpress API / Affiliate API capability research
+
+A future, separately authorized investigation may review only official documentation, endpoints or capabilities officially available to the account/integrator to determine whether seller/store identity, SKU/variant, ship-from, warehouse or local inventory can be supplied. No endpoint name is assumed or invented, and existence must be confirmed before any implementation claim.
+
+### B. Official partner-provided structured data
+
+If AliExpress later provides official feeds, exports, partner datasets, API extensions or structured seller/store information, those sources may be evaluated for provenance, object semantics and stability before any model or ingestion work is authorized.
+
+### C. Human-verifiable partner evidence
+
+Information officially presented by the partner on an offer/page may in the future be evaluated as manual evidence only under a separate provenance protocol and Supervisor order. This does **not** authorize mass scraping, browser automation for catalog extraction, improvised scraping, inference from text/images, or bypassing partner API/protections.
+
+### D. Other suppliers / affiliate partners
+
+The commercial architecture must not assume that AliExpress is permanently the only provider. If another officially authorized partner can provide seller identity, dispatch country, EU warehouse or inventory as structured factual data, a future provider-specific adapter may be considered. No Banggood or other supplier integration is authorized in this operation.
+
 ## 16. Próxima sequência autorizável
 
 This document records a possible Supervisor-controlled sequence; it does not authorize execution:
 
-1. capability audit — this phase;
-2. model decision based on factual capability;
-3. HIFU pilot;
-4. audit;
-5. Cavitação pilot;
-6. progressive expansion;
-7. separate final launch gate.
+1. `SELLER & EUROPEAN ORIGIN DATA CAPABILITY AUDIT 001` — current phase;
+2. `EUROPEAN EVIDENCE SOURCE DECISION` — decide whether an additional authorized source can provide seller/origin/warehouse evidence;
+3. `MINIMAL MODEL DECISION` — only if factual source data justifies model change;
+4. `HIFU CONTROLLED CATALOG PILOT`;
+5. `HIFU AUDIT`;
+6. `CAVITAÇÃO + RF + VACUUM PILOT`;
+7. `PROGRESSIVE EIGHT-FAMILY EXPANSION`;
+8. `FINAL PUBLIC-LAUNCH GATE` — separate authorization.
 
 No next phase starts automatically.
 ## 17. Estado de lançamento
