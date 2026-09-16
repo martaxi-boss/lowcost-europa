@@ -11,6 +11,7 @@ from apps.catalog.services.candidate_approval import (
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.public_eligibility import (
+    ALLOWED_SHIP_FROM_COUNTRIES,
     is_ship_from_verification_fresh,
     public_eligibility_q,
 )
@@ -74,10 +75,12 @@ def candidate_queue(request, family_slug):
             offer__in=Offer.objects.filter(public_eligibility_q())
         ).count(),
     }
+    ops_error = request.session.pop("ops_error", "")
     response = render(
         request,
         "catalog/candidate_queue.html",
         {
+            "ops_error": ops_error,
             "family": family,
             "candidates": candidates,
             "counts": counts,
@@ -90,7 +93,11 @@ def candidate_queue(request, family_slug):
                 ("ES", "Espanha"),
                 ("DE", "Alemanha"),
             ],
-            "reasons": CandidateDecision.Reason.choices,
+            "reasons": [
+                choice
+                for choice in CandidateDecision.Reason.choices
+                if choice[0] != CandidateDecision.Reason.IRRELEVANT
+            ],
         },
     )
     return _ops_headers(response)
@@ -111,6 +118,7 @@ def candidate_approve(request, family_slug, candidate_id):
     try:
         approve_candidate(
             candidate,
+            ships_to_pt_confirmed=request.POST.get("ships_to_pt") == "yes",
             ship_from_country=request.POST.get("ship_from_country"),
             evidence_url=request.POST.get("evidence_url", ""),
             note=request.POST.get("note", ""),
@@ -152,6 +160,7 @@ def candidate_revalidate(request, family_slug, candidate_id):
             user=request.user,
             ship_from_country=request.POST.get("ship_from_country"),
             confirmed=confirmed,
+            ships_to_pt_confirmed=request.POST.get("ships_to_pt") == "yes",
             reason=request.POST.get("reason", CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED),
             evidence_url=request.POST.get("evidence_url", ""),
             note=request.POST.get("note", ""),
@@ -171,5 +180,61 @@ def candidate_move(request, family_slug, candidate_id):
     try:
         move_candidate_to_family(candidate, target_family=target, user=request.user)
     except CandidateMoveError as exc:
+        request.session["ops_error"] = str(exc)
+    return redirect("catalog:candidate-queue", family_slug=family_slug)
+
+
+def _qualification_rejection(request):
+    ships_to_pt = request.POST.get("ships_to_pt")
+    country = (request.POST.get("ship_from_country") or "").upper()
+    observed_country = (request.POST.get("observed_country") or "").upper()[:2]
+    if ships_to_pt == "no":
+        return CandidateDecision.Reason.DOES_NOT_SHIP_TO_PT, observed_country
+    if ships_to_pt != "yes":
+        return CandidateDecision.Reason.PT_DELIVERY_NOT_CONFIRMED, observed_country
+    if country in {"", "UNKNOWN"}:
+        return CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED, observed_country
+    if country not in ALLOWED_SHIP_FROM_COUNTRIES:
+        return CandidateDecision.Reason.ORIGIN_NOT_ALLOWED, observed_country
+    return None, country
+
+
+@require_POST
+@staff_member_required(login_url="admin:login")
+def candidate_qualify(request, family_slug, candidate_id):
+    candidate = _candidate_for_family(candidate_id, family_slug)
+    reason, country = _qualification_rejection(request)
+    try:
+        if reason:
+            reject_candidate(
+                candidate,
+                user=request.user,
+                reason=reason,
+                ship_from_country=country,
+                evidence_url=request.POST.get("evidence_url", ""),
+                note=request.POST.get("note", ""),
+            )
+        elif candidate.status == OfferCandidate.Status.APPROVED:
+            revalidate_candidate(
+                candidate,
+                user=request.user,
+                ships_to_pt_confirmed=True,
+                ship_from_country=country,
+                confirmed=True,
+                evidence_url=request.POST.get("evidence_url", ""),
+                note=request.POST.get("note", ""),
+            )
+        else:
+            approve_candidate(
+                candidate,
+                ships_to_pt_confirmed=True,
+                ship_from_country=country,
+                user=request.user,
+                evidence_url=request.POST.get("evidence_url", ""),
+                note=request.POST.get("note", ""),
+            )
+    except AliExpressRateLimitError:
+        raise
+    except (AliExpressError, CandidateApprovalError) as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)

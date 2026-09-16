@@ -38,8 +38,18 @@ def _affiliate_url(candidate, client):
 
 
 def approve_candidate(
-    candidate, *, ship_from_country, user, evidence_url="", note="", client=None, now=None
+    candidate,
+    *,
+    ships_to_pt_confirmed,
+    ship_from_country,
+    user,
+    evidence_url="",
+    note="",
+    client=None,
+    now=None,
 ):
+    if ships_to_pt_confirmed is not True:
+        raise CandidateApprovalError("Approval requires confirmed delivery to Portugal")
     country = (ship_from_country or "").upper()
     if country not in ALLOWED_SHIP_FROM_COUNTRIES:
         raise CandidateApprovalError("Approval requires PL/CZ/FR/ES/DE")
@@ -134,6 +144,8 @@ def reject_candidate(
         raise CandidateApprovalError("Staff user required")
     if reason not in CandidateDecision.Reason.values:
         raise CandidateApprovalError("Valid rejection reason required")
+    if reason == CandidateDecision.Reason.OTHER and not (note or "").strip():
+        raise CandidateApprovalError("Other rejection reason requires a note")
     now = now or timezone.now()
     with transaction.atomic():
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
@@ -161,6 +173,7 @@ def revalidate_candidate(
     user,
     ship_from_country=None,
     confirmed=True,
+    ships_to_pt_confirmed=False,
     reason=CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED,
     evidence_url="",
     note="",
@@ -172,6 +185,7 @@ def revalidate_candidate(
     if confirmed:
         return approve_candidate(
             candidate,
+            ships_to_pt_confirmed=ships_to_pt_confirmed,
             ship_from_country=ship_from_country,
             user=user,
             evidence_url=evidence_url,
