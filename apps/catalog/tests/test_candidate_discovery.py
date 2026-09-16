@@ -121,3 +121,71 @@ class CandidateDiscoveryTests(TestCase):
         self.assertEqual(result.skipped_irrelevant_family, 1)
         self.assertEqual(result.skipped_previously_rejected, 1)
         client.get_product_detail.assert_not_called()
+
+    def test_approved_like_professional_hifu_is_prioritized_over_generic_hifu(self):
+        OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="approved-pattern",
+            status=OfferCandidate.Status.APPROVED,
+            title="Approved 22D MAX HIFU machine",
+        )
+        client = Mock()
+        generic = self.product("generic", "HIFU device")
+        strong = self.product("strong", "Professional 22D MAX HIFU Beauty Salon Machine")
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(
+            products=[generic, strong]
+        )
+        client.get_product_detail.return_value = strong
+        result = discover_family_candidates(self.family, "HIFU", max_details=1, client=client)
+        self.assertEqual(result.detail_attempts, 1)
+        client.get_product_detail.assert_called_once_with("strong", "PT", "EUR")
+
+    def test_accessory_never_ranks_even_with_strong_metadata(self):
+        client = Mock()
+        accessory = self.product("acc-high", "22D MAX HIFU replacement cartridge")
+        accessory = type(accessory)(**{**accessory.__dict__, "sales_count": 999999})
+        machine = self.product("machine", "Professional HIFU machine")
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(
+            products=[accessory, machine]
+        )
+        client.get_product_detail.return_value = machine
+        result = discover_family_candidates(self.family, "HIFU", max_details=1, client=client)
+        self.assertEqual(result.skipped_accessory_part, 1)
+        client.get_product_detail.assert_called_once_with("machine", "PT", "EUR")
+
+    def test_existing_candidate_in_other_family_is_not_reintroduced(self):
+        other = ProductFamily.objects.create(name="RF", slug="rf")
+        OfferCandidate.objects.create(
+            product_family=other,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="known-global",
+            status=OfferCandidate.Status.PENDING,
+        )
+        client = Mock()
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(
+            products=[self.product("known-global", "Professional 22D MAX HIFU machine")]
+        )
+        result = discover_family_candidates(self.family, "HIFU", client=client)
+        self.assertEqual(result.skipped_existing_candidate, 1)
+        client.get_product_detail.assert_not_called()
+
+    def test_same_title_with_different_ids_can_both_be_candidates(self):
+        client = Mock()
+        one = self.product("same-title-1", "Professional 22D MAX HIFU machine")
+        two = self.product("same-title-2", "Professional 22D MAX HIFU machine")
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[one, two])
+        client.get_product_detail.side_effect = [one, two]
+        result = discover_family_candidates(self.family, "HIFU", client=client)
+        self.assertEqual(result.created, 2)
+
+    def test_missing_sales_rating_does_not_reject(self):
+        client = Mock()
+        product = self.product("missing-meta", "Professional HIFU machine")
+        product = type(product)(
+            **{**product.__dict__, "sales_count": None, "evaluation_rate_percent": None}
+        )
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[product])
+        client.get_product_detail.return_value = product
+        result = discover_family_candidates(self.family, "HIFU", client=client)
+        self.assertEqual(result.created, 1)

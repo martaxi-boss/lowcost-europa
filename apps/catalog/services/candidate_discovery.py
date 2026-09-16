@@ -3,6 +3,10 @@ from dataclasses import dataclass, field
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferCandidate, ProductFamily
+from apps.catalog.services.candidate_priority import (
+    hifu_candidate_priority,
+    learned_hifu_variants,
+)
 from apps.catalog.services.candidate_relevance import family_candidate_relevance
 from apps.catalog.services.shipping_qualification import is_factually_not_shippable_to_pt
 from apps.integrations.aliexpress.client import AliExpressClient
@@ -25,6 +29,7 @@ class CandidateDiscoveryResult:
     skipped_previously_rejected: int = 0
     skipped_not_shippable_to_pt: int = 0
     failures: list[str] = field(default_factory=list)
+    raw_product_ids: set[str] = field(default_factory=set)
 
 
 def discover_family_candidates(family, keyword, *, limit=10, max_details=10, client=None):
@@ -41,6 +46,7 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
     )
     products = search.products[:limit]
     result.search_results = len(products) + search.invalid_items
+    result.raw_product_ids = {product.product_id for product in products if product.product_id}
     seen = set()
     shortlist = []
     for product in products:
@@ -63,11 +69,10 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
             continue
         existing = (
             OfferCandidate.objects.filter(
-                product_family=family,
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=pid,
             )
-            .only("status")
+            .only("status", "product_family_id")
             .first()
         )
         if existing:
@@ -77,6 +82,17 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
                 result.skipped_existing_candidate += 1
             continue
         shortlist.append(product)
+    if family.slug == "hifu":
+        approved_titles = OfferCandidate.objects.filter(
+            product_family=family, status=OfferCandidate.Status.APPROVED
+        ).values_list("title", flat=True)
+        learned_variants = learned_hifu_variants(approved_titles)
+        shortlist.sort(
+            key=lambda product: hifu_candidate_priority(product, learned_variants=learned_variants)[
+                0
+            ],
+            reverse=True,
+        )
     shortlist = shortlist[:max_details]
     result.shortlisted = len(shortlist)
     for search_product in shortlist:
