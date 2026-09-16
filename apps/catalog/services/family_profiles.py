@@ -79,6 +79,10 @@ CAVITATION_PROFILE = FamilyProfile(
         "spare part",
         "consumable",
         "accessory",
+        "accessories",
+        "accesories",
+        "stowage plate",
+        "stand support",
         "pads only",
     ),
     variant_patterns=(
