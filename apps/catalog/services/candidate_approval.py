@@ -136,13 +136,41 @@ def approve_candidate(candidate, *, user, client=None, now=None):
 
 
 def reject_candidate(
-    candidate, *, user, reason, ship_from_country="", evidence_url="", note="", now=None
+    candidate,
+    *,
+    user,
+    review_signals=None,
+    reason="",
+    ship_from_country="",
+    evidence_url="",
+    note="",
+    now=None,
 ):
     _require_staff(user)
-    if reason not in CandidateDecision.Reason.values:
-        raise CandidateApprovalError("Valid rejection reason required")
-    if reason == CandidateDecision.Reason.OTHER and not (note or "").strip():
-        raise CandidateApprovalError("Other rejection reason requires a note")
+    normalized_signals = []
+    if review_signals is not None:
+        valid_signals = set(CandidateDecision.ReviewSignal.values)
+        for signal in review_signals:
+            if signal not in valid_signals:
+                raise CandidateApprovalError("Sinal de revisão inválido")
+            if signal not in normalized_signals:
+                normalized_signals.append(signal)
+        if not normalized_signals:
+            raise CandidateApprovalError("Selecione pelo menos uma opção para rejeitar")
+        # The new multi-signal flow never invents a legacy primary reason.
+        reason = ""
+        ship_from_country = ""
+        evidence_url = ""
+        note = ""
+    elif reason:
+        # Legacy/internal compatibility for historical semantic workflows and tests.
+        if reason not in CandidateDecision.Reason.values:
+            raise CandidateApprovalError("Valid rejection reason required")
+        if reason == CandidateDecision.Reason.OTHER and not (note or "").strip():
+            raise CandidateApprovalError("Other rejection reason requires a note")
+    else:
+        raise CandidateApprovalError("Selecione pelo menos uma opção para rejeitar")
+
     now = now or timezone.now()
     with transaction.atomic():
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
@@ -155,6 +183,7 @@ def reject_candidate(
             decision=CandidateDecision.Decision.REJECT,
             ship_from_country=(ship_from_country or "").upper(),
             reason=reason,
+            review_signals=normalized_signals,
             note=note,
             evidence_url=evidence_url,
             decided_by=user,
