@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.db import OperationalError
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferClick, OfferFamilyPlacement, ProductFamily
 
@@ -16,6 +17,8 @@ class OfferGoTests(TestCase):
             product_family=self.family,
             title="Eligible offer",
             affiliate_url="https://affiliate.example/item/123",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
         )
         OfferFamilyPlacement.objects.create(offer=self.offer, product_family=self.family)
         self.url = reverse("storefront:offer-go", args=[self.offer.pk])
@@ -88,6 +91,8 @@ class StorefrontCtaTests(TestCase):
             external_product_id="primary-cta-offer",
             product_family=family,
             affiliate_url="https://affiliate.example/primary",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             is_primary=True,
         )
         OfferFamilyPlacement.objects.create(
@@ -110,6 +115,8 @@ class StorefrontCtaTests(TestCase):
                     external_product_id=f"detail-{suffix}",
                     product_family=family,
                     affiliate_url=f"https://affiliate.example/{suffix}",
+                    ship_from_country="PL",
+                    ship_from_verified_at=timezone.now(),
                 )
             )
         for index, offer in enumerate(offers):

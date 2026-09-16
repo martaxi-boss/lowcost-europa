@@ -14,6 +14,7 @@ from apps.catalog.models import (
     OfferObservation,
     ProductFamily,
 )
+from apps.catalog.services.public_eligibility import public_eligibility_q
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ INSTITUTIONAL_PAGES = {
 def _family_queryset():
     observations = OfferObservation.objects.order_by("-observed_at", "-pk")[:1]
     placements = (
-        OfferFamilyPlacement.objects.filter(offer__is_active=True)
+        OfferFamilyPlacement.objects.filter(public_eligibility_q(prefix="offer__"))
         .select_related("offer")
         .prefetch_related(
             Prefetch(
@@ -204,8 +205,8 @@ def sitemap_xml(request):
 
 def offer_go(request, offer_id):
     eligible = Offer.objects.filter(
+        public_eligibility_q(),
         pk=offer_id,
-        is_active=True,
         family_placements__product_family__status__in=[
             ProductFamily.Status.NEW,
             ProductFamily.Status.TESTING,

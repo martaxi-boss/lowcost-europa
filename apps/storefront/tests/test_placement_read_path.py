@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferFamilyPlacement, ProductFamily
 
@@ -9,6 +10,8 @@ class StorefrontPlacementReadPathTests(TestCase):
         return Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id=external_id,
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             **kwargs,
         )
 
@@ -180,6 +183,8 @@ class StorefrontVisualCommercialTests(TestCase):
             source=Offer.Source.ALIEXPRESS,
             external_product_id=external_id,
             product_family=family,
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             **kwargs,
         )
         placement = OfferFamilyPlacement.objects.create(offer=offer, product_family=family)

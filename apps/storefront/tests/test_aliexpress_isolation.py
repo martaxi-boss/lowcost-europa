@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferFamilyPlacement, ProductFamily
 
@@ -17,6 +18,8 @@ class StorefrontAliExpressIsolationTests(TestCase):
             affiliate_url="https://affiliate.example.test/42",
             is_active=True,
             is_primary=True,
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
         )
         OfferFamilyPlacement.objects.create(
             offer=self.offer, product_family=self.family, selection_position=1
