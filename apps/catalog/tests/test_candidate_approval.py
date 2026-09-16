@@ -54,7 +54,11 @@ class CandidateApprovalTests(TestCase):
                 product_url=f"https://example.com/{code}",
             )
             result = approve_candidate(
-                candidate, ship_from_country=code, user=self.user, client=self.client_api
+                candidate,
+                ships_to_pt_confirmed=True,
+                ship_from_country=code,
+                user=self.user,
+                client=self.client_api,
             )
             self.assertEqual(result.offer.ship_from_country, code)
             self.assertTrue(is_ship_from_verification_fresh(result.offer))
@@ -63,8 +67,33 @@ class CandidateApprovalTests(TestCase):
         for code in ("CN", "", "UNKNOWN"):
             with self.assertRaises(CandidateApprovalError):
                 approve_candidate(
-                    self.candidate, ship_from_country=code, user=self.user, client=self.client_api
+                    self.candidate,
+                    ships_to_pt_confirmed=True,
+                    ship_from_country=code,
+                    user=self.user,
+                    client=self.client_api,
                 )
+
+    def test_approval_without_pt_confirmation_is_blocked(self):
+        with self.assertRaises(CandidateApprovalError):
+            approve_candidate(
+                self.candidate,
+                ships_to_pt_confirmed=False,
+                ship_from_country="PL",
+                user=self.user,
+                client=self.client_api,
+            )
+
+    def test_other_rejection_requires_note(self):
+        with self.assertRaises(CandidateApprovalError):
+            reject_candidate(self.candidate, user=self.user, reason=CandidateDecision.Reason.OTHER)
+        decision = reject_candidate(
+            self.candidate,
+            user=self.user,
+            reason=CandidateDecision.Reason.OTHER,
+            note="Razão específica",
+        )
+        self.assertEqual(decision.note, "Razão específica")
 
     def test_candidate_unique_within_family_source_and_external_id(self):
         with self.assertRaises(IntegrityError):
@@ -89,7 +118,7 @@ class CandidateApprovalTests(TestCase):
         decision = reject_candidate(
             self.candidate,
             user=self.user,
-            reason=CandidateDecision.Reason.OTHER,
+            reason=CandidateDecision.Reason.DUPLICATE,
         )
         self.assertEqual(decision.decided_by, self.user)
         self.assertIsNotNone(decision.decided_at)
@@ -115,7 +144,11 @@ class CandidateApprovalTests(TestCase):
 
     def test_approval_is_atomic_and_creates_offer_observation_placement_decision(self):
         result = approve_candidate(
-            self.candidate, ship_from_country="ES", user=self.user, client=self.client_api
+            self.candidate,
+            ships_to_pt_confirmed=True,
+            ship_from_country="ES",
+            user=self.user,
+            client=self.client_api,
         )
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
@@ -141,7 +174,12 @@ class CandidateApprovalTests(TestCase):
     def test_reapproval_refreshes_timestamp_and_preserves_history(self):
         past = timezone.now() - timedelta(days=8)
         result = approve_candidate(
-            self.candidate, ship_from_country="PL", user=self.user, client=self.client_api, now=past
+            self.candidate,
+            ships_to_pt_confirmed=True,
+            ship_from_country="PL",
+            user=self.user,
+            client=self.client_api,
+            now=past,
         )
         self.assertFalse(is_ship_from_verification_fresh(result.offer))
         revalidate_candidate(
@@ -149,6 +187,7 @@ class CandidateApprovalTests(TestCase):
             user=self.user,
             ship_from_country="DE",
             confirmed=True,
+            ships_to_pt_confirmed=True,
             now=timezone.now(),
         )
         self.candidate.refresh_from_db()
@@ -159,7 +198,11 @@ class CandidateApprovalTests(TestCase):
 
     def test_invalid_revalidation_hides_offer_without_deleting_history(self):
         approve_candidate(
-            self.candidate, ship_from_country="FR", user=self.user, client=self.client_api
+            self.candidate,
+            ships_to_pt_confirmed=True,
+            ship_from_country="FR",
+            user=self.user,
+            client=self.client_api,
         )
         revalidate_candidate(
             self.candidate,
@@ -187,7 +230,11 @@ class CandidateApprovalTests(TestCase):
             product_url="https://example.com/legacy",
         )
         result = approve_candidate(
-            c, ship_from_country="CZ", user=self.user, client=self.client_api
+            c,
+            ships_to_pt_confirmed=True,
+            ship_from_country="CZ",
+            user=self.user,
+            client=self.client_api,
         )
         self.assertEqual(result.offer.pk, legacy.pk)
         self.assertEqual(Offer.objects.filter(external_product_id="legacy").count(), 1)
@@ -210,6 +257,7 @@ class CandidateApprovalTests(TestCase):
         with self.assertRaises(CandidateApprovalError):
             approve_candidate(
                 self.candidate,
+                ships_to_pt_confirmed=True,
                 ship_from_country="PL",
                 user=self.user,
                 client=self.client_api,

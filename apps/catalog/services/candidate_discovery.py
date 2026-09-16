@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferCandidate, ProductFamily
-from apps.catalog.services.candidate_relevance import is_family_candidate_relevant
+from apps.catalog.services.candidate_relevance import family_candidate_relevance
+from apps.catalog.services.shipping_qualification import is_factually_not_shippable_to_pt
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
@@ -13,10 +14,16 @@ class CandidateDiscoveryResult:
     search_results: int = 0
     shortlisted: int = 0
     detailed: int = 0
+    detail_attempts: int = 0
+    detail_failures: int = 0
     created: int = 0
     updated: int = 0
+    skipped_irrelevant_family: int = 0
+    skipped_accessory_part: int = 0
     skipped_existing_offer: int = 0
     skipped_existing_candidate: int = 0
+    skipped_previously_rejected: int = 0
+    skipped_not_shippable_to_pt: int = 0
     failures: list[str] = field(default_factory=list)
 
 
@@ -40,33 +47,63 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
         pid = product.product_id
         if not pid or pid in seen:
             continue
-        if not is_family_candidate_relevant(family.slug, product.title):
-            continue
         seen.add(pid)
+        relevant, reason = family_candidate_relevance(family.slug, product.title)
+        if not relevant:
+            if reason == "ACCESSORY_OR_PART":
+                result.skipped_accessory_part += 1
+            else:
+                result.skipped_irrelevant_family += 1
+            continue
+        if is_factually_not_shippable_to_pt(product):
+            result.skipped_not_shippable_to_pt += 1
+            continue
         if Offer.objects.filter(source=Offer.Source.ALIEXPRESS, external_product_id=pid).exists():
             result.skipped_existing_offer += 1
             continue
-        if OfferCandidate.objects.filter(
-            product_family=family,
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id=pid,
-        ).exists():
-            result.skipped_existing_candidate += 1
+        existing = (
+            OfferCandidate.objects.filter(
+                product_family=family,
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=pid,
+            )
+            .only("status")
+            .first()
+        )
+        if existing:
+            if existing.status == OfferCandidate.Status.REJECTED:
+                result.skipped_previously_rejected += 1
+            else:
+                result.skipped_existing_candidate += 1
             continue
         shortlist.append(product)
     shortlist = shortlist[:max_details]
     result.shortlisted = len(shortlist)
     for search_product in shortlist:
+        result.detail_attempts += 1
         try:
             detail = client.get_product_detail(search_product.product_id, "PT", "EUR")
         except AliExpressRateLimitError:
             raise
         except AliExpressError as exc:
+            result.detail_failures += 1
             result.failures.append(f"{search_product.product_id}:{exc.__class__.__name__}")
             continue
         if detail.product_id != search_product.product_id:
             raise ValueError("AliExpress detail product ID mismatch")
         result.detailed += 1
+        if is_factually_not_shippable_to_pt(detail):
+            result.skipped_not_shippable_to_pt += 1
+            continue
+        relevant, reason = family_candidate_relevance(
+            family.slug, detail.title or search_product.title
+        )
+        if not relevant:
+            if reason == "ACCESSORY_OR_PART":
+                result.skipped_accessory_part += 1
+            else:
+                result.skipped_irrelevant_family += 1
+            continue
         now = timezone.now()
         defaults = {
             "title": detail.title or search_product.title or "",

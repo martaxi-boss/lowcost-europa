@@ -331,13 +331,27 @@ class CandidateDecision(models.Model):
         REJECT = "REJECT", "Reject"
 
     class Reason(models.TextChoices):
-        ORIGIN_NOT_ALLOWED = "ORIGIN_NOT_ALLOWED", "Origin not allowed"
-        ORIGIN_NOT_CONFIRMED = "ORIGIN_NOT_CONFIRMED", "Origin not confirmed"
-        IRRELEVANT = "IRRELEVANT", "Irrelevant"
-        DUPLICATE = "DUPLICATE", "Duplicate"
-        POOR_LISTING = "POOR_LISTING", "Poor listing"
-        LISTING_CHANGED = "LISTING_CHANGED", "Listing changed"
-        OTHER = "OTHER", "Other"
+        DOES_NOT_SHIP_TO_PT = "DOES_NOT_SHIP_TO_PT", "Não envia para Portugal"
+        PT_DELIVERY_NOT_CONFIRMED = (
+            "PT_DELIVERY_NOT_CONFIRMED",
+            "Não consigo confirmar entrega em Portugal",
+        )
+        ORIGIN_NOT_CONFIRMED = (
+            "ORIGIN_NOT_CONFIRMED",
+            "País de envio não aparece / não consigo confirmar",
+        )
+        ORIGIN_NOT_ALLOWED = "ORIGIN_NOT_ALLOWED", "País de envio fora dos 5 permitidos"
+        WRONG_FAMILY = "WRONG_FAMILY", "Produto pertence a outra família"
+        ACCESSORY_OR_PART = (
+            "ACCESSORY_OR_PART",
+            "Acessório, peça, cartucho ou consumível",
+        )
+        DUPLICATE = "DUPLICATE", "Produto duplicado"
+        LISTING_UNAVAILABLE = "LISTING_UNAVAILABLE", "Anúncio indisponível"
+        LISTING_CHANGED = "LISTING_CHANGED", "Anúncio ou variante mudou"
+        POOR_LISTING = "POOR_LISTING", "Oferta/listagem sem qualidade suficiente"
+        OTHER = "OTHER", "Outro motivo"
+        IRRELEVANT = "IRRELEVANT", "Irrelevante (legado)"
 
     candidate = models.ForeignKey(
         OfferCandidate, on_delete=models.PROTECT, related_name="decisions"

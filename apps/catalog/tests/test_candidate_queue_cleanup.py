@@ -183,3 +183,82 @@ class CandidateMoveTests(TestCase):
             csrf_client.post(url, {"target_family": self.target.pk}).status_code,
             403,
         )
+
+
+class ShippingQualificationUXTests(TestCase):
+    def setUp(self):
+        self.family = ProductFamily.objects.create(name="HIFU", slug="hifu-qualification")
+        self.staff = get_user_model().objects.create_user(
+            username="shipping-staff", password="x", is_staff=True
+        )
+        self.client.force_login(self.staff)
+        self.candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="shipping-ux",
+            title="Professional HIFU",
+            product_url="https://example.com/item",
+        )
+        self.queue = reverse("catalog:candidate-queue", kwargs={"family_slug": self.family.slug})
+        self.qualify = reverse(
+            "catalog:candidate-qualify",
+            kwargs={"family_slug": self.family.slug, "candidate_id": self.candidate.pk},
+        )
+
+    def test_reason_labels_are_portuguese_and_mobile_choices_present(self):
+        response = self.client.get(self.queue)
+        for text in (
+            "Entrega este produto/variante em Portugal?",
+            "Sim — entrega em Portugal",
+            "Não — não entrega em Portugal",
+            "Não consigo confirmar",
+            "De que país é enviado?",
+            "Não envia para Portugal",
+            "País de envio não aparece / não consigo confirmar",
+            "Produto pertence a outra família",
+        ):
+            self.assertContains(response, text)
+        self.assertContains(response, "min-height:46px")
+
+    def test_qualification_rejects_not_shipping_to_pt_with_structured_reason(self):
+        response = self.client.post(
+            self.qualify, {"ships_to_pt": "no", "ship_from_country": "UNKNOWN"}
+        )
+        self.assertRedirects(response, self.queue)
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
+        self.assertEqual(
+            self.candidate.decisions.get().reason,
+            CandidateDecision.Reason.DOES_NOT_SHIP_TO_PT,
+        )
+        self.assertNotContains(self.client.get(self.queue), "shipping-ux")
+
+    def test_qualification_rejects_pt_unknown(self):
+        self.client.post(self.qualify, {"ships_to_pt": "unknown", "ship_from_country": "PL"})
+        self.assertEqual(
+            self.candidate.decisions.get().reason,
+            CandidateDecision.Reason.PT_DELIVERY_NOT_CONFIRMED,
+        )
+
+    def test_qualification_rejects_origin_unknown_and_not_allowed(self):
+        self.client.post(self.qualify, {"ships_to_pt": "yes", "ship_from_country": "UNKNOWN"})
+        self.assertEqual(
+            self.candidate.decisions.get().reason,
+            CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED,
+        )
+        second = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="shipping-ux-2",
+        )
+        url = reverse(
+            "catalog:candidate-qualify",
+            kwargs={"family_slug": self.family.slug, "candidate_id": second.pk},
+        )
+        self.client.post(
+            url,
+            {"ships_to_pt": "yes", "ship_from_country": "OTHER", "observed_country": "CN"},
+        )
+        decision = second.decisions.get()
+        self.assertEqual(decision.reason, CandidateDecision.Reason.ORIGIN_NOT_ALLOWED)
+        self.assertEqual(decision.ship_from_country, "CN")
