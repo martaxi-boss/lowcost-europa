@@ -69,6 +69,8 @@ def _count_irrelevant(result, reason):
 def discover_family_candidates(family, keyword, *, limit=10, max_details=10, client=None):
     if not isinstance(family, ProductFamily):
         raise TypeError("family must be ProductFamily")
+    if family.status == ProductFamily.Status.RETIRED:
+        raise ValueError("Retired family cannot receive discovery")
     if not 1 <= limit <= 15:
         raise ValueError("limit must be between 1 and 15")
     if not 0 <= max_details <= 10:

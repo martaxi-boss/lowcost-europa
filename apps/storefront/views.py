@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import IntegrityError, OperationalError
 from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.cache import patch_vary_headers
 
@@ -21,6 +21,11 @@ from apps.catalog.services.public_eligibility import (
     is_protocol_verification_fresh,
     public_eligibility_q,
 )
+
+LEGACY_FAMILY_REDIRECTS = {
+    "depilacao-laser-triple-wave": "diodo-laser-remocao-tatuagens-pigmentacao",
+    "remocao-tatuagens-pigmentacao": "diodo-laser-remocao-tatuagens-pigmentacao",
+}
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +241,9 @@ def _owner_family_context(request, family):
 
 
 def product_family_detail(request, slug):
+    redirect_slug = LEGACY_FAMILY_REDIRECTS.get(slug)
+    if redirect_slug and ProductFamily.objects.filter(slug=redirect_slug).exists():
+        return redirect("storefront:product-family-detail", slug=redirect_slug)
     family = get_object_or_404(_family_queryset(), slug=slug)
     _prepare_family(family)
     context = {
