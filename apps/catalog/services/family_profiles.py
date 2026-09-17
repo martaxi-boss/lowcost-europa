@@ -183,10 +183,103 @@ HYDRODERMO_PROFILE = FamilyProfile(
     ),
 )
 
+
+LASER_TATTOO_PROFILE = FamilyProfile(
+    slug="diodo-laser-remocao-tatuagens-pigmentacao",
+    required_patterns=(
+        _rx(r"\bdiode\s+laser\b"),
+        _rx(r"\blaser\s+hair\s+removal\b"),
+        _rx(r"\bhair\s+removal\s+(?:diode\s+)?laser\b"),
+        _rx(r"\bprofessional\s+diode\s+laser\b"),
+        _rx(r"\bsalon\s+diode\s+laser\b"),
+        _rx(r"\bpermanent\s+hair\s+reduction\b"),
+        _rx(
+            r"(?=.*\balexandrite\b)(?=.*\bdiode\b)(?=.*\bnd\s*[:.-]?\s*yag\b)(?=.*\bhair\s+removal\b)"
+        ),
+        _rx(r"\btattoo\s+removal\b"),
+        _rx(r"\blaser\s+tattoo\s+removal\b"),
+        _rx(r"\bpigmentation\s+removal\b"),
+        _rx(r"\bpigment\s+removal\b"),
+        _rx(r"\bpigment\s+laser\b"),
+        _rx(r"\b(?:q[- ]?switch(?:ed)?|q\s+switch)\s+(?:nd\s*[:.-]?\s*)?yag\b"),
+        _rx(r"\bnd\s*[:.-]?\s*yag\b.*\b(?:tattoo|pigment|freckle|melanin|carbon\s+peel)\b"),
+        _rx(r"\b(?:tattoo|pigment|freckle|melanin|carbon\s+peel)\b.*\bnd\s*[:.-]?\s*yag\b"),
+        _rx(r"\bpicosecond\b"),
+        _rx(r"\bpico\s+laser\b"),
+        _rx(r"\bpico\s+tattoo\s+removal\b"),
+        _rx(r"\bpicosure(?:-style)?\b"),
+        _rx(r"\blaser\b.*\bfreckle\s+removal\b"),
+        _rx(r"\bfreckle\s+removal\b.*\blaser\b"),
+        _rx(r"\blaser\b.*\bmelanin\s+treatment\b"),
+        _rx(r"\bmelanin\s+treatment\b.*\blaser\b"),
+        _rx(
+            r"\b(?:q[- ]?switch(?:ed)?|nd\s*[:.-]?\s*yag|tattoo|pigment)\b.*"
+            r"\b532\s*nm\b.*\b1064\s*nm\b"
+        ),
+        _rx(
+            r"\b532\s*nm\b.*\b1064\s*nm\b.*"
+            r"\b(?:q[- ]?switch(?:ed)?|nd\s*[:.-]?\s*yag|tattoo|pigment)\b"
+        ),
+        _rx(r"\blaser\b.*\bcarbon\s+peel\b"),
+        _rx(r"\bcarbon\s+peel\b.*\blaser\b"),
+    ),
+    accessory_terms=(
+        "handle only",
+        "handpiece only",
+        "replacement handpiece",
+        "replacement handle",
+        "probe only",
+        "tips only",
+        "lens only",
+        "laser bar only",
+        "power supply only",
+        "foot pedal only",
+        "replacement part",
+        "spare part",
+        "accessory",
+        "accessories",
+        "consumable",
+    ),
+    variant_patterns=(
+        ("808NM", _rx(r"\b808\s*nm\b")),
+        (
+            "TRIPLE WAVE",
+            _rx(
+                r"\b(?:triple\s+wave|triple\s+wavelength|3\s+wavelengths?|three\s+wavelengths?)\b|(?=.*\b755\s*nm?\b)(?=.*\b808\s*nm?\b)(?=.*\b1064\s*nm?\b)"
+            ),
+        ),
+        ("755/808/1064", _rx(r"(?=.*\b755\s*nm?\b)(?=.*\b808\s*nm?\b)(?=.*\b1064\s*nm?\b)")),
+        (
+            "DUAL WAVE",
+            _rx(r"\b(?:dual\s+wave|dual\s+wavelength|2\s+wavelengths?|two\s+wavelengths?)\b"),
+        ),
+        ("FOUR WAVE", _rx(r"\b(?:four\s+wave|four\s+wavelength|4\s+wavelengths?)\b")),
+    ),
+    scoring_terms=(
+        *_COMMON_SCORING,
+        ("diode laser", 16, "diode laser"),
+        ("hair removal", 12, "hair removal"),
+        ("triple wave", 16, "triple wave"),
+        ("triple wavelength", 16, "triple wavelength"),
+        ("tattoo removal", 16, "tattoo removal"),
+        ("pigmentation removal", 14, "pigmentation removal"),
+        ("pigment removal", 14, "pigment removal"),
+        ("q switch", 14, "q switch"),
+        ("q-switched", 14, "q-switched"),
+        ("picosecond", 16, "picosecond"),
+        ("pico laser", 14, "pico laser"),
+        ("nd:yag", 12, "nd:yag"),
+        ("nd yag", 12, "nd yag"),
+        ("carbon peel", 8, "carbon peel"),
+    ),
+    search_keywords=(),
+)
+
 PROFILES = {
     HIFU_PROFILE.slug: HIFU_PROFILE,
     CAVITATION_PROFILE.slug: CAVITATION_PROFILE,
     HYDRODERMO_PROFILE.slug: HYDRODERMO_PROFILE,
+    LASER_TATTOO_PROFILE.slug: LASER_TATTOO_PROFILE,
 }
 
 

@@ -8,6 +8,7 @@ from apps.catalog.services.family_profiles import (
     CAVITATION_PROFILE,
     HIFU_PROFILE,
     HYDRODERMO_PROFILE,
+    LASER_TATTOO_PROFILE,
 )
 from apps.integrations.aliexpress.types import AliExpressProduct
 
@@ -116,6 +117,47 @@ class FamilyLearningTests(SimpleTestCase):
         score, signals = priority_for_family(product, HYDRODERMO_PROFILE.slug)
         self.assertGreater(score, 0)
         self.assertIn("diamond microdermabrasion", signals)
+
+    def test_laser_tattoo_profile_accepts_scope_and_blocks_generic_laser(self):
+        family = "diodo-laser-remocao-tatuagens-pigmentacao"
+        positives = (
+            "Professional diode laser hair removal machine",
+            "Triple wavelength 755nm 808nm 1064nm diode laser hair removal machine",
+            "Alexandrite + Diode + Nd:YAG hair removal system",
+            "Q-switched Nd:YAG laser tattoo removal pigmentation machine 532nm 1064nm",
+            "Picosecond pico laser tattoo removal pigment machine",
+            "Picosure-style picosecond tattoo removal laser machine",
+            "Diode laser + picosecond tattoo removal multifunction laser machine",
+            "Laser freckle removal pigmentation equipment",
+            "Nd:YAG carbon peel pigment removal laser machine",
+        )
+        negatives = (
+            "generic laser beauty machine",
+            "laser skin salon machine",
+            "LED facial beauty machine",
+            "laser handpiece only",
+            "replacement laser handle accessory",
+            "532nm 1064nm power supply only",
+        )
+        for title in positives:
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant(family, title))
+        for title in negatives:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(family, title))
+
+    def test_laser_tattoo_profile_variants_and_priority_are_family_specific(self):
+        self.assertEqual(LASER_TATTOO_PROFILE.slug, "diodo-laser-remocao-tatuagens-pigmentacao")
+        title = "Professional Triple Wave 755nm 808nm 1064nm diode laser hair removal machine"
+        product = self.product(title)
+        learned = {"TRIPLE WAVE", "755/808/1064", "808NM"}
+        score, signals = priority_for_family(
+            product, LASER_TATTOO_PROFILE.slug, learned_variants=learned
+        )
+        self.assertGreater(score, 0)
+        self.assertIn("approved pattern: TRIPLE WAVE", signals)
+        self.assertIn("diode laser", signals)
+        self.assertEqual(LASER_TATTOO_PROFILE.search_keywords, ())
 
     def test_profiles_are_family_specific_and_ready(self):
         self.assertEqual(HIFU_PROFILE.slug, "hifu")
