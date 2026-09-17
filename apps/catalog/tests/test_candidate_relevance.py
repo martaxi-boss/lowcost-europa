@@ -31,3 +31,54 @@ class HifuCandidateRelevanceTests(SimpleTestCase):
                 "hifu", "High Intensity Focused Ultrasound professional machine"
             )
         )
+
+
+class PressotherapyCandidateRelevanceTests(SimpleTestCase):
+    slug = "pressoterapia-vacuum-drenagem"
+
+    def test_positive_core_titles_pass(self):
+        titles = (
+            "Professional Pressotherapy Lymphatic Drainage Machine",
+            "Pressotherapy Air Compression Therapy Beauty Salon Equipment",
+            "Professional Pneumatic Compression Lymphatic Drainage Machine",
+            "Air Pressure Pressotherapy Body Drainage Equipment",
+            "Professional Pressotherapy Vacuum Lymphatic Drainage Machine",
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant(self.slug, title))
+
+    def test_machine_with_boots_is_not_treated_as_boots_only(self):
+        self.assertTrue(
+            is_family_candidate_relevant(
+                self.slug,
+                "Professional Pressotherapy Lymphatic Drainage Machine with Boots and Cuffs",
+            )
+        )
+
+    def test_accessories_are_blocked(self):
+        titles = (
+            "Replacement Pressotherapy Boots Only",
+            "Pressotherapy Hose Only",
+            "Compression Pants Only",
+            "Replacement Air Hose For Pressotherapy Machine",
+            "Pressotherapy Replacement Boots",
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(self.slug, title))
+
+    def test_wrong_family_and_consumer_titles_are_blocked(self):
+        titles = (
+            "Vacuum RF Cavitation Body Slimming Machine",
+            "Vacuum Butt Lifting Machine",
+            "Home Leg Air Compression Massager",
+            "Compression Socks",
+            "Sports Recovery Boots Air Compression",
+            "HIFU Machine",
+            "RF Facial Machine",
+            "Ultrasound Cavitation Machine",
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(self.slug, title))
