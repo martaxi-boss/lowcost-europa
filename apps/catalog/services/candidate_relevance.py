@@ -38,6 +38,8 @@ _LASER_CONSUMER_IPL_MARKERS = (
 
 
 def _laser_family_component_or_consumer_only(lowered):
+    if lowered.startswith(("accessory for ", "accessories for ")):
+        return True
     if any(marker in lowered for marker in _LASER_CONSUMER_IPL_MARKERS):
         if not any(marker in lowered for marker in _LASER_VALID_TECH_MARKERS):
             return True
