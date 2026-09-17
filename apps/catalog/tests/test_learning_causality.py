@@ -42,9 +42,13 @@ class LearningCausalityTests(TestCase):
             "Good model wrong origin",
             CandidateDecision.Reason.ORIGIN_NOT_ALLOWED,
         )
-        _, _, negatives = _learning_inputs(self.hifu)
-        self.assertIn("Bad semantic model", negatives)
-        self.assertNotIn("Good model wrong origin", negatives)
+        from apps.catalog.services.candidate_learning import family_learning_snapshot
+
+        learning = family_learning_snapshot(self.hifu)
+        self.assertIn("Bad semantic model", learning.quality_negative_titles)
+        self.assertNotIn("Bad semantic model", learning.semantic_negative_titles)
+        self.assertIn("Good model wrong origin", learning.logistics_negative_titles)
+        self.assertNotIn("Good model wrong origin", learning.semantic_negative_titles)
 
     def test_move_then_positive_learning_belongs_to_final_family(self):
         candidate = OfferCandidate.objects.create(
@@ -73,8 +77,11 @@ class LearningCausalityTests(TestCase):
         moved.refresh_from_db()
         self.assertEqual(moved.status, OfferCandidate.Status.PENDING)
         self.assertEqual(moved.decisions.count(), 0)
-        _, _, source_negatives = _learning_inputs(self.hifu)
-        self.assertIn(candidate.title, source_negatives)
+        from apps.catalog.services.candidate_learning import family_learning_snapshot
+
+        source_learning = family_learning_snapshot(self.hifu)
+        self.assertIn(candidate.title, source_learning.classification_negative_titles)
+        self.assertNotIn(candidate.title, source_learning.semantic_negative_titles)
         self.assertIn(candidate.title, _family_move_positive_titles(self.cav))
         _, destination_variants, _ = _learning_inputs(self.cav)
         self.assertNotIn("6-IN-1", destination_variants)
