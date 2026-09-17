@@ -12,6 +12,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--family", required=True)
         parser.add_argument("--keyword", required=True)
+        parser.add_argument("--page", type=int, default=1)
         parser.add_argument("--limit", type=int, default=10)
         parser.add_argument("--max-details", type=int, default=10)
 
@@ -27,6 +28,7 @@ class Command(BaseCommand):
             result = discover_family_candidates(
                 family,
                 options["keyword"],
+                page_no=options["page"],
                 limit=options["limit"],
                 max_details=options["max_details"],
                 client=client,
@@ -37,6 +39,7 @@ class Command(BaseCommand):
         except AliExpressError as exc:
             self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError(exc.__class__.__name__) from exc
+        self.stdout.write(f"Page: {options['page']}")
         self.stdout.write(f"Search results: {result.search_results}")
         self.stdout.write(f"Skipped irrelevant family: {result.skipped_irrelevant_family}")
         self.stdout.write(f"Skipped accessory/part: {result.skipped_accessory_part}")
