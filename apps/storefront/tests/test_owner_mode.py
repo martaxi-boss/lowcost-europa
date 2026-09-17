@@ -120,6 +120,9 @@ class StorefrontOwnerModeTests(TestCase):
         for label in dict(CandidateDecision.ReviewSignal.choices).values():
             self.assertContains(response, label)
         self.assertContains(response, "Mudar família")
+        self.assertNotContains(response, 'name="delivers_to_pt_confirmed"')
+        self.assertNotContains(response, 'name="ship_from_country"')
+        self.assertContains(response, 'name="note"')
 
     def test_approved_hidden_is_distinct_from_editorially_retired(self):
         self.client.force_login(self.staff)
@@ -194,11 +197,7 @@ class StorefrontOwnerModeTests(TestCase):
         self.client.force_login(self.staff)
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
-            {
-                "delivers_to_pt_confirmed": "1",
-                "ship_from_country": "ES",
-                "next": f"{self.url}?gestao=rever#gestao-owner",
-            },
+            {"next": f"{self.url}?gestao=rever#gestao-owner"},
         )
         self.assertRedirects(
             response, f"{self.url}?gestao=rever#gestao-owner", fetch_redirect_response=False
