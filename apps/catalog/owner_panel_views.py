@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.catalog.models import (
@@ -130,8 +132,20 @@ def _family_counts(family):
 
 @require_http_methods(["GET", "POST"])
 def owner_login(request):
+    next_url = request.GET.get("next", "") or request.POST.get("next", "")
+    safe_next = (
+        next_url
+        if next_url
+        and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        )
+        else ""
+    )
+    destination = safe_next or reverse("storefront:home")
     if request.user.is_authenticated and request.user.is_staff:
-        return _private(redirect("owner-panel:dashboard"))
+        return _private(redirect(destination))
     error = ""
     if request.method == "POST":
         password = request.POST.get("password", "")
@@ -142,9 +156,15 @@ def owner_login(request):
         )
         if user is not None and user.is_active and user.is_staff:
             login(request, user)
-            return _private(redirect("owner-panel:dashboard"))
+            return _private(redirect(destination))
         error = "Palavra-passe incorreta."
-    return _private(render(request, "catalog/owner_panel/login.html", {"error": error}))
+    return _private(
+        render(
+            request,
+            "catalog/owner_panel/login.html",
+            {"error": error, "next": safe_next},
+        )
+    )
 
 
 @require_POST

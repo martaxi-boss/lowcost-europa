@@ -353,3 +353,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
   .owner-private-bar { min-height: 36px; padding-block: .2rem; }
   .owner-private-bar a, .owner-private-bar button { min-height: 30px; padding: .22rem .55rem; }
 }
+.owner-management-tabs { display:flex; gap:7px; overflow-x:auto; padding:0 0 18px; }
+.owner-management-tabs a { min-height:38px; display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border:1px solid #b8cec7; border-radius:999px; background:#fff; color:#173c33; text-decoration:none; font-size:.78rem; font-weight:760; white-space:nowrap; }
+.owner-management-tabs a.active { background:#173c33; border-color:#173c33; color:#fff; }
+.owner-management-tabs span { min-width:20px; height:20px; display:inline-grid; place-items:center; border-radius:999px; background:rgba(127,160,150,.18); font-size:.7rem; }
+.owner-preview-link, .owner-family-manage-link { display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:7px 11px; border:1px solid #9ebbb2; border-radius:999px; color:#174f40; background:#fff; text-decoration:none; font-size:.8rem; font-weight:800; }
+.owner-family-manage-link { margin-top:8px; }
+.owner-work-card--readonly { grid-template-columns:minmax(0,1fr); }
+@media (max-width:480px) { .owner-family-tools { padding:28px 0 38px; } .owner-management-tabs { margin-inline:-2px; } .owner-family-tools__heading { margin-bottom:16px; } }

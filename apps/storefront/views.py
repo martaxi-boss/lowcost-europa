@@ -6,6 +6,7 @@ from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.cache import patch_vary_headers
 
 from apps.catalog.models import (
     CandidateDecision,
@@ -144,6 +145,7 @@ def _render_storefront(request, template, context):
     if request.user.is_authenticated and request.user.is_staff:
         response["Cache-Control"] = "private, no-store"
         response["X-Robots-Tag"] = "noindex, nofollow"
+        patch_vary_headers(response, ("Cookie",))
     return response
 
 
@@ -166,8 +168,20 @@ def home(request):
 def _owner_family_context(request, family):
     if not (request.user.is_authenticated and request.user.is_staff):
         return {}
+
+    preview_public = request.GET.get("owner_preview") == "public"
+    if preview_public:
+        return {
+            "owner_preview_public": True,
+            "owner_return_to_management": f"{request.path}?gestao=montra#gestao-owner",
+        }
     if family.status == ProductFamily.Status.RETIRED:
-        return {}
+        return {"owner_mode": True, "owner_active_tab": "montra"}
+
+    active_tab = request.GET.get("gestao", "montra")
+    allowed_tabs = {"montra", "rever", "retirados", "revalidar", "rejeitados"}
+    if active_tab not in allowed_tabs:
+        active_tab = "montra"
 
     candidates = list(
         OfferCandidate.objects.filter(product_family=family)
@@ -175,34 +189,47 @@ def _owner_family_context(request, family):
         .order_by("status", "-last_observed_at", "pk")
     )
     pending = [c for c in candidates if c.status == OfferCandidate.Status.PENDING]
+    rejected = [c for c in candidates if c.status == OfferCandidate.Status.REJECTED]
     approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
     for candidate in approved:
         offer = candidate.approved_offer
         candidate.protocol_fresh = bool(offer and is_protocol_verification_fresh(offer))
+        if not offer:
+            candidate.owner_state_label = "Aprovado"
+        elif not offer.is_active:
+            candidate.owner_state_label = "Indisponível"
+        elif not candidate.protocol_fresh:
+            candidate.owner_state_label = "Revalidação necessária"
+        elif offer.owner_hidden:
+            candidate.owner_state_label = "Retirado da montra"
+        else:
+            candidate.owner_state_label = "Na montra"
 
-    private_approved = [
-        c
-        for c in approved
-        if c.approved_offer
-        and (
-            c.approved_offer.owner_hidden or not c.approved_offer.is_active or not c.protocol_fresh
-        )
-    ]
+    hidden = [c for c in approved if c.approved_offer and c.approved_offer.owner_hidden]
+    stale = [c for c in approved if c.approved_offer and not c.protocol_fresh]
+    selected_candidates = {
+        "rever": pending,
+        "rejeitados": rejected,
+        "retirados": hidden,
+        "revalidar": stale,
+    }.get(active_tab, [])
+
+    current_query = f"?gestao={active_tab}"
     return {
         "owner_mode": True,
-        "owner_pending_candidates": pending,
-        "owner_private_approved": private_approved,
+        "owner_active_tab": active_tab,
+        "owner_selected_candidates": selected_candidates,
         "owner_review_signals": CandidateDecision.ReviewSignal.choices,
         "owner_target_families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
         .exclude(pk=family.pk)
         .order_by("display_order", "name", "pk"),
+        "owner_storefront_count": len(family.public_placements),
         "owner_pending_count": len(pending),
-        "owner_hidden_count": sum(
-            bool(c.approved_offer and c.approved_offer.owner_hidden) for c in approved
-        ),
-        "owner_revalidate_count": sum(
-            bool(c.approved_offer_id and not c.protocol_fresh) for c in approved
-        ),
+        "owner_hidden_count": len(hidden),
+        "owner_revalidate_count": len(stale),
+        "owner_rejected_count": len(rejected),
+        "owner_return_url": f"{request.path}{current_query}#gestao-owner",
+        "owner_preview_url": f"{request.path}?owner_preview=public",
         "owner_error": request.session.pop("owner_panel_error", ""),
         "owner_notice": request.session.pop("owner_panel_notice", ""),
     }

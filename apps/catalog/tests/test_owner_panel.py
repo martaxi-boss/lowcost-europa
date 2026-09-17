@@ -61,11 +61,29 @@ class OwnerPanelLoginTests(TestCase):
     def test_correct_password_creates_session_and_redirects(self):
         self.make_owner()
         response = self.client.post(reverse("owner-panel:login"), {"password": TEST_PASSWORD})
-        self.assertRedirects(response, reverse("owner-panel:dashboard"))
+        self.assertRedirects(response, reverse("storefront:home"))
         self.assertEqual(
             int(self.client.session["_auth_user_id"]),
             get_user_model().objects.get(username="lowcost-owner").pk,
         )
+
+    def test_login_respects_safe_next_to_storefront_family(self):
+        self.make_owner()
+        family = ProductFamily.objects.create(name="HIFU Login", slug="hifu-login")
+        next_url = reverse("storefront:product-family-detail", args=[family.slug])
+        response = self.client.post(
+            f"{reverse('owner-panel:login')}?next={next_url}",
+            {"password": TEST_PASSWORD, "next": next_url},
+        )
+        self.assertRedirects(response, next_url)
+
+    def test_login_rejects_external_next(self):
+        self.make_owner()
+        response = self.client.post(
+            reverse("owner-panel:login"),
+            {"password": TEST_PASSWORD, "next": "https://evil.example/steal"},
+        )
+        self.assertRedirects(response, reverse("storefront:home"))
 
     def test_wrong_password_is_generic_and_not_reflected(self):
         self.make_owner()
@@ -427,7 +445,7 @@ class OwnerPanelCatalogTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
-        owner_response = self.client.get(family_url)
+        owner_response = self.client.get(f"{family_url}?gestao=retirados")
         self.assertContains(owner_response, self.offer.title)
         self.assertContains(owner_response, "Retirado da montra")
         public_client = Client()
@@ -543,14 +561,11 @@ class PrivateStorefrontControlsTests(TestCase):
         )
         self.client.force_login(staff)
         response = self.client.get(self.detail_url)
-        self.assertContains(response, "Modo proprietário")
-        self.assertContains(response, "Loja")
-        self.assertContains(response, "Gerir família")
-        self.assertContains(response, "Painel")
+        self.assertContains(response, "Gestão ativa")
+        self.assertContains(response, "Resumo")
         self.assertContains(response, "Sair")
         self.assertNotContains(response, ">Famílias<")
         self.assertNotContains(response, ">Na montra<")
-        self.assertNotContains(response, ">Retirados<")
         self.assertContains(response, "RETIRAR DA MONTRA")
 
     def test_owner_hidden_is_not_public_eligible_and_go_creates_no_click(self):

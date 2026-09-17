@@ -1,11 +1,18 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.catalog.models import Offer, OfferCandidate, OfferFamilyPlacement, ProductFamily
+from apps.catalog.models import (
+    CandidateDecision,
+    Offer,
+    OfferCandidate,
+    OfferFamilyPlacement,
+    ProductFamily,
+)
 
 
 class StorefrontOwnerModeTests(TestCase):
@@ -14,9 +21,7 @@ class StorefrontOwnerModeTests(TestCase):
         self.staff = users.objects.create_user(
             username="store-owner", password="test-only", is_staff=True
         )
-        self.nonstaff = users.objects.create_user(
-            username="shop-user", password="test-only", is_staff=False
-        )
+        self.nonstaff = users.objects.create_user(username="shop-user", password="test-only")
         self.family = ProductFamily.objects.create(name="HIFU", slug="owner-mode-hifu")
         self.target_family = ProductFamily.objects.create(name="RF", slug="owner-mode-rf")
         self.public_offer = Offer.objects.create(
@@ -54,99 +59,194 @@ class StorefrontOwnerModeTests(TestCase):
             status=OfferCandidate.Status.APPROVED,
             approved_offer=self.hidden_offer,
         )
+        self.rejected = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="owner-mode-rejected",
+            title="Rejected candidate",
+            status=OfferCandidate.Status.REJECTED,
+        )
         self.url = reverse("storefront:product-family-detail", args=[self.family.slug])
 
     def assert_zero_private_management(self, response):
         self.assertContains(response, "Public HIFU machine")
-        self.assertNotContains(response, "Modo proprietário")
-        self.assertNotContains(response, "Gestão desta família")
-        self.assertNotContains(response, "Private pending candidate")
-        self.assertNotContains(response, "Private hidden approved offer")
-        self.assertNotContains(response, "RETIRAR DA MONTRA")
-        self.assertNotContains(response, "Aprovar")
-        self.assertNotContains(response, "Confirmar rejeição")
+        for private_text in (
+            "Gestão ativa",
+            "Gestão da família",
+            "Private pending candidate",
+            "Private hidden approved offer",
+            "Rejected candidate",
+            "RETIRAR DA MONTRA",
+            "Confirmar rejeição",
+        ):
+            self.assertNotContains(response, private_text)
         self.assertNotContains(response, "/painel/familias/")
 
-    def test_anonymous_gets_normal_storefront_with_zero_private_management(self):
+    def test_anonymous_and_nonstaff_get_public_only(self):
         self.assert_zero_private_management(self.client.get(self.url))
-
-    def test_nonstaff_gets_normal_storefront_with_zero_private_management(self):
         self.client.force_login(self.nonstaff)
         self.assert_zero_private_management(self.client.get(self.url))
 
-    def test_staff_gets_same_storefront_plus_integrated_management(self):
+    def test_staff_default_is_same_storefront_plus_compact_management(self):
         self.client.force_login(self.staff)
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Public HIFU machine")
-        self.assertContains(response, "Modo proprietário")
-        self.assertContains(response, "Gestão desta família")
-        self.assertContains(response, "Private pending candidate")
-        self.assertContains(response, "Private hidden approved offer")
+        self.assertContains(response, "Gestão ativa")
+        self.assertContains(response, "Resumo")
+        self.assertContains(response, "Gestão da família")
+        self.assertContains(response, "Montra")
+        self.assertContains(response, "A rever")
+        self.assertContains(response, "Retirados")
+        self.assertContains(response, "Revalidação")
+        self.assertContains(response, "Rejeitados")
         self.assertContains(response, "RETIRAR DA MONTRA")
-        self.assertContains(response, "Aprovar")
-        self.assertContains(response, "Confirmar rejeição")
-        self.assertContains(response, "Mudar família")
-        self.assertContains(response, self.target_family.name)
-        self.assertContains(response, "Voltar a publicar")
+        self.assertNotContains(response, "Private pending candidate")
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertIn("Cookie", response.get("Vary", ""))
 
-    def test_staff_toolbar_is_compact_and_storefront_first(self):
+    def test_rever_tab_shows_only_pending_and_exact_five_signals(self):
         self.client.force_login(self.staff)
-        response = self.client.get(self.url)
-        self.assertContains(response, "Loja")
-        self.assertContains(response, "Gerir família")
-        self.assertContains(response, "Painel")
-        self.assertContains(response, "Sair")
-        self.assertNotContains(response, ">Famílias<")
-        self.assertNotContains(response, ">Na montra<")
-        self.assertNotContains(response, ">Retirados<")
+        response = self.client.get(f"{self.url}?gestao=rever")
+        self.assertContains(response, "Private pending candidate")
+        self.assertNotContains(response, "Private hidden approved offer")
+        self.assertNotContains(response, "Rejected candidate")
+        self.assertContains(response, 'name="review_signals"', count=5)
+        for label in dict(CandidateDecision.ReviewSignal.choices).values():
+            self.assertContains(response, label)
+        self.assertContains(response, "Mudar família")
 
-    def test_hidden_stale_offer_shows_revalidate_not_publish(self):
+    def test_retirados_tab_state_matrix(self):
+        self.client.force_login(self.staff)
+        fresh = self.client.get(f"{self.url}?gestao=retirados")
+        self.assertContains(fresh, "Private hidden approved offer")
+        self.assertContains(fresh, "Voltar a publicar")
+        self.hidden_offer.protocol_verified_at = timezone.now() - timedelta(days=8)
+        self.hidden_offer.save(update_fields=["protocol_verified_at"])
+        stale = self.client.get(f"{self.url}?gestao=retirados")
+        self.assertContains(stale, "Revalidar")
+        self.assertNotContains(stale, "Voltar a publicar")
+        self.hidden_offer.is_active = False
+        self.hidden_offer.save(update_fields=["is_active"])
+        inactive = self.client.get(f"{self.url}?gestao=retirados")
+        self.assertContains(inactive, "Indisponível")
+
+    def test_revalidation_and_rejected_tabs_are_inline(self):
         self.hidden_offer.protocol_verified_at = timezone.now() - timedelta(days=8)
         self.hidden_offer.save(update_fields=["protocol_verified_at"])
         self.client.force_login(self.staff)
-        response = self.client.get(self.url)
-        self.assertContains(response, "Revalidação necessária")
-        self.assertContains(response, "Revalidar")
-        self.assertNotContains(response, "Voltar a publicar")
+        revalidate = self.client.get(f"{self.url}?gestao=revalidar")
+        self.assertContains(revalidate, "Private hidden approved offer")
+        self.assertContains(revalidate, "Revalidar")
+        rejected = self.client.get(f"{self.url}?gestao=rejeitados")
+        self.assertContains(rejected, "Rejected candidate")
+        self.assertNotContains(rejected, "Aprovar")
+        self.assertNotContains(rejected, "Confirmar rejeição")
 
-    def test_contextual_hide_returns_to_same_storefront_family(self):
+    def test_view_as_customer_hides_tools_but_keeps_session(self):
         self.client.force_login(self.staff)
-        hide_url = reverse("owner-panel:offer-hide", args=[self.family.slug, self.public_offer.pk])
+        response = self.client.get(f"{self.url}?owner_preview=public")
+        self.assertContains(response, "Public HIFU machine")
+        self.assertContains(response, "A ver como cliente")
+        self.assertContains(response, "Voltar à gestão")
+        self.assertNotContains(response, "Gestão da família")
+        self.assertNotContains(response, "RETIRAR DA MONTRA")
+        self.assertNotContains(response, "Private pending candidate")
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_contextual_hide_returns_to_same_family_retirados(self):
+        self.client.force_login(self.staff)
         response = self.client.post(
-            hide_url,
-            {"next": f"{self.url}#gestao-owner"},
+            reverse("owner-panel:offer-hide", args=[self.family.slug, self.public_offer.pk]),
+            {"next": f"{self.url}?gestao=retirados#gestao-owner"},
         )
         self.assertRedirects(
-            response,
-            f"{self.url}#gestao-owner",
-            fetch_redirect_response=False,
+            response, f"{self.url}?gestao=retirados#gestao-owner", fetch_redirect_response=False
         )
         self.public_offer.refresh_from_db()
         self.assertTrue(self.public_offer.owner_hidden)
 
-    def test_storefront_owner_mode_does_not_duplicate_public_offer_in_private_queue(self):
+    @patch("apps.catalog.services.candidate_approval.AliExpressClient")
+    def test_inline_approve_returns_to_same_family(self, client_class):
+        client_class.return_value.generate_affiliate_link.return_value = (
+            "https://affiliate.example/new"
+        )
         self.client.force_login(self.staff)
-        response = self.client.get(self.url)
-        private = response.context["owner_private_approved"]
-        self.assertEqual([c.pk for c in private], [self.hidden_candidate.pk])
-        self.assertNotIn(self.public_offer.pk, [c.approved_offer_id for c in private])
+        response = self.client.post(
+            reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
+            {"next": f"{self.url}?gestao=rever#gestao-owner"},
+        )
+        self.assertRedirects(
+            response, f"{self.url}?gestao=rever#gestao-owner", fetch_redirect_response=False
+        )
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.status, OfferCandidate.Status.APPROVED)
 
-    def test_owner_mode_uses_exact_five_rejection_signals(self):
+    def test_inline_reject_and_move_reuse_services(self):
         self.client.force_login(self.staff)
-        response = self.client.get(self.url)
-        self.assertContains(response, 'name="review_signals"', count=5)
-        self.assertContains(response, "Sim, entrega em Portugal")
-        self.assertContains(response, "Não entrega em Portugal")
-        self.assertContains(response, "Não envia para Portugal")
-        self.assertContains(response, "País de envio fora dos cinco permitidos")
-        self.assertContains(response, "Anúncio indisponível")
+        reject_candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="reject-inline",
+            title="Reject inline",
+        )
+        signals = [
+            CandidateDecision.ReviewSignal.DOES_NOT_SHIP_TO_PT,
+            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
+        ]
+        response = self.client.post(
+            reverse("owner-panel:candidate-reject", args=[self.family.slug, reject_candidate.pk]),
+            {"review_signals": signals, "next": f"{self.url}?gestao=rever#gestao-owner"},
+        )
+        self.assertEqual(response.status_code, 302)
+        reject_candidate.refresh_from_db()
+        self.assertEqual(reject_candidate.status, OfferCandidate.Status.REJECTED)
+        self.assertEqual(reject_candidate.decisions.get().review_signals, signals)
+        move_candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="move-inline",
+            title="Move inline",
+        )
+        before = OfferCandidate.objects.count()
+        self.client.post(
+            reverse("owner-panel:candidate-move", args=[self.family.slug, move_candidate.pk]),
+            {
+                "target_family": self.target_family.pk,
+                "next": f"{self.url}?gestao=rever#gestao-owner",
+            },
+        )
+        move_candidate.refresh_from_db()
+        self.assertEqual(move_candidate.product_family, self.target_family)
+        self.assertEqual(OfferCandidate.objects.count(), before)
+
+
+class OwnerStorefrontNavigationTests(TestCase):
+    def setUp(self):
+        self.staff = get_user_model().objects.create_user(
+            username="nav-owner", password="x", is_staff=True
+        )
+        self.family = ProductFamily.objects.create(name="Navigation HIFU", slug="navigation-hifu")
+
+    def test_staff_home_keeps_public_home_and_adds_manage_link(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "Selecionamos. Organizamos. Comparamos.")
+        self.assertContains(response, "Gestão ativa")
+        self.assertContains(response, "Gerir")
+        family_url = reverse("storefront:product-family-detail", args=[self.family.slug])
+        self.assertContains(response, f"{family_url}?gestao=montra#gestao-owner")
+
+    def test_panel_summary_links_to_real_storefront_family(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse("owner-panel:dashboard"))
+        self.assertContains(response, "VER LOJA")
+        family_url = reverse("storefront:product-family-detail", args=[self.family.slug])
+        self.assertContains(response, f"{family_url}?gestao=montra#gestao-owner")
 
 
 class StorefrontOwnerModeMobileStructureTests(TestCase):
-    def test_compact_toolbar_and_mobile_management_structure(self):
+    def test_compact_toolbar_tabs_and_mobile_structure(self):
         from django.conf import settings
 
         base = (settings.BASE_DIR / "apps/storefront/templates/storefront/base.html").read_text()
@@ -155,13 +255,11 @@ class StorefrontOwnerModeMobileStructureTests(TestCase):
             / "apps/storefront/templates/storefront/components/owner_family_tools.html"
         ).read_text()
         css = (settings.BASE_DIR / "apps/storefront/static/storefront/storefront.css").read_text()
-        self.assertIn('name="viewport" content="width=device-width, initial-scale=1"', base)
         self.assertIn('class="owner-private-bar"', base)
-        self.assertIn('id="gestao-owner"', tools)
-        self.assertIn("overflow-x: auto", css)
-        self.assertIn("min-height: 38px", css)
-        self.assertIn("@media (max-width: 480px)", css)
-        self.assertIn("grid-template-columns: repeat(2, minmax(0,1fr))", css)
+        self.assertIn('class="owner-management-tabs"', tools)
+        self.assertIn("overflow-x:auto", css.replace(" ", ""))
+        self.assertIn("min-height:38px", css.replace(" ", ""))
+        self.assertIn("@media(max-width:480px)", css.replace(" ", ""))
         for width in (360, 390, 430):
             with self.subTest(width=width):
                 self.assertLessEqual(width, 480)

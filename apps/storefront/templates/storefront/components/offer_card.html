@@ -28,7 +28,7 @@
     {% else %}
       <div class="offer-data-empty"><strong>Dados comerciais em preparação</strong><p>Ainda não existe uma observação factual para esta oferta.</p></div>
     {% endif %}
-    {% if request.user.is_authenticated and request.user.is_staff %}<form class="owner-context-action" method="post" action="{% url 'owner-panel:offer-hide' family.slug offer.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}#gestao-owner"><button type="submit">RETIRAR DA MONTRA</button></form>{% endif %}
+    {% if request.user.is_authenticated and request.user.is_staff and not owner_preview_public %}<form class="owner-context-action" method="post" action="{% url 'owner-panel:offer-hide' family.slug offer.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}?gestao=retirados#gestao-owner"><button type="submit">RETIRAR DA MONTRA</button></form>{% endif %}
     <div class="offer-cta">
       {% if offer.can_redirect %}
         <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}">Ver oferta no parceiro <span aria-hidden="true">↗</span></a>

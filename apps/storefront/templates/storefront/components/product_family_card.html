@@ -30,6 +30,6 @@
     {% else %}
       <p class="category-orientation"><strong>Seleção em preparação.</strong> Ainda estamos a validar opções para esta categoria.</p>
     {% endif %}
-    <div class="card-actions"><a class="button button--secondary button--full" href="{% url 'storefront:product-family-detail' family.slug %}">Ver seleção <span aria-hidden="true">→</span></a></div>
+    <div class="card-actions"><a class="button button--secondary button--full" href="{% url 'storefront:product-family-detail' family.slug %}">Ver seleção <span aria-hidden="true">→</span></a>{% if request.user.is_authenticated and request.user.is_staff %}<a class="owner-family-manage-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">Gerir</a>{% endif %}</div>
   </div>
 </article>
