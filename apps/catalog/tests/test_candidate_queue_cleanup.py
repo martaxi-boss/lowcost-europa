@@ -80,14 +80,12 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertContains(response, "Rejeitados 1")
         self.assertContains(response, "Revalidação necessária 1")
 
-    def test_approval_ui_requires_pt_and_explicit_ship_from(self):
+    def test_approval_ui_is_fixed_attestation_without_shipping_fields(self):
         response = self.client.get(self.url)
         self.assertContains(response, ">APROVAR<", html=False)
         self.assertContains(response, ">REVALIDAR<", html=False)
-        self.assertContains(response, 'name="delivers_to_pt_confirmed"', html=False)
-        self.assertContains(response, 'name="ship_from_country"', html=False)
-        self.assertContains(response, "DESTINO: Portugal")
-        self.assertContains(response, "ENVIO A PARTIR DE:")
+        self.assertNotContains(response, 'name="delivers_to_pt_confirmed"', html=False)
+        self.assertNotContains(response, 'name="ship_from_country"', html=False)
 
     def test_rejected_approved_and_all_tabs(self):
         rejected = self.client.get(self.url + "?view=rejected")
@@ -117,19 +115,13 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertNotContains(self.client.get(self.url), "pending-id")
         self.assertContains(self.client.get(self.url + "?view=rejected"), "pending-id")
 
-    def test_approve_requires_country_and_pt_confirmation(self):
+    def test_approve_post_needs_no_shipping_fields(self):
         api = __import__("unittest.mock").mock.Mock()
         api.generate_affiliate_link.return_value = "https://affiliate.example/pending"
-        result = approve_candidate(
-            self.pending,
-            user=self.staff,
-            delivers_to_pt_confirmed=True,
-            ship_from_country="ES",
-            client=api,
-        )
+        result = approve_candidate(self.pending, user=self.staff, client=api)
         result.offer.refresh_from_db()
-        self.assertEqual(result.offer.ship_from_country, "ES")
-        self.assertIsNotNone(result.offer.ship_from_verified_at)
+        self.assertIsNone(result.offer.ship_from_country)
+        self.assertIsNone(result.offer.ship_from_verified_at)
         self.assertIsNotNone(result.offer.protocol_verified_at)
         self.assertTrue(result.offer.owner_hidden)
 
@@ -237,10 +229,9 @@ class CandidateRejectionUITests(TestCase):
         self.assertNotIn('type="radio"', content)
         for label in labels:
             self.assertIn(label, content)
-        self.assertIn('name="ship_from_country"', content)
+        self.assertIn('name="note"', content)
+        self.assertIn('name="reason"', content)
         self.assertNotIn('name="evidence_url"', content)
-        self.assertNotIn('name="note"', content)
-        self.assertNotIn('name="reason"', content)
 
     def test_reject_panel_has_one_submit_button_and_mobile_checkbox_css(self):
         content = self.client.get(self.queue_url).content.decode()
@@ -264,13 +255,31 @@ class CandidateRejectionUITests(TestCase):
             CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
             CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
         ]
-        response = self.client.post(self.reject_url, {"review_signals": signals})
+        response = self.client.post(
+            self.reject_url,
+            {"review_signals": signals, "note": "não encontro envio europeu"},
+        )
         self.assertRedirects(response, self.queue_url)
         self.candidate.refresh_from_db()
         decision = self.candidate.decisions.get()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
         self.assertEqual(decision.review_signals, signals)
         self.assertEqual(decision.reason, "")
+        self.assertEqual(decision.note, "não encontro envio europeu")
+
+    def test_semantic_reason_and_note_are_persisted_without_logistics_signal(self):
+        response = self.client.post(
+            self.reject_url,
+            {
+                "reason": CandidateDecision.Reason.ACCESSORY_OR_PART,
+                "note": "é só a peça da pega",
+            },
+        )
+        self.assertRedirects(response, self.queue_url)
+        decision = self.candidate.decisions.get()
+        self.assertEqual(decision.reason, CandidateDecision.Reason.ACCESSORY_OR_PART)
+        self.assertEqual(decision.note, "é só a peça da pega")
+        self.assertEqual(decision.review_signals, [])
 
     def test_zero_http_signals_shows_simple_error_and_does_not_reject(self):
         response = self.client.post(self.reject_url, {})
@@ -278,7 +287,7 @@ class CandidateRejectionUITests(TestCase):
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
         page = self.client.get(self.queue_url)
-        self.assertContains(page, "Selecione pelo menos uma opção para rejeitar")
+        self.assertContains(page, "Selecione pelo menos um sinal ou motivo para rejeitar")
 
     def test_new_signal_history_is_rendered_in_portuguese_not_codes(self):
         signals = [

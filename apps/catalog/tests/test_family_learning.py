@@ -146,6 +146,49 @@ class FamilyLearningTests(SimpleTestCase):
             with self.subTest(title=title):
                 self.assertFalse(is_family_candidate_relevant(family, title))
 
+    def test_laser_tattoo_quality_reset_blocks_components_and_consumer_ipl(self):
+        family = "diodo-laser-remocao-tatuagens-pigmentacao"
+        blocked = (
+            "Press Button for 808nm Diode Laser Hair Removal Hand Piece",
+            "replacement diode laser handle",
+            "808nm diode laser bar replacement for hair removal machine",
+            "IPL home epilator",
+            "home-use IPL hair remover",
+            "generic laser accessory",
+        )
+        for title in blocked:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(family, title))
+
+    def test_laser_tattoo_quality_reset_accepts_complete_professional_scope(self):
+        family = "diodo-laser-remocao-tatuagens-pigmentacao"
+        accepted = (
+            "professional diode laser hair removal machine",
+            "professional Triple Wave diode laser machine",
+            "professional Q-Switch Nd:YAG tattoo removal machine",
+            "professional tattoo removal laser machine",
+            "professional pigmentation removal laser machine",
+            "professional picosecond laser machine",
+            "diode laser picosecond tattoo removal multifunction machine",
+            "professional diode laser machine with cooling handle",
+        )
+        for title in accepted:
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant(family, title))
+
+    def test_laser_tattoo_search_plan_is_tattoo_first_and_diode_later(self):
+        keywords = LASER_TATTOO_PROFILE.search_keywords
+        self.assertGreaterEqual(len(keywords), 32)
+        self.assertIn("tattoo removal", keywords[0].lower())
+        self.assertLess(
+            next(i for i, value in enumerate(keywords) if "pigmentation" in value.lower()),
+            next(
+                i
+                for i, value in enumerate(keywords)
+                if "professional diode laser hair" in value.lower()
+            ),
+        )
+
     def test_laser_tattoo_profile_variants_and_priority_are_family_specific(self):
         self.assertEqual(LASER_TATTOO_PROFILE.slug, "diodo-laser-remocao-tatuagens-pigmentacao")
         title = "Professional Triple Wave 755nm 808nm 1064nm diode laser hair removal machine"

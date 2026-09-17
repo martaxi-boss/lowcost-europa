@@ -130,12 +130,7 @@ class TaxonomyConsolidation007Tests(TestCase):
         with self.assertRaisesMessage(
             CandidateApprovalError, "Retired family cannot receive approvals"
         ):
-            approve_candidate(
-                candidate,
-                user=self.user,
-                delivers_to_pt_confirmed=True,
-                ship_from_country="ES",
-            )
+            approve_candidate(candidate, user=self.user)
         movable = OfferCandidate.objects.create(
             product_family=active,
             source=Offer.Source.ALIEXPRESS,

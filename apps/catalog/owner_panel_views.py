@@ -33,6 +33,12 @@ from apps.catalog.services.public_eligibility import (
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
+SEMANTIC_REJECTION_CHOICES = (
+    (CandidateDecision.Reason.WRONG_FAMILY, "Produto da família errada"),
+    (CandidateDecision.Reason.ACCESSORY_OR_PART, "Acessório / peça / consumível"),
+    (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
+    (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
+)
 
 def _private(response):
     response["X-Robots-Tag"] = "noindex, nofollow"
@@ -265,6 +271,7 @@ def family_manage(request, family_slug):
                 .exclude(pk=family.pk)
                 .order_by("display_order", "name", "pk"),
                 "review_signals": CandidateDecision.ReviewSignal.choices,
+            "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
                 "owner_error": error,
                 "owner_notice": notice,
             },
@@ -293,12 +300,7 @@ def candidate_approve(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        approve_candidate(
-            candidate,
-            user=request.user,
-            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
-            ship_from_country=request.POST.get("ship_from_country", ""),
-        )
+        approve_candidate(candidate, user=request.user)
     except AliExpressRateLimitError:
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
@@ -316,6 +318,8 @@ def candidate_reject(request, family_slug, candidate_id):
             candidate,
             user=request.user,
             review_signals=request.POST.getlist("review_signals"),
+            reason=request.POST.get("reason", ""),
+            note=request.POST.get("note", ""),
         )
     except CandidateApprovalError as exc:
         request.session["owner_panel_error"] = str(exc)
@@ -344,12 +348,7 @@ def candidate_revalidate(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        revalidate_candidate(
-            candidate,
-            user=request.user,
-            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
-            ship_from_country=request.POST.get("ship_from_country", ""),
-        )
+        revalidate_candidate(candidate, user=request.user)
         request.session["owner_panel_notice"] = "Protocolo revalidado."
     except CandidateApprovalError as exc:
         request.session["owner_panel_error"] = str(exc)

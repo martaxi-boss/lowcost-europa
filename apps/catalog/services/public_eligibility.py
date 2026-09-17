@@ -16,9 +16,7 @@ def is_protocol_verification_fresh(offer, as_of=None):
     as_of = as_of or timezone.now()
     verified_at = offer.protocol_verified_at
     return bool(
-        offer.ship_from_country in ALLOWED_SHIP_FROM_COUNTRIES
-        and offer.ship_from_verified_at is not None
-        and verified_at is not None
+        verified_at is not None
         and verified_at <= as_of
         and as_of - verified_at <= protocol_verification_max_age()
     )
@@ -36,8 +34,6 @@ def public_eligibility_q(as_of=None, prefix=""):
             f"{prefix}is_active": True,
             f"{prefix}owner_hidden": False,
             f"{prefix}affiliate_url__gt": "",
-            f"{prefix}ship_from_country__in": tuple(ALLOWED_SHIP_FROM_COUNTRIES),
-            f"{prefix}ship_from_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__lte": as_of,
             f"{prefix}protocol_verified_at__gte": as_of - protocol_verification_max_age(),

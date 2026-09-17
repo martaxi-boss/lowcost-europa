@@ -15,13 +15,13 @@ Nenhum preço, comissão, vendas, rating, popularidade ou preferência comercial
 
 ## Shipping hard gate
 
-Discovery pode criar Candidates PENDING com shipping desconhecido e a fila privada **A REVER** não tem cap20. Porém, approval exige confirmação humana explícita de entrega em Portugal e ship-from em **PL, CZ, FR, ES ou DE**. UNKNOWN não é PASS. É proibido inferir ship-from por título, moeda, seller, imagem, prazo, “EU warehouse”, “European warehouse”, “Spain warehouse” ou qualquer heurística.
+Discovery pode criar Candidates PENDING com shipping desconhecido e a fila privada **A REVER** não tem cap20. A regra fixa de approval continua a exigir entrega em Portugal e ship-from dentro de **PL, CZ, FR, ES ou DE**. O ato humano de clicar **APROVAR** é a atestação do Owner de que abriu o anúncio real e confirmou integralmente esse protocolo fixo; não existe checkbox nem seleção configurável de país. UNKNOWN não é PASS para a decisão humana. É proibido inferir ship-from por título, moeda, seller, imagem, prazo, “EU warehouse”, “European warehouse”, “Spain warehouse” ou qualquer heurística.
 
 ## Decisão humana e editorial
 
-APPROVE significa que o Owner abriu o anúncio e confirmou disponibilidade, equipamento, família, entrega em Portugal e origem permitida. Approval é sinal positivo de aprendizagem da família, mas **APPROVE != PUBLISH**. Uma nova Offer aprovada nasce com `owner_hidden=True`. Approval nunca limpa `owner_hidden` de uma Offer existente.
+APPROVE significa que o Owner abriu o anúncio e confirmou disponibilidade, equipamento, família, entrega em Portugal e origem dentro do conjunto permitido. O botão APROVAR é a própria atestação; não é necessário preencher país individual. Approval é sinal positivo de aprendizagem da família, mas **APPROVE != PUBLISH**. Uma nova Offer aprovada nasce com `owner_hidden=True`. Approval nunca limpa `owner_hidden` de uma Offer existente. Campos históricos `ship_from_country` e `ship_from_verified_at` são preservados quando já existem, mas nunca são inventados.
 
-Só a ação editorial humana de publicar/voltar a publicar pode tornar `owner_hidden=False`. Publicação exige Offer ativa, família operacional, placement e affiliate URL válidos, protocolo fresco, ship-from permitido e verificado, e vaga na montra.
+Só a ação editorial humana de publicar/voltar a publicar pode tornar `owner_hidden=False`. Publicação exige Offer ativa, família operacional, placement e affiliate URL válidos, atestação humana de protocolo fresca e vaga na montra. O protocolo fixo atesta Portugal + origem dentro de PL/CZ/FR/ES/DE sem exigir persistência do país individual.
 
 ## Cap20
 
@@ -29,15 +29,19 @@ O limite de 20 aplica-se exclusivamente à **montra por família**. Não limita 
 
 ## Public eligibility e /go/
 
-Elegibilidade pública central exige `is_active=True`, `owner_hidden=False`, affiliate URL não vazia, `ship_from_country` em PL/CZ/FR/ES/DE, `ship_from_verified_at` presente e `protocol_verified_at` fresco. Origem desconhecida ou fora da whitelist não é elegível. Storefront e `/go/` usam o mesmo gate; oferta inelegível não redireciona nem cria click válido.
+Elegibilidade pública central exige `is_active=True`, `owner_hidden=False`, affiliate URL não vazia e `protocol_verified_at` fresco. Essa freshness representa a atestação humana do protocolo fixo Portugal + origem dentro de PL/CZ/FR/ES/DE. `ship_from_country` e `ship_from_verified_at` permanecem como histórico opcional quando factual e conhecido, mas não são necessários para novas approvals. Storefront e `/go/` usam o mesmo gate; oferta inelegível não redireciona nem cria click válido.
 
 ## Revalidação
 
-Revalidar repete o protocolo humano. O Owner volta a confirmar entrega em Portugal e ship-from PL/CZ/FR/ES/DE. Maintenance factual nunca renova o protocolo humano.
+REVALIDAR é novamente uma atestação humana de que o Owner abriu o anúncio e confirmou entrega em Portugal + origem dentro de PL/CZ/FR/ES/DE. Não há checkbox nem dropdown; a ação renova `protocol_verified_at` e não inventa país individual. Maintenance factual nunca renova o protocolo humano.
 
 ## Lifecycle factual
 
 Indisponibilidade factual confirmada desativa `is_active`. Erros transitórios (429, 5xx, timeout, network/API transitória ou detalhe insuficiente) não desativam; registam UNKNOWN quando aplicável. Offers inativas não entram na manutenção normal e não são auto-reativadas. Automação nunca limpa `owner_hidden`.
+
+## Rejeição contextual
+
+A rejeição pode guardar sinais factuais/logísticos, um motivo semântico apropriado e uma observação livre em `CandidateDecision.note`. A nota é auditável, mas não vira automaticamente negativo semântico. Shipping failure, origem fora da whitelist e indisponibilidade factual não contaminam aprendizagem comercial; motivos semânticos explícitos como família errada, acessório/peça ou listagem inadequada podem alimentar learning da família.
 
 ## Aprendizagem isolada por família
 

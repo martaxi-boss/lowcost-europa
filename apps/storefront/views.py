@@ -133,6 +133,13 @@ def _public_indexing_active():
     return settings.PUBLIC_INDEXING_ENABLED and bool(settings.PUBLIC_SITE_URL)
 
 
+OWNER_SEMANTIC_REJECTION_CHOICES = (
+    (CandidateDecision.Reason.WRONG_FAMILY, "Produto da família errada"),
+    (CandidateDecision.Reason.ACCESSORY_OR_PART, "Acessório / peça / consumível"),
+    (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
+    (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
+)
+
 def _seo_context(path, page_title, meta_description):
     base_url = settings.PUBLIC_SITE_URL
     canonical_url = f"{base_url}{path}" if base_url else None
@@ -242,6 +249,7 @@ def _owner_family_context(request, family):
         "owner_active_tab": active_tab,
         "owner_selected_candidates": selected_candidates,
         "owner_review_signals": CandidateDecision.ReviewSignal.choices,
+        "semantic_rejection_choices": OWNER_SEMANTIC_REJECTION_CHOICES,
         "owner_target_families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
         .exclude(pk=family.pk)
         .order_by("display_order", "name", "pk"),

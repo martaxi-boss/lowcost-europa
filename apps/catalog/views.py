@@ -16,6 +16,12 @@ from apps.catalog.services.public_eligibility import (
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
+SEMANTIC_REJECTION_CHOICES = (
+    (CandidateDecision.Reason.WRONG_FAMILY, "Produto da família errada"),
+    (CandidateDecision.Reason.ACCESSORY_OR_PART, "Acessório / peça / consumível"),
+    (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
+    (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
+)
 
 def _ops_headers(response):
     response["X-Robots-Tag"] = "noindex, nofollow"
@@ -102,6 +108,7 @@ def candidate_queue(request, family_slug):
             .exclude(pk=family.pk)
             .order_by("display_order", "pk"),
             "review_signals": CandidateDecision.ReviewSignal.choices,
+            "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
         },
     )
     return _ops_headers(response)
@@ -120,12 +127,7 @@ def _candidate_for_family(candidate_id, family_slug):
 def candidate_approve(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        approve_candidate(
-            candidate,
-            user=request.user,
-            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
-            ship_from_country=request.POST.get("ship_from_country", ""),
-        )
+        approve_candidate(candidate, user=request.user)
     except AliExpressRateLimitError:
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
@@ -142,6 +144,8 @@ def candidate_reject(request, family_slug, candidate_id):
             candidate,
             user=request.user,
             review_signals=request.POST.getlist("review_signals"),
+            reason=request.POST.get("reason", ""),
+            note=request.POST.get("note", ""),
         )
     except CandidateApprovalError as exc:
         request.session["ops_error"] = str(exc)
@@ -153,12 +157,7 @@ def candidate_reject(request, family_slug, candidate_id):
 def candidate_revalidate(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        revalidate_candidate(
-            candidate,
-            user=request.user,
-            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
-            ship_from_country=request.POST.get("ship_from_country", ""),
-        )
+        revalidate_candidate(candidate, user=request.user)
     except CandidateApprovalError as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)

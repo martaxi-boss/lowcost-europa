@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -56,28 +55,14 @@ class PublicEligibilityTests(TestCase):
             self.client.get(reverse("storefront:offer-go", args=[o.pk])).status_code, 404
         )
 
-    def test_fresh_protocol_without_ship_from_verification_is_hidden(self):
-        o = self.make("missing-ship-verified", when=timezone.now())
+    def test_fresh_attestation_without_individual_ship_from_is_eligible(self):
+        o = self.make("attested-no-country", country=None, when=timezone.now())
         o.ship_from_verified_at = None
         o.save(update_fields=["ship_from_verified_at"])
-        self.assertNotContains(self.detail(), "missing-ship-verified")
+        self.assertContains(self.detail(), "attested-no-country")
         self.assertEqual(
-            self.client.get(reverse("storefront:offer-go", args=[o.pk])).status_code, 404
+            self.client.get(reverse("storefront:offer-go", args=[o.pk])).status_code, 302
         )
-
-    def test_fresh_protocol_without_ship_from_country_is_hidden(self):
-        o = self.make("missing-country", when=timezone.now())
-        o.ship_from_country = None
-        o.save(update_fields=["ship_from_country"])
-        self.assertNotContains(self.detail(), "missing-country")
-        self.assertEqual(
-            self.client.get(reverse("storefront:offer-go", args=[o.pk])).status_code, 404
-        )
-
-    def test_disallowed_ship_from_country_cannot_be_persisted(self):
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                self.make("disallowed-country", country="CN", when=timezone.now())
 
     def test_missing_affiliate_url_is_hidden(self):
         o = self.make("missing-affiliate", when=timezone.now())

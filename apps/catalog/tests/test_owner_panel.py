@@ -215,22 +215,16 @@ class OwnerEditorialServiceTests(TestCase):
         with self.assertRaises(OwnerEditorialError):
             publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
 
-    def test_publish_requires_complete_allowed_shipping_protocol(self):
+    def test_publish_accepts_fresh_owner_attestation_without_individual_country(self):
         self.offer.owner_hidden = True
-        self.offer.save(update_fields=["owner_hidden"])
-        cases = (
-            (None, timezone.now()),
-            ("PL", None),
+        self.offer.ship_from_country = None
+        self.offer.ship_from_verified_at = None
+        self.offer.save(
+            update_fields=["owner_hidden", "ship_from_country", "ship_from_verified_at"]
         )
-        for country, verified_at in cases:
-            with self.subTest(country=country, verified_at=verified_at):
-                self.offer.ship_from_country = country
-                self.offer.ship_from_verified_at = verified_at
-                self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
-                with self.assertRaises(OwnerEditorialError):
-                    publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
-                self.offer.refresh_from_db()
-                self.assertTrue(self.offer.owner_hidden)
+        publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+        self.offer.refresh_from_db()
+        self.assertFalse(self.offer.owner_hidden)
 
     def test_publish_cap20_blocked_and_stays_twenty(self):
         self.offer.owner_hidden = True
@@ -300,8 +294,6 @@ class OwnerEditorialServiceTests(TestCase):
         revalidate_candidate(
             candidate,
             user=self.user,
-            delivers_to_pt_confirmed=True,
-            ship_from_country="ES",
             now=timezone.now(),
         )
         self.offer.refresh_from_db()
@@ -325,8 +317,6 @@ class OwnerEditorialServiceTests(TestCase):
         approve_candidate(
             candidate,
             user=self.user,
-            delivers_to_pt_confirmed=True,
-            ship_from_country="PL",
             client=client,
         )
         self.offer.refresh_from_db()
@@ -446,7 +436,7 @@ class OwnerPanelCatalogTests(TestCase):
         self.assertEqual(len(labels), 5)
         for label in labels:
             self.assertContains(response, label)
-        self.assertNotContains(response, "Acessório / peça / consumível")
+        self.assertContains(response, "Acessório / peça / consumível")
         self.assertNotContains(response, "owner_hidden")
         self.assertNotContains(response, "protocol_verified_at")
         self.assertNotContains(response, "is_active")
@@ -500,7 +490,7 @@ class OwnerPanelCatalogTests(TestCase):
         )
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
-            {"delivers_to_pt_confirmed": "1", "ship_from_country": "ES"},
+            {},
         )
         self.assertEqual(response.status_code, 302)
         self.pending.refresh_from_db()
