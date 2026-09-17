@@ -42,12 +42,21 @@ class Command(BaseCommand):
                 client=client,
             )
         except AliExpressRateLimitError as exc:
+            result = getattr(exc, "deep_discovery_result", None)
+            if result is not None:
+                self._write_result(result)
             self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError("AliExpress rate-limit abort") from exc
         except AliExpressError as exc:
+            result = getattr(exc, "deep_discovery_result", None)
+            if result is not None:
+                self._write_result(result)
             self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError(exc.__class__.__name__) from exc
+        self._write_result(result)
+        self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
 
+    def _write_result(self, result):
         for item in result.pages:
             r = item.result
             self.stdout.write(
@@ -87,4 +96,3 @@ class Command(BaseCommand):
         self.stdout.write(f"Stop reason: {result.stop_reason or '-'}")
         if result.last_keyword:
             self.stdout.write(f"Last checkpoint: {result.last_keyword} page {result.last_page}")
-        self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))

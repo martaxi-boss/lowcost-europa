@@ -10,6 +10,7 @@ from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, Produc
 from apps.catalog.services.candidate_discovery import _learning_inputs, discover_family_candidates
 from apps.catalog.services.deep_discovery import discover_family_deep
 from apps.catalog.services.family_profiles import LASER_TATTOO_PROFILE
+from apps.integrations.aliexpress.exceptions import AliExpressResponseError
 from apps.integrations.aliexpress.types import AliExpressProduct, AliExpressSearchResult
 
 
@@ -105,6 +106,25 @@ class DeepDiscoveryTests(TestCase):
         self.assertEqual(result.search_operations, 2)
         self.assertEqual(result.pages[-1].stop_reason, "NO_NEW_IDS")
         self.assertEqual(OfferCandidate.objects.count(), 1)
+
+    def test_search_abort_preserves_last_checkpoint_and_prior_page_metrics(self):
+        client = Mock()
+        product = self.product("first-page")
+        client.search_products_diagnostic.side_effect = [
+            AliExpressSearchResult(products=[product]),
+            AliExpressResponseError("missing result"),
+        ]
+        client.get_product_detail.return_value = product
+        with self.assertRaises(AliExpressResponseError) as caught:
+            discover_family_deep(
+                self.family, ["diode laser"], max_pages=3, max_details=1, client=client
+            )
+        result = caught.exception.deep_discovery_result
+        self.assertEqual(result.search_operations, 1)
+        self.assertEqual(result.created, 1)
+        self.assertEqual(result.last_keyword, "diode laser")
+        self.assertEqual(result.last_page, 2)
+        self.assertEqual(result.stop_reason, "AliExpressResponseError")
 
     def test_max_pages_is_respected(self):
         client = Mock()
