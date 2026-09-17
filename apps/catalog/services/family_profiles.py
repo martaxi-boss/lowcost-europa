@@ -267,6 +267,85 @@ PRESSOTHERAPY_PROFILE = FamilyProfile(
 )
 
 
+MICROCURRENT_ULTRASOUND_PROFILE = FamilyProfile(
+    slug="microcorrente-ultrassons",
+    required_patterns=(
+        _rx(r"\bmicro[- ]?current\b"),
+        _rx(r"\bmicrocurrent\s+(?:facial|lifting|beauty|therapy|skin\s+care)\b"),
+        _rx(r"\bultrasound\s+(?:beauty|facial|skin\s+care)\b"),
+        _rx(r"\bultrasonic\s+(?:beauty|facial|skin\s+care)\b"),
+    ),
+    accessory_terms=(
+        "probe only",
+        "handle only",
+        "replacement handle",
+        "handpiece only",
+        "replacement handpiece",
+        "electrode only",
+        "electrodes only",
+        "pads only",
+        "gloves only",
+        "cable only",
+        "wire only",
+        "replacement head",
+        "head only",
+        "transducer only",
+        "replacement transducer",
+        "tip only",
+        "tips only",
+        "gel",
+        "cream",
+        "serum",
+        "replacement part",
+        "spare part",
+        "accessory",
+        "accessories",
+        "consumable",
+    ),
+    variant_patterns=(
+        ("MICROCURRENT", _rx(r"\bmicro[- ]?current\b")),
+        ("ULTRASOUND", _rx(r"\bultrasound\b")),
+        ("ULTRASONIC", _rx(r"\bultrasonic\b")),
+        (
+            "MICROCURRENT + ULTRASOUND",
+            _rx(r"(?=.*\bmicro[- ]?current\b)(?=.*\b(?:ultrasound|ultrasonic)\b)"),
+        ),
+        (
+            "MICROCURRENT + RF",
+            _rx(r"(?=.*\bmicro[- ]?current\b)(?=.*\b(?:rf|radio\s+frequency)\b)"),
+        ),
+        ("MULTIFUNCTION", _rx(r"\b(?:multi[- ]?function|multifunction)\b")),
+    ),
+    scoring_terms=(
+        *_COMMON_SCORING,
+        ("microcurrent", 18, "microcurrent"),
+        ("micro current", 18, "micro current"),
+        ("ultrasonic facial", 16, "ultrasonic facial"),
+        ("ultrasound facial", 16, "ultrasound facial"),
+        ("skin care", 10, "skin care"),
+        ("facial lifting", 10, "facial lifting"),
+        ("clinic", 10, "clinic"),
+    ),
+    search_keywords=(
+        "professional microcurrent facial machine",
+        "microcurrent facial lifting professional machine",
+        "microcurrent beauty salon equipment",
+        "professional microcurrent skin care machine",
+        "microcurrent facial toning salon equipment",
+        "professional ultrasonic facial beauty machine",
+        "ultrasonic skin care professional equipment",
+        "ultrasound facial beauty salon machine",
+        "professional ultrasound facial treatment machine",
+        "microcurrent ultrasound professional facial machine",
+        "microcurrent ultrasonic beauty salon equipment",
+        "microcurrent ultrasound multifunction facial equipment",
+        "professional microcurrent RF ultrasound beauty machine",
+        "microcurrent ultrasonic skin lifting equipment",
+        "facial microcurrent ultrasound salon machine",
+    ),
+)
+
+
 LASER_TATTOO_PROFILE = FamilyProfile(
     slug="diodo-laser-remocao-tatuagens-pigmentacao",
     required_patterns=(
@@ -444,6 +523,7 @@ PROFILES = {
     CAVITATION_PROFILE.slug: CAVITATION_PROFILE,
     HYDRODERMO_PROFILE.slug: HYDRODERMO_PROFILE,
     PRESSOTHERAPY_PROFILE.slug: PRESSOTHERAPY_PROFILE,
+    MICROCURRENT_ULTRASOUND_PROFILE.slug: MICROCURRENT_ULTRASOUND_PROFILE,
     LASER_TATTOO_PROFILE.slug: LASER_TATTOO_PROFILE,
 }
 

@@ -82,3 +82,57 @@ class PressotherapyCandidateRelevanceTests(SimpleTestCase):
         for title in titles:
             with self.subTest(title=title):
                 self.assertFalse(is_family_candidate_relevant(self.slug, title))
+
+
+class MicrocurrentUltrasoundCandidateRelevanceTests(SimpleTestCase):
+    slug = "microcorrente-ultrassons"
+
+    def test_positive_core_titles_pass(self):
+        titles = (
+            "Professional Microcurrent Facial Lifting Machine",
+            "Microcurrent Beauty Salon Skin Care Equipment",
+            "Professional Ultrasonic Facial Beauty Machine",
+            "Ultrasound Facial Treatment Salon Equipment",
+            "Professional Microcurrent Ultrasound Facial Machine",
+            "Microcurrent Ultrasonic Multifunction Beauty Equipment",
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant(self.slug, title))
+
+    def test_complete_machine_with_probes_is_allowed(self):
+        self.assertTrue(
+            is_family_candidate_relevant(
+                self.slug,
+                "Professional Microcurrent Facial Machine with Probes and Electrodes",
+            )
+        )
+
+    def test_accessories_are_blocked(self):
+        titles = (
+            "Microcurrent Probe Only",
+            "Replacement Microcurrent Handle",
+            "Microcurrent Electrode Pads Only",
+            "Ultrasound Gel",
+            "Replacement Ultrasound Transducer Only",
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(self.slug, title))
+
+    def test_wrong_family_medical_and_consumer_titles_are_blocked(self):
+        titles = (
+            "7D HIFU Beauty Machine",
+            "22D MAX HIFU Machine",
+            "Ultrasonic Cavitation RF Vacuum Body Slimming Machine",
+            "Pregnancy Ultrasound Scanner",
+            "Medical Diagnostic Ultrasound Machine",
+            "Ultrasonic Cleaner",
+            "Ultrasonic Tooth Cleaner",
+            "Home Ultrasonic Massager",
+            "Pressotherapy Machine",
+            "Diode Laser Machine",
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(self.slug, title))

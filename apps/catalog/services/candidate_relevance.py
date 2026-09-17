@@ -14,6 +14,20 @@ _GENERIC_ACCESSORY_TERMS = (
 )
 
 
+_MICROCURRENT_ULTRASOUND_FAMILY = "microcorrente-ultrassons"
+_MICROCURRENT_ULTRASOUND_EXCLUDED = (
+    "hifu", "hi-fu", "high intensity focused ultrasound",
+    "cavitation", "pregnancy ultrasound", "fetal ultrasound",
+    "diagnostic ultrasound", "medical ultrasound", "ultrasonic cleaner",
+    "ultrasonic tooth cleaner", "pressotherapy", "diode laser",
+)
+_MICROCURRENT_ULTRASOUND_CONSUMER = (
+    "home ultrasonic massager", "personal microcurrent pen",
+    "handheld consumer", "consumer-only", "consumer only",
+    "home microcurrent gadget", "mini home microcurrent",
+    "personal facial wand",
+)
+
 _PRESSOTHERAPY_FAMILY = "pressoterapia-vacuum-drenagem"
 _PRESSOTHERAPY_CONTEXT = (
     "pressotherapy", "pressoterapia", "lymphatic drainage", "lymph drainage",
@@ -109,6 +123,16 @@ def family_candidate_relevance(family_slug, title):
         return False, "ACCESSORY_OR_PART"
     if profile and profile.required_patterns:
         if not any(pattern.search(text) for pattern in profile.required_patterns):
+            return False, "IRRELEVANT_FAMILY"
+    if family_slug == _MICROCURRENT_ULTRASOUND_FAMILY:
+        if "replacement" in lowered and any(
+            part in lowered
+            for part in ("handle", "handpiece", "probe", "head", "transducer")
+        ):
+            return False, "ACCESSORY_OR_PART"
+        if any(term in lowered for term in _MICROCURRENT_ULTRASOUND_EXCLUDED):
+            return False, "IRRELEVANT_FAMILY"
+        if any(term in lowered for term in _MICROCURRENT_ULTRASOUND_CONSUMER):
             return False, "IRRELEVANT_FAMILY"
     if family_slug == _PRESSOTHERAPY_FAMILY:
         if "vacuum" in lowered and not any(term in lowered for term in _PRESSOTHERAPY_CONTEXT):
