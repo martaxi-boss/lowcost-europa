@@ -162,9 +162,9 @@ class EightFamilyTaxonomyMigrationTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, family.name)
 
-    def test_homepage_uses_authorized_eight_family_factual_copy(self):
+    def test_homepage_uses_current_five_family_factual_copy(self):
         response = self.client.get(reverse("storefront:home"))
-        self.assertContains(response, "8 categorias")
+        self.assertContains(response, "5 categorias")
         self.assertNotContains(response, "Cinco famílias reais")
 
 
