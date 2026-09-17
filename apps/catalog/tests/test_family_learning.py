@@ -4,7 +4,11 @@ from django.test import SimpleTestCase
 
 from apps.catalog.services.candidate_priority import priority_for_family
 from apps.catalog.services.candidate_relevance import is_family_candidate_relevant
-from apps.catalog.services.family_profiles import CAVITATION_PROFILE, HIFU_PROFILE
+from apps.catalog.services.family_profiles import (
+    CAVITATION_PROFILE,
+    HIFU_PROFILE,
+    HYDRODERMO_PROFILE,
+)
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 
@@ -64,3 +68,21 @@ class FamilyLearningTests(SimpleTestCase):
         self.assertEqual(HIFU_PROFILE.slug, "hifu")
         self.assertEqual(CAVITATION_PROFILE.slug, "cavitacao-rf-vacuum-corpo")
         self.assertEqual(len(CAVITATION_PROFILE.search_keywords), 2)
+        self.assertEqual(
+            HYDRODERMO_PROFILE.slug,
+            "hydrodermoabrasao-aqua-facial-multifuncoes",
+        )
+        self.assertEqual(len(HYDRODERMO_PROFILE.search_keywords), 3)
+
+    def test_hydrodermo_priority_rewards_family_specific_professional_terms(self):
+        generic = self.product("Hydro Facial machine")
+        strong = self.product(
+            "Professional 8 in 1 Hydrodermabrasion Aqua Facial multifunction salon machine"
+        )
+        generic_score = priority_for_family(
+            generic, HYDRODERMO_PROFILE.slug, learned_variants=set()
+        )[0]
+        strong_score = priority_for_family(strong, HYDRODERMO_PROFILE.slug, learned_variants=set())[
+            0
+        ]
+        self.assertGreater(strong_score, generic_score)

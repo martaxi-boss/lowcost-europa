@@ -103,9 +103,68 @@ CAVITATION_PROFILE = FamilyProfile(
     ),
 )
 
+HYDRODERMO_PROFILE = FamilyProfile(
+    slug="hydrodermoabrasao-aqua-facial-multifuncoes",
+    required_patterns=(
+        _rx(r"\bhydro\s*dermabrasion\b"),
+        _rx(r"\bhydrodermabrasion\b"),
+        _rx(r"\bwater\s+dermabrasion\b"),
+        _rx(r"\baqua\s+(?:facial|peel)\b"),
+        _rx(r"\bhydr[ao]\s+facial\b"),
+    ),
+    accessory_terms=(
+        "solution only",
+        "serum only",
+        "bottle only",
+        "bottles only",
+        "replacement bottle",
+        "replacement bottles",
+        "handle only",
+        "handles only",
+        "probe only",
+        "probes only",
+        "tip only",
+        "tips only",
+        "replacement tip",
+        "replacement tips",
+        "spare part",
+        "replacement part",
+        "consumable",
+        "accessory",
+        "accessories",
+        "filter only",
+        "tube only",
+        "tubes only",
+    ),
+    variant_patterns=(
+        ("6-IN-1", _rx(r"\b6\s*[- ]?in\s*[- ]?1\b")),
+        ("7-IN-1", _rx(r"\b7\s*[- ]?in\s*[- ]?1\b")),
+        ("8-IN-1", _rx(r"\b8\s*[- ]?in\s*[- ]?1\b")),
+        ("9-IN-1", _rx(r"\b9\s*[- ]?in\s*[- ]?1\b")),
+        ("10-IN-1", _rx(r"\b10\s*[- ]?in\s*[- ]?1\b")),
+    ),
+    scoring_terms=(
+        *_COMMON_SCORING,
+        ("hydrodermabrasion", 14, "hydrodermabrasion"),
+        ("hydro dermabrasion", 14, "hydro dermabrasion"),
+        ("hydro facial", 12, "hydro facial"),
+        ("hydra facial", 12, "hydra facial"),
+        ("aqua facial", 12, "aqua facial"),
+        ("aqua peel", 10, "aqua peel"),
+        ("water dermabrasion", 10, "water dermabrasion"),
+        ("multifunction", 6, "multifunction"),
+    ),
+    search_keywords=(
+        "hydrodermabrasion aqua facial professional machine",
+        "hydro facial multifunction beauty salon machine",
+        "aqua peel water dermabrasion facial machine",
+    ),
+)
+
 PROFILES = {
     HIFU_PROFILE.slug: HIFU_PROFILE,
     CAVITATION_PROFILE.slug: CAVITATION_PROFILE,
+    HYDRODERMO_PROFILE.slug: HYDRODERMO_PROFILE,
 }
 
 

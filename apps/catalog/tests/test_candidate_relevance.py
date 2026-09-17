@@ -31,3 +31,46 @@ class HifuCandidateRelevanceTests(SimpleTestCase):
                 "hifu", "High Intensity Focused Ultrasound professional machine"
             )
         )
+
+
+class HydrodermoCandidateRelevanceTests(SimpleTestCase):
+    slug = "hydrodermoabrasao-aqua-facial-multifuncoes"
+
+    def test_professional_hydrodermabrasion_machine_passes(self):
+        self.assertTrue(
+            is_family_candidate_relevant(
+                self.slug,
+                "Professional 8 in 1 Hydrodermabrasion Aqua Facial Machine for Beauty Salon",
+            )
+        )
+
+    def test_semantic_equivalent_phrases_pass(self):
+        accepted = (
+            "Hydro Dermabrasion professional facial equipment",
+            "Hydro Facial multifunction salon machine",
+            "Hydra Facial 7 in 1 beauty machine",
+            "Aqua Facial professional equipment",
+            "Aqua Peel 6 in 1 facial machine",
+            "Water Dermabrasion beauty salon machine",
+        )
+        for title in accepted:
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant(self.slug, title))
+
+    def test_generic_facial_machine_is_not_enough(self):
+        self.assertFalse(
+            is_family_candidate_relevant(
+                self.slug,
+                "Professional multifunction facial machine skin care beauty salon equipment",
+            )
+        )
+
+    def test_accessories_are_blocked_even_with_family_terms(self):
+        blocked = (
+            "Hydrodermabrasion replacement tips only",
+            "Aqua Facial replacement bottle accessory",
+            "Hydra Facial probe only",
+        )
+        for title in blocked:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(self.slug, title))
