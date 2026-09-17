@@ -20,6 +20,8 @@ class Command(BaseCommand):
             family = ProductFamily.objects.get(slug=options["family"])
         except ProductFamily.DoesNotExist as exc:
             raise CommandError("Unknown family") from exc
+        if family.status == ProductFamily.Status.RETIRED:
+            raise CommandError("Retired family cannot receive discovery")
         client = AliExpressClient()
         try:
             result = discover_family_candidates(

@@ -13,6 +13,8 @@ def move_candidate_to_family(candidate, *, target_family, user):
         raise CandidateMoveError("Staff user required")
     if not isinstance(target_family, ProductFamily):
         raise CandidateMoveError("Target family required")
+    if target_family.status == ProductFamily.Status.RETIRED:
+        raise CandidateMoveError("Retired family cannot receive candidates")
 
     locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
     if locked.product_family_id == target_family.pk:

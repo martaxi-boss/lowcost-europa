@@ -45,14 +45,10 @@ def _decorate_candidate(candidate):
     signal_labels = dict(CandidateDecision.ReviewSignal.choices)
     for decision in candidate.history:
         decision.decision_label = (
-            "Aprovado"
-            if decision.decision == CandidateDecision.Decision.APPROVE
-            else "Rejeitado"
+            "Aprovado" if decision.decision == CandidateDecision.Decision.APPROVE else "Rejeitado"
         )
         decision.review_signal_labels = [
-            signal_labels[signal]
-            for signal in decision.review_signals
-            if signal in signal_labels
+            signal_labels[signal] for signal in decision.review_signals if signal in signal_labels
         ]
     return candidate
 
@@ -102,7 +98,9 @@ def candidate_queue(request, family_slug):
             "candidates": candidates,
             "counts": counts,
             "active_view": view,
-            "families": ProductFamily.objects.exclude(pk=family.pk).order_by("display_order", "pk"),
+            "families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
+            .exclude(pk=family.pk)
+            .order_by("display_order", "pk"),
             "review_signals": CandidateDecision.ReviewSignal.choices,
         },
     )
@@ -160,7 +158,10 @@ def candidate_revalidate(request, family_slug, candidate_id):
 @staff_member_required(login_url="admin:login")
 def candidate_move(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
-    target = get_object_or_404(ProductFamily, pk=request.POST.get("target_family"))
+    target = get_object_or_404(
+        ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED),
+        pk=request.POST.get("target_family"),
+    )
     try:
         move_candidate_to_family(candidate, target_family=target, user=request.user)
     except CandidateMoveError as exc:

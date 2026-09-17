@@ -49,7 +49,9 @@ def approve_candidate(candidate, *, user, client=None, now=None):
     with transaction.atomic():
         family = candidate.product_family
         ProductFamily = type(family)
-        ProductFamily.objects.select_for_update().get(pk=family.pk)
+        locked_family = ProductFamily.objects.select_for_update().get(pk=family.pk)
+        if locked_family.status == ProductFamily.Status.RETIRED:
+            raise CandidateApprovalError("Retired family cannot receive approvals")
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
         eligible_count = OfferFamilyPlacement.objects.filter(
             product_family=family,
