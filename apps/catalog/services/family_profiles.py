@@ -118,9 +118,75 @@ CAVITATION_PROFILE = FamilyProfile(
     ),
 )
 
+
+HYDRODERMO_PROFILE = FamilyProfile(
+    slug="hydrodermoabrasao-aqua-facial-multifuncoes",
+    required_patterns=(
+        _rx(r"\bmicro\s*dermabrasion\b"),
+        _rx(r"\bdiamond\s+micro\s*dermabrasion\b"),
+        _rx(r"\bhydro\s*dermabrasion\b"),
+        _rx(r"\bhydrodermabrasion\b"),
+        _rx(r"\bhydro\s+facial\b"),
+        _rx(r"\bhydra\s*facial\b"),
+        _rx(r"\baqua\s+facial\b"),
+        _rx(r"\baqua\s+peel\b"),
+        _rx(r"\bwater\s+dermabrasion\b"),
+    ),
+    accessory_terms=(
+        "tips only",
+        "replacement tips",
+        "diamond tips only",
+        "serum only",
+        "solution only",
+        "liquid only",
+        "bottle only",
+        "handle only",
+        "handpiece only",
+        "probe only",
+        "filter only",
+        "tube only",
+        "hose only",
+        "spray gun only",
+        "replacement part",
+        "spare part",
+        "accessory",
+        "accessories",
+        "consumable",
+        "jar only",
+    ),
+    variant_patterns=(
+        ("5-IN-1", _rx(r"\b5\s*[- ]?in\s*[- ]?1\b")),
+        ("6-IN-1", _rx(r"\b6\s*[- ]?in\s*[- ]?1\b")),
+        ("7-IN-1", _rx(r"\b7\s*[- ]?in\s*[- ]?1\b")),
+        ("8-IN-1", _rx(r"\b8\s*[- ]?in\s*[- ]?1\b")),
+        ("9-IN-1", _rx(r"\b9\s*[- ]?in\s*[- ]?1\b")),
+        ("10-IN-1", _rx(r"\b10\s*[- ]?in\s*[- ]?1\b")),
+        ("12-IN-1", _rx(r"\b12\s*[- ]?in\s*[- ]?1\b")),
+        ("14-IN-1", _rx(r"\b14\s*[- ]?in\s*[- ]?1\b")),
+    ),
+    scoring_terms=(
+        *_COMMON_SCORING,
+        ("microdermabrasion", 14, "microdermabrasion"),
+        ("diamond microdermabrasion", 16, "diamond microdermabrasion"),
+        ("hydrodermabrasion", 14, "hydrodermabrasion"),
+        ("hydro facial", 12, "hydro facial"),
+        ("aqua facial", 12, "aqua facial"),
+        ("aqua peel", 10, "aqua peel"),
+        ("water dermabrasion", 10, "water dermabrasion"),
+    ),
+    search_keywords=(
+        "microdermabrasion professional facial machine",
+        "diamond microdermabrasion beauty salon machine",
+        "hydrodermabrasion professional facial machine",
+        "hydro facial multifunction beauty machine",
+        "aqua peel hydro dermabrasion machine",
+    ),
+)
+
 PROFILES = {
     HIFU_PROFILE.slug: HIFU_PROFILE,
     CAVITATION_PROFILE.slug: CAVITATION_PROFILE,
+    HYDRODERMO_PROFILE.slug: HYDRODERMO_PROFILE,
 }
 
 
