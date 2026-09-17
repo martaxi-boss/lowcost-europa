@@ -40,6 +40,7 @@ SEMANTIC_REJECTION_CHOICES = (
     (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
 )
 
+
 def _private(response):
     response["X-Robots-Tag"] = "noindex, nofollow"
     response["Cache-Control"] = "private, no-store"
@@ -84,9 +85,7 @@ def _decorate_offer(offer):
     )
     offer.latest_observation = offer.observations.order_by("-observed_at", "-pk").first()
     offer.protocol_fresh = is_protocol_verification_fresh(offer)
-    offer.was_editorially_hidden = offer.editorial_events.filter(
-        action="HIDE"
-    ).exists()
+    offer.was_editorially_hidden = offer.editorial_events.filter(action="HIDE").exists()
     if not offer.is_active:
         offer.owner_state_label = "Indisponível"
     elif not offer.protocol_fresh:
@@ -139,7 +138,9 @@ def _family_counts(family):
             product_family=family,
             offer__owner_hidden=True,
             offer__editorial_events__action="HIDE",
-        ).distinct().count(),
+        )
+        .distinct()
+        .count(),
     }
 
 
@@ -271,7 +272,7 @@ def family_manage(request, family_slug):
                 .exclude(pk=family.pk)
                 .order_by("display_order", "name", "pk"),
                 "review_signals": CandidateDecision.ReviewSignal.choices,
-            "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
+                "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
                 "owner_error": error,
                 "owner_notice": notice,
             },
@@ -292,6 +293,19 @@ def _return_family(family, view="rever", request=None):
         if next_url:
             return _private(redirect(next_url))
     return _private(redirect(f"/painel/familias/{family.slug}/?vista={view}"))
+
+
+def _moved_candidate_view(candidate):
+    if candidate.status == OfferCandidate.Status.PENDING:
+        return "rever"
+    if candidate.status != OfferCandidate.Status.APPROVED or not candidate.approved_offer_id:
+        return "rever"
+    offer = candidate.approved_offer
+    if not offer.is_active:
+        return "retirados"
+    if not is_protocol_verification_fresh(offer):
+        return "revalidar"
+    return "aprovados" if offer.owner_hidden else "montra"
 
 
 @require_POST
@@ -336,10 +350,14 @@ def candidate_move(request, family_slug, candidate_id):
         pk=request.POST.get("target_family"),
     )
     try:
-        move_candidate_to_family(candidate, target_family=target, user=request.user)
+        moved, _ = move_candidate_to_family(candidate, target_family=target, user=request.user)
+        moved = OfferCandidate.objects.select_related("approved_offer", "product_family").get(
+            pk=moved.pk
+        )
+        return _return_family(moved.product_family, _moved_candidate_view(moved), request)
     except CandidateMoveError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever", request)
+        return _return_family(family, "rever", request)
 
 
 @require_POST
