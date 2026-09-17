@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.catalog.models import (
@@ -130,8 +132,20 @@ def _family_counts(family):
 
 @require_http_methods(["GET", "POST"])
 def owner_login(request):
+    next_url = request.GET.get("next", "") or request.POST.get("next", "")
+    safe_next = (
+        next_url
+        if next_url
+        and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        )
+        else ""
+    )
+    destination = safe_next or reverse("storefront:home")
     if request.user.is_authenticated and request.user.is_staff:
-        return _private(redirect("owner-panel:dashboard"))
+        return _private(redirect(destination))
     error = ""
     if request.method == "POST":
         password = request.POST.get("password", "")
@@ -142,9 +156,15 @@ def owner_login(request):
         )
         if user is not None and user.is_active and user.is_staff:
             login(request, user)
-            return _private(redirect("owner-panel:dashboard"))
+            return _private(redirect(destination))
         error = "Palavra-passe incorreta."
-    return _private(render(request, "catalog/owner_panel/login.html", {"error": error}))
+    return _private(
+        render(
+            request,
+            "catalog/owner_panel/login.html",
+            {"error": error, "next": safe_next},
+        )
+    )
 
 
 @require_POST
@@ -237,7 +257,18 @@ def family_manage(request, family_slug):
     )
 
 
-def _return_family(family, view="rever"):
+def _safe_next(request):
+    next_url = request.POST.get("next", "")
+    if next_url.startswith("/") and not next_url.startswith("//"):
+        return next_url
+    return ""
+
+
+def _return_family(family, view="rever", request=None):
+    if request is not None:
+        next_url = _safe_next(request)
+        if next_url:
+            return _private(redirect(next_url))
     return _private(redirect(f"/painel/familias/{family.slug}/?vista={view}"))
 
 
@@ -252,7 +283,7 @@ def candidate_approve(request, family_slug, candidate_id):
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever")
+    return _return_family(family, "rever", request)
 
 
 @require_POST
@@ -268,7 +299,7 @@ def candidate_reject(request, family_slug, candidate_id):
         )
     except CandidateApprovalError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever")
+    return _return_family(family, "rever", request)
 
 
 @require_POST
@@ -284,7 +315,7 @@ def candidate_move(request, family_slug, candidate_id):
         move_candidate_to_family(candidate, target_family=target, user=request.user)
     except CandidateMoveError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever")
+    return _return_family(family, "rever", request)
 
 
 @require_POST
@@ -302,6 +333,7 @@ def candidate_revalidate(request, family_slug, candidate_id):
         "retirados"
         if candidate.approved_offer and candidate.approved_offer.owner_hidden
         else "revalidar",
+        request,
     )
 
 
@@ -315,10 +347,7 @@ def offer_hide(request, family_slug, offer_id):
         request.session["owner_panel_notice"] = "Oferta retirada da montra."
     except OwnerEditorialError as exc:
         request.session["owner_panel_error"] = str(exc)
-    next_url = request.POST.get("next")
-    if next_url and next_url.startswith("/") and not next_url.startswith("//"):
-        return _private(redirect(next_url))
-    return _return_family(family, "retirados")
+    return _return_family(family, "retirados", request)
 
 
 @require_POST
@@ -331,4 +360,4 @@ def offer_publish(request, family_slug, offer_id):
         request.session["owner_panel_notice"] = "Oferta publicada na montra."
     except OwnerEditorialError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "retirados")
+    return _return_family(family, "retirados", request)
