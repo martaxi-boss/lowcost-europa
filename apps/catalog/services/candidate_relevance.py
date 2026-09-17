@@ -13,6 +13,20 @@ _GENERIC_ACCESSORY_TERMS = (
     "cream",
 )
 
+
+_PRESSOTHERAPY_FAMILY = "pressoterapia-vacuum-drenagem"
+_PRESSOTHERAPY_CONTEXT = (
+    "pressotherapy", "pressoterapia", "lymphatic drainage", "lymph drainage",
+    "air compression", "air pressure", "pneumatic compression",
+    "compression therapy", "pressure therapy",
+)
+_PRESSOTHERAPY_CONSUMER_OR_WRONG_TARGET = (
+    "home leg massager", "home leg air compression massager",
+    "personal massager", "sports recovery boots", "recovery boots",
+    "compression socks", "compression stockings", "dvt", "hospital",
+    "breast enhancement", "butt lifting",
+)
+
 _LASER_TATTOO_FAMILY = "diodo-laser-remocao-tatuagens-pigmentacao"
 _LASER_COMPLETE_MACHINE_MARKERS = (
     "machine", "equipment", "system", "professional", "beauty salon", "clinic", "multifunction"
@@ -95,6 +109,11 @@ def family_candidate_relevance(family_slug, title):
         return False, "ACCESSORY_OR_PART"
     if profile and profile.required_patterns:
         if not any(pattern.search(text) for pattern in profile.required_patterns):
+            return False, "IRRELEVANT_FAMILY"
+    if family_slug == _PRESSOTHERAPY_FAMILY:
+        if "vacuum" in lowered and not any(term in lowered for term in _PRESSOTHERAPY_CONTEXT):
+            return False, "IRRELEVANT_FAMILY"
+        if any(term in lowered for term in _PRESSOTHERAPY_CONSUMER_OR_WRONG_TARGET):
             return False, "IRRELEVANT_FAMILY"
     if family_slug == "cavitacao-rf-vacuum-corpo":
         facial_only = ("face" in lowered or "facial" in lowered) and not any(
