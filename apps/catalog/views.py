@@ -23,6 +23,7 @@ SEMANTIC_REJECTION_CHOICES = (
     (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
 )
 
+
 def _ops_headers(response):
     response["X-Robots-Tag"] = "noindex, nofollow"
     response["Cache-Control"] = "private, no-store"
@@ -172,7 +173,8 @@ def candidate_move(request, family_slug, candidate_id):
         pk=request.POST.get("target_family"),
     )
     try:
-        move_candidate_to_family(candidate, target_family=target, user=request.user)
+        moved, _ = move_candidate_to_family(candidate, target_family=target, user=request.user)
+        return redirect("catalog:candidate-queue", family_slug=moved.product_family.slug)
     except CandidateMoveError as exc:
         request.session["ops_error"] = str(exc)
-    return redirect("catalog:candidate-queue", family_slug=family_slug)
+        return redirect("catalog:candidate-queue", family_slug=family_slug)

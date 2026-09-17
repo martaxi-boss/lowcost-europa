@@ -89,6 +89,11 @@ def _prepare_offer(offer, family):
     offer.latest_observation = offer.latest_observations[0] if offer.latest_observations else None
     offer.logistics_text = _logistics_text(offer.latest_observation)
     offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
+    offer.approved_candidate = (
+        OfferCandidate.objects.filter(approved_offer=offer, status=OfferCandidate.Status.APPROVED)
+        .order_by("pk")
+        .first()
+    )
     return offer
 
 
@@ -139,6 +144,7 @@ OWNER_SEMANTIC_REJECTION_CHOICES = (
     (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
     (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
 )
+
 
 def _seo_context(path, page_title, meta_description):
     base_url = settings.PUBLIC_SITE_URL

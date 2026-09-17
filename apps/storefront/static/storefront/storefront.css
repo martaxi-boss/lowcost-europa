@@ -268,6 +268,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 }
 
 .owner-context-action{margin-top:.75rem}.owner-context-action button{min-height:44px;width:100%;border:1px solid #842d2d;border-radius:10px;background:#fff4f4;color:#611;font-weight:800;font-size:.9rem}
+.owner-context-actions{display:grid;gap:.65rem;margin-top:.75rem}.owner-context-move{display:grid;gap:.5rem;max-width:100%}.owner-context-move label{display:grid;gap:.35rem;font-weight:800}.owner-context-move select{width:100%;max-width:100%;min-height:44px;border:1px solid #afc4be;border-radius:9px;padding:8px;background:#fff}.owner-context-move button{width:100%;min-height:44px;border:1px solid #345f55;border-radius:10px;background:#f3fbf8;font-weight:800}
 
 /* STOREFRONT OWNER MODE 001 */
 .owner-private-bar {
