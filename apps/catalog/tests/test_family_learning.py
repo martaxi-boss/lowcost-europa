@@ -60,6 +60,25 @@ class FamilyLearningTests(SimpleTestCase):
             )
         )
 
+    def test_cavitation_profile_blocks_new_accessory_terms_and_accepts_variants(self):
+        for title in (
+            "Vacuum therapy cups only",
+            "RF machine hose only",
+            "Cavitation replacement head only",
+            "40K cavitation power supply only",
+        ):
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant("cavitacao-rf-vacuum-corpo", title))
+        for title in (
+            "3 in 1 cavitation RF vacuum professional machine",
+            "4 in 1 cavitation RF vacuum professional machine",
+            "7 in 1 cavitation RF vacuum professional machine",
+            "8 in 1 cavitation RF vacuum professional machine",
+            "Professional electric cupping body therapy machine",
+        ):
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant("cavitacao-rf-vacuum-corpo", title))
+
     def test_profiles_are_family_specific_and_ready(self):
         self.assertEqual(HIFU_PROFILE.slug, "hifu")
         self.assertEqual(CAVITATION_PROFILE.slug, "cavitacao-rf-vacuum-corpo")
