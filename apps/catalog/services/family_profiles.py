@@ -229,16 +229,28 @@ LASER_TATTOO_PROFILE = FamilyProfile(
         "replacement handpiece",
         "replacement handle",
         "probe only",
+        "head only",
         "tips only",
+        "tip only",
         "lens only",
+        "filter only",
+        "screen only",
+        "board only",
         "laser bar only",
+        "replacement laser bar",
         "power supply only",
         "foot pedal only",
+        "cable only",
+        "cooling handle only",
+        "module only",
+        "replacement head",
         "replacement part",
         "spare part",
+        "spare parts",
         "accessory",
         "accessories",
         "consumable",
+        "consumables",
     ),
     variant_patterns=(
         ("808NM", _rx(r"\b808\s*nm\b")),
@@ -254,6 +266,35 @@ LASER_TATTOO_PROFILE = FamilyProfile(
             _rx(r"\b(?:dual\s+wave|dual\s+wavelength|2\s+wavelengths?|two\s+wavelengths?)\b"),
         ),
         ("FOUR WAVE", _rx(r"\b(?:four\s+wave|four\s+wavelength|4\s+wavelengths?)\b")),
+        ("PICOSECOND", _rx(r"\b(?:picosecond|pico\s+laser|picosure(?:-style)?)\b")),
+        (
+            "Q-SWITCH ND:YAG",
+            _rx(
+                r"\bq[- ]?switch(?:ed)?\b.*\b(?:nd\s*[:.-]?\s*)?yag\b|"
+                r"\bnd\s*[:.-]?\s*yag\b.*\bq[- ]?switch(?:ed)?\b"
+            ),
+        ),
+        (
+            "532/1064",
+            _rx(r"(?=.*\b532\s*nm?\b)(?=.*\b1064\s*nm?\b)"),
+        ),
+        ("TATTOO REMOVAL", _rx(r"\btattoo\s+removal\b")),
+        ("PIGMENTATION REMOVAL", _rx(r"\b(?:pigmentation|pigment)\s+removal\b")),
+        (
+            "DIODE + PICO",
+            _rx(r"(?=.*\bdiode\s+laser\b)(?=.*\b(?:picosecond|pico\s+laser)\b)"),
+        ),
+        (
+            "DIODE + ND:YAG",
+            _rx(r"(?=.*\bdiode\s+laser\b)(?=.*\bnd\s*[:.-]?\s*yag\b)"),
+        ),
+        (
+            "MULTIFUNCTION LASER",
+            _rx(
+                r"\b(?:multi[- ]?function|multifunction)\b.*\blaser\b|"
+                r"\blaser\b.*\b(?:multi[- ]?function|multifunction)\b"
+            ),
+        ),
     ),
     scoring_terms=(
         *_COMMON_SCORING,
@@ -272,7 +313,15 @@ LASER_TATTOO_PROFILE = FamilyProfile(
         ("nd yag", 12, "nd yag"),
         ("carbon peel", 8, "carbon peel"),
     ),
-    search_keywords=(),
+    search_keywords=(
+        "triple wave diode laser",
+        "755 808 1064 diode laser",
+        "professional diode laser hair removal",
+        "picosecond laser tattoo removal",
+        "Q switched Nd YAG tattoo removal",
+        "pigmentation removal laser",
+        "diode laser picosecond machine",
+    ),
 )
 
 PROFILES = {

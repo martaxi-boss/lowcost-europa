@@ -66,13 +66,17 @@ def _count_irrelevant(result, reason):
         result.skipped_irrelevant_family += 1
 
 
-def discover_family_candidates(family, keyword, *, limit=10, max_details=10, client=None):
+def discover_family_candidates(
+    family, keyword, *, page_no=1, limit=10, max_details=10, client=None
+):
     if not isinstance(family, ProductFamily):
         raise TypeError("family must be ProductFamily")
     if family.status == ProductFamily.Status.RETIRED:
         raise ValueError("Retired family cannot receive discovery")
-    if not 1 <= limit <= 15:
-        raise ValueError("limit must be between 1 and 15")
+    if page_no < 1:
+        raise ValueError("page_no must be at least 1")
+    if not 1 <= limit <= 25:
+        raise ValueError("limit must be between 1 and 25")
     if not 0 <= max_details <= 10:
         raise ValueError("max_details must be between 0 and 10")
     client = client or AliExpressClient()
@@ -81,7 +85,7 @@ def discover_family_candidates(family, keyword, *, limit=10, max_details=10, cli
         keyword,
         country="PT",
         currency="EUR",
-        page_no=1,
+        page_no=page_no,
         page_size=limit,
         target_language="EN",
     )

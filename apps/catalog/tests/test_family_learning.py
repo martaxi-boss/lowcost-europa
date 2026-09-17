@@ -157,7 +157,27 @@ class FamilyLearningTests(SimpleTestCase):
         self.assertGreater(score, 0)
         self.assertIn("approved pattern: TRIPLE WAVE", signals)
         self.assertIn("diode laser", signals)
-        self.assertEqual(LASER_TATTOO_PROFILE.search_keywords, ())
+        self.assertGreaterEqual(len(LASER_TATTOO_PROFILE.search_keywords), 7)
+
+    def test_laser_tattoo_new_variant_labels_are_detectable(self):
+        cases = {
+            "Professional picosecond laser tattoo removal machine": "PICOSECOND",
+            "Q-switched Nd:YAG tattoo removal machine": "Q-SWITCH ND:YAG",
+            "532nm 1064nm Nd:YAG tattoo removal machine": "532/1064",
+            "Professional laser tattoo removal machine": "TATTOO REMOVAL",
+            "Laser pigmentation removal machine": "PIGMENTATION REMOVAL",
+            "Diode laser picosecond tattoo removal machine": "DIODE + PICO",
+            "Diode laser Nd:YAG tattoo removal machine": "DIODE + ND:YAG",
+            "Multifunction laser tattoo removal machine": "MULTIFUNCTION LASER",
+        }
+        for title, expected in cases.items():
+            labels = {
+                label
+                for label, pattern in LASER_TATTOO_PROFILE.variant_patterns
+                if pattern.search(title)
+            }
+            with self.subTest(title=title):
+                self.assertIn(expected, labels)
 
     def test_profiles_are_family_specific_and_ready(self):
         self.assertEqual(HIFU_PROFILE.slug, "hifu")
