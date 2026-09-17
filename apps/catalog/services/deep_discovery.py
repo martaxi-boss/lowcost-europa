@@ -71,14 +71,21 @@ def discover_family_deep(
                 return aggregate
             remaining_details = max_detail_attempts - aggregate.detail_attempts
             page_max_details = min(max_details, remaining_details)
-            result = discover_family_candidates(
-                family,
-                keyword,
-                page_no=page,
-                limit=limit,
-                max_details=page_max_details,
-                client=client,
-            )
+            try:
+                result = discover_family_candidates(
+                    family,
+                    keyword,
+                    page_no=page,
+                    limit=limit,
+                    max_details=page_max_details,
+                    client=client,
+                )
+            except Exception as exc:
+                aggregate.last_keyword = keyword
+                aggregate.last_page = page
+                aggregate.stop_reason = exc.__class__.__name__
+                setattr(exc, "deep_discovery_result", aggregate)
+                raise
             aggregate.search_operations += 1
             aggregate.detail_attempts += result.detail_attempts
             aggregate.created += result.created
