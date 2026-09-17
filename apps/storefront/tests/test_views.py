@@ -415,7 +415,7 @@ class StorefrontViewTests(TestCase):
         family = ProductFamily.objects.create(name="Visual Family", slug="visual-family")
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(response, "Selecionamos. Organizamos. Comparamos.")
-        self.assertContains(response, "8 categorias")
+        self.assertContains(response, "5 categorias")
         self.assertContains(response, "Produtos em destaque")
         self.assertContains(response, "Como ajudamos")
         self.assertContains(response, "Como funciona")
