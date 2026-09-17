@@ -120,7 +120,12 @@ def _candidate_for_family(candidate_id, family_slug):
 def candidate_approve(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        approve_candidate(candidate, user=request.user)
+        approve_candidate(
+            candidate,
+            user=request.user,
+            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
     except AliExpressRateLimitError:
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
@@ -148,7 +153,12 @@ def candidate_reject(request, family_slug, candidate_id):
 def candidate_revalidate(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        revalidate_candidate(candidate, user=request.user)
+        revalidate_candidate(
+            candidate,
+            user=request.user,
+            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
     except CandidateApprovalError as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)

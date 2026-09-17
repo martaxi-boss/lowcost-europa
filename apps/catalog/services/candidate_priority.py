@@ -18,7 +18,12 @@ def learned_family_variants(profile, approved_titles):
 
 
 def family_candidate_priority(
-    product, *, profile, learned_variants=(), semantic_negative_titles=()
+    product,
+    *,
+    profile,
+    learned_variants=(),
+    semantic_negative_titles=(),
+    classification_positive_titles=(),
 ):
     """Return discovery ordering signals only; never an approval decision."""
     title = _normalise(product.title)
@@ -42,6 +47,10 @@ def family_candidate_priority(
     if product.commission_rate is not None:
         score += 3
         signals.append("commission metadata")
+    positive_titles = {_normalise(value) for value in classification_positive_titles if value}
+    if title and title in positive_titles:
+        score += 20
+        signals.append("family move destination history")
     negative_titles = {_normalise(value) for value in semantic_negative_titles if value}
     if title and title in negative_titles:
         score -= 50
@@ -61,10 +70,18 @@ def learned_hifu_variants(approved_titles):
     return learned_family_variants(HIFU_PROFILE, approved_titles)
 
 
-def priority_for_family(product, family_slug, *, learned_variants=(), semantic_negative_titles=()):
+def priority_for_family(
+    product,
+    family_slug,
+    *,
+    learned_variants=(),
+    semantic_negative_titles=(),
+    classification_positive_titles=(),
+):
     return family_candidate_priority(
         product,
         profile=get_family_profile(family_slug),
         learned_variants=learned_variants,
         semantic_negative_titles=semantic_negative_titles,
+        classification_positive_titles=classification_positive_titles,
     )

@@ -2,7 +2,13 @@ from dataclasses import dataclass, field
 
 from django.utils import timezone
 
-from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
+from apps.catalog.models import (
+    CandidateDecision,
+    CandidateFamilyMoveEvent,
+    Offer,
+    OfferCandidate,
+    ProductFamily,
+)
 from apps.catalog.services.candidate_priority import (
     learned_family_variants,
     priority_for_family,
@@ -50,13 +56,28 @@ def _learning_inputs(family):
         status=OfferCandidate.Status.APPROVED,
     ).values_list("title", flat=True)
     learned_variants = learned_family_variants(profile, approved_titles)
-    semantic_negative_titles = OfferCandidate.objects.filter(
-        product_family=family,
-        status=OfferCandidate.Status.REJECTED,
-        decisions__decision=CandidateDecision.Decision.REJECT,
-        decisions__reason__in=SEMANTIC_REJECTION_REASONS,
-    ).values_list("title", flat=True)
+    semantic_negative_titles = list(
+        OfferCandidate.objects.filter(
+            product_family=family,
+            status=OfferCandidate.Status.REJECTED,
+            decisions__decision=CandidateDecision.Decision.REJECT,
+            decisions__reason__in=SEMANTIC_REJECTION_REASONS,
+        ).values_list("title", flat=True)
+    )
+    semantic_negative_titles.extend(
+        CandidateFamilyMoveEvent.objects.filter(from_family=family).values_list(
+            "title_snapshot", flat=True
+        )
+    )
     return profile, learned_variants, tuple(semantic_negative_titles)
+
+
+def _family_move_positive_titles(family):
+    return tuple(
+        CandidateFamilyMoveEvent.objects.filter(to_family=family).values_list(
+            "title_snapshot", flat=True
+        )
+    )
 
 
 def _count_irrelevant(result, reason):
@@ -128,6 +149,7 @@ def discover_family_candidates(
         shortlist.append(product)
 
     profile, learned_variants, semantic_negative_titles = _learning_inputs(family)
+    classification_positive_titles = _family_move_positive_titles(family)
     if profile:
         shortlist.sort(
             key=lambda product: priority_for_family(
@@ -135,6 +157,7 @@ def discover_family_candidates(
                 family.slug,
                 learned_variants=learned_variants,
                 semantic_negative_titles=semantic_negative_titles,
+                classification_positive_titles=classification_positive_titles,
             )[0],
             reverse=True,
         )

@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from apps.catalog.models import OfferCandidate, ProductFamily
+from apps.catalog.models import CandidateFamilyMoveEvent, OfferCandidate, ProductFamily
 
 
 class CandidateMoveError(ValueError):
@@ -22,8 +22,17 @@ def move_candidate_to_family(candidate, *, target_family, user):
     if locked.status == OfferCandidate.Status.APPROVED or locked.approved_offer_id:
         raise CandidateMoveError("Approved candidate must be rejected before reclassification")
 
+    from_family = locked.product_family
+    title_snapshot = locked.title
     locked.product_family = target_family
     locked.status = OfferCandidate.Status.PENDING
     locked.approved_offer = None
     locked.save(update_fields=["product_family", "status", "approved_offer", "updated_at"])
+    CandidateFamilyMoveEvent.objects.create(
+        candidate=locked,
+        from_family=from_family,
+        to_family=target_family,
+        title_snapshot=title_snapshot,
+        acted_by=user,
+    )
     return locked, True

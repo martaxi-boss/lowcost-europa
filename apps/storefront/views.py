@@ -184,7 +184,7 @@ def _owner_family_context(request, family):
         return {"owner_mode": True, "owner_active_tab": "montra"}
 
     active_tab = request.GET.get("gestao", "montra")
-    allowed_tabs = {"montra", "rever", "retirados", "revalidar", "rejeitados"}
+    allowed_tabs = {"montra", "rever", "aprovados", "retirados", "revalidar", "rejeitados"}
     if active_tab not in allowed_tabs:
         active_tab = "montra"
 
@@ -205,15 +205,32 @@ def _owner_family_context(request, family):
             candidate.owner_state_label = "Indisponível"
         elif not candidate.protocol_fresh:
             candidate.owner_state_label = "Revalidação necessária"
-        elif offer.owner_hidden:
+        elif offer.owner_hidden and offer.editorial_events.filter(action="HIDE").exists():
             candidate.owner_state_label = "Retirado da montra"
+        elif offer.owner_hidden:
+            candidate.owner_state_label = "Aprovado fora da montra"
         else:
             candidate.owner_state_label = "Na montra"
 
-    hidden = [c for c in approved if c.approved_offer and c.approved_offer.owner_hidden]
+    hidden = [
+        c
+        for c in approved
+        if c.approved_offer
+        and c.approved_offer.owner_hidden
+        and c.approved_offer.editorial_events.filter(action="HIDE").exists()
+    ]
+    approved_hidden = [
+        c
+        for c in approved
+        if c.approved_offer
+        and c.approved_offer.owner_hidden
+        and c.protocol_fresh
+        and not c.approved_offer.editorial_events.filter(action="HIDE").exists()
+    ]
     stale = [c for c in approved if c.approved_offer and not c.protocol_fresh]
     selected_candidates = {
         "rever": pending,
+        "aprovados": approved_hidden,
         "rejeitados": rejected,
         "retirados": hidden,
         "revalidar": stale,
@@ -230,6 +247,7 @@ def _owner_family_context(request, family):
         .order_by("display_order", "name", "pk"),
         "owner_storefront_count": len(family.public_placements),
         "owner_pending_count": len(pending),
+        "owner_approved_count": len(approved_hidden),
         "owner_hidden_count": len(hidden),
         "owner_revalidate_count": len(stale),
         "owner_rejected_count": len(rejected),

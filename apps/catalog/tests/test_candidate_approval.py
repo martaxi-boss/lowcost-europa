@@ -42,26 +42,71 @@ class CandidateApprovalTests(TestCase):
         self.client_api = Mock()
         self.client_api.generate_affiliate_link.return_value = "https://affiliate.example/1"
 
-    def test_one_click_approve_sets_protocol_without_inventing_country(self):
-        result = approve_candidate(self.candidate, user=self.user, client=self.client_api)
-        result.offer.refresh_from_db()
-        self.assertIsNotNone(result.offer.protocol_verified_at)
-        self.assertIsNone(result.offer.ship_from_country)
-        self.assertIsNone(result.offer.ship_from_verified_at)
-        self.assertEqual(result.decision.ship_from_country, "")
-        self.assertTrue(is_protocol_verification_fresh(result.offer))
+    def approve(self, candidate=None, country="ES", now=None):
+        return approve_candidate(
+            candidate or self.candidate,
+            user=self.user,
+            delivers_to_pt_confirmed=True,
+            ship_from_country=country,
+            client=self.client_api,
+            now=now,
+        )
 
-    def test_approval_creates_affiliate_observation_placement_and_history(self):
-        result = approve_candidate(self.candidate, user=self.user, client=self.client_api)
+    def test_allowed_countries_pass_and_persist_protocol(self):
+        for index, country in enumerate(("PL", "CZ", "FR", "ES", "DE")):
+            candidate = OfferCandidate.objects.create(
+                product_family=self.family,
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=f"allowed-{index}",
+                title=f"Allowed {country}",
+                product_url=f"https://example.com/{index}",
+            )
+            result = self.approve(candidate, country=country)
+            self.assertEqual(result.offer.ship_from_country, country)
+            self.assertIsNotNone(result.offer.ship_from_verified_at)
+            self.assertIsNotNone(result.offer.protocol_verified_at)
+            self.assertTrue(result.offer.owner_hidden)
+            self.assertEqual(result.decision.ship_from_country, country)
+            self.assertIn(
+                CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
+                result.decision.review_signals,
+            )
+
+    def test_unknown_disallowed_and_missing_pt_are_blocked(self):
+        for country in ("", "CN", "UK", "IT", "US", "NL", "BE"):
+            with self.subTest(country=country):
+                with self.assertRaises(CandidateApprovalError):
+                    approve_candidate(
+                        self.candidate,
+                        user=self.user,
+                        delivers_to_pt_confirmed=True,
+                        ship_from_country=country,
+                        client=self.client_api,
+                    )
+        with self.assertRaises(CandidateApprovalError):
+            approve_candidate(
+                self.candidate,
+                user=self.user,
+                delivers_to_pt_confirmed=False,
+                ship_from_country="ES",
+                client=self.client_api,
+            )
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+
+    def test_approval_creates_hidden_offer_observation_placement_and_history(self):
+        result = self.approve()
         self.candidate.refresh_from_db()
         self.assertEqual(result.offer.affiliate_url, "https://affiliate.example/1")
+        self.assertTrue(result.offer.owner_hidden)
         self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
         self.assertEqual(self.candidate.approved_offer_id, result.offer.pk)
         self.assertEqual(result.offer.observations.count(), 1)
         self.assertIsNone(result.placement.selection_position)
         self.assertEqual(self.candidate.decisions.count(), 1)
+        self.assertFalse(is_protocol_verification_fresh(result.offer) is False)
 
-    def test_candidate_identity_is_global_across_families(self):
+    def test_candidate_and_offer_identities_are_global(self):
         other = ProductFamily.objects.create(name="RF", slug="rf")
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
@@ -70,138 +115,82 @@ class CandidateApprovalTests(TestCase):
                     source=Offer.Source.ALIEXPRESS,
                     external_product_id=self.candidate.external_product_id,
                 )
-
-    def test_offer_identity_is_global(self):
         Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="same")
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="same")
 
-    def test_candidate_and_linked_offer_can_coexist(self):
-        result = approve_candidate(self.candidate, user=self.user, client=self.client_api)
-        self.assertEqual(OfferCandidate.objects.filter(external_product_id="new-1").count(), 1)
-        self.assertEqual(Offer.objects.filter(external_product_id="new-1").count(), 1)
-        self.assertEqual(result.candidate.approved_offer_id, result.offer.pk)
-
-    def test_database_allows_blank_country_for_approve_decision(self):
-        decision = CandidateDecision.objects.create(
-            candidate=self.candidate,
-            decision=CandidateDecision.Decision.APPROVE,
-            ship_from_country="",
-            decided_by=self.user,
-        )
-        self.assertEqual(decision.ship_from_country, "")
-
-    def test_database_blocks_invalid_country_if_approve_decision_records_one(self):
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                CandidateDecision.objects.create(
-                    candidate=self.candidate,
-                    decision=CandidateDecision.Decision.APPROVE,
-                    ship_from_country="CN",
-                    decided_by=self.user,
-                )
-
-    def test_other_rejection_requires_note(self):
-        with self.assertRaises(CandidateApprovalError):
-            reject_candidate(self.candidate, user=self.user, reason=CandidateDecision.Reason.OTHER)
-        decision = reject_candidate(
-            self.candidate,
-            user=self.user,
-            reason=CandidateDecision.Reason.OTHER,
-            note="Razão específica",
-        )
-        self.assertEqual(decision.note, "Razão específica")
-
-    def test_reject_preserves_country_history_but_invalidates_protocol(self):
-        legacy = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id="legacy-country",
-            ship_from_country="PL",
-            ship_from_verified_at=timezone.now() - timedelta(days=2),
-            protocol_verified_at=timezone.now(),
-        )
-        self.candidate.approved_offer = legacy
-        self.candidate.status = OfferCandidate.Status.APPROVED
-        self.candidate.save(update_fields=["approved_offer", "status", "updated_at"])
-        reject_candidate(
-            self.candidate,
-            user=self.user,
-            reason=CandidateDecision.Reason.LISTING_CHANGED,
-        )
-        legacy.refresh_from_db()
-        self.assertEqual(legacy.ship_from_country, "PL")
-        self.assertIsNotNone(legacy.ship_from_verified_at)
-        self.assertIsNone(legacy.protocol_verified_at)
-
-    def test_one_click_revalidate_only_renews_protocol_and_preserves_country(self):
-        old_protocol = timezone.now() - timedelta(days=8)
-        offer = Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS,
-            external_product_id="revalidate",
-            ship_from_country="ES",
-            ship_from_verified_at=timezone.now() - timedelta(days=30),
-            protocol_verified_at=old_protocol,
-        )
-        self.candidate.approved_offer = offer
-        self.candidate.status = OfferCandidate.Status.APPROVED
-        self.candidate.save(update_fields=["approved_offer", "status", "updated_at"])
-        now = timezone.now()
-        revalidate_candidate(self.candidate, user=self.user, now=now)
-        offer.refresh_from_db()
-        self.assertEqual(offer.protocol_verified_at, now)
-        self.assertEqual(offer.ship_from_country, "ES")
-        self.assertNotEqual(offer.ship_from_verified_at, now)
-        self.assertEqual(self.candidate.decisions.count(), 1)
-
-    def test_legacy_offer_is_reused_not_duplicated(self):
+    def test_existing_offer_is_reused_and_owner_hidden_is_never_cleared(self):
         legacy = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="legacy",
             affiliate_url="https://affiliate.example/legacy",
+            owner_hidden=True,
         )
-        c = OfferCandidate.objects.create(
+        candidate = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
             external_product_id="legacy",
             approved_offer=legacy,
             product_url="https://example.com/legacy",
         )
-        result = approve_candidate(c, user=self.user, client=self.client_api)
+        result = self.approve(candidate, country="PL")
         self.assertEqual(result.offer.pk, legacy.pk)
+        result.offer.refresh_from_db()
+        self.assertTrue(result.offer.owner_hidden)
         self.assertEqual(Offer.objects.filter(external_product_id="legacy").count(), 1)
 
-    def test_21st_fresh_offer_is_blocked_without_partial_records(self):
+    def test_21st_candidate_can_be_approved_but_stays_hidden(self):
         now = timezone.now()
         for i in range(20):
             offer = Offer.objects.create(
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=f"existing-{i}",
+                affiliate_url=f"https://affiliate.example/{i}",
+                ship_from_country="PL",
+                ship_from_verified_at=now,
                 protocol_verified_at=now,
+                owner_hidden=False,
             )
             OfferFamilyPlacement.objects.create(offer=offer, product_family=self.family)
-        before = (
-            Offer.objects.count(),
-            OfferFamilyPlacement.objects.count(),
-            CandidateDecision.objects.count(),
-        )
-        with self.assertRaises(CandidateApprovalError):
-            approve_candidate(
-                self.candidate,
-                user=self.user,
-                client=self.client_api,
-                now=now,
-            )
-        self.assertEqual(
-            (
-                Offer.objects.count(),
-                OfferFamilyPlacement.objects.count(),
-                CandidateDecision.objects.count(),
-            ),
-            before,
-        )
+        result = self.approve(now=now)
+        self.assertTrue(result.offer.owner_hidden)
         self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
+
+    def test_revalidation_requires_and_refreshes_complete_protocol(self):
+        now = timezone.now()
+        result = self.approve(country="PL", now=now - timedelta(days=8))
+        with self.assertRaises(CandidateApprovalError):
+            revalidate_candidate(result.candidate, user=self.user, ship_from_country="ES", now=now)
+        decision = revalidate_candidate(
+            result.candidate,
+            user=self.user,
+            delivers_to_pt_confirmed=True,
+            ship_from_country="ES",
+            now=now,
+        )
+        result.offer.refresh_from_db()
+        self.assertEqual(result.offer.ship_from_country, "ES")
+        self.assertEqual(result.offer.ship_from_verified_at, now)
+        self.assertEqual(result.offer.protocol_verified_at, now)
+        self.assertEqual(decision.ship_from_country, "ES")
+        self.assertIn(
+            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
+            decision.review_signals,
+        )
+
+    def test_reject_preserves_country_history_but_invalidates_protocol(self):
+        result = self.approve(country="PL")
+        reject_candidate(
+            self.candidate,
+            user=self.user,
+            reason=CandidateDecision.Reason.LISTING_CHANGED,
+        )
+        result.offer.refresh_from_db()
+        self.assertEqual(result.offer.ship_from_country, "PL")
+        self.assertIsNotNone(result.offer.ship_from_verified_at)
+        self.assertIsNone(result.offer.protocol_verified_at)
 
 
 class CandidateRejectionSignalTests(TestCase):

@@ -10,6 +10,7 @@ from apps.catalog.models import (
     CandidateDecision,
     Offer,
     OfferCandidate,
+    OfferEditorialEvent,
     OfferFamilyPlacement,
     ProductFamily,
 )
@@ -29,6 +30,8 @@ class StorefrontOwnerModeTests(TestCase):
             external_product_id="owner-mode-public",
             title="Public HIFU machine",
             affiliate_url="https://affiliate.example/public",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
             is_active=True,
         )
@@ -46,6 +49,8 @@ class StorefrontOwnerModeTests(TestCase):
             title="Private hidden approved offer",
             product_url="https://example.com/hidden",
             affiliate_url="https://affiliate.example/hidden",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
             is_active=True,
             owner_hidden=True,
@@ -116,16 +121,31 @@ class StorefrontOwnerModeTests(TestCase):
             self.assertContains(response, label)
         self.assertContains(response, "Mudar família")
 
-    def test_retirados_tab_state_matrix(self):
+    def test_approved_hidden_is_distinct_from_editorially_retired(self):
         self.client.force_login(self.staff)
-        fresh = self.client.get(f"{self.url}?gestao=retirados")
-        self.assertContains(fresh, "Private hidden approved offer")
-        self.assertContains(fresh, "Voltar a publicar")
+        approved = self.client.get(f"{self.url}?gestao=aprovados")
+        self.assertContains(approved, "Private hidden approved offer")
+        self.assertContains(approved, "Aprovado fora da montra")
+        self.assertContains(approved, "Colocar na montra")
+        retired = self.client.get(f"{self.url}?gestao=retirados")
+        self.assertNotContains(retired, "Private hidden approved offer")
+
+        OfferEditorialEvent.objects.create(
+            offer=self.hidden_offer,
+            action=OfferEditorialEvent.Action.HIDE,
+            previous_owner_hidden=False,
+            new_owner_hidden=True,
+            acted_by=self.staff,
+        )
+        retired = self.client.get(f"{self.url}?gestao=retirados")
+        self.assertContains(retired, "Private hidden approved offer")
+        self.assertContains(retired, "Retirado da montra")
+
         self.hidden_offer.protocol_verified_at = timezone.now() - timedelta(days=8)
         self.hidden_offer.save(update_fields=["protocol_verified_at"])
-        stale = self.client.get(f"{self.url}?gestao=retirados")
+        stale = self.client.get(f"{self.url}?gestao=revalidar")
+        self.assertContains(stale, "Private hidden approved offer")
         self.assertContains(stale, "Revalidar")
-        self.assertNotContains(stale, "Voltar a publicar")
         self.hidden_offer.is_active = False
         self.hidden_offer.save(update_fields=["is_active"])
         inactive = self.client.get(f"{self.url}?gestao=retirados")
@@ -174,7 +194,11 @@ class StorefrontOwnerModeTests(TestCase):
         self.client.force_login(self.staff)
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
-            {"next": f"{self.url}?gestao=rever#gestao-owner"},
+            {
+                "delivers_to_pt_confirmed": "1",
+                "ship_from_country": "ES",
+                "next": f"{self.url}?gestao=rever#gestao-owner",
+            },
         )
         self.assertRedirects(
             response, f"{self.url}?gestao=rever#gestao-owner", fetch_redirect_response=False

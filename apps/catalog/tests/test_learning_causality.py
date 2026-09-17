@@ -2,7 +2,10 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
-from apps.catalog.services.candidate_discovery import _learning_inputs
+from apps.catalog.services.candidate_discovery import (
+    _family_move_positive_titles,
+    _learning_inputs,
+)
 from apps.catalog.services.candidate_move import move_candidate_to_family
 
 
@@ -58,6 +61,23 @@ class LearningCausalityTests(TestCase):
         _, cav_variants, _ = _learning_inputs(self.cav)
         self.assertNotIn("6-IN-1", hifu_variants)
         self.assertIn("6-IN-1", cav_variants)
+
+    def test_move_is_classification_learning_without_auto_approval(self):
+        candidate = OfferCandidate.objects.create(
+            product_family=self.hifu,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="move-classification",
+            title="Professional cavitation RF vacuum machine",
+        )
+        moved, _ = move_candidate_to_family(candidate, target_family=self.cav, user=self.user)
+        moved.refresh_from_db()
+        self.assertEqual(moved.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(moved.decisions.count(), 0)
+        _, _, source_negatives = _learning_inputs(self.hifu)
+        self.assertIn(candidate.title, source_negatives)
+        self.assertIn(candidate.title, _family_move_positive_titles(self.cav))
+        _, destination_variants, _ = _learning_inputs(self.cav)
+        self.assertNotIn("6-IN-1", destination_variants)
 
 class MultiSignalLearningIsolationTests(TestCase):
     def setUp(self):
