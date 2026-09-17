@@ -6,7 +6,13 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
+from apps.catalog.models import (
+    CandidateDecision,
+    CandidateFamilyMoveEvent,
+    Offer,
+    OfferCandidate,
+    ProductFamily,
+)
 from apps.catalog.services.candidate_approval import approve_candidate, reject_candidate
 from apps.catalog.services.candidate_move import move_candidate_to_family
 
@@ -36,6 +42,8 @@ class CandidateQueueFilteringTests(TestCase):
         fresh_offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="fresh-offer",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
         )
         self.fresh_approved = OfferCandidate.objects.create(
@@ -46,10 +54,13 @@ class CandidateQueueFilteringTests(TestCase):
             status=OfferCandidate.Status.APPROVED,
             approved_offer=fresh_offer,
         )
+        stale_now = timezone.now() - timedelta(days=8)
         stale_offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="stale-offer",
-            protocol_verified_at=timezone.now() - timedelta(days=8),
+            ship_from_country="PL",
+            ship_from_verified_at=stale_now,
+            protocol_verified_at=stale_now,
         )
         self.review_required = OfferCandidate.objects.create(
             product_family=self.family,
@@ -69,13 +80,14 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertContains(response, "Rejeitados 1")
         self.assertContains(response, "Revalidação necessária 1")
 
-    def test_one_click_ui_has_no_country_or_pt_question(self):
+    def test_approval_ui_requires_pt_and_explicit_ship_from(self):
         response = self.client.get(self.url)
         self.assertContains(response, ">APROVAR<", html=False)
         self.assertContains(response, ">REVALIDAR<", html=False)
-        self.assertNotContains(response, 'name="ships_to_pt"')
-        self.assertNotContains(response, 'name="ship_from_country" value="PL"')
-        self.assertContains(response, "protocolo Lowcost Europa")
+        self.assertContains(response, 'name="delivers_to_pt_confirmed"', html=False)
+        self.assertContains(response, 'name="ship_from_country"', html=False)
+        self.assertContains(response, "DESTINO: Portugal")
+        self.assertContains(response, "ENVIO A PARTIR DE:")
 
     def test_rejected_approved_and_all_tabs(self):
         rejected = self.client.get(self.url + "?view=rejected")
@@ -105,13 +117,21 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertNotContains(self.client.get(self.url), "pending-id")
         self.assertContains(self.client.get(self.url + "?view=rejected"), "pending-id")
 
-    def test_one_click_approve_endpoint_requires_no_country(self):
+    def test_approve_requires_country_and_pt_confirmation(self):
         api = __import__("unittest.mock").mock.Mock()
         api.generate_affiliate_link.return_value = "https://affiliate.example/pending"
-        result = approve_candidate(self.pending, user=self.staff, client=api)
+        result = approve_candidate(
+            self.pending,
+            user=self.staff,
+            delivers_to_pt_confirmed=True,
+            ship_from_country="ES",
+            client=api,
+        )
         result.offer.refresh_from_db()
-        self.assertIsNone(result.offer.ship_from_country)
+        self.assertEqual(result.offer.ship_from_country, "ES")
+        self.assertIsNotNone(result.offer.ship_from_verified_at)
         self.assertIsNotNone(result.offer.protocol_verified_at)
+        self.assertTrue(result.offer.owner_hidden)
 
 
 class CandidateMoveTests(TestCase):
@@ -144,7 +164,13 @@ class CandidateMoveTests(TestCase):
         self.assertEqual(moved.pk, original_pk)
         self.assertEqual(moved.product_family, self.target)
         self.assertEqual(moved.status, OfferCandidate.Status.PENDING)
+        self.assertIsNone(moved.approved_offer_id)
         self.assertTrue(moved.decisions.filter(pk=decision_id).exists())
+        event = CandidateFamilyMoveEvent.objects.get(candidate=moved)
+        self.assertEqual(event.from_family, self.hifu)
+        self.assertEqual(event.to_family, self.target)
+        self.assertEqual(event.acted_by, self.staff)
+        self.assertEqual(event.title_snapshot, candidate.title)
 
     def test_global_duplicate_candidate_in_other_family_is_blocked(self):
         OfferCandidate.objects.create(
@@ -211,7 +237,7 @@ class CandidateRejectionUITests(TestCase):
         self.assertNotIn('type="radio"', content)
         for label in labels:
             self.assertIn(label, content)
-        self.assertNotIn('name="ship_from_country"', content)
+        self.assertIn('name="ship_from_country"', content)
         self.assertNotIn('name="evidence_url"', content)
         self.assertNotIn('name="note"', content)
         self.assertNotIn('name="reason"', content)

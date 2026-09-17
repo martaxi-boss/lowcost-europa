@@ -18,6 +18,7 @@ class OfferGoTests(TestCase):
             title="Eligible offer",
             affiliate_url="https://affiliate.example/item/123",
             ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
         )
         OfferFamilyPlacement.objects.create(offer=self.offer, product_family=self.family)
@@ -62,6 +63,24 @@ class OfferGoTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 404)
         self.assertEqual(OfferClick.objects.count(), 0)
 
+    def test_missing_ship_from_country_returns_404_without_click(self):
+        self.offer.ship_from_country = None
+        self.offer.save(update_fields=["ship_from_country"])
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(OfferClick.objects.count(), 0)
+
+    def test_missing_ship_from_verified_at_returns_404_without_click(self):
+        self.offer.ship_from_verified_at = None
+        self.offer.save(update_fields=["ship_from_verified_at"])
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(OfferClick.objects.count(), 0)
+
+    def test_owner_hidden_returns_404_without_click(self):
+        self.offer.owner_hidden = True
+        self.offer.save(update_fields=["owner_hidden"])
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(OfferClick.objects.count(), 0)
+
     @patch("apps.storefront.views.OfferClick.objects.create")
     def test_tracking_database_failure_is_fail_open(self, create_click):
         create_click.side_effect = OperationalError("tracking unavailable")
@@ -92,6 +111,7 @@ class StorefrontCtaTests(TestCase):
             product_family=family,
             affiliate_url="https://affiliate.example/primary",
             ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
             is_primary=True,
         )
@@ -116,7 +136,8 @@ class StorefrontCtaTests(TestCase):
                     product_family=family,
                     affiliate_url=f"https://affiliate.example/{suffix}",
                     ship_from_country="PL",
-                    protocol_verified_at=timezone.now(),
+            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(),
                 )
             )
         for index, offer in enumerate(offers):

@@ -10,10 +10,7 @@ from apps.catalog.models import (
     OfferFamilyPlacement,
     OfferObservation,
 )
-from apps.catalog.services.public_eligibility import (
-    MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY,
-    public_eligibility_q,
-)
+from apps.catalog.services.public_eligibility import ALLOWED_SHIP_FROM_COUNTRIES
 from apps.integrations.aliexpress.client import AliExpressClient
 
 
@@ -41,9 +38,27 @@ def _affiliate_url(candidate, client):
     return client.generate_affiliate_link(candidate.product_url)
 
 
-def approve_candidate(candidate, *, user, client=None, now=None):
-    """Persist a human protocol-match approval without inventing ship-from country."""
+def _validated_protocol(delivers_to_pt_confirmed, ship_from_country):
+    if delivers_to_pt_confirmed is not True:
+        raise CandidateApprovalError("Confirmação de entrega em Portugal é obrigatória")
+    country = (ship_from_country or "").strip().upper()
+    if country not in ALLOWED_SHIP_FROM_COUNTRIES:
+        raise CandidateApprovalError("Envio a partir de PL/CZ/FR/ES/DE é obrigatório")
+    return country
+
+
+def approve_candidate(
+    candidate,
+    *,
+    user,
+    delivers_to_pt_confirmed=False,
+    ship_from_country="",
+    client=None,
+    now=None,
+):
+    """Persist a human approval only after the complete shipping protocol is confirmed."""
     _require_staff(user)
+    country = _validated_protocol(delivers_to_pt_confirmed, ship_from_country)
     now = now or timezone.now()
 
     with transaction.atomic():
@@ -53,18 +68,6 @@ def approve_candidate(candidate, *, user, client=None, now=None):
         if locked_family.status == ProductFamily.Status.RETIRED:
             raise CandidateApprovalError("Retired family cannot receive approvals")
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
-        eligible_count = OfferFamilyPlacement.objects.filter(
-            product_family=family,
-            offer__in=Offer.objects.filter(public_eligibility_q(now)),
-        ).count()
-        if eligible_count >= MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY:
-            if not (
-                locked.approved_offer_id
-                and Offer.objects.filter(pk=locked.approved_offer_id)
-                .filter(public_eligibility_q(now))
-                .exists()
-            ):
-                raise CandidateApprovalError("Family already has 20 fresh public-eligible offers")
 
         existing_offer = (
             Offer.objects.filter(pk=locked.approved_offer_id).first()
@@ -82,8 +85,11 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             "product_url": locked.product_url,
             "image_url": locked.image_url,
             "affiliate_url": affiliate_url,
-            "is_active": True,
+            "ship_from_country": country,
+            "ship_from_verified_at": now,
             "protocol_verified_at": now,
+            "is_active": True,
+            "owner_hidden": True,
             "first_seen_at": now,
             "last_seen_at": now,
         }
@@ -97,10 +103,12 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             offer.product_url = locked.product_url or offer.product_url
             offer.image_url = locked.image_url or offer.image_url
             offer.affiliate_url = affiliate_url
-            offer.is_active = True
+            offer.ship_from_country = country
+            offer.ship_from_verified_at = now
             offer.protocol_verified_at = now
+            offer.is_active = True
             offer.last_seen_at = now
-        # Historical ship-from fields are preserved and never inferred by one-click approval.
+            # Approval is not an editorial publish action: preserve owner_hidden exactly.
         offer.save()
 
         observation = OfferObservation.objects.create(
@@ -130,7 +138,8 @@ def approve_candidate(candidate, *, user, client=None, now=None):
         decision = CandidateDecision.objects.create(
             candidate=locked,
             decision=CandidateDecision.Decision.APPROVE,
-            ship_from_country="",
+            ship_from_country=country,
+            review_signals=[CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED],
             decided_by=user,
             decided_at=now,
         )
@@ -193,19 +202,39 @@ def reject_candidate(
         )
 
 
-def revalidate_candidate(candidate, *, user, now=None):
-    """Record one-click human protocol revalidation without touching country history."""
+def revalidate_candidate(
+    candidate,
+    *,
+    user,
+    delivers_to_pt_confirmed=False,
+    ship_from_country="",
+    now=None,
+):
+    """Repeat the complete human shipping protocol before refreshing freshness."""
     _require_staff(user)
+    country = _validated_protocol(delivers_to_pt_confirmed, ship_from_country)
     now = now or timezone.now()
     with transaction.atomic():
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
         if not locked.approved_offer_id:
             raise CandidateApprovalError("Candidate has no approved offer to revalidate")
-        Offer.objects.filter(pk=locked.approved_offer_id).update(protocol_verified_at=now)
+        offer = Offer.objects.select_for_update().get(pk=locked.approved_offer_id)
+        offer.ship_from_country = country
+        offer.ship_from_verified_at = now
+        offer.protocol_verified_at = now
+        offer.save(
+            update_fields=[
+                "ship_from_country",
+                "ship_from_verified_at",
+                "protocol_verified_at",
+                "updated_at",
+            ]
+        )
         decision = CandidateDecision.objects.create(
             candidate=locked,
             decision=CandidateDecision.Decision.APPROVE,
-            ship_from_country="",
+            ship_from_country=country,
+            review_signals=[CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED],
             note="Protocol revalidated",
             decided_by=user,
             decided_at=now,

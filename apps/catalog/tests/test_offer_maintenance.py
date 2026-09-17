@@ -22,6 +22,9 @@ class OfferMaintenanceTests(TestCase):
             external_product_id=external_id,
             title=f"Offer {external_id}",
             product_url=f"https://example.com/{external_id}",
+            affiliate_url=f"https://affiliate.example/{external_id}",
+            ship_from_country="PL",
+            ship_from_verified_at=protocol_at,
             protocol_verified_at=protocol_at,
             is_active=is_active,
         )

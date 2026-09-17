@@ -14,10 +14,16 @@ class StorefrontViewTests(TestCase):
         def add_legacy_equivalent_placement(sender, instance, created, **kwargs):
             if created:
                 verified_at = timezone.now()
+                affiliate_url = instance.affiliate_url or f"https://affiliate.example/{instance.pk}"
                 Offer.objects.filter(pk=instance.pk).update(
-                    ship_from_country="PL", protocol_verified_at=verified_at
+                    affiliate_url=affiliate_url,
+                    ship_from_country="PL",
+                    ship_from_verified_at=verified_at,
+                    protocol_verified_at=verified_at
                 )
+                instance.affiliate_url = affiliate_url
                 instance.ship_from_country = "PL"
+                instance.ship_from_verified_at = verified_at
                 instance.protocol_verified_at = verified_at
             if created and instance.product_family_id:
                 OfferFamilyPlacement.objects.create(

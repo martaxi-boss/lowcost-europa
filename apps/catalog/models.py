@@ -350,6 +350,29 @@ class OfferCandidate(models.Model):
         return f"{self.product_family}:{self.source}:{self.external_product_id}"
 
 
+class CandidateFamilyMoveEvent(models.Model):
+    candidate = models.ForeignKey(
+        "OfferCandidate", on_delete=models.PROTECT, related_name="family_move_events"
+    )
+    from_family = models.ForeignKey(
+        ProductFamily, on_delete=models.PROTECT, related_name="candidate_moves_from"
+    )
+    to_family = models.ForeignKey(
+        ProductFamily, on_delete=models.PROTECT, related_name="candidate_moves_to"
+    )
+    title_snapshot = models.CharField(max_length=500, blank=True)
+    acted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="candidate_family_moves"
+    )
+    acted_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-acted_at", "-pk"]
+
+    def __str__(self):
+        return f"{self.candidate} {self.from_family} -> {self.to_family}"
+
+
 class CandidateDecision(models.Model):
     class Decision(models.TextChoices):
         APPROVE = "APPROVE", "Approve"

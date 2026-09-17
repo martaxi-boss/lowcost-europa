@@ -78,12 +78,17 @@ def _decorate_offer(offer):
     )
     offer.latest_observation = offer.observations.order_by("-observed_at", "-pk").first()
     offer.protocol_fresh = is_protocol_verification_fresh(offer)
+    offer.was_editorially_hidden = offer.editorial_events.filter(
+        action="HIDE"
+    ).exists()
     if not offer.is_active:
         offer.owner_state_label = "Indisponível"
     elif not offer.protocol_fresh:
         offer.owner_state_label = "Revalidação necessária"
-    elif offer.owner_hidden:
+    elif offer.owner_hidden and offer.was_editorially_hidden:
         offer.owner_state_label = "Retirado da montra"
+    elif offer.owner_hidden:
+        offer.owner_state_label = "Aprovado fora da montra"
     else:
         offer.owner_state_label = "Na montra"
     return offer
@@ -125,8 +130,10 @@ def _family_counts(family):
             offer__in=Offer.objects.filter(public_eligibility_q()),
         ).count(),
         "hidden": OfferFamilyPlacement.objects.filter(
-            product_family=family, offer__owner_hidden=True
-        ).count(),
+            product_family=family,
+            offer__owner_hidden=True,
+            offer__editorial_events__action="HIDE",
+        ).distinct().count(),
     }
 
 
@@ -219,7 +226,15 @@ def family_manage(request, family_slug):
         shown_candidates = [c for c in candidates if c.status == OfferCandidate.Status.PENDING]
         shown_offers = []
     elif view == "aprovados":
-        shown_candidates = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
+        shown_candidates = [
+            c
+            for c in candidates
+            if c.status == OfferCandidate.Status.APPROVED
+            and c.approved_offer
+            and c.approved_offer.owner_hidden
+            and not c.review_required
+            and not c.approved_offer.editorial_events.filter(action="HIDE").exists()
+        ]
         shown_offers = []
     elif view == "rejeitados":
         shown_candidates = [c for c in candidates if c.status == OfferCandidate.Status.REJECTED]
@@ -229,7 +244,7 @@ def family_manage(request, family_slug):
         shown_offers = []
     elif view == "retirados":
         shown_candidates = []
-        shown_offers = [o for o in offers if o.owner_hidden]
+        shown_offers = [o for o in offers if o.owner_hidden and o.was_editorially_hidden]
     else:
         shown_candidates = []
         shown_offers = [o for o in offers if o.in_storefront]
@@ -278,7 +293,12 @@ def candidate_approve(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        approve_candidate(candidate, user=request.user)
+        approve_candidate(
+            candidate,
+            user=request.user,
+            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
     except AliExpressRateLimitError:
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
@@ -324,7 +344,12 @@ def candidate_revalidate(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        revalidate_candidate(candidate, user=request.user)
+        revalidate_candidate(
+            candidate,
+            user=request.user,
+            delivers_to_pt_confirmed=request.POST.get("delivers_to_pt_confirmed") == "1",
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
         request.session["owner_panel_notice"] = "Protocolo revalidado."
     except CandidateApprovalError as exc:
         request.session["owner_panel_error"] = str(exc)

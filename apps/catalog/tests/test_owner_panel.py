@@ -143,6 +143,8 @@ class OwnerEditorialServiceTests(TestCase):
             title="Owner Offer",
             product_url="https://example.com/product",
             affiliate_url="https://affiliate.example/product",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
             is_active=True,
         )
@@ -213,6 +215,23 @@ class OwnerEditorialServiceTests(TestCase):
         with self.assertRaises(OwnerEditorialError):
             publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
 
+    def test_publish_requires_complete_allowed_shipping_protocol(self):
+        self.offer.owner_hidden = True
+        self.offer.save(update_fields=["owner_hidden"])
+        cases = (
+            (None, timezone.now()),
+            ("PL", None),
+        )
+        for country, verified_at in cases:
+            with self.subTest(country=country, verified_at=verified_at):
+                self.offer.ship_from_country = country
+                self.offer.ship_from_verified_at = verified_at
+                self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
+                with self.assertRaises(OwnerEditorialError):
+                    publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+                self.offer.refresh_from_db()
+                self.assertTrue(self.offer.owner_hidden)
+
     def test_publish_cap20_blocked_and_stays_twenty(self):
         self.offer.owner_hidden = True
         self.offer.save(update_fields=["owner_hidden"])
@@ -222,6 +241,8 @@ class OwnerEditorialServiceTests(TestCase):
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=f"cap-{i}",
                 affiliate_url=f"https://affiliate.example/{i}",
+                ship_from_country="PL",
+                ship_from_verified_at=now,
                 protocol_verified_at=now,
             )
             OfferFamilyPlacement.objects.create(offer=o, product_family=self.family)
@@ -255,6 +276,8 @@ class OwnerEditorialServiceTests(TestCase):
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=f"rf-cap-{i}",
                 affiliate_url=f"https://affiliate.example/rf/{i}",
+                ship_from_country="PL",
+                ship_from_verified_at=now,
                 protocol_verified_at=now,
             )
             OfferFamilyPlacement.objects.create(offer=o, product_family=second)
@@ -274,7 +297,13 @@ class OwnerEditorialServiceTests(TestCase):
         self.offer.owner_hidden = True
         self.offer.protocol_verified_at = timezone.now() - timedelta(days=8)
         self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
-        revalidate_candidate(candidate, user=self.user, now=timezone.now())
+        revalidate_candidate(
+            candidate,
+            user=self.user,
+            delivers_to_pt_confirmed=True,
+            ship_from_country="ES",
+            now=timezone.now(),
+        )
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
         publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
@@ -293,7 +322,13 @@ class OwnerEditorialServiceTests(TestCase):
         self.offer.save(update_fields=["owner_hidden"])
         client = Mock()
         client.generate_affiliate_link.return_value = self.offer.affiliate_url
-        approve_candidate(candidate, user=self.user, client=client)
+        approve_candidate(
+            candidate,
+            user=self.user,
+            delivers_to_pt_confirmed=True,
+            ship_from_country="PL",
+            client=client,
+        )
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
 
@@ -358,6 +393,8 @@ class OwnerPanelCatalogTests(TestCase):
             title="Máquina aprovada",
             product_url="https://example.com/approved",
             affiliate_url="https://affiliate.example/approved",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
         )
         OfferFamilyPlacement.objects.create(offer=self.offer, product_family=self.family)
@@ -462,7 +499,8 @@ class OwnerPanelCatalogTests(TestCase):
             "https://affiliate.example/pending"
         )
         response = self.client.post(
-            reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk])
+            reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
+            {"delivers_to_pt_confirmed": "1", "ship_from_country": "ES"},
         )
         self.assertEqual(response.status_code, 302)
         self.pending.refresh_from_db()
@@ -544,6 +582,8 @@ class PrivateStorefrontControlsTests(TestCase):
             external_product_id="private-controls-offer",
             title="Visible offer",
             affiliate_url="https://affiliate.example/private",
+            ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
         )
         OfferFamilyPlacement.objects.create(offer=self.offer, product_family=self.family)

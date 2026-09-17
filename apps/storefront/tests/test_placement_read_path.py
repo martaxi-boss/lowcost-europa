@@ -10,7 +10,9 @@ class StorefrontPlacementReadPathTests(TestCase):
         return Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id=external_id,
+            affiliate_url=f"https://affiliate.example/{external_id}",
             ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
             **kwargs,
         )
@@ -179,11 +181,13 @@ class StorefrontPlacementReadPathTests(TestCase):
 
 class StorefrontVisualCommercialTests(TestCase):
     def make_placed_offer(self, family, external_id, **kwargs):
+        kwargs.setdefault("affiliate_url", f"https://affiliate.example/{external_id}")
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id=external_id,
             product_family=family,
             ship_from_country="PL",
+            ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
             **kwargs,
         )
