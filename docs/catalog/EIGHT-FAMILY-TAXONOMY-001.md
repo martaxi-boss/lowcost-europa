@@ -6,16 +6,19 @@ This phase establishes the approved eight-family commercial taxonomy without red
 
 No discovery, product import, equipment classification, live AliExpress API call, staging migration, deployment, or public indexing change is part of this phase.
 
-## Canonical active taxonomy
+## Current active taxonomy
+
+The original eight-family state established by migration `0008` remains part of migration history. The current operational taxonomy, after later consolidations/alignments, is:
 
 1. `Cavitação + RF + Vacuum (corpo)` — `cavitacao-rf-vacuum-corpo`
-2. `Hydrodermoabrasão / Aqua Facial / Multifunções faciais` — `hydrodermoabrasao-aqua-facial-multifuncoes`
+2. `Microdermoabrasão / Hidrodermoabrasão / Multifunções faciais` — `hydrodermoabrasao-aqua-facial-multifuncoes`
 3. `Radiofrequência facial` — `radiofrequencia-facial`
 4. `Pressoterapia / Vacuum / Drenagem` — `pressoterapia-vacuum-drenagem`
 5. `Microcorrente / Ultrassons` — `microcorrente-ultrassons`
 6. `HIFU` — `hifu`
-7. `Depilação Laser Triple Wave` — `depilacao-laser-triple-wave`
-8. `Remoção de tatuagens / pigmentação` — `remocao-tatuagens-pigmentacao`
+7. `Diodo Laser / Remoção de tatuagens / Pigmentação` — `diodo-laser-remocao-tatuagens-pigmentacao`
+
+The historical family `remocao-tatuagens-pigmentacao` is retained as `RETIRED` by migration `0014`; migration `0015` only renames family 02 and preserves its slug and identity.
 
 ## Existing-family mapping
 

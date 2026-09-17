@@ -4,7 +4,11 @@ from django.test import SimpleTestCase
 
 from apps.catalog.services.candidate_priority import priority_for_family
 from apps.catalog.services.candidate_relevance import is_family_candidate_relevant
-from apps.catalog.services.family_profiles import CAVITATION_PROFILE, HIFU_PROFILE
+from apps.catalog.services.family_profiles import (
+    CAVITATION_PROFILE,
+    HIFU_PROFILE,
+    HYDRODERMO_PROFILE,
+)
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 
@@ -78,6 +82,40 @@ class FamilyLearningTests(SimpleTestCase):
         ):
             with self.subTest(title=title):
                 self.assertTrue(is_family_candidate_relevant("cavitacao-rf-vacuum-corpo", title))
+
+    def test_hydrodermo_profile_accepts_family_signals_and_blocks_generic_or_accessories(self):
+        family = "hydrodermoabrasao-aqua-facial-multifuncoes"
+        positives = (
+            "Professional diamond microdermabrasion facial machine",
+            "Microdermabrasion beauty salon equipment",
+            "Hydrodermabrasion professional facial machine",
+            "Hydro facial multifunction beauty salon machine",
+            "Aqua peel hydro dermabrasion facial machine",
+            "7 in 1 hydrodermabrasion multifunction machine",
+        )
+        negatives = (
+            "replacement diamond tips only",
+            "hydro facial serum only",
+            "microdermabrasion handle only",
+            "aqua peel filter only",
+            "generic facial steamer",
+            "generic LED facial mask",
+            "unrelated body slimming machine",
+        )
+        for title in positives:
+            with self.subTest(title=title):
+                self.assertTrue(is_family_candidate_relevant(family, title))
+        for title in negatives:
+            with self.subTest(title=title):
+                self.assertFalse(is_family_candidate_relevant(family, title))
+
+    def test_hydrodermo_profile_is_ready_for_future_discovery(self):
+        self.assertEqual(HYDRODERMO_PROFILE.slug, "hydrodermoabrasao-aqua-facial-multifuncoes")
+        self.assertEqual(len(HYDRODERMO_PROFILE.search_keywords), 5)
+        product = self.product("Professional diamond microdermabrasion facial machine")
+        score, signals = priority_for_family(product, HYDRODERMO_PROFILE.slug)
+        self.assertGreater(score, 0)
+        self.assertIn("diamond microdermabrasion", signals)
 
     def test_profiles_are_family_specific_and_ready(self):
         self.assertEqual(HIFU_PROFILE.slug, "hifu")
