@@ -264,3 +264,5 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
   .offer-title { min-height: 0; }
   .empty-state--catalog { padding: 24px; }
 }
+
+.owner-private-bar{position:relative;z-index:50;display:flex;gap:.5rem;align-items:center;overflow-x:auto;padding:.5rem max(1rem,calc((100% - 1180px)/2));background:#151515;color:#fff}.owner-private-bar a,.owner-private-bar button{min-height:44px;display:flex;align-items:center;border:1px solid #5d5d5d;border-radius:8px;padding:.5rem .75rem;background:transparent;color:#fff;text-decoration:none;font:inherit;white-space:nowrap}.owner-private-bar form{margin:0}.owner-context-action{margin-top:.75rem}.owner-context-action button{min-height:48px;width:100%;border:1px solid #842d2d;border-radius:10px;background:#fff4f4;color:#611;font-weight:800;font-size:1rem}

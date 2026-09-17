@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "apps.catalog.middleware.OwnerPanelPrivacyHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -119,3 +120,5 @@ CATALOG_PROTOCOL_FRESHNESS_DAYS = env_int_range(
 CATALOG_MAINTENANCE_BATCH_SIZE = env_int_range(
     "CATALOG_MAINTENANCE_BATCH_SIZE", 5, minimum=1, maximum=20
 )
+
+OWNER_PANEL_USERNAME = "lowcost-owner"

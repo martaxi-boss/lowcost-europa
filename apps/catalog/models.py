@@ -75,6 +75,7 @@ class Offer(models.Model):
     ship_from_verified_at = models.DateTimeField(null=True, blank=True)
     protocol_verified_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    owner_hidden = models.BooleanField(default=False)
     is_primary = models.BooleanField(default=False)
     equipment_type = models.CharField(
         max_length=20, choices=EquipmentType.choices, default=EquipmentType.UNKNOWN
@@ -171,6 +172,29 @@ class OfferFamilyPlacement(models.Model):
 
     def __str__(self):
         return f"{self.product_family}: {self.offer}"
+
+
+class OfferEditorialEvent(models.Model):
+    class Action(models.TextChoices):
+        HIDE = "HIDE", "Retirar da montra"
+        PUBLISH = "PUBLISH", "Voltar a publicar"
+
+    offer = models.ForeignKey(
+        Offer, on_delete=models.PROTECT, related_name="editorial_events"
+    )
+    action = models.CharField(max_length=10, choices=Action.choices)
+    previous_owner_hidden = models.BooleanField()
+    new_owner_hidden = models.BooleanField()
+    acted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="offer_editorial_events"
+    )
+    acted_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-acted_at", "-pk"]
+
+    def __str__(self):
+        return f"{self.offer} {self.action} {self.acted_at.isoformat()}"
 
 
 class OfferClick(models.Model):
