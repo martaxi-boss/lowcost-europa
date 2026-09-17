@@ -23,6 +23,9 @@ def family_candidate_priority(
     profile,
     learned_variants=(),
     semantic_negative_titles=(),
+    accessory_negative_titles=(),
+    classification_negative_titles=(),
+    quality_negative_titles=(),
     classification_positive_titles=(),
 ):
     """Return discovery ordering signals only; never an approval decision."""
@@ -47,14 +50,29 @@ def family_candidate_priority(
     if product.commission_rate is not None:
         score += 3
         signals.append("commission metadata")
-    positive_titles = {_normalise(value) for value in classification_positive_titles if value}
-    if title and title in positive_titles:
+    def similar(history_title):
+        historical = set(_normalise(history_title).split())
+        current = set(title.split())
+        if not historical or not current:
+            return False
+        overlap = len(historical & current)
+        return overlap >= max(2, (len(historical) + 1) // 2)
+
+    if any(similar(value) for value in classification_positive_titles if value):
         score += 20
         signals.append("family move destination history")
-    negative_titles = {_normalise(value) for value in semantic_negative_titles if value}
-    if title and title in negative_titles:
+    if any(similar(value) for value in semantic_negative_titles if value):
         score -= 50
         signals.append("semantic rejection history")
+    if any(similar(value) for value in accessory_negative_titles if value):
+        score -= 70
+        signals.append("accessory rejection history")
+    if any(similar(value) for value in classification_negative_titles if value):
+        score -= 30
+        signals.append("wrong-family history")
+    if any(similar(value) for value in quality_negative_titles if value):
+        score -= 20
+        signals.append("poor-listing history")
     return score, tuple(dict.fromkeys(signals))
 
 
@@ -76,6 +94,9 @@ def priority_for_family(
     *,
     learned_variants=(),
     semantic_negative_titles=(),
+    accessory_negative_titles=(),
+    classification_negative_titles=(),
+    quality_negative_titles=(),
     classification_positive_titles=(),
 ):
     return family_candidate_priority(
@@ -83,5 +104,8 @@ def priority_for_family(
         profile=get_family_profile(family_slug),
         learned_variants=learned_variants,
         semantic_negative_titles=semantic_negative_titles,
+        accessory_negative_titles=accessory_negative_titles,
+        classification_negative_titles=classification_negative_titles,
+        quality_negative_titles=quality_negative_titles,
         classification_positive_titles=classification_positive_titles,
     )

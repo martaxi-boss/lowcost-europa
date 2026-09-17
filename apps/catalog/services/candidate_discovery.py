@@ -2,15 +2,9 @@ from dataclasses import dataclass, field
 
 from django.utils import timezone
 
-from apps.catalog.models import (
-    CandidateDecision,
-    CandidateFamilyMoveEvent,
-    Offer,
-    OfferCandidate,
-    ProductFamily,
-)
+from apps.catalog.models import Offer, OfferCandidate, ProductFamily
+from apps.catalog.services.candidate_learning import family_learning_snapshot
 from apps.catalog.services.candidate_priority import (
-    learned_family_variants,
     priority_for_family,
 )
 from apps.catalog.services.candidate_relevance import family_candidate_relevance
@@ -18,15 +12,6 @@ from apps.catalog.services.family_profiles import get_family_profile
 from apps.catalog.services.shipping_qualification import is_factually_not_shippable_to_pt
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
-
-SEMANTIC_REJECTION_REASONS = frozenset(
-    {
-        CandidateDecision.Reason.WRONG_FAMILY,
-        CandidateDecision.Reason.ACCESSORY_OR_PART,
-        CandidateDecision.Reason.IRRELEVANT,
-        CandidateDecision.Reason.POOR_LISTING,
-    }
-)
 
 
 @dataclass
@@ -51,33 +36,12 @@ class CandidateDiscoveryResult:
 
 def _learning_inputs(family):
     profile = get_family_profile(family.slug)
-    approved_titles = OfferCandidate.objects.filter(
-        product_family=family,
-        status=OfferCandidate.Status.APPROVED,
-    ).values_list("title", flat=True)
-    learned_variants = learned_family_variants(profile, approved_titles)
-    semantic_negative_titles = list(
-        OfferCandidate.objects.filter(
-            product_family=family,
-            status=OfferCandidate.Status.REJECTED,
-            decisions__decision=CandidateDecision.Decision.REJECT,
-            decisions__reason__in=SEMANTIC_REJECTION_REASONS,
-        ).values_list("title", flat=True)
-    )
-    semantic_negative_titles.extend(
-        CandidateFamilyMoveEvent.objects.filter(from_family=family).values_list(
-            "title_snapshot", flat=True
-        )
-    )
-    return profile, learned_variants, tuple(semantic_negative_titles)
+    learning = family_learning_snapshot(family)
+    return profile, learning.learned_variants, learning.semantic_negative_titles
 
 
 def _family_move_positive_titles(family):
-    return tuple(
-        CandidateFamilyMoveEvent.objects.filter(to_family=family).values_list(
-            "title_snapshot", flat=True
-        )
-    )
+    return family_learning_snapshot(family).classification_positive_titles
 
 
 def _count_irrelevant(result, reason):
@@ -148,16 +112,19 @@ def discover_family_candidates(
             continue
         shortlist.append(product)
 
-    profile, learned_variants, semantic_negative_titles = _learning_inputs(family)
-    classification_positive_titles = _family_move_positive_titles(family)
+    profile = get_family_profile(family.slug)
+    learning = family_learning_snapshot(family)
     if profile:
         shortlist.sort(
             key=lambda product: priority_for_family(
                 product,
                 family.slug,
-                learned_variants=learned_variants,
-                semantic_negative_titles=semantic_negative_titles,
-                classification_positive_titles=classification_positive_titles,
+                learned_variants=learning.learned_variants,
+                semantic_negative_titles=learning.semantic_negative_titles,
+                accessory_negative_titles=learning.accessory_negative_titles,
+                classification_negative_titles=learning.classification_negative_titles,
+                quality_negative_titles=learning.quality_negative_titles,
+                classification_positive_titles=learning.classification_positive_titles,
             )[0],
             reverse=True,
         )

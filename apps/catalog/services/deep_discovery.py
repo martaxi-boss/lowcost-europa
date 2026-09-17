@@ -4,6 +4,7 @@ from apps.catalog.services.candidate_discovery import (
     CandidateDiscoveryResult,
     discover_family_candidates,
 )
+from apps.catalog.services.candidate_learning import prioritize_existing_keywords
 from apps.integrations.aliexpress.client import AliExpressClient
 
 
@@ -55,6 +56,8 @@ def discover_family_deep(
     client = client or AliExpressClient()
     aggregate = DeepDiscoveryResult()
     keywords = tuple(keywords)
+    if start_keyword_index == 1 and start_page == 1:
+        keywords = prioritize_existing_keywords(family, keywords)
     global_seen = set()
 
     for keyword_index, keyword in enumerate(keywords, start=1):
