@@ -155,6 +155,8 @@ class FamilyLearningTests(SimpleTestCase):
             "IPL home epilator",
             "home-use IPL hair remover",
             "generic laser accessory",
+            "Accessories For Laser Tattoo Removal Portable Nd 1064/532/1320nm "
+            "Picosecond Pulse Beauty Machine",
         )
         for title in blocked:
             with self.subTest(title=title):
