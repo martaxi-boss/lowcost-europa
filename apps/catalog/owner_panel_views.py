@@ -237,7 +237,18 @@ def family_manage(request, family_slug):
     )
 
 
-def _return_family(family, view="rever"):
+def _safe_next(request):
+    next_url = request.POST.get("next", "")
+    if next_url.startswith("/") and not next_url.startswith("//"):
+        return next_url
+    return ""
+
+
+def _return_family(family, view="rever", request=None):
+    if request is not None:
+        next_url = _safe_next(request)
+        if next_url:
+            return _private(redirect(next_url))
     return _private(redirect(f"/painel/familias/{family.slug}/?vista={view}"))
 
 
@@ -252,7 +263,7 @@ def candidate_approve(request, family_slug, candidate_id):
         raise
     except (AliExpressError, CandidateApprovalError) as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever")
+    return _return_family(family, "rever", request)
 
 
 @require_POST
@@ -268,7 +279,7 @@ def candidate_reject(request, family_slug, candidate_id):
         )
     except CandidateApprovalError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever")
+    return _return_family(family, "rever", request)
 
 
 @require_POST
@@ -284,7 +295,7 @@ def candidate_move(request, family_slug, candidate_id):
         move_candidate_to_family(candidate, target_family=target, user=request.user)
     except CandidateMoveError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "rever")
+    return _return_family(family, "rever", request)
 
 
 @require_POST
@@ -302,6 +313,7 @@ def candidate_revalidate(request, family_slug, candidate_id):
         "retirados"
         if candidate.approved_offer and candidate.approved_offer.owner_hidden
         else "revalidar",
+        request,
     )
 
 
@@ -315,10 +327,7 @@ def offer_hide(request, family_slug, offer_id):
         request.session["owner_panel_notice"] = "Oferta retirada da montra."
     except OwnerEditorialError as exc:
         request.session["owner_panel_error"] = str(exc)
-    next_url = request.POST.get("next")
-    if next_url and next_url.startswith("/") and not next_url.startswith("//"):
-        return _private(redirect(next_url))
-    return _return_family(family, "retirados")
+    return _return_family(family, "retirados", request)
 
 
 @require_POST
@@ -331,4 +340,4 @@ def offer_publish(request, family_slug, offer_id):
         request.session["owner_panel_notice"] = "Oferta publicada na montra."
     except OwnerEditorialError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "retirados")
+    return _return_family(family, "retirados", request)

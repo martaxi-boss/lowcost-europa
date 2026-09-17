@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="{% static 'storefront/storefront.css' %}">
 </head>
 <body>
-  {% if request.user.is_authenticated and request.user.is_staff %}<aside class="owner-private-bar" aria-label="Gestão privada"><a href="{% url 'owner-panel:dashboard' %}">Painel</a><a href="{% url 'owner-panel:dashboard' %}#familias">Famílias</a><a href="{% url 'owner-panel:dashboard' %}#familias">A rever</a><a href="{% url 'owner-panel:dashboard' %}#familias">Na montra</a><a href="{% url 'owner-panel:dashboard' %}#familias">Retirados</a><form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form></aside>{% endif %}
+  {% if request.user.is_authenticated and request.user.is_staff %}<aside class="owner-private-bar" aria-label="Gestão privada"><span>Modo proprietário</span><a href="{% url 'storefront:home' %}">Loja</a>{% if owner_mode %}<a href="#gestao-owner">Gerir família</a>{% endif %}<a href="{% url 'owner-panel:dashboard' %}">Painel</a><form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form></aside>{% endif %}
   <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
   <header class="site-header">
     <div class="container header-inner">

@@ -8,13 +8,18 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
 from apps.catalog.models import (
+    CandidateDecision,
     Offer,
+    OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
     OfferObservation,
     ProductFamily,
 )
-from apps.catalog.services.public_eligibility import public_eligibility_q
+from apps.catalog.services.public_eligibility import (
+    is_protocol_verification_fresh,
+    public_eligibility_q,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +139,14 @@ def _seo_context(path, page_title, meta_description):
     }
 
 
+def _render_storefront(request, template, context):
+    response = render(request, template, context)
+    if request.user.is_authenticated and request.user.is_staff:
+        response["Cache-Control"] = "private, no-store"
+        response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
 def home(request):
     families = [
         _prepare_family(family)
@@ -147,7 +160,52 @@ def home(request):
             "Produtos selecionados com informação factual de preço, oferta e logística.",
         ),
     }
-    return render(request, "storefront/home.html", context)
+    return _render_storefront(request, "storefront/home.html", context)
+
+
+def _owner_family_context(request, family):
+    if not (request.user.is_authenticated and request.user.is_staff):
+        return {}
+    if family.status == ProductFamily.Status.RETIRED:
+        return {}
+
+    candidates = list(
+        OfferCandidate.objects.filter(product_family=family)
+        .select_related("approved_offer")
+        .order_by("status", "-last_observed_at", "pk")
+    )
+    pending = [c for c in candidates if c.status == OfferCandidate.Status.PENDING]
+    approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
+    for candidate in approved:
+        offer = candidate.approved_offer
+        candidate.protocol_fresh = bool(offer and is_protocol_verification_fresh(offer))
+
+    private_approved = [
+        c
+        for c in approved
+        if c.approved_offer
+        and (
+            c.approved_offer.owner_hidden or not c.approved_offer.is_active or not c.protocol_fresh
+        )
+    ]
+    return {
+        "owner_mode": True,
+        "owner_pending_candidates": pending,
+        "owner_private_approved": private_approved,
+        "owner_review_signals": CandidateDecision.ReviewSignal.choices,
+        "owner_target_families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
+        .exclude(pk=family.pk)
+        .order_by("display_order", "name", "pk"),
+        "owner_pending_count": len(pending),
+        "owner_hidden_count": sum(
+            bool(c.approved_offer and c.approved_offer.owner_hidden) for c in approved
+        ),
+        "owner_revalidate_count": sum(
+            bool(c.approved_offer_id and not c.protocol_fresh) for c in approved
+        ),
+        "owner_error": request.session.pop("owner_panel_error", ""),
+        "owner_notice": request.session.pop("owner_panel_notice", ""),
+    }
 
 
 def product_family_detail(request, slug):
@@ -155,13 +213,14 @@ def product_family_detail(request, slug):
     _prepare_family(family)
     context = {
         "family": family,
+        **_owner_family_context(request, family),
         **_seo_context(
             request.path,
             f"{family.name} | Lowcost Europa",
             f"Ofertas atuais e informação factual para {family.name}.",
         ),
     }
-    return render(request, "storefront/product_family_detail.html", context)
+    return _render_storefront(request, "storefront/product_family_detail.html", context)
 
 
 def institutional_page(request, page):
@@ -170,7 +229,7 @@ def institutional_page(request, page):
         "page_key": page,
         **_seo_context(request.path, page_title, meta_description),
     }
-    return render(request, f"storefront/{page}.html", context)
+    return _render_storefront(request, f"storefront/{page}.html", context)
 
 
 def robots_txt(request):
