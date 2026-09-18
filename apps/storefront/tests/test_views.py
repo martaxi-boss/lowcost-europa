@@ -603,6 +603,27 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
         self.assertNotContains(response, 'rel="canonical"')
 
+    @override_settings(
+        PUBLIC_SITE_URL="https://lowcost-europa.duckdns.org",
+        PUBLIC_INDEXING_ENABLED=False,
+    )
+    def test_public_site_url_without_indexing_stays_fail_closed(self):
+        home = self.client.get(reverse("storefront:home"))
+        robots = self.client.get(reverse("storefront:robots"))
+        sitemap = self.client.get(reverse("storefront:sitemap"))
+
+        self.assertContains(home, '<meta name="robots" content="noindex, nofollow">', html=True)
+        self.assertNotContains(home, 'rel="canonical"')
+        self.assertContains(robots, "Disallow: /")
+        self.assertNotContains(robots, "Allow: /")
+        self.assertNotContains(robots, "Sitemap:")
+        self.assertContains(sitemap, "https://lowcost-europa.duckdns.org/")
+        self.assertContains(
+            sitemap,
+            "https://lowcost-europa.duckdns.org/contacto/",
+        )
+        self.assertNotContains(sitemap, "http://testserver")
+
     @override_settings(PUBLIC_SITE_URL="", PUBLIC_INDEXING_ENABLED=True)
     def test_indexing_flag_without_public_site_url_fails_closed(self):
         home = self.client.get(reverse("storefront:home"))
@@ -611,6 +632,7 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertNotContains(home, 'rel="canonical"')
         self.assertContains(robots, "Disallow: /")
         self.assertNotContains(robots, "Allow: /")
+        self.assertNotContains(robots, "Sitemap:")
 
     @override_settings(PUBLIC_SITE_URL="https://example.test", PUBLIC_INDEXING_ENABLED=True)
     def test_canonical_and_indexing_can_be_enabled_with_explicit_public_site_url(self):
