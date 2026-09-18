@@ -7,6 +7,6 @@ Type=oneshot
 User=le001_1789265592
 WorkingDirectory=/srv/lowcost-europa
 EnvironmentFile=/etc/lowcost-europa/lowcost-europa.env
-ExecStart=/srv/lowcost-europa/.venv/bin/python manage.py maintain_catalog_offers
+ExecStart=/srv/lowcost-europa/.venv/bin/python manage.py maintain_catalog_offers --batch-size 10
 PrivateTmp=true
 NoNewPrivileges=true

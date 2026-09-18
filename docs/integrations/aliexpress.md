@@ -74,10 +74,11 @@ LE-002 does not add commercial database models, discovery, scoring, public UI, c
 ALIEXPRESS API SAFETY 001 centralizes operational protection in `AliExpressClient`.
 The storefront is deliberately isolated from the external API: normal public requests read PostgreSQL only, and `/go/<offer>/` redirects using the already persisted affiliate URL.
 
-External-call concurrency is one operation at a time through local `flock`.
+External-call concurrency is one operation at a time through global `flock`.
 The lock is held across the whole logical operation, including automatic retries.
 A shared cadence state enforces `ALIEXPRESS_MIN_INTERVAL_SECONDS` (default 1.0 second) between HTTP-attempt starts, including retries.
-The default runtime files are `/tmp/lowcost-europa-aliexpress.lock` and `/tmp/lowcost-europa-aliexpress.last-start`; they use secure no-follow opening, regular-file/owner validation and mode `0600` to prevent symlink-based path attacks.
+The default runtime files are `/run/lowcost-europa/aliexpress.lock` and `/run/lowcost-europa/aliexpress.last-start`. The shared `/run/lowcost-europa` directory is provisioned by `deploy/tmpfiles.d/lowcost-europa.conf` as `0750`, owned by `le001_1789265592:le001_1789265592`; state files retain secure no-follow opening, regular-file/owner validation and mode `0600`.
+`PrivateTmp=true` remains enabled on the Django and catalog-maintenance services. Because the coordination state lives under `/run`, Django, maintenance and direct management commands use the same lock/cadence state rather than isolated `/tmp` copies.
 Kernel `flock` release on file-descriptor/process exit provides crash safety without PID files.
 
 Retries are allowed only for HTTP 429, HTTP 500/502/503/504, `URLError` and `TimeoutError`.

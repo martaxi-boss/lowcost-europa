@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_DELIVERY_DAYS = frozenset({3, 5, 7, 10})
 MAX_SEARCH_PAGE_SIZE = 25
-DEFAULT_LOCK_PATH = "/tmp/lowcost-europa-aliexpress.lock"
-DEFAULT_CADENCE_PATH = "/tmp/lowcost-europa-aliexpress.last-start"
+DEFAULT_LOCK_PATH = "/run/lowcost-europa/aliexpress.lock"
+DEFAULT_CADENCE_PATH = "/run/lowcost-europa/aliexpress.last-start"
 
 
 def _secure_state_open(path: str, flags: int, mode: int = 0o600):

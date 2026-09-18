@@ -23,14 +23,13 @@ The same cadence applies to retries.
 
 ## Runtime-state hardening
 
-Default state paths remain:
+The original `/tmp` runtime paths were superseded by GLOBAL ALIEXPRESS RUNTIME STATE 001 after a `PrivateTmp=true` audit proved that separate systemd units and manual commands could see different inodes. Current default state paths are:
 
-- `/tmp/lowcost-europa-aliexpress.lock`
-- `/tmp/lowcost-europa-aliexpress.last-start`
+- `/run/lowcost-europa/aliexpress.lock`
+- `/run/lowcost-europa/aliexpress.last-start`
 
-They are opened through a secure helper using `O_NOFOLLOW` where supported, `O_CLOEXEC`, regular-file validation, owner validation and mode `0600`.
-A malicious symlink or state file owned by another local user is rejected before upstream access.
-This is the Supervisor-authorized secure-opening equivalent to moving the files under `/run`.
+`/run/lowcost-europa` is provisioned by the versioned tmpfiles policy with mode `0750` and service-user ownership. State files are opened through the existing secure helper using `O_NOFOLLOW` where supported, `O_CLOEXEC`, regular-file validation, owner validation and mode `0600`.
+A malicious symlink or state file owned by another local user is rejected before upstream access. `PrivateTmp=true` remains enabled; moving only the global coordination state to `/run` preserves sandboxing while making the lock/cadence shared between Django, maintenance and manual management commands.
 `flock` is kernel/file-descriptor based, so the lock is released automatically when a process exits or crashes; no fragile PID-file lock is used.
 
 ## Retry matrix

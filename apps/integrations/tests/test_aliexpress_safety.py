@@ -1,4 +1,5 @@
 import fcntl
+import multiprocessing
 import tempfile
 import threading
 import time
@@ -9,7 +10,12 @@ from urllib import error
 
 from django.test import SimpleTestCase
 
-from apps.integrations.aliexpress.client import AliExpressClient
+from apps.integrations.aliexpress.client import (
+    DEFAULT_CADENCE_PATH,
+    DEFAULT_LOCK_PATH,
+    AliExpressClient,
+    _LocalOperationLock,
+)
 from apps.integrations.aliexpress.config import AliExpressConfig
 from apps.integrations.aliexpress.exceptions import (
     AliExpressAuthenticationError,
@@ -32,6 +38,65 @@ class FakeResponse:
 
     def read(self):
         return self.body
+
+
+def _hold_operation_lock(lock_path, ready, release):
+    with _LocalOperationLock(lock_path, 1.0, time.monotonic, time.sleep):
+        ready.set()
+        release.wait(5)
+
+
+def _try_operation_lock(lock_path, result):
+    try:
+        with _LocalOperationLock(lock_path, 0.15, time.monotonic, time.sleep):
+            result.put("acquired")
+    except AliExpressTransportError:
+        result.put("blocked")
+
+
+def _write_cadence_state(cadence_path, now_value):
+    cfg = AliExpressConfig(
+        app_key="k",
+        app_secret="s",
+        tracking_id="t",
+        min_interval_seconds=1.0,
+    )
+    client = AliExpressClient(
+        cfg,
+        opener=lambda *_a, **_k: FakeResponse(),
+        sleeper=lambda _s: None,
+        wall_clock=lambda: now_value,
+        cadence_path=cadence_path,
+        lock_path=cadence_path + ".lock",
+    )
+    client._pace()
+
+
+def _read_shared_cadence_state(cadence_path, now_value, result):
+    clock = {"now": now_value}
+
+    def wall_clock():
+        return clock["now"]
+
+    def sleeper(seconds):
+        result.put(seconds)
+        clock["now"] += seconds
+
+    cfg = AliExpressConfig(
+        app_key="k",
+        app_secret="s",
+        tracking_id="t",
+        min_interval_seconds=1.0,
+    )
+    client = AliExpressClient(
+        cfg,
+        opener=lambda *_a, **_k: FakeResponse(),
+        sleeper=sleeper,
+        wall_clock=wall_clock,
+        cadence_path=cadence_path,
+        lock_path=cadence_path + ".lock",
+    )
+    client._pace()
 
 
 def http_error(code, retry_after=None):
@@ -329,6 +394,64 @@ class SafetyClientTests(SimpleTestCase):
             thread.join()
         self.assertEqual(failures, [])
         self.assertEqual(state["max_active"], 1)
+
+
+class SharedRuntimeStateTests(SimpleTestCase):
+    def test_default_runtime_paths_use_shared_run_directory(self):
+        self.assertEqual(DEFAULT_LOCK_PATH, "/run/lowcost-europa/aliexpress.lock")
+        self.assertEqual(
+            DEFAULT_CADENCE_PATH,
+            "/run/lowcost-europa/aliexpress.last-start",
+        )
+
+    def test_separate_processes_cannot_acquire_same_operation_lock(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        lock_path = str(Path(temp.name) / "shared.lock")
+        ctx = multiprocessing.get_context("fork")
+        ready = ctx.Event()
+        release = ctx.Event()
+        result = ctx.Queue()
+        holder = ctx.Process(target=_hold_operation_lock, args=(lock_path, ready, release))
+        contender = None
+        holder.start()
+        try:
+            self.assertTrue(ready.wait(2))
+            contender = ctx.Process(target=_try_operation_lock, args=(lock_path, result))
+            contender.start()
+            contender.join(3)
+            self.assertEqual(contender.exitcode, 0)
+            self.assertEqual(result.get(timeout=1), "blocked")
+        finally:
+            release.set()
+            holder.join(3)
+            if contender is not None and contender.is_alive():
+                contender.terminate()
+            if holder.is_alive():
+                holder.terminate()
+        self.assertEqual(holder.exitcode, 0)
+
+    def test_separate_processes_share_cadence_state(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        cadence_path = str(Path(temp.name) / "shared.last-start")
+        ctx = multiprocessing.get_context("fork")
+        writer = ctx.Process(target=_write_cadence_state, args=(cadence_path, 1000.0))
+        writer.start()
+        writer.join(3)
+        self.assertEqual(writer.exitcode, 0)
+        self.assertEqual(Path(cadence_path).read_text(), "1000.000000")
+
+        result = ctx.Queue()
+        reader = ctx.Process(
+            target=_read_shared_cadence_state,
+            args=(cadence_path, 1000.25, result),
+        )
+        reader.start()
+        reader.join(3)
+        self.assertEqual(reader.exitcode, 0)
+        self.assertAlmostEqual(result.get(timeout=1), 0.75, places=6)
+        self.assertEqual(Path(cadence_path).read_text(), "1001.000000")
 
 
 class SafetyConfigTests(SimpleTestCase):

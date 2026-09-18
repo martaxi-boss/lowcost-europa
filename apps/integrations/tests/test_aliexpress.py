@@ -1,7 +1,9 @@
 import io
 import logging
 import os
+import tempfile
 from decimal import Decimal
+from pathlib import Path
 from unittest.mock import patch
 from urllib import error
 
@@ -55,6 +57,13 @@ class SigningTests(SimpleTestCase):
 
 class ClientTests(SimpleTestCase):
     def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        base = Path(self.temp.name)
+        self.runtime_paths = {
+            "lock_path": str(base / "lock"),
+            "cadence_path": str(base / "cadence"),
+        }
         self.config = AliExpressConfig(
             app_key="fake-key",
             app_secret="fake-secret",
@@ -74,7 +83,7 @@ class ClientTests(SimpleTestCase):
             calls.append((req.full_url, timeout, req.data.decode()))
             return FakeResponse('{"demo_method_response":{"result":{"ok":true}}}')
 
-        client = AliExpressClient(self.config, opener=opener)
+        client = AliExpressClient(self.config, opener=opener, **self.runtime_paths)
         with patch.object(
             client,
             "_base_params",
@@ -100,6 +109,7 @@ class ClientTests(SimpleTestCase):
                 '{"error_response":{"code":29,"msg":"Invalid app Key",'
                 '"sub_code":"isv.appkey-not-exists"}}'
             ),
+            **self.runtime_paths,
         )
         with self.assertRaises(AliExpressAuthenticationError):
             client._call("demo.method")
@@ -112,7 +122,7 @@ class ClientTests(SimpleTestCase):
             calls += 1
             raise error.URLError("temporary")
 
-        client = AliExpressClient(self.config, opener=opener)
+        client = AliExpressClient(self.config, opener=opener, **self.runtime_paths)
         with self.assertRaises(AliExpressTransportError):
             client._call("demo.method")
         self.assertEqual(calls, 2)
@@ -126,6 +136,7 @@ class ClientTests(SimpleTestCase):
             client = AliExpressClient(
                 self.config,
                 opener=lambda *_a, **_k: (_ for _ in ()).throw(error.URLError("down")),
+                **self.runtime_paths,
             )
             with self.assertRaises(AliExpressTransportError) as ctx:
                 client._call("demo.method")

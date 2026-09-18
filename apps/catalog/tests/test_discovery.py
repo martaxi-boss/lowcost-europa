@@ -1,6 +1,8 @@
 import json
+import tempfile
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 from unittest.mock import patch
 
 from django.core.management import call_command
@@ -256,8 +258,6 @@ class DiscoveryTests(TransactionTestCase):
                 }
             }
         }
-        config = AliExpressConfig("key", "secret", "track", max_retries=0)
-        client = AliExpressClient(config, opener=lambda *_a, **_k: FakeResponse(payload))
 
         def fake_persist(product_id, *_args, **_kwargs):
             normalized = product(product_id, product_url=None)
@@ -269,11 +269,21 @@ class DiscoveryTests(TransactionTestCase):
                 dry_run=True,
             )
 
-        with patch(
-            "apps.catalog.services.discovery.import_aliexpress_product",
-            side_effect=fake_persist,
-        ) as persist:
-            result = discover_aliexpress("HIFU", 3, client=client, dry_run=True)
+        config = AliExpressConfig("key", "secret", "track", max_retries=0)
+        with tempfile.TemporaryDirectory() as runtime_dir:
+            base = Path(runtime_dir)
+            client = AliExpressClient(
+                config,
+                opener=lambda *_a, **_k: FakeResponse(payload),
+                lock_path=str(base / "lock"),
+                cadence_path=str(base / "cadence"),
+            )
+
+            with patch(
+                "apps.catalog.services.discovery.import_aliexpress_product",
+                side_effect=fake_persist,
+            ) as persist:
+                result = discover_aliexpress("HIFU", 3, client=client, dry_run=True)
 
         self.assertEqual(result.search_results_received, 3)
         self.assertEqual(result.invalid_ids, 1)
