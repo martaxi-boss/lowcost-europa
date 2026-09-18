@@ -1,9 +1,9 @@
 [Unit]
-Description=Run Lowcost Europa catalog maintenance every 6 hours
+Description=Run Lowcost Europa catalog maintenance every hour
 
 [Timer]
 OnBootSec=15min
-OnUnitActiveSec=6h
+OnUnitActiveSec=1h
 Persistent=true
 Unit=lowcost-europa-catalog-maintenance.service
 

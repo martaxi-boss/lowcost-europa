@@ -184,11 +184,14 @@ Real Cavitation/RF/Vacuum combination machines must not be excluded merely becau
 ## Catalog Maintenance
 
 - Management command: `maintain_catalog_offers`
-- Current batch: **5**
-- Current cadence: **6h**
+- Current batch: **10**
+- Current cadence: **1h**
 - Service user: `le001_1789265592`
 - Concurrency: **1**
-- AliExpress safety layer: preserved
+- Execution policy: **hourly**, with up to **10 Offers per execution**. A run may process fewer than 10 eligible Offers or stop early on a rate-limit abort.
+- AliExpress safety layer: preserved, including cadence/operation locking, retries, exponential backoff, jitter, `Retry-After`, 429 accounting/breaker, 5xx handling and transport-error handling.
+- Factual unavailability deactivates the Offer (`is_active=False`); transient external failures do **not** deactivate and are observed as `UNKNOWN`.
+- Inactive Offers are excluded from normal maintenance and are never auto-reactivated.
 
 ### Reactivation rule
 
