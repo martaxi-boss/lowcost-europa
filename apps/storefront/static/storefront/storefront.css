@@ -37,11 +37,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 
 .site-header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
 .header-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.brand { display: inline-flex; align-items: center; gap: 11px; color: var(--text); text-decoration: none; }
-.brand-mark { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 850; font-size: .83rem; letter-spacing: .04em; }
-.brand-copy { display: grid; line-height: 1.1; }
-.brand-copy strong { font-size: .94rem; letter-spacing: .055em; }
-.brand-copy small { display: none; margin-top: 5px; color: var(--muted); font-size: .72rem; letter-spacing: .01em; }
+.brand { display: inline-flex; align-items: center; min-width: 0; max-width: 260px; color: var(--text); text-decoration: none; }
+.brand-logo { display: block; width: 100%; height: auto; max-height: 58px; object-fit: contain; object-position: left center; }
 .desktop-nav { display: none; }
 .nav-menu { position: relative; }
 .nav-menu summary { list-style: none; cursor: pointer; padding: 10px 14px; border: 1px solid var(--border); border-radius: 999px; font-weight: 750; background: var(--surface); }
@@ -163,7 +160,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .prose a { color: var(--accent); text-underline-offset: 4px; }
 
 @media (min-width: 620px) {
-  .brand-copy small { display: block; }
   .family-index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .card-actions { grid-template-columns: auto 1fr; align-items: stretch; }
   .footer-grid { grid-template-columns: minmax(0, 1.8fr) repeat(2, minmax(130px, .7fr)); }
@@ -188,6 +184,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 }
 
 @media (min-width: 920px) {
+  .brand { max-width: 330px; }
+  .brand-logo { max-height: 60px; }
   .nav-menu { display: none; }
   .desktop-nav { display: flex; align-items: center; gap: 2px; }
   .desktop-nav a { padding: 10px 12px; border-radius: 10px; text-decoration: none; font-size: .9rem; font-weight: 650; }
