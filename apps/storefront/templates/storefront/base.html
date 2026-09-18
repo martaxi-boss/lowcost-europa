@@ -18,28 +18,36 @@
   {% if request.user.is_authenticated and request.user.is_staff %}<aside class="owner-private-bar" aria-label="Gestão privada">{% if owner_preview_public %}<span>A ver como cliente</span><a href="{{ owner_return_to_management }}">Voltar à gestão</a>{% else %}<span>Gestão ativa</span><a href="{% url 'owner-panel:dashboard' %}">Resumo</a>{% endif %}<form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form></aside>{% endif %}
   <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
   <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="{% url 'storefront:home' %}" aria-label="Lowcost Europa - início">
-        <span class="brand-mark" aria-hidden="true">LE</span>
-        <span class="brand-copy"><strong>LOWCOST EUROPA</strong><small>Seleção clara. Compra no parceiro.</small></span>
-      </a>
-      <nav class="desktop-nav" aria-label="Navegação principal">
-        <a href="{% url 'storefront:home' %}">Início</a>
-        <a href="{% url 'storefront:home' %}#familias">Produtos</a>
-        <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
-        <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
-        <a href="{% url 'storefront:contacto' %}">Contacto</a>
-      </nav>
-      <details class="nav-menu">
-        <summary>Menu</summary>
-        <nav class="site-nav" aria-label="Navegação mobile">
-          <a href="{% url 'storefront:home' %}">Início</a>
-          <a href="{% url 'storefront:home' %}#familias">Produtos</a>
-          <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
-          <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
-          <a href="{% url 'storefront:contacto' %}">Contacto</a>
-        </nav>
-      </details>
+    <div class="container header-shell">
+      <div class="header-top">
+        <a class="brand brand--official" href="{% url 'storefront:home' %}" aria-label="Lowcost Europa - início">
+          <img src="{% static 'storefront/lowcost-europa-logo-header.webp' %}" alt="Lowcost Europa — Envio da Europa sem taxas" width="600" height="150">
+        </a>
+        <details class="nav-menu">
+          <summary><span class="menu-icon" aria-hidden="true"></span><span>Menu</span></summary>
+          <nav class="site-nav" aria-label="Navegação principal">
+            <a href="{% url 'storefront:home' %}">Início</a>
+            <a href="{% url 'storefront:home' %}#familias">Produtos</a>
+            <a href="{% url 'storefront:como-funciona' %}">Como funciona</a>
+            <a href="{% url 'storefront:afiliados' %}">Afiliados</a>
+            <a href="{% url 'storefront:contacto' %}">Contacto</a>
+          </nav>
+        </details>
+      </div>
+      <div class="header-benefits" aria-label="Benefícios">
+        <div class="header-benefit">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 8h5l4 23h24l4-16H13M18 39a2 2 0 1 0 0 .1M36 39a2 2 0 1 0 0 .1"/></svg>
+          <span>PRODUTOS<br>SELECIONADOS</span>
+        </div>
+        <div class="header-benefit">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l15 6v11c0 10-6 17-15 21-9-4-15-11-15-21V11l15-6zM18 24l4 4 8-9"/></svg>
+          <span>COMPRAS<br>MAIS SEGURAS</span>
+        </div>
+        <div class="header-benefit">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 28h22V13H13M27 19h8l7 8v8h-4M27 35H17M9 35H5v-7M13 39a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM34 39a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 14h7M2 19h9M4 24h7"/></svg>
+          <span>ENVIO RÁPIDO<br>NA EUROPA</span>
+        </div>
+      </div>
     </div>
   </header>
   <main id="conteudo">
