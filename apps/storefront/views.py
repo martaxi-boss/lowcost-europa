@@ -47,7 +47,7 @@ INSTITUTIONAL_PAGES = {
     ),
     "privacidade": (
         "Privacidade | Lowcost Europa",
-        "Informação factual sobre tracking de cliques, cookies e logs técnicos.",
+        "Informação sobre registos de encaminhamento e logs técnicos no Lowcost Europa.",
     ),
     "termos": (
         "Termos de Utilização | Lowcost Europa",
