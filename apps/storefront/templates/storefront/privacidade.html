@@ -4,18 +4,21 @@
   <div class="container prose">
     <p class="eyebrow">Privacidade</p>
     <h1>Privacidade</h1>
-    <p class="lead">Esta página descreve apenas o comportamento atualmente implementado no storefront.</p>
-    <h2>Tracking de encaminhamentos</h2>
-    <p>Quando ocorre um pedido válido ao redirect comercial, a aplicação cria um registo OfferClick com a oferta e a data/hora do clique.</p>
-    <p>Esse evento não guarda IP, user-agent, session ID, fingerprint, referrer, email, localização ou outro identificador persistente.</p>
-    <p>Um OfferClick representa um pedido válido ao redirect. Não significa utilizador único, compra, conversão ou comissão.</p>
-    <h2>Cookies no storefront</h2>
-    <p>As páginas públicas atuais são server-rendered e não usam analytics. Nas verificações técnicas de homepage e detalhe não foi emitido Set-Cookie.</p>
-    <p>O projeto inclui middleware Django de sessão e CSRF, mas o storefront atual não usa sessão para estas páginas e não apresenta formulários que criem um cookie CSRF.</p>
+    <p class="lead">Esta página explica, em linguagem simples, que informação é registada atualmente quando o Lowcost Europa encaminha um visitante para uma oferta externa.</p>
+
+    <h2>Registo de encaminhamentos</h2>
+    <p>Quando ocorre um encaminhamento válido para uma oferta externa, o Lowcost Europa pode registar a oferta e a data/hora do clique.</p>
+    <p>Esse registo de encaminhamento da aplicação não guarda endereço IP, dados de identificação do navegador ou dispositivo, identificador de sessão, impressão digital do dispositivo, página de origem, e-mail, localização ou outro identificador persistente.</p>
+    <p>Um clique registado não significa utilizador único, compra, conversão ou comissão.</p>
+
+    <h2>Páginas públicas</h2>
+    <p>As páginas públicas atuais não utilizam ferramentas de análise de utilização.</p>
+
+    <h2>Logs técnicos</h2>
+    <p>Separadamente do registo de encaminhamento, a infraestrutura que suporta o site pode manter logs técnicos de acesso e erro para operação e segurança. Esses logs podem incluir, por exemplo, o endereço IP e a URL solicitada.</p>
+
     <h2>Contacto</h2>
     <p>Para questões de privacidade, transparência ou correções factuais, contacte <a href="mailto:help.onlinefuture@gmail.com">help.onlinefuture@gmail.com</a> ou consulte a página <a href="{% url 'storefront:contacto' %}">Contacto</a>.</p>
-    <h2>Logs técnicos</h2>
-    <p>Separadamente do OfferClick, a infraestrutura HTTP pode manter logs técnicos de acesso e erro para operação e segurança. Esses logs podem incluir dados de rede e do pedido, como endereço IP e URL solicitada.</p>
   </div>
 </section>
 {% endblock %}

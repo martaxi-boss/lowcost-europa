@@ -47,11 +47,12 @@ INSTITUTIONAL_PAGES = {
     ),
     "privacidade": (
         "Privacidade | Lowcost Europa",
-        "Informação factual sobre tracking de cliques, cookies e logs técnicos.",
+        "Informação sobre registos de encaminhamento e logs técnicos no Lowcost Europa.",
     ),
     "termos": (
-        "Termos — pré-lançamento | Lowcost Europa",
-        "Estrutura de termos ainda não pronta para lançamento público.",
+        "Termos de Utilização | Lowcost Europa",
+        "Informação sobre a utilização do Lowcost Europa, encaminhamento para vendedores externos "
+        "e relação de afiliado.",
     ),
     "contacto": (
         "Contacto | Lowcost Europa",
