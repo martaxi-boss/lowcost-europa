@@ -479,7 +479,7 @@ class StorefrontViewTests(TestCase):
         self.assertNotContains(response, "melhor oferta")
 
 
-class PrelaunchTransparencyTests(TestCase):
+class InstitutionalTransparencyTests(TestCase):
     def test_institutional_pages_return_200_and_footer_links_are_present(self):
         names = ("como-funciona", "afiliados", "privacidade", "termos", "contacto")
         for name in names:
@@ -520,23 +520,71 @@ class PrelaunchTransparencyTests(TestCase):
         self.assertIn("pode receber uma comissão", content)
         self.assertIn("não é garantida", content)
 
-    def test_privacy_page_describes_minimal_offer_click_and_server_logs(self):
+    def test_privacy_page_describes_public_forwarding_and_technical_logs(self):
         response = self.client.get(reverse("storefront:privacidade"))
         content = response.content.decode().lower()
-        self.assertIn("offerclick", content)
-        self.assertIn("não guarda ip", content)
-        self.assertIn("não significa utilizador único", content)
+        self.assertIn("encaminhamento", content)
+        self.assertIn("oferta", content)
+        self.assertIn("data/hora", content)
+        self.assertIn("clique", content)
+        self.assertIn("não guarda endereço ip", content)
+        self.assertIn("não significa utilizador único, compra, conversão ou comissão", content)
         self.assertIn("logs técnicos", content)
         self.assertIn("endereço ip", content)
+        self.assertIn("help.onlinefuture@gmail.com", content)
+        self.assertNotIn("offerclick", content)
+        self.assertNotIn("server-rendered", content)
+        self.assertNotIn("set-cookie", content)
+        self.assertNotIn("middleware django", content)
+        self.assertNotIn("csrf", content)
         self.assertNotIn("nenhum ip é processado", content)
 
-    def test_terms_are_explicitly_prelaunch_and_owner_fields_pending(self):
+    def test_terms_present_public_external_purchase_and_affiliate_information(self):
         response = self.client.get(reverse("storefront:termos"))
-        self.assertContains(response, "PRE-LAUNCH / NOT PUBLIC READY")
-        self.assertContains(response, "PENDING OWNER INPUT")
-        self.assertContains(response, "NIF/VAT")
-        self.assertContains(response, "help.onlinefuture@gmail.com")
-        self.assertContains(response, "PENDING OWNER INPUT")
+        content = response.content.decode().lower()
+        self.assertContains(response, "Termos de Utilização")
+        self.assertIn("vendedor ou plataforma externa", content)
+        self.assertIn("preços e a disponibilidade", content)
+        self.assertIn("podem alterar-se", content)
+        self.assertIn("links de afiliado", content)
+        self.assertIn("pode receber uma comissão", content)
+        for name in ("privacidade", "afiliados", "contacto"):
+            self.assertContains(response, reverse(f"storefront:{name}"))
+        for phrase in (
+            "pre-launch",
+            "not public ready",
+            "pending owner input",
+            "pré-lançamento",
+            "owner input",
+            "nif/vat",
+        ):
+            self.assertNotIn(phrase, content)
+
+    def test_terms_metadata_is_public_and_factual(self):
+        response = self.client.get(reverse("storefront:termos"))
+        self.assertContains(response, "Termos de Utilização | Lowcost Europa")
+        self.assertContains(
+            response,
+            "Informação sobre a utilização do Lowcost Europa, encaminhamento para vendedores externos e relação de afiliado.",
+        )
+
+    def test_public_institutional_pages_do_not_expose_internal_project_copy(self):
+        forbidden = (
+            "pre-launch",
+            "not public ready",
+            "pending owner input",
+            "pré-lançamento",
+            "owner input",
+            "builder",
+            "supervisor",
+            "staging",
+        )
+        for name in ("termos", "privacidade", "afiliados", "contacto"):
+            response = self.client.get(reverse(f"storefront:{name}"))
+            self.assertEqual(response.status_code, 200)
+            content = response.content.decode().lower()
+            for phrase in forbidden:
+                self.assertNotIn(phrase, content)
 
     def test_default_seo_is_noindex_and_staging_has_no_canonical(self):
         response = self.client.get(reverse("storefront:home"))
