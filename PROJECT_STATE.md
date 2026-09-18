@@ -248,20 +248,23 @@ Staging `OfferClicks` do not necessarily represent unique users, purchases, sale
 
 ## Backups and Recovery
 
-- Local daily PostgreSQL backup: **ACTIVE**.
+- Local daily PostgreSQL backup: **ACTIVE** and preserved.
 - Pre-migration backup discipline: **MANDATORY**.
 - Latest migration `0012`: validated backup was completed **before** migration application.
 - Historical process issues from earlier migrations remain part of the audit history and must not be erased or rewritten.
-- **OFF-SERVER BACKUP:** PENDING / NOT YET AUTHORIZED OR COMPLETED.
+- **OFF-SERVER BACKUP:** IMPLEMENTED IN PHASE 3 BRANCH / FIRST R2 RESTIC SNAPSHOT CREATED.
+- **OFF-SERVER RESTORE DRILL:** PASS for isolated file restore, checksum validation and `pg_restore --list`; live DB untouched.
+- **RECOVERY PASSWORD GATE:** PENDING OWNER CONFIRMATION that a Restic password copy exists outside this Droplet.
+- **PHASE 3 CLOSE:** NOT YET AUTHORIZED; Supervisor audit required.
 
-Off-server backup remains a pre-launch task and is not implemented by this reconciliation.
+The local backup remains the source layer. Restic/R2 is an independent encrypted off-server layer and does not replace local retention.
 
 ## Public Launch State
 
 Current launch controls:
 
 - `DJANGO_PUBLIC_INDEXING_ENABLED=false`
-- `DJANGO_PUBLIC_SITE_URL=`
+- `DJANGO_PUBLIC_SITE_URL=https://lowcost-europa.duckdns.org`
 - `X-Robots-Tag: noindex, nofollow`
 - `robots.txt`:
 
@@ -276,7 +279,7 @@ Disallow: /
 
 Pre-launch items still open, without being blockers for the second Cavitation pilot:
 
-- off-server backup;
+- off-server recovery password gate and final Supervisor audit;
 - final public domain;
 - legal/public launch readiness;
 - sales/commission attribution;

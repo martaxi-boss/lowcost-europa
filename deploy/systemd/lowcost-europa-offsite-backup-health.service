@@ -1,0 +1,13 @@
+[Unit]
+Description=Check Lowcost Europa offsite Restic backup health
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lowcost-europa-offsite-backup-health
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true

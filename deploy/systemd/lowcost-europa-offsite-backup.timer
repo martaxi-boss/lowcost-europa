@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Lowcost Europa offsite backup daily after local PostgreSQL backup
+
+[Timer]
+OnCalendar=*-*-* 03:45:00 UTC
+Persistent=true
+Unit=lowcost-europa-offsite-backup.service
+
+[Install]
+WantedBy=timers.target
