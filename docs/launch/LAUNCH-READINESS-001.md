@@ -2,13 +2,17 @@
 
 ## Scope
 
-Temporary staging hostname and final pre-launch QA only. This phase does not authorize a permanent domain, public indexing, campaigns or GO LIVE.
+Phase 2 prepares DuckDNS as the public service hostname for real commercial validation while search indexing remains disabled. It does not authorize the final commercial domain, Google indexing, Search Console activation or final public GO LIVE.
 
-- Authorized base: `ea390319bcf9d4b8023a24140828f049a7fba10a`.
-- Branch: `builder/launch-readiness-001-duckdns`.
-- Temporary staging hostname: `lowcost-europa.duckdns.org`.
+- Authorized base: `217bd54360246d4c1f412c8a4fba594560f4f196`.
+- Branch: `builder/duckdns-public-service-readiness-002`.
+- Public service hostname during validation: `https://lowcost-europa.duckdns.org`.
 - Staging IP: `165.22.114.67`.
-- Existing technical hostname remains supported: `lowcost-europa.165-22-114-67.sslip.io`.
+- Technical / recovery hostname: `https://lowcost-europa.165-22-114-67.sslip.io`.
+- Future custom commercial domain: NOT YET configured or authorized.
+- Google indexing: OFF.
+- Public commercial validation: PREPARATION IN PROGRESS.
+- Final public GO LIVE: requires a new Supervisor audit and authorization.
 
 ## DNS and HTTPS
 
@@ -22,13 +26,17 @@ Certbot timer is enabled and active, and the DuckDNS renewal configuration exist
 
 `deploy/nginx/lowcost-europa.conf` now contains separate HTTPS virtual hosts for DuckDNS and sslip, with each hostname using a certificate valid for that hostname. Both HTTP virtual hosts redirect to HTTPS with 301. The active Nginx file is byte-for-byte identical to the versioned configuration.
 
-Staging environment changes:
+Current staging environment state remains:
 
 - `DJANGO_ALLOWED_HOSTS=lowcost-europa.165-22-114-67.sslip.io,lowcost-europa.duckdns.org`
 - `DJANGO_CSRF_TRUSTED_ORIGINS=https://lowcost-europa.165-22-114-67.sslip.io,https://lowcost-europa.duckdns.org`
 - `DJANGO_PUBLIC_INDEXING_ENABLED=false`
-- `DJANGO_PUBLIC_SITE_URL=` remains empty.
-- `DJANGO_SECURE_HSTS_SECONDS=0` remains unchanged for staging.
+- `DJANGO_PUBLIC_SITE_URL=`
+- `DJANGO_SECURE_HSTS_SECONDS=0`
+
+This implementation branch does not modify the runtime environment. After a later Supervisor-approved merge/deploy order, the intended operational state is `DJANGO_PUBLIC_SITE_URL=https://lowcost-europa.duckdns.org` together with `DJANGO_PUBLIC_INDEXING_ENABLED=false`. In that state DuckDNS identifies the public service hostname, but indexing remains fail-closed.
+
+The existing sslip hostname remains accepted by Django and Nginx as a technical / recovery hostname. It is not redirected to DuckDNS in this phase, and its certificate and AliExpress callback compatibility are preserved.
 
 The environment and previous Nginx configuration were backed up root-only before change under `/root/launch-readiness-001-backup-20260915T142028Z/`. No secret values are documented or versioned.
 
@@ -46,7 +54,10 @@ DuckDNS remains fail-closed for search engines:
 - HTML meta robots: `noindex, nofollow`.
 - `X-Robots-Tag: noindex, nofollow`.
 - `robots.txt`: `User-agent: *` plus `Disallow: /`.
-- `PUBLIC_SITE_URL` remains empty, so no public canonical URL is created for the temporary hostname.
+- `robots.txt` does not announce the sitemap while public indexing is disabled.
+- Canonical URLs are emitted only when both `DJANGO_PUBLIC_INDEXING_ENABLED=true` and `DJANGO_PUBLIC_SITE_URL` is configured.
+- Therefore, setting `DJANGO_PUBLIC_SITE_URL=https://lowcost-europa.duckdns.org` while keeping indexing disabled still produces no canonical URL.
+- `sitemap.xml` remains available and may use DuckDNS absolute URLs independently of crawler permission; this does not enable indexing.
 
 Observed HTTPS headers include `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` and `X-Robots-Tag: noindex, nofollow`. HSTS is intentionally not increased in this phase; staging remains at `DJANGO_SECURE_HSTS_SECONDS=0`.
 
@@ -115,12 +126,15 @@ No Droplet upgrade or heavy stack was added.
 
 ## Open blockers / launch status
 
-- DuckDNS is staging only; it is not the permanent public domain.
-- Public indexing remains disabled and GO LIVE is not authorized.
+- DuckDNS is the PUBLIC SERVICE HOSTNAME for non-indexed validation, not the final custom commercial/SEO domain.
+- sslip.io remains the TECHNICAL / RECOVERY HOSTNAME and is intentionally preserved.
+- Google indexing remains OFF; Search Console/indexing activation is not authorized.
+- Public commercial validation is in PREPARATION IN PROGRESS.
+- Final public GO LIVE is not authorized and requires a new Supervisor audit.
 - Operator legal/public-launch readiness is not resolved by this phase.
 - Off-server R2/restic recovery remains outside this phase and owner-gated.
 - GitHub main protection remains an external account/admin capability issue from the operational closeout.
-- AliExpress external callback registration was not changed; only the DuckDNS route itself was technically validated.
+- AliExpress external callback registration is unchanged; both existing hostname routes remain preserved.
 - HIFU 123x123 source image remains OPEN / NON-BLOCKING.
 
 **PUBLIC LAUNCH = NO.** Supervisor audit is required before any later decision.

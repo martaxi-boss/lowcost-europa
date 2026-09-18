@@ -148,9 +148,9 @@ OWNER_SEMANTIC_REJECTION_CHOICES = (
 
 
 def _seo_context(path, page_title, meta_description):
-    base_url = settings.PUBLIC_SITE_URL
-    canonical_url = f"{base_url}{path}" if base_url else None
-    robots_directive = "index, follow" if _public_indexing_active() else "noindex, nofollow"
+    indexing_active = _public_indexing_active()
+    canonical_url = f"{settings.PUBLIC_SITE_URL}{path}" if indexing_active else None
+    robots_directive = "index, follow" if indexing_active else "noindex, nofollow"
     return {
         "page_title": page_title,
         "meta_description": meta_description,
