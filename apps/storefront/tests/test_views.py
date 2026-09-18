@@ -539,6 +539,17 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertNotIn("csrf", content)
         self.assertNotIn("nenhum ip é processado", content)
 
+    def test_privacy_metadata_is_public_and_factual(self):
+        response = self.client.get(reverse("storefront:privacidade"))
+        self.assertContains(response, "Privacidade | Lowcost Europa")
+        self.assertContains(
+            response,
+            "Informação sobre registos de encaminhamento e logs técnicos no Lowcost Europa.",
+        )
+        content = response.content.decode().lower()
+        self.assertNotIn("tracking", content)
+        self.assertNotIn("cookies", content)
+
     def test_terms_present_public_external_purchase_and_affiliate_information(self):
         response = self.client.get(reverse("storefront:termos"))
         content = response.content.decode().lower()
