@@ -50,8 +50,9 @@ INSTITUTIONAL_PAGES = {
         "Informação factual sobre tracking de cliques, cookies e logs técnicos.",
     ),
     "termos": (
-        "Termos — pré-lançamento | Lowcost Europa",
-        "Estrutura de termos ainda não pronta para lançamento público.",
+        "Termos de Utilização | Lowcost Europa",
+        "Informação sobre a utilização do Lowcost Europa, encaminhamento para vendedores externos "
+        "e relação de afiliado.",
     ),
     "contacto": (
         "Contacto | Lowcost Europa",
