@@ -2,18 +2,24 @@
 {% block content %}
 <section class="section">
   <div class="container prose">
-    <p class="eyebrow">Pré-lançamento</p>
-    <h1>Termos — PRE-LAUNCH / NOT PUBLIC READY</h1>
-    <p class="lead">Esta página é uma estrutura técnica de pré-lançamento e não constitui termos jurídicos definitivos.</p>
-    <p>Antes de qualquer lançamento público ainda é necessário completar e validar os dados do operador e o texto jurídico aplicável.</p>
-    <h2>PENDING OWNER INPUT</h2>
-    <ul>
-      <li>Nome ou entidade jurídica do operador.</li>
-      <li>NIF/VAT ou número de registo aplicável.</li>
-      <li>Morada legal ou comercial que deva ser publicada.</li>
-    </ul>
-    <p>Contacto público autorizado: <a href="mailto:help.onlinefuture@gmail.com">help.onlinefuture@gmail.com</a> e WhatsApp <a href="https://wa.me/351961726755">+351 961 726 755</a>.</p>
-    <p>O Lowcost Europa não processa o pagamento das compras apresentadas no storefront; a transação e o pós-venda decorrem no vendedor.</p>
+    <p class="eyebrow">Utilização do site</p>
+    <h1>Termos de Utilização</h1>
+    <p class="lead">O Lowcost Europa seleciona, organiza e apresenta produtos e ofertas disponibilizados por vendedores ou plataformas externas.</p>
+
+    <h2>Compra em plataformas externas</h2>
+    <p>O Lowcost Europa não processa diretamente o pagamento das compras apresentadas. Ao escolher comprar, o utilizador é encaminhado para o vendedor ou plataforma externa, onde a transação é concluída.</p>
+    <p>O preço final, o stock, a disponibilidade, o pagamento, a entrega, as devoluções, as garantias e o apoio relativo à encomenda estão sujeitos às condições do vendedor ou da plataforma externa.</p>
+    <p>Os preços e a disponibilidade apresentados no Lowcost Europa podem alterar-se entre o momento da consulta e a abertura da página externa.</p>
+
+    <h2>Relação de afiliado</h2>
+    <p>Alguns links do Lowcost Europa são links de afiliado. O Lowcost Europa pode receber uma comissão quando uma compra elegível ocorre após um encaminhamento.</p>
+    <p>Essa comissão não é apresentada como um custo adicional obrigatório para o comprador.</p>
+
+    <h2>Antes de concluir a compra</h2>
+    <p>Antes de concluir a compra, confirme na plataforma externa o produto, o preço, o stock, a entrega, as condições aplicáveis e os restantes dados finais da transação.</p>
+
+    <h2>Mais informação</h2>
+    <p>Consulte também as páginas de <a href="{% url 'storefront:privacidade' %}">Privacidade</a>, <a href="{% url 'storefront:afiliados' %}">Afiliados</a> e <a href="{% url 'storefront:contacto' %}">Contacto</a>.</p>
   </div>
 </section>
 {% endblock %}
