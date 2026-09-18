@@ -565,7 +565,8 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertContains(response, "Termos de Utilização | Lowcost Europa")
         self.assertContains(
             response,
-            "Informação sobre a utilização do Lowcost Europa, encaminhamento para vendedores externos e relação de afiliado.",
+            "Informação sobre a utilização do Lowcost Europa, encaminhamento para vendedores externos "
+            "e relação de afiliado.",
         )
 
     def test_public_institutional_pages_do_not_expose_internal_project_copy(self):
