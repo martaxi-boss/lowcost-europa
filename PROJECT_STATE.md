@@ -140,9 +140,10 @@ OfferClick counts are raw outbound click records. They do not by themselves esta
 ## Catalog Maintenance
 
 - Management command: `maintain_catalog_offers`
-- Current configured default batch size: **5**
+- Settings/env default/fallback batch size: **5**
+- Scheduled systemd maintenance batch: **10** (`--batch-size 10`)
 - Command-enforced batch range: **1–20**
-- Current cadence: **hourly**
+- Scheduled cadence: **hourly**
 - Concurrency remains single-operation through the existing global AliExpress lock/cadence controls.
 - AliExpress safety behavior remains: operation locking, cadence control, retries, exponential backoff, jitter, `Retry-After`, HTTP 429 accounting/breaker, HTTP 5xx handling and transport-error handling.
 - Runtime coordination remains under `/run/lowcost-europa/`.
