@@ -5,9 +5,10 @@ Updated: 2026-09-19.
 ## Current State
 
 - **APPLICATION:** HEALTHY
-- **CURRENT MAIN/STAGING BASELINE:** `d86343e0ca1fcd4b12f7da81b4b710798674fb02`
-- **BRANCH:** `main`
-- **origin/main = deployed runtime:** YES
+- **PRE-RECONCILIATION APPLICATION / RUNTIME BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
+- **CURRENT BRANCH:** `main`
+- **RUNTIME APPLICATION BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
+- **DEPLOYED APPLICATION CODE ALIGNED WITH LAST APPLICATION BASELINE:** YES
 - **WORKTREE:** CLEAN
 - **Kernel:** `6.8.0-139-generic`
 - **Reboot required:** NO
@@ -23,12 +24,14 @@ Updated: 2026-09-19.
 - **PUBLIC LAUNCH:** NO
 - **PUBLIC INDEXING:** OFF
 - **NOINDEX:** ACTIVE
-- **PUBLIC SERVICE HOSTNAME:** `https://lowcost-europa.duckdns.org`
-- **Architecture:** FROZEN FOR CURRENT PILOT / VALIDATION PHASE
-- **Current action:** Phase 4 ChangeSet 2 documentation closeout
-- **Next human action:** Supervisor audits the documentation-only closeout PR
+- **PUBLIC VALIDATION HOSTNAME:** `https://lowcost-europa.duckdns.org`
+- **Architecture:** FROZEN / NO REBUILD AUTHORIZED
+- **Current action:** Pre-GO-LIVE readiness; `PUBLIC CATALOG LAUNCH QUALITY GATE 001` is the next official gate and is not yet authorized for execution
+- **Next human action:** Supervisor defines and authorizes the dedicated `PUBLIC CATALOG LAUNCH QUALITY GATE 001`
 - **New product discovery:** NO
-- **AliExpress live discovery/operations for this closeout:** NO
+- **AliExpress live discovery/operations for this reconciliation:** NO
+
+`PROJECT_STATE.md` is documentation. A documentation-only merge may advance `main` without changing the deployed application/runtime code. Runtime synchronization, when required by governance, is a separate operation and does not by itself imply an application restart.
 
 The current system is a controlled human-in-the-loop catalog workflow. It is **not** a fully automatic learning system and does not authorize autonomous product publication. Current ranking/learning logic remains deterministic and isolated by product family.
 
@@ -112,7 +115,7 @@ Maximum public-eligible Offers per family remains **20** as a cap, not a volume 
 
 ## Current Taxonomy and Catalog Snapshot
 
-Audited runtime snapshot on 2026-09-19:
+Audited read-only runtime/database snapshot at **2026-09-19T17:44:41Z**:
 
 - ProductFamilies total: **9**
 - Non-retired/public-operational families: **5**
@@ -121,9 +124,11 @@ Audited runtime snapshot on 2026-09-19:
 - Public-eligible Offers: **51**
 - Candidates: **359**
 - CandidateDecisions: **227**
-- OfferObservations: **407**
+- OfferObservations: **427**
 - OfferFamilyPlacements: **96**
 - OfferClicks: **144**
+
+`Public-eligible` is a technical eligibility state, not a declaration that an Offer is commercially launch-ready. A prior launch-readiness audit found incomplete price, availability and logistics evidence across a material part of the technically eligible set. No public-eligibility rule or catalog record is changed by this documentation reconciliation. Commercial launch selection belongs to `PUBLIC CATALOG LAUNCH QUALITY GATE 001`.
 
 Current non-retired family slugs:
 
@@ -157,7 +162,7 @@ Latest catalog-maintenance service result: **success**, `ExecMainStatus=0`.
 
 ## Discovery / Learning Authorization State
 
-Current Phase 4 closeout authorizes **no new product discovery** and **no AliExpress live discovery operations**.
+Current Phase 4 state authorizes **no new product discovery** and **no AliExpress live discovery operations**.
 
 Historic HIFU/Cavitation discovery and family-learning evidence remains in dedicated project/audit documents and in the historical section below. Those historic pilot gates must not be interpreted as authorization to start discovery now.
 
@@ -202,6 +207,37 @@ Current audited responses:
 
 DuckDNS is not an authorization for final public launch, Search Console or indexing.
 
+## Phase 4 Security / Hardening Status
+
+Completed Phase 4 milestones relevant to the current state:
+
+- **PR #108 — Phase 4 ChangeSet 2 Documentation Closeout:** CLOSED / MERGED / COMPLETED. Merge commit: `74b94ba59cae71701a933637c91809dd2ab9d313`.
+- **PR #109 — Private Login Protection 001:** CLOSED / MERGED / DEPLOYED / PASS. Merge commit: `aea78ebfb5dfebc142a085717d7a4eef69585844`.
+  - Protects authentication POSTs on `/painel/entrar/` and `/admin/login/`.
+  - Policy: 5 failed authentication POSTs per normalized source within 5 minutes, followed by temporary HTTP 429 throttling with `Retry-After`.
+  - No permanent account lockout; username/account identity is not the limiter key.
+  - No passwords or credentials are stored/logged by the limiter.
+  - No Redis, new database table, migration or new dependency was introduced.
+- **PRIVATE LOGIN RATE LIMITING 001:** DUPLICATE / ALREADY IMPLEMENTED / CLOSED through Private Login Protection 001; no second mechanism is authorized or required.
+- **PR #110 — Nginx Server Tokens Hardening 001:** CLOSED / MERGED / DEPLOYED / PASS. Merge commit: `ffd4c9563927da3bcd60522a4b2286d130457456`.
+  - Public Nginx header before: `Server: nginx/1.24.0 (Ubuntu)`.
+  - Current public Nginx header: `Server: nginx`.
+
+These closed controls must not be reimplemented as new Phase 4 work without a separate audited reason.
+
+## Pre-Launch Gates
+
+- **HSTS:** DEFERRED UNTIL FINAL COMMERCIAL DOMAIN.
+- **CSP:** PENDING DEDICATED AUDIT.
+- **FUTURE CHANGESET:** `CONTENT SECURITY POLICY AUDIT 001`.
+- **FINAL COMMERCIAL DOMAIN:** PENDING.
+- **LEGAL / PRIVACY:** PENDING / GO-LIVE BLOCKER.
+- **PUBLIC CATALOG LAUNCH QUALITY GATE:** PENDING.
+- **GO-LIVE:** NO.
+- **PUBLIC INDEXING:** OFF.
+
+The next official phase after this reconciliation is merged and closed is `PUBLIC CATALOG LAUNCH QUALITY GATE 001`. That phase is not authorized inside this branch.
+
 ## Public Launch / Indexing State
 
 Current launch controls:
@@ -220,7 +256,7 @@ Disallow: /
 
 **PUBLIC INDEXING: OFF**
 
-No canonical/indexing activation is authorized by this documentation closeout.
+No canonical/indexing activation is currently authorized.
 
 ## Current Software / OS Baseline
 
@@ -242,30 +278,35 @@ No canonical/indexing activation is authorized by this documentation closeout.
 
 ## Tests and Regression Baseline
 
-Documentation closeout pre-edit regression audit on 2026-09-19:
+Most recent application/security regression evidence before this documentation reconciliation:
 
+- Private Login Protection focused tests: **25 / 25 PASS**
 - Django system check: **PASS**
+- production deploy check: **PASS** with only the separately deferred HSTS warning
 - `makemigrations --check --dry-run`: **NO CHANGES**
 - `migrate --plan`: **NO PLANNED MIGRATIONS**
 - `pip check`: **PASS**
 - Ruff: **PASS**
-- Full automated suite: **494 / 494 PASS**
+- Full automated suite for PR #109: **519 / 519 PASS**
+- PR #110 CI #251: **SUCCESS**
 
-Current reconciled application baseline:
+Current reconciled application/runtime baseline:
 
-`d86343e0ca1fcd4b12f7da81b4b710798674fb02`
+`ffd4c9563927da3bcd60522a4b2286d130457456`
 
 ## Current Open Items
 
-Factual open items after ChangeSet 2 / 2A:
+Factual open/deferred items at this reconciliation:
 
-- Phase 4 continues; this documentation closeout still requires Supervisor audit and merge authorization.
-- `libfwupd2` and `libgusb2` remain autoremove candidates; this closeout does not remove them.
+- `libfwupd2` and `libgusb2` remain autoremove candidates; no autoremove is authorized here.
 - 21 ESM Apps updates remain available only through Ubuntu Pro/ESM; Ubuntu Pro remains not attached.
-- public launch remains unauthorized;
-- public indexing remains disabled;
-- legal/Owner launch review remains a human gate;
-- later Phase 4 hardening/storefront/editorial work requires separate authorization.
+- HSTS is **DEFERRED UNTIL FINAL COMMERCIAL DOMAIN**.
+- CSP is **PENDING DEDICATED AUDIT**; the future isolated work item is `CONTENT SECURITY POLICY AUDIT 001`.
+- final commercial domain: **PENDING**.
+- legal/privacy completion: **PENDING / GO-LIVE BLOCKER**.
+- public catalog launch quality gate: **PENDING**.
+- public launch remains unauthorized.
+- public indexing remains disabled.
 
 ## Infrastructure
 
@@ -281,7 +322,7 @@ Current core infrastructure remains:
 - local PostgreSQL backups;
 - Restic/R2 encrypted off-server backup.
 
-No architecture rebuild is authorized by this documentation closeout.
+No architecture rebuild is authorized.
 
 ## Security and Honesty Invariants
 
@@ -318,17 +359,22 @@ The following chronology is retained as project history. It is **not** the curre
 - HIFU broad discovery was formally closed after the authorized final push; no further HIFU SEARCH calls are authorized in this phase.
 - Automatic maintenance reactivation was prohibited and merged before the current baseline.
 - The final five-option multi-signal rejection UI was merged and deployed in PR #80, leading to the then-current baseline `4abc19b636e2bf0b2f6068ee7b1065beb2a39b16`.
+- PR #108 completed and merged the Phase 4 ChangeSet 2 documentation closeout at merge commit `74b94ba59cae71701a933637c91809dd2ab9d313`.
+- PR #109 implemented, merged and deployed Private Login Protection 001 at merge commit `aea78ebfb5dfebc142a085717d7a4eef69585844`; runtime validation passed.
+- PR #110 implemented, merged and deployed Nginx Server Tokens Hardening 001 at merge commit `ffd4c9563927da3bcd60522a4b2286d130457456`; public version disclosure was reduced from `Server: nginx/1.24.0 (Ubuntu)` to `Server: nginx`.
 
 Historical detailed evidence remains in repository audit and phase documents. This file now distinguishes those milestones from the live operating state above.
 
 ## Current Gate
 
-- **PHASE 4 CHANGESET 2:** DOCUMENTATION CLOSEOUT IN PROGRESS
-- **CURRENT ACTION:** DOCUMENTATION-ONLY RECONCILIATION
-- **NEXT HUMAN ACTION:** SUPERVISOR AUDIT OF THE CLOSEOUT PR
-- **NEW PRODUCT DISCOVERY:** NO
-- **ALIEXPRESS LIVE DISCOVERY/OPERATIONS:** NO
-- **PUBLIC LAUNCH:** NO
-- **PUBLIC INDEXING:** OFF
-
-[executed on device: ubuntu-s-1vcpu-1gb-lon1 (e3b7c8dd-8316-4238-9b0d-04b6728902ad)]
+- **PHASE 4:** PRE-GO-LIVE READINESS.
+- **LAST COMPLETED RECONCILIATION:** PHASE 4 CURRENT STATE RECONCILIATION 002.
+- **CURRENT GATE:** `PUBLIC CATALOG LAUNCH QUALITY GATE 001` — PENDING SUPERVISOR AUTHORIZATION.
+- **CURRENT ACTION:** Prepare the isolated `PUBLIC CATALOG LAUNCH QUALITY GATE 001`; no catalog execution is authorized yet.
+- **NEXT HUMAN ACTION:** Supervisor issues the dedicated audit/execution scope for `PUBLIC CATALOG LAUNCH QUALITY GATE 001`.
+- **PRIVATE LOGIN PROTECTION 001:** CLOSED / PASS.
+- **NGINX SERVER TOKENS HARDENING 001:** CLOSED / PASS.
+- **NEW PRODUCT DISCOVERY:** NO.
+- **ALIEXPRESS LIVE DISCOVERY/OPERATIONS:** NO.
+- **PUBLIC LAUNCH:** NO.
+- **PUBLIC INDEXING:** OFF.
