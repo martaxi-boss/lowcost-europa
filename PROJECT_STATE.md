@@ -5,9 +5,10 @@ Updated: 2026-09-19.
 ## Current State
 
 - **APPLICATION:** HEALTHY
-- **CURRENT MAIN / RUNTIME BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
-- **BRANCH:** `main`
-- **origin/main = deployed runtime:** YES
+- **PRE-RECONCILIATION APPLICATION / RUNTIME BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
+- **CURRENT BRANCH:** `main`
+- **RUNTIME APPLICATION BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
+- **DEPLOYED APPLICATION CODE ALIGNED WITH LAST APPLICATION BASELINE:** YES
 - **WORKTREE:** CLEAN
 - **Kernel:** `6.8.0-139-generic`
 - **Reboot required:** NO
@@ -29,6 +30,8 @@ Updated: 2026-09-19.
 - **Next human action:** Supervisor defines and authorizes the dedicated `PUBLIC CATALOG LAUNCH QUALITY GATE 001`
 - **New product discovery:** NO
 - **AliExpress live discovery/operations for this reconciliation:** NO
+
+`PROJECT_STATE.md` is documentation. A documentation-only merge may advance `main` without changing the deployed application/runtime code. Runtime synchronization, when required by governance, is a separate operation and does not by itself imply an application restart.
 
 The current system is a controlled human-in-the-loop catalog workflow. It is **not** a fully automatic learning system and does not authorize autonomous product publication. Current ranking/learning logic remains deterministic and isolated by product family.
 
