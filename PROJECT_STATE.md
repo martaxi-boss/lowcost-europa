@@ -26,10 +26,10 @@ Updated: 2026-09-19.
 - **NOINDEX:** ACTIVE
 - **PUBLIC VALIDATION HOSTNAME:** `https://lowcost-europa.duckdns.org`
 - **Architecture:** FROZEN / NO REBUILD AUTHORIZED
-- **Current action:** Technical controlled-pilot baseline closeout; external real-user pilot remains blocked by unresolved legal/operator identification input
-- **Next human action:** Owner/legal counsel resolves operator identity and final legal/privacy wording before any external real-user pilot authorization
-- **Technical controlled pilot baseline:** AUTHORIZED
-- **External real-user pilot:** BLOCKED
+- **Current action:** Clean technical pilot baseline established and frozen. Platform is technically ready. Final domain, operator/business information and final legal/privacy content remain pending for future activation.
+- **Next human action:** Owner decides when to provide final domain and operator/business information and initiate the final activation sequence.
+- **Technical controlled pilot baseline:** AUTHORIZED / READY
+- **External real-user pilot:** PENDING FINAL ACTIVATION INPUTS
 - **New product discovery:** NO
 - **HIFU logistics recovery:** PAUSED
 
@@ -232,8 +232,11 @@ These closed controls must not be reimplemented as new Phase 4 work without a se
 - **HSTS:** DEFERRED UNTIL FINAL COMMERCIAL DOMAIN.
 - **CSP:** PENDING DEDICATED AUDIT.
 - **FUTURE CHANGESET:** `CONTENT SECURITY POLICY AUDIT 001`.
-- **FINAL COMMERCIAL DOMAIN:** PENDING.
-- **LEGAL / PRIVACY FINAL CONTENT:** PENDING OWNER INPUT / LEGAL VALIDATION; external real-user pilot and commercial GO-LIVE remain blocked.
+- **FINAL COMMERCIAL DOMAIN:** PENDING OWNER DECISION.
+- **LEGAL OPERATOR INFORMATION:** PENDING OWNER INPUT.
+- **FINAL LEGAL / PRIVACY CONTENT:** PENDING FINAL INPUT / VALIDATION.
+- **SEARCH CONSOLE:** NOT YET.
+- **LEGAL / PRIVACY FINAL CONTENT:** PENDING FINAL INPUT / VALIDATION for future activation; commercial GO-LIVE remains NO.
 - **PUBLIC CATALOG LAUNCH QUALITY GATE 001:** AUDITED / CLOSED FOR CURRENT EVIDENCE.
 - **Current launch-evidence-complete Offers:** `#51`, `#59`, `#60`, `#61`, `#62` (5 total, audit evidence as of 2026-09-19).
 - **Further HIFU logistics recovery:** PAUSED.
@@ -312,11 +315,11 @@ Factual open/deferred items at this reconciliation:
 - HSTS is **DEFERRED UNTIL FINAL COMMERCIAL DOMAIN**.
 - CSP is **PENDING DEDICATED AUDIT**; the future isolated work item is `CONTENT SECURITY POLICY AUDIT 001`.
 - final commercial domain: **PENDING**.
-- legal/privacy audit: **COMPLETED**; operator identity/final approved legal content remain **PENDING OWNER INPUT / LEGAL VALIDATION** and block external real-user pilot/commercial GO-LIVE.
+- legal/privacy audit: **COMPLETED**; operator identity/final approved legal content remain **PENDING OWNER INPUT / FINAL VALIDATION** for future activation.
 - public catalog launch quality audit: **COMPLETED**; 5 Offers currently have complete launch evidence under the approved audit criteria.
 - HIFU logistics recovery: **PAUSED**.
-- external real-user pilot remains **BLOCKED** pending the legal/operator gate.
-- technical controlled-pilot baseline is **AUTHORIZED**.
+- external real-user pilot is **PENDING FINAL ACTIVATION INPUTS**; no technical lock or unblock operation is required.
+- technical controlled-pilot baseline is **AUTHORIZED / READY**.
 - public launch remains unauthorized.
 - public indexing remains disabled.
 
@@ -386,8 +389,8 @@ Historical detailed evidence remains in repository audit and phase documents. Th
 - **CONTROLLED PILOT READINESS 001:** CLOSED / PASS (technical baseline).
 - **REPOSITORY & RUNTIME HYGIENE AUDIT 001:** CLOSED / PASS.
 - **HYGIENE CLEANUP 001:** CLOSED / PASS (safe temporary/cache residue only).
-- **TECHNICAL CONTROLLED PILOT BASELINE:** AUTHORIZED.
-- **EXTERNAL REAL-USER PILOT:** BLOCKED pending legal/operator identity resolution and final legal validation.
+- **TECHNICAL CONTROLLED PILOT BASELINE:** AUTHORIZED / READY.
+- **EXTERNAL REAL-USER PILOT:** PENDING FINAL ACTIVATION INPUTS.
 - **LEGAL / PRIVACY AUDIT:** COMPLETED.
 - **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.
 - **FINAL COMMERCIAL DOMAIN:** PENDING.
