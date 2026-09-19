@@ -65,7 +65,7 @@ dump_age=$((now - dump_mtime))
 
 restic backup     "$BACKUP_DIR"     "$APP_ENV"     --tag lowcost-europa     --tag offsite     --tag disaster-recovery     --host lowcost-europa-droplet     --no-cache
 
-snapshot_json=$(restic snapshots --json --latest 1     --tag lowcost-europa --tag offsite --host lowcost-europa-droplet --no-cache)
+snapshot_json=$(restic snapshots --json --latest 1     --tag lowcost-europa,offsite --host lowcost-europa-droplet --no-cache)
 snapshot_id=$(printf '%s' "$snapshot_json" | python3 -c '
 import json, sys
 data = json.load(sys.stdin)
@@ -75,7 +75,7 @@ print(data[-1]["short_id"])
 ')
 restic check --no-cache >/dev/null
 
-restic forget     --tag lowcost-europa     --tag offsite     --group-by host,paths     --keep-daily 7     --keep-weekly 4     --keep-monthly 3     --no-cache
+restic forget     --tag lowcost-europa,offsite     --group-by host,paths     --keep-daily 7     --keep-weekly 4     --keep-monthly 3     --no-cache
 
 restic check --no-cache >/dev/null
 restic prune --no-cache

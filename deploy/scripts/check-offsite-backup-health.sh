@@ -60,7 +60,7 @@ export RESTIC_PASSWORD_FILE="$PASSWORD_FILE"
 : "${AWS_SECRET_ACCESS_KEY:?R2 secret key is not configured}"
 : "${RESTIC_REPOSITORY:?Restic repository is not configured}"
 
-snapshot_json=$(restic snapshots --json --latest 1     --tag lowcost-europa --tag offsite --host lowcost-europa-droplet --no-cache)
+snapshot_json=$(restic snapshots --json --latest 1     --tag lowcost-europa,offsite --host lowcost-europa-droplet --no-cache)
 printf '%s' "$snapshot_json" | python3 -c '
 import datetime, json, sys
 max_age = int(sys.argv[1])

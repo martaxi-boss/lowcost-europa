@@ -40,9 +40,22 @@ class OffsiteBackupPolicyTests(SimpleTestCase):
         self.assertIn("--keep-weekly 4", self.backup)
         self.assertIn("--keep-monthly 3", self.backup)
         self.assertIn("--group-by host,paths", self.backup)
-        self.assertIn("--tag lowcost-europa", self.backup)
-        self.assertIn("--tag offsite", self.backup)
+        self.assertIn("--tag lowcost-europa,offsite", self.backup)
         self.assertIn("restic prune --no-cache", self.backup)
+
+
+    def test_selection_filters_require_both_offsite_tags(self):
+        combined = "--tag lowcost-europa,offsite"
+        separated = "--tag lowcost-europa --tag offsite"
+        snapshot_selection = self.backup.split("snapshot_json=", 1)[1].split("snapshot_id=", 1)[0]
+        retention = self.backup.split("restic forget", 1)[1].split("restic check", 1)[0]
+        health_selection = self.health.split("snapshot_json=", 1)[1].split("printf", 1)[0]
+        restore_selection = self.restore.split("restic restore latest", 1)[1].split(
+            "restored_backup_dir=", 1
+        )[0]
+        for operation in (snapshot_selection, retention, health_selection, restore_selection):
+            self.assertIn(combined, operation)
+            self.assertNotIn(separated, operation)
 
     def test_backup_validation_retention_prune_and_marker_order(self):
         backup_at = self.backup.index("restic backup")

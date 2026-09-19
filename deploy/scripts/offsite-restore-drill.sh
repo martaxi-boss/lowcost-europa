@@ -64,7 +64,7 @@ cleanup() {
 }
 trap cleanup EXIT HUP INT TERM
 
-restic restore latest     --tag lowcost-europa     --tag offsite     --target "$target"     --no-cache >/dev/null
+restic restore latest     --tag lowcost-europa,offsite     --target "$target"     --no-cache >/dev/null
 
 restored_backup_dir="$target/var/backups/lowcost-europa/daily"
 restored_env="$target/etc/lowcost-europa/lowcost-europa.env"
