@@ -26,9 +26,9 @@ Updated: 2026-09-19.
 - **NOINDEX:** ACTIVE
 - **PUBLIC VALIDATION HOSTNAME:** `https://lowcost-europa.duckdns.org`
 - **Architecture:** FROZEN / NO REBUILD AUTHORIZED
-- **Current action:** Technical controlled-pilot baseline closeout; external real-user pilot remains blocked by unresolved legal/operator identification input
-- **Next human action:** Owner/legal counsel resolves operator identity and final legal/privacy wording before any external real-user pilot authorization
-- **Technical controlled pilot baseline:** AUTHORIZED
+- **Current action:** Technical execution is complete; Supervisor final technical-baseline conclusion remains pending; external real-user pilot remains blocked by unresolved legal/operator identification input
+- **Next human action:** Supervisor issues the final technical controlled-pilot conclusion; separately, Owner/legal counsel resolves operator identity and final legal/privacy wording before any external real-user pilot authorization
+- **Technical controlled pilot baseline:** PASS EVIDENCE / READY FOR SUPERVISOR FINAL DECISION
 - **External real-user pilot:** BLOCKED
 - **New product discovery:** NO
 - **HIFU logistics recovery:** PAUSED
@@ -316,7 +316,7 @@ Factual open/deferred items at this reconciliation:
 - public catalog launch quality audit: **COMPLETED**; 5 Offers currently have complete launch evidence under the approved audit criteria.
 - HIFU logistics recovery: **PAUSED**.
 - external real-user pilot remains **BLOCKED** pending the legal/operator gate.
-- technical controlled-pilot baseline is **AUTHORIZED**.
+- technical controlled-pilot execution is complete with **PASS EVIDENCE / READY FOR SUPERVISOR FINAL DECISION**.
 - public launch remains unauthorized.
 - public indexing remains disabled.
 
@@ -386,7 +386,7 @@ Historical detailed evidence remains in repository audit and phase documents. Th
 - **CONTROLLED PILOT READINESS 001:** CLOSED / PASS (technical baseline).
 - **REPOSITORY & RUNTIME HYGIENE AUDIT 001:** CLOSED / PASS.
 - **HYGIENE CLEANUP 001:** CLOSED / PASS (safe temporary/cache residue only).
-- **TECHNICAL CONTROLLED PILOT BASELINE:** AUTHORIZED.
+- **TECHNICAL CONTROLLED PILOT BASELINE:** PASS EVIDENCE / READY FOR SUPERVISOR FINAL DECISION.
 - **EXTERNAL REAL-USER PILOT:** BLOCKED pending legal/operator identity resolution and final legal validation.
 - **LEGAL / PRIVACY AUDIT:** COMPLETED.
 - **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.

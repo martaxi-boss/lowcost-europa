@@ -85,13 +85,16 @@ Findings:
 Result: **PASS**.
 
 Removed only evidence-backed safe residue:
+- five clean detached temporary Git worktrees whose commits were verified as ancestors of `main`.
+- stale/prunable Git worktree metadata.
 - temporary private-login test JSON/lock files under `/tmp`.
+- two unreferenced temporary private-login runtime proof scripts under `/tmp`.
 - repository-local `.ruff_cache`.
 - generated Python `__pycache__` directories under `apps/` and `config/`.
-- stale Git worktree metadata was pruned.
 
 No application code, configuration, database data, systemd units, packages, backups,
 catalog records, SSH/Nginx settings or secrets were changed.
+
 ## Legal / operator gate
 
 OWNER / LEGAL LAUNCH INFORMATION 001 completed read-only.
@@ -107,10 +110,10 @@ The technical audit does not infer a legal exemption from non-indexing or pilot 
 
 ## Final decision split
 
-**TECHNICAL CONTROLLED PILOT BASELINE: AUTHORIZED**
+**TECHNICAL CONTROLLED PILOT BASELINE: PASS EVIDENCE / READY FOR SUPERVISOR FINAL DECISION**
 
-The application/infrastructure baseline is technically healthy for continued internal/Owner
-validation and controlled technical operation.
+The application/infrastructure baseline is technically healthy based on the completed audit.
+Final authorization of the technical controlled-pilot baseline remains a Supervisor decision.
 
 **EXTERNAL REAL-USER PILOT: BLOCKED**
 
