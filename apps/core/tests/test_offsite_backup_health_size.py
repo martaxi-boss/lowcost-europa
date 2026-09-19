@@ -56,6 +56,7 @@ class OffsiteBackupHealthSizeTests(SimpleTestCase):
                 "    ;;\n"
                 "  check) exit 0 ;;\n"
                 "  stats)\n"
+                "    case \" $* \" in *\" --tag \"*|*\" --host \"*) exit 45 ;; esac\n"
                 "    case \"$FAKE_STATS_MODE\" in\n"
                 "      below) echo '{\"total_size\":7999999999}' ;;\n"
                 "      equal) echo '{\"total_size\":8000000000}' ;;\n"

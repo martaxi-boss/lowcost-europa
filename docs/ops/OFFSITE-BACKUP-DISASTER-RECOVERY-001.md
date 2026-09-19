@@ -96,7 +96,7 @@ Snapshot counts and repository storage size are operational observations and may
 
 The offsite health check has an operational warning threshold of exactly **8,000,000,000 bytes**, approximately **8 GB in decimal units**. This is intentionally not 8 GiB.
 
-This threshold is a preventive margin against the approximately 10 GB free-tier reference considered during this phase. The health check observes the matching Lowcost Europa offsite snapshot set with `restic stats --mode raw-data --json`, using the conjunctive tag filter `lowcost-europa,offsite` and host `lowcost-europa-droplet`.
+This threshold is a preventive margin against the approximately 10 GB free-tier reference considered during this phase. The health check measures repository capacity globally with `restic stats --mode raw-data --json --no-cache`, without snapshot tag or host filters, so the observed `total_size` covers the Restic repository as a whole.
 
 The Restic `raw-data` value is an operational repository observation. It must not be treated as an exact Cloudflare R2 billing/storage measurement because provider accounting can use different semantics.
 

@@ -77,7 +77,7 @@ if age < 0 or age > max_age:
 
 "$RESTIC_BIN" check --no-cache >/dev/null
 
-stats_json=$("$RESTIC_BIN" stats     --mode raw-data     --json     --tag lowcost-europa,offsite     --host lowcost-europa-droplet     --no-cache)
+stats_json=$("$RESTIC_BIN" stats     --mode raw-data     --json     --no-cache)
 repository_size=$(printf '%s' "$stats_json" | python3 -c '
 import json, sys
 data = json.load(sys.stdin)
