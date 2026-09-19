@@ -63,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.core.middleware.PrivateLoginRateLimitMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -122,3 +123,10 @@ CATALOG_MAINTENANCE_BATCH_SIZE = env_int_range(
 )
 
 OWNER_PANEL_USERNAME = "lowcost-owner"
+
+PRIVATE_LOGIN_RATE_LIMIT_ATTEMPTS = 5
+PRIVATE_LOGIN_RATE_LIMIT_WINDOW_SECONDS = 300
+PRIVATE_LOGIN_RATE_LIMIT_THROTTLE_SECONDS = 300
+PRIVATE_LOGIN_RATE_LIMIT_MAX_ENTRIES = 4096
+PRIVATE_LOGIN_RATE_LIMIT_STATE_PATH = "/run/lowcost-europa/private-login-rate-limit.json"
+PRIVATE_LOGIN_RATE_LIMIT_LOCK_PATH = "/run/lowcost-europa/private-login-rate-limit.lock"
