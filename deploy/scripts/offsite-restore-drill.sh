@@ -4,6 +4,7 @@ umask 077
 
 R2_ENV=/etc/lowcost-europa/r2.env
 PASSWORD_FILE=/etc/lowcost-europa/restic-password
+LIVE_ENV=/etc/lowcost-europa/lowcost-europa.env
 LOCK_FILE=/run/lock/lowcost-europa-restic.lock
 
 check_root_secret() {
@@ -14,6 +15,10 @@ check_root_secret() {
 
 check_root_secret "$R2_ENV"
 check_root_secret "$PASSWORD_FILE"
+[ -f "$LIVE_ENV" ] || { echo "Live application environment is missing" >&2; exit 1; }
+
+live_db=$(sed -n 's/^POSTGRES_DB=//p' "$LIVE_ENV" | head -n 1)
+[ -n "$live_db" ] || { echo "Live PostgreSQL database name is unavailable" >&2; exit 1; }
 
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
@@ -30,7 +35,33 @@ export RESTIC_PASSWORD_FILE="$PASSWORD_FILE"
 : "${RESTIC_REPOSITORY:?Restic repository is not configured}"
 
 target=$(mktemp -d /tmp/lowcost-europa-restic-restore.XXXXXX)
-cleanup() { rm -rf "$target"; }
+temp_db="lowcost_europa_restic_restore_$(date -u +%Y%m%d%H%M%S)_$$"
+[ "$temp_db" != "$live_db" ] || { echo "Temporary database name matches live database" >&2; exit 1; }
+
+db_created=0
+cleanup() {
+    status=$?
+    trap - EXIT HUP INT TERM
+    set +e
+    db_dropped=NOT_CREATED
+    if [ "$db_created" -eq 1 ]; then
+        if runuser -u postgres -- dropdb --if-exists "$temp_db" >/dev/null 2>&1; then
+            db_dropped=YES
+        else
+            db_dropped=NO
+            status=1
+        fi
+    fi
+    rm -rf "$target"
+    [ ! -e "$target" ] && dir_removed=YES || { dir_removed=NO; status=1; }
+
+    echo "TEMP DATABASE DROPPED=$db_dropped"
+    echo "RESTORE TEMP DIRECTORY REMOVED=$dir_removed"
+    if [ "$status" -eq 0 ]; then
+        echo "LIVE DATABASE MODIFIED=NO"
+    fi
+    exit "$status"
+}
 trap cleanup EXIT HUP INT TERM
 
 restic restore latest     --tag lowcost-europa     --tag offsite     --target "$target"     --no-cache >/dev/null
@@ -54,4 +85,19 @@ sidecar="$latest_dump.sha256"
 )
 pg_restore --list "$latest_dump" >/dev/null
 
-echo "Offsite restore drill passed without touching the live database"
+runuser -u postgres -- createdb "$temp_db"
+db_created=1
+cat "$latest_dump" | runuser -u postgres -- pg_restore     --exit-on-error     --no-owner     --no-privileges     --dbname="$temp_db"
+
+runuser -u postgres -- psql -X -v ON_ERROR_STOP=1 -d "$temp_db" -At <<'SQL' >/dev/null
+SELECT 1 WHERE to_regclass('public.django_migrations') IS NOT NULL;
+SELECT 1 WHERE to_regclass('public.catalog_productfamily') IS NOT NULL;
+SELECT 1 WHERE to_regclass('public.catalog_offer') IS NOT NULL;
+SELECT count(*) FROM django_migrations;
+SELECT count(*) FROM catalog_productfamily;
+SELECT count(*) FROM catalog_offer;
+SQL
+
+echo "POSTGRES TEMP RESTORE=PASS"
+echo "DJANGO_MIGRATIONS=PRESENT"
+echo "CORE CATALOG READ=PASS"

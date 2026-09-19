@@ -253,7 +253,7 @@ Staging `OfferClicks` do not necessarily represent unique users, purchases, sale
 - Latest migration `0012`: validated backup was completed **before** migration application.
 - Historical process issues from earlier migrations remain part of the audit history and must not be erased or rewritten.
 - **OFF-SERVER BACKUP:** IMPLEMENTED IN PHASE 3 BRANCH / FIRST R2 RESTIC SNAPSHOT CREATED.
-- **OFF-SERVER RESTORE DRILL:** PASS for isolated file restore, checksum validation and `pg_restore --list`; live DB untouched.
+- **OFF-SERVER RESTORE DRILL:** PASS for encrypted snapshot restore, checksum validation and real `pg_restore` into a unique temporary PostgreSQL database; migrations/core catalog readable, temporary DB/directory cleaned, live DB untouched.
 - **RECOVERY PASSWORD GATE:** PENDING OWNER CONFIRMATION that a Restic password copy exists outside this Droplet.
 - **PHASE 3 CLOSE:** NOT YET AUTHORIZED; Supervisor audit required.
 

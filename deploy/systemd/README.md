@@ -30,8 +30,8 @@ The offsite script is root-only at runtime because it must read `/etc/lowcost-eu
 
 Before any upload, the newest local PostgreSQL dump must be non-empty, have a valid SHA256 sidecar and be no older than 6 hours. A dedicated `/run/lock/lowcost-europa-restic.lock` prevents concurrent Restic operations.
 
-The offsite snapshot contains the local daily backup directory and `/etc/lowcost-europa/lowcost-europa.env`. It deliberately excludes `r2.env` and `restic-password` to avoid circular recovery dependencies.
+The offsite snapshot contains the local daily backup directory and `/etc/lowcost-europa/lowcost-europa.env`. It deliberately excludes `r2.env` and `restic-password` to avoid circular recovery dependencies. After each successful backup and repository validation, Restic retention keeps 7 daily, 4 weekly and 3 monthly snapshots for the matching Lowcost Europa tag scope, then prunes unused data. Only after backup, validation, retention and prune all succeed is `/var/lib/lowcost-europa/offsite-backup.last-success` atomically replaced.
 
-A weekly health timer runs the repository health script. The restore drill is manual and restores only into a temporary directory; it validates checksum and `pg_restore --list` without touching the live database.
+A daily health timer runs at 05:15 UTC and requires both a <=36h success marker and a <=36h matching offsite snapshot before running `restic check`. The restore drill is manual: it restores files into a temporary root-only directory, creates a uniquely named PostgreSQL temporary database, performs a real `pg_restore`, validates migrations/core catalog readability, drops only that temporary database and removes the temporary directory.
 
 Runtime installation/enabling of these new units is performed only after the corresponding implementation has been audited and merged.

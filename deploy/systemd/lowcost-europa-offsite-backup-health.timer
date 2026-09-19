@@ -1,8 +1,8 @@
 [Unit]
-Description=Check Lowcost Europa offsite backup health weekly
+Description=Check Lowcost Europa offsite backup health daily
 
 [Timer]
-OnCalendar=Sun *-*-* 05:15:00 UTC
+OnCalendar=*-*-* 05:15:00 UTC
 Persistent=true
 Unit=lowcost-europa-offsite-backup-health.service
 
