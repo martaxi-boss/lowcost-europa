@@ -5,9 +5,9 @@ Updated: 2026-09-19.
 ## Current State
 
 - **APPLICATION:** HEALTHY
-- **PRE-RECONCILIATION APPLICATION / RUNTIME BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
+- **PRE-CLOSEOUT APPLICATION / RUNTIME BASELINE:** `211c2047b408ee85b5b1d139a40a80d510305d2d`
 - **CURRENT BRANCH:** `main`
-- **RUNTIME APPLICATION BASELINE:** `ffd4c9563927da3bcd60522a4b2286d130457456`
+- **RUNTIME APPLICATION BASELINE:** `211c2047b408ee85b5b1d139a40a80d510305d2d`
 - **DEPLOYED APPLICATION CODE ALIGNED WITH LAST APPLICATION BASELINE:** YES
 - **WORKTREE:** CLEAN
 - **Kernel:** `6.8.0-139-generic`
@@ -26,10 +26,12 @@ Updated: 2026-09-19.
 - **NOINDEX:** ACTIVE
 - **PUBLIC VALIDATION HOSTNAME:** `https://lowcost-europa.duckdns.org`
 - **Architecture:** FROZEN / NO REBUILD AUTHORIZED
-- **Current action:** Pre-GO-LIVE readiness; `PUBLIC CATALOG LAUNCH QUALITY GATE 001` is the next official gate and is not yet authorized for execution
-- **Next human action:** Supervisor defines and authorizes the dedicated `PUBLIC CATALOG LAUNCH QUALITY GATE 001`
+- **Current action:** Technical controlled-pilot baseline closeout; external real-user pilot remains blocked by unresolved legal/operator identification input
+- **Next human action:** Owner/legal counsel resolves operator identity and final legal/privacy wording before any external real-user pilot authorization
+- **Technical controlled pilot baseline:** AUTHORIZED
+- **External real-user pilot:** BLOCKED
 - **New product discovery:** NO
-- **AliExpress live discovery/operations for this reconciliation:** NO
+- **HIFU logistics recovery:** PAUSED
 
 `PROJECT_STATE.md` is documentation. A documentation-only merge may advance `main` without changing the deployed application/runtime code. Runtime synchronization, when required by governance, is a separate operation and does not by itself imply an application restart.
 
@@ -231,12 +233,16 @@ These closed controls must not be reimplemented as new Phase 4 work without a se
 - **CSP:** PENDING DEDICATED AUDIT.
 - **FUTURE CHANGESET:** `CONTENT SECURITY POLICY AUDIT 001`.
 - **FINAL COMMERCIAL DOMAIN:** PENDING.
-- **LEGAL / PRIVACY:** PENDING / GO-LIVE BLOCKER.
-- **PUBLIC CATALOG LAUNCH QUALITY GATE:** PENDING.
+- **LEGAL / PRIVACY FINAL CONTENT:** PENDING OWNER INPUT / LEGAL VALIDATION; external real-user pilot and commercial GO-LIVE remain blocked.
+- **PUBLIC CATALOG LAUNCH QUALITY GATE 001:** AUDITED / CLOSED FOR CURRENT EVIDENCE.
+- **Current launch-evidence-complete Offers:** `#51`, `#59`, `#60`, `#61`, `#62` (5 total, audit evidence as of 2026-09-19).
+- **Further HIFU logistics recovery:** PAUSED.
+- **LEGAL / PRIVACY AUDIT:** COMPLETED.
+- **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.
 - **GO-LIVE:** NO.
 - **PUBLIC INDEXING:** OFF.
 
-The next official phase after this reconciliation is merged and closed is `PUBLIC CATALOG LAUNCH QUALITY GATE 001`. That phase is not authorized inside this branch.
+Technical catalog evidence recovery does not authorize publication, external pilot traffic or commercial GO-LIVE. Search-based `<=5 days` evidence remains provenance-aware evidence, not a delivery guarantee.
 
 ## Public Launch / Indexing State
 
@@ -278,21 +284,24 @@ No canonical/indexing activation is currently authorized.
 
 ## Tests and Regression Baseline
 
-Most recent application/security regression evidence before this documentation reconciliation:
+Most recent final controlled-pilot technical regression evidence:
 
-- Private Login Protection focused tests: **25 / 25 PASS**
 - Django system check: **PASS**
 - production deploy check: **PASS** with only the separately deferred HSTS warning
 - `makemigrations --check --dry-run`: **NO CHANGES**
 - `migrate --plan`: **NO PLANNED MIGRATIONS**
 - `pip check`: **PASS**
 - Ruff: **PASS**
-- Full automated suite for PR #109: **519 / 519 PASS**
-- PR #110 CI #251: **SUCCESS**
+- Full automated suite: **532 / 532 PASS**
+- `nginx -t`: **PASS**
+- `sshd -t`: **PASS**
+- homepage / liveness / readiness: **200 / 200 / 200**
+- local backup / offsite backup / offsite health: **PASS**
+- failed systemd units: **0**
 
-Current reconciled application/runtime baseline:
+Current deployed application/runtime baseline:
 
-`ffd4c9563927da3bcd60522a4b2286d130457456`
+`211c2047b408ee85b5b1d139a40a80d510305d2d`
 
 ## Current Open Items
 
@@ -303,8 +312,11 @@ Factual open/deferred items at this reconciliation:
 - HSTS is **DEFERRED UNTIL FINAL COMMERCIAL DOMAIN**.
 - CSP is **PENDING DEDICATED AUDIT**; the future isolated work item is `CONTENT SECURITY POLICY AUDIT 001`.
 - final commercial domain: **PENDING**.
-- legal/privacy completion: **PENDING / GO-LIVE BLOCKER**.
-- public catalog launch quality gate: **PENDING**.
+- legal/privacy audit: **COMPLETED**; operator identity/final approved legal content remain **PENDING OWNER INPUT / LEGAL VALIDATION** and block external real-user pilot/commercial GO-LIVE.
+- public catalog launch quality audit: **COMPLETED**; 5 Offers currently have complete launch evidence under the approved audit criteria.
+- HIFU logistics recovery: **PAUSED**.
+- external real-user pilot remains **BLOCKED** pending the legal/operator gate.
+- technical controlled-pilot baseline is **AUTHORIZED**.
 - public launch remains unauthorized.
 - public indexing remains disabled.
 
@@ -362,19 +374,28 @@ The following chronology is retained as project history. It is **not** the curre
 - PR #108 completed and merged the Phase 4 ChangeSet 2 documentation closeout at merge commit `74b94ba59cae71701a933637c91809dd2ab9d313`.
 - PR #109 implemented, merged and deployed Private Login Protection 001 at merge commit `aea78ebfb5dfebc142a085717d7a4eef69585844`; runtime validation passed.
 - PR #110 implemented, merged and deployed Nginx Server Tokens Hardening 001 at merge commit `ffd4c9563927da3bcd60522a4b2286d130457456`; public version disclosure was reduced from `Server: nginx/1.24.0 (Ubuntu)` to `Server: nginx`.
+- PR #112 implemented, merged and deployed the existing-offer search/detail logistics observation capability at merge commit `211c2047b408ee85b5b1d139a40a80d510305d2d`; live use remained separately gated.
+- Controlled live logistics evidence recovery established current launch-evidence-complete status for Offers `#51`, `#59`, `#60`, `#61`, `#62`; further HIFU recovery is paused.
+- OWNER / LEGAL LAUNCH INFORMATION 001 completed read-only; legal operator identity and final legal/privacy content remain pending Owner/counsel input.
 
 Historical detailed evidence remains in repository audit and phase documents. This file now distinguishes those milestones from the live operating state above.
 
 ## Current Gate
 
 - **PHASE 4:** PRE-GO-LIVE READINESS.
-- **LAST COMPLETED RECONCILIATION:** PHASE 4 CURRENT STATE RECONCILIATION 002.
-- **CURRENT GATE:** `PUBLIC CATALOG LAUNCH QUALITY GATE 001` — PENDING SUPERVISOR AUTHORIZATION.
-- **CURRENT ACTION:** Prepare the isolated `PUBLIC CATALOG LAUNCH QUALITY GATE 001`; no catalog execution is authorized yet.
-- **NEXT HUMAN ACTION:** Supervisor issues the dedicated audit/execution scope for `PUBLIC CATALOG LAUNCH QUALITY GATE 001`.
+- **CONTROLLED PILOT READINESS 001:** CLOSED / PASS (technical baseline).
+- **REPOSITORY & RUNTIME HYGIENE AUDIT 001:** CLOSED / PASS.
+- **HYGIENE CLEANUP 001:** CLOSED / PASS (safe temporary/cache residue only).
+- **TECHNICAL CONTROLLED PILOT BASELINE:** AUTHORIZED.
+- **EXTERNAL REAL-USER PILOT:** BLOCKED pending legal/operator identity resolution and final legal validation.
+- **LEGAL / PRIVACY AUDIT:** COMPLETED.
+- **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.
+- **FINAL COMMERCIAL DOMAIN:** PENDING.
+- **HIFU RECOVERY:** PAUSED.
+- **NEW MASS DISCOVERY:** NO.
+- **ARCHITECTURE REBUILD:** NO.
 - **PRIVATE LOGIN PROTECTION 001:** CLOSED / PASS.
 - **NGINX SERVER TOKENS HARDENING 001:** CLOSED / PASS.
-- **NEW PRODUCT DISCOVERY:** NO.
-- **ALIEXPRESS LIVE DISCOVERY/OPERATIONS:** NO.
-- **PUBLIC LAUNCH:** NO.
+- **PUBLIC LAUNCH / COMMERCIAL GO-LIVE:** NO.
 - **PUBLIC INDEXING:** OFF.
+- **NEXT HUMAN ACTION:** Owner/legal counsel supplies and validates the remaining operator/legal information; Supervisor then decides whether an external real-user pilot can be authorized.
