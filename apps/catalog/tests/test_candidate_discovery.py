@@ -40,6 +40,42 @@ class CandidateDiscoveryTests(TestCase):
         self.assertEqual(Offer.objects.count(), 0)
         client.generate_affiliate_link.assert_not_called()
 
+
+    def test_search_requests_sanctioned_five_day_filter_with_pt_eur_en_and_paging(self):
+        client = Mock()
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[])
+        discover_family_candidates(
+            self.family, "HIFU machine", page_no=3, limit=15, client=client
+        )
+        client.search_products_diagnostic.assert_called_once_with(
+            "HIFU machine",
+            country="PT",
+            currency="EUR",
+            page_no=3,
+            page_size=15,
+            target_language="EN",
+            delivery_days=5,
+        )
+
+    def test_search_and_detail_delivery_provenance_persist_separately(self):
+        client = Mock()
+        base = self.product("provenance")
+        search = type(base)(
+            **{**base.__dict__, "ship_to_days_raw": "3 days", "delivery_days": 3}
+        )
+        detail = type(search)(
+            **{**search.__dict__, "ship_to_days_raw": "4 days", "delivery_days": 4}
+        )
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[search])
+        client.get_product_detail.return_value = detail
+        result = discover_family_candidates(self.family, "HIFU", client=client)
+        self.assertEqual(result.created, 1)
+        candidate = OfferCandidate.objects.get(external_product_id="provenance")
+        self.assertEqual(candidate.search_ship_to_days_raw, "3 days")
+        self.assertEqual(candidate.search_delivery_days, 3)
+        self.assertEqual(candidate.detail_ship_to_days_raw, "4 days")
+        self.assertEqual(candidate.detail_delivery_days, 4)
+
     def test_existing_rejected_candidate_is_skipped_before_detail(self):
         candidate = OfferCandidate.objects.create(
             product_family=self.family,
