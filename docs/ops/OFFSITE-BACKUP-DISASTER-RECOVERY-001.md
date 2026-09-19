@@ -91,3 +91,15 @@ Validated sequence:
 - live database modified by the drill: NO.
 
 Snapshot counts and repository storage size are operational observations and may change as retention/prune run; they are not recovery invariants.
+
+## Restic repository capacity warning
+
+The offsite health check has an operational warning threshold of exactly **8,000,000,000 bytes**, approximately **8 GB in decimal units**. This is intentionally not 8 GiB.
+
+This threshold is a preventive margin against the approximately 10 GB free-tier reference considered during this phase. The health check observes the matching Lowcost Europa offsite snapshot set with `restic stats --mode raw-data --json`, using the conjunctive tag filter `lowcost-europa,offsite` and host `lowcost-europa-droplet`.
+
+The Restic `raw-data` value is an operational repository observation. It must not be treated as an exact Cloudflare R2 billing/storage measurement because provider accounting can use different semantics.
+
+When observed Restic raw-data is below 8,000,000,000 bytes, repository capacity remains health-pass. At or above the threshold, the health check writes a capacity WARNING and exits non-zero so systemd records the health run as failed and the warning remains visible through normal service/journal inspection.
+
+This capacity warning does **not** indicate repository corruption. It does not delete snapshots, change the 7 daily / 4 weekly / 3 monthly retention policy, trigger additional forget/prune operations, alter R2 lifecycle rules or modify the bucket. Human review is required before any capacity-policy change.
