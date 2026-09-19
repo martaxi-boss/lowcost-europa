@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Lowcost Europa offsite backup health daily
+
+[Timer]
+OnCalendar=*-*-* 05:15:00 UTC
+Persistent=true
+Unit=lowcost-europa-offsite-backup-health.service
+
+[Install]
+WantedBy=timers.target

@@ -21,3 +21,17 @@ AliExpress operation locking and cadence use `/run/lowcost-europa/aliexpress.loc
 Deployment must install the versioned tmpfiles rule under the system tmpfiles configuration and run the normal `systemd-tmpfiles --create` provisioning step **before** starting/restarting application or maintenance processes that may instantiate `AliExpressClient`. The client deliberately does not create the parent directory itself.
 
 `PrivateTmp=true` remains enabled on both `lowcost-europa.service` and `lowcost-europa-catalog-maintenance.service`. `/run/lowcost-europa` is outside those private `/tmp` namespaces, so Django, hourly maintenance and direct management commands share the same lock/cadence inodes. State files remain `0600` through `_secure_state_open()`.
+
+## Offsite backup and disaster recovery
+
+The existing local PostgreSQL timer remains unchanged at 03:15 UTC. The versioned offsite timer runs at 03:45 UTC and invokes `/usr/local/sbin/lowcost-europa-offsite-backup`.
+
+The offsite script is root-only at runtime because it must read `/etc/lowcost-europa/r2.env`, `/etc/lowcost-europa/restic-password` and the application environment. It validates the two Restic bootstrap secret files as regular, non-symlink files owned by `root:root` with mode `0600`.
+
+Before any upload, the newest local PostgreSQL dump must be non-empty, have a valid SHA256 sidecar and be no older than 6 hours. A dedicated `/run/lock/lowcost-europa-restic.lock` prevents concurrent Restic operations.
+
+The offsite snapshot contains the local daily backup directory and `/etc/lowcost-europa/lowcost-europa.env`. It deliberately excludes `r2.env` and `restic-password` to avoid circular recovery dependencies. After each successful backup and repository validation, Restic retention keeps 7 daily, 4 weekly and 3 monthly snapshots for the matching Lowcost Europa tag scope, then prunes unused data. Only after backup, validation, retention and prune all succeed is `/var/lib/lowcost-europa/offsite-backup.last-success` atomically replaced.
+
+A daily health timer runs at 05:15 UTC and requires both a <=36h success marker and a <=36h matching offsite snapshot before running `restic check`. The restore drill is manual: it restores files into a temporary root-only directory, creates a uniquely named PostgreSQL temporary database, performs a real `pg_restore`, validates migrations/core catalog readability, drops only that temporary database and removes the temporary directory.
+
+Runtime installation/enabling of these new units is performed only after the corresponding implementation has been audited and merged.

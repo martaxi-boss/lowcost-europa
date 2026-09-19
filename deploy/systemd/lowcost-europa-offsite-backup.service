@@ -1,0 +1,13 @@
+[Unit]
+Description=Lowcost Europa offsite Restic backup to R2
+After=network-online.target lowcost-europa-backup.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lowcost-europa-offsite-backup
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
