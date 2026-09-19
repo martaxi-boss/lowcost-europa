@@ -7,101 +7,107 @@ This control protects authentication POST attempts on:
 - `/painel/entrar/`
 - `/admin/login/`
 
-It does not change Owner credentials, Django authentication semantics, CSRF, session cookies, staff/admin authorization, SSH, Nginx, firewall rules, public indexing or storefront behavior.
+GET login pages remain normally accessible. The control does not change Owner credentials, Django Admin authentication semantics, CSRF, session security, SSH, Nginx, firewall, catalog, backups or public indexing.
 
 ## Policy
 
-The application allows up to **5 authentication POST attempts per normalized source within 5 minutes**.
+The production policy is source-oriented:
 
-After the fifth unsuccessful authentication attempt, subsequent authentication POSTs from that source are temporarily throttled for **5 minutes**. A throttled request receives:
+- **5 failed authentication POST attempts**
+- within a **5 minute window**
+- the next attempt is answered with **HTTP 429**
+- temporary throttle duration: **5 minutes**
+- successful staff authentication clears the temporary state for that source
+- state expires naturally
+- stored source entries are capped at **4096**
 
-- HTTP `429 Too Many Requests`;
-- a `Retry-After` value derived from the remaining throttle period;
-- a generic message that does not disclose account existence, password correctness, remaining attempts, keys or implementation details.
+The same source state covers both protected login surfaces. Submitted username/account identity is not part of the limiter key, so changing usernames or alternating between the Owner login and Django Admin does not create fresh source identities.
 
-GET login pages remain accessible.
+A throttle response is generic and includes `Retry-After`, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow`. It does not report remaining attempts or account existence.
 
-A successful staff authentication clears the current temporary source state. State also expires naturally. No account or username is permanently locked.
+## Trusted source attribution
 
-## Source attribution
+The audited production topology is:
 
-The production topology is:
+`Internet -> Nginx -> Gunicorn on 127.0.0.1:8001 -> Django`
 
-`Internet → Nginx → loopback Gunicorn/Django`
+Gunicorn listens only on loopback.
 
-Gunicorn listens only on `127.0.0.1:8001`. Nginx overwrites `X-Real-IP` with its observed `$remote_addr` and forwards requests to loopback.
+Nginx explicitly overwrites:
 
-The limiter therefore:
+`X-Real-IP $remote_addr`
 
-1. uses `REMOTE_ADDR` directly for non-loopback requests;
-2. only trusts `X-Real-IP` when Django's `REMOTE_ADDR` is loopback;
-3. ignores `X-Forwarded-For` for rate-limit identity;
-4. validates and normalizes IPv4/IPv6 with Python's IP-address parser;
-5. falls back to a single `unknown` source identifier for malformed/missing direct addresses.
+and also supplies `X-Forwarded-For`. The limiter intentionally **does not use X-Forwarded-For**.
 
-The normalized address is converted to a SHA-256 source token before limiter state or limiter logs use it. Submitted usernames are not part of the limiter key.
+Source selection is:
 
-## Shared state
+1. Parse Django `REMOTE_ADDR`.
+2. If the immediate peer is loopback, accept a valid `X-Real-IP` supplied by the trusted local Nginx hop.
+3. Otherwise use `REMOTE_ADDR` directly and ignore forwarded client headers.
+4. Malformed direct peer input collapses to a bounded `unknown` source rather than creating attacker-controlled arbitrary keys.
+5. IPv4 and IPv6 are normalized with Python's `ipaddress` library.
 
-Two Gunicorn workers currently serve the application. Per-process Python memory and Django's default local-memory cache are therefore not suitable for this control.
+This policy relies on the audited loopback-only Gunicorn binding and Nginx header overwrite. If that topology changes, source attribution must be re-audited before relying on this control.
 
-The limiter uses short-lived JSON state in the existing shared runtime directory:
+## Shared state mechanism
+
+The application currently uses two Gunicorn workers, so per-process Python memory is not sufficient.
+
+No external dependency, Redis, Celery, cache service, database table or migration is introduced.
+
+Rate-limit state is stored under the existing shared runtime directory:
 
 `/run/lowcost-europa/`
 
-The directory already exists outside systemd `PrivateTmp`, is owned by the application service account and is shared by the Gunicorn workers.
+using:
 
-State coordination uses a dedicated POSIX `flock` lock. State writes are atomic and files are restricted to mode `0600`.
+- a dedicated lock file;
+- `fcntl.flock` for inter-process exclusion;
+- mode `0600` state/lock files;
+- atomic state-file replacement;
+- bounded entry count;
+- automatic expiry/pruning.
 
-State growth is bounded to **4096 source entries**. Expired entries are pruned during normal access, and oldest entries are evicted if the cap is reached.
-
-No Redis, Celery, external service, new Python dependency, Django model or migration is introduced.
-
-## Failure behavior
-
-Limiter-state failures are **fail-open for authentication availability**:
-
-- the login endpoint continues through its existing authentication flow;
-- visitors do not receive internal error details;
-- a generic operational error is logged.
-
-This avoids turning a local limiter-state fault into permanent Owner lockout. The application authentication system remains authoritative.
+Only a SHA-256 token derived from the normalized source is persisted; raw passwords, POST bodies, session IDs, cookies, CSRF tokens, usernames and credentials are not stored.
 
 ## Logging
 
-Limiter logs may contain only:
+Security logging is intentionally minimal:
 
-- logging timestamp;
 - protected endpoint classification;
-- generic failed/throttled/storage-error classification;
-- truncated hashed source token.
+- generic failed-authentication event;
+- generic throttle event;
+- abbreviated hashed source token.
 
-The limiter does not log:
+Logs do not include passwords, submitted usernames, POST bodies, sessions, cookies, CSRF tokens or authorization credentials.
 
-- passwords;
-- POST bodies;
-- submitted usernames;
-- session IDs/cookies;
-- CSRF tokens;
-- authorization headers;
-- private credentials.
+## Failure behavior
 
-## Existing security controls preserved
+The limiter is **fail-open** if its state mechanism cannot be read or written:
 
-- CSRF validation remains handled by Django.
-- Owner login remains fixed to the configured Owner username and requires an active staff user.
-- Django Admin continues to use the standard `AdminSite.login` / `LoginView` authentication flow.
-- Owner private responses retain `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow`.
-- Django Admin login retains its existing never-cache behavior.
-- Public indexing remains independently disabled.
+- the login request continues through the existing authentication path;
+- the endpoint does not crash;
+- no permanent Owner lockout is created;
+- a generic operational error is logged without exception detail or credentials.
+
+This choice prioritizes preserving authorized Owner/Admin access if the short-lived rate-limit state becomes unavailable.
+
+## CSRF ordering
+
+The limiter is implemented as view/response middleware after Django's CSRF middleware. A request rejected by CSRF is rejected before the authentication rate-limit decision and is not counted as an authentication failure.
+
+Existing Owner-panel private headers and Django Admin authentication flow remain unchanged.
 
 ## Operational rollback
 
 Rollback is application-only:
 
-1. revert the private-login-protection commit/PR;
-2. redeploy the previously approved application revision using the normal release procedure.
+1. revert the private-login-protection commit;
+2. deploy the reverted application through the normal audited process;
+3. optionally remove the two dedicated transient rate-limit files under `/run/lowcost-europa/` after the old code is no longer running.
 
-No database rollback, schema change, Redis cleanup, Nginx change, firewall change or systemd change is required.
+No database rollback, migration, Nginx change, firewall change or external service cleanup is required.
 
-The transient limiter files under `/run/lowcost-europa/` may be left to disappear on reboot or removed only as part of an explicitly approved rollback. Their presence does not affect the application once the middleware is absent.
+## Pre-merge limitation
+
+This change is tested before merge/deploy. No repeated authentication attempts are generated against production during this implementation pass. Controlled runtime threshold validation requires separate Supervisor authorization after an approved deployment.
