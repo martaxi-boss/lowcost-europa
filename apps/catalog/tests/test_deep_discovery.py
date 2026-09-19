@@ -46,6 +46,24 @@ class DeepDiscoveryTests(TestCase):
                     client.search_products_diagnostic.call_args.kwargs["page_no"], requested_page
                 )
 
+
+    def test_deep_discovery_forwards_five_day_filter_through_candidate_path(self):
+        client = Mock()
+        client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[])
+        result = discover_family_deep(
+            self.family, ["diode laser"], max_pages=3, limit=15, client=client
+        )
+        self.assertEqual(result.search_operations, 1)
+        client.search_products_diagnostic.assert_called_once_with(
+            "diode laser",
+            country="PT",
+            currency="EUR",
+            page_no=1,
+            page_size=15,
+            target_language="EN",
+            delivery_days=5,
+        )
+
     def test_management_command_page_option_is_forwarded_and_reported(self):
         from apps.catalog.services.candidate_discovery import CandidateDiscoveryResult
 
