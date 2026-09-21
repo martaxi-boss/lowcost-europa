@@ -484,4 +484,10 @@ class AliExpressClient:
         links = result.get("promotion_links", {}).get("promotion_link", [])
         if not links:
             raise AliExpressResponseError("No affiliate link returned")
-        return links[0].get("promotion_link") or links[0].get("promotion_url")
+        link = links[0].get("promotion_link") or links[0].get("promotion_url")
+        if link:
+            return link
+        message = links[0].get("message")
+        if message:
+            raise AliExpressAPIError(f"AliExpress API error: {message}")
+        raise AliExpressResponseError("No affiliate link returned")

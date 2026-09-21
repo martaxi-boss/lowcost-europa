@@ -12,6 +12,7 @@ from django.test import SimpleTestCase
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.config import AliExpressConfig
 from apps.integrations.aliexpress.exceptions import (
+    AliExpressAPIError,
     AliExpressAuthenticationError,
     AliExpressConfigurationError,
     AliExpressResponseError,
@@ -101,6 +102,34 @@ class ClientTests(SimpleTestCase):
         self.assertEqual(calls[0][1], 3)
         self.assertIn("ship_to_country=PT", calls[0][2])
         self.assertIn("target_currency=EUR", calls[0][2])
+
+    def test_generate_affiliate_link_surfaces_official_item_message(self):
+        client = AliExpressClient(self.config, **self.runtime_paths)
+        payload = {
+            "aliexpress_affiliate_link_generate_response": {
+                "resp_result": {
+                    "result": {
+                        "promotion_links": {
+                            "promotion_link": [
+                                {
+                                    "source_value": "https://www.aliexpress.com/item/1.html",
+                                    "message": (
+                                        "This item cannot be sold or promoted in "
+                                        "the selected country."
+                                    ),
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+        with patch.object(client, "_call", return_value=payload):
+            with self.assertRaisesRegex(
+                AliExpressAPIError,
+                "cannot be sold or promoted in the selected country",
+            ):
+                client.generate_affiliate_link("https://www.aliexpress.com/item/1.html")
 
     def test_api_auth_error_becomes_structured_exception(self):
         client = AliExpressClient(
