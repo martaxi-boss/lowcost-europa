@@ -9,6 +9,11 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("familias/<slug:family_slug>/", views.family_manage, name="family"),
     path(
+        "familias/<slug:family_slug>/adicionar-produto/",
+        views.manual_candidate_intake,
+        name="manual-candidate-intake",
+    ),
+    path(
         "familias/<slug:family_slug>/candidatos/<int:candidate_id>/aprovar/",
         views.candidate_approve,
         name="candidate-approve",
