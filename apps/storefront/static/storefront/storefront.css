@@ -54,6 +54,9 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .eyebrow--light { color: #a8d2c8; }
 .hero h1, .detail-hero h1, .prose h1 { margin: 0; font-size: clamp(2.45rem, 10vw, 5.45rem); line-height: .98; letter-spacing: -.045em; font-weight: 800; }
 .lead { margin: 22px 0 0; max-width: 770px; color: var(--muted); font-size: clamp(1.04rem, 2.4vw, 1.22rem); }
+.hero-lead { margin-top: 22px; max-width: 770px; color: var(--muted); font-size: clamp(1.04rem, 2.4vw, 1.22rem); }
+.hero-lead p { margin: 0; }
+.hero-lead p + p { margin-top: 1em; }
 
 .section { padding: 64px 0; }
 .section--compact { padding: 18px 0 54px; }

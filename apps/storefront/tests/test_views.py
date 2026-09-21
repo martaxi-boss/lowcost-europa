@@ -418,7 +418,10 @@ class StorefrontViewTests(TestCase):
     def test_homepage_has_commercial_readiness_sections_and_navigation(self):
         family = ProductFamily.objects.create(name="Visual Family", slug="visual-family")
         response = self.client.get(reverse("storefront:home"))
-        self.assertContains(response, "Selecionamos. Organizamos. Comparamos.")
+        self.assertContains(
+            response,
+            "Equipamentos profissionais, enviados da Europa, a preços mais acessíveis.",
+        )
         self.assertNotContains(response, "Explorar categorias")
         self.assertNotContains(response, "Curadoria editorial")
         self.assertNotContains(response, "Dados observados")
