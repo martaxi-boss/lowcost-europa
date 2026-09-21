@@ -243,10 +243,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 }
 
 @media (max-width: 619px) {
+  .hero { padding-bottom: 20px; }
   .hero h1, .detail-hero h1, .prose h1 { font-size: clamp(2.15rem, 12vw, 3.25rem); }
   .detail-hero h1 { overflow-wrap: anywhere; }
   .detail-title-row > * { min-width: 0; }
   .section { padding: 54px 0; }
+  .section.section--compact { padding-top: 8px; }
   .product-card__body, .offer-card__body { padding: 18px; }
   .offer-group--featured { padding: 16px 10px; margin-inline: -4px; }
   .offer-title { min-height: 0; }
