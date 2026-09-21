@@ -92,7 +92,7 @@ class TaxonomyReduction001Tests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertNotContains(response, "Radiofrequência facial")
         self.assertNotContains(response, "Microcorrente / Ultrassons")
-        self.assertContains(response, "5 categorias")
+        self.assertNotContains(response, "5 categorias")
         self.assertContains(response, "Cavitação + RF + Vacuum")
         self.assertContains(response, "Pressoterapia / RF Tecar")
         self.assertNotContains(response, "Pressoterapia / Drenagem")
