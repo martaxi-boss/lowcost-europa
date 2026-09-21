@@ -41,7 +41,7 @@ class CandidateDiscoveryTests(TestCase):
         client.generate_affiliate_link.assert_not_called()
 
 
-    def test_search_requests_sanctioned_five_day_filter_with_pt_eur_en_and_paging(self):
+    def test_search_uses_original_pt_eur_en_and_paging_without_forced_delivery_filter(self):
         client = Mock()
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[])
         discover_family_candidates(
@@ -54,7 +54,6 @@ class CandidateDiscoveryTests(TestCase):
             page_no=3,
             page_size=15,
             target_language="EN",
-            delivery_days=5,
         )
 
     def test_search_and_detail_delivery_provenance_persist_separately(self):
