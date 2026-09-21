@@ -22,6 +22,10 @@ from apps.catalog.services.candidate_approval import (
     revalidate_candidate,
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
+from apps.catalog.services.manual_candidate_intake import (
+    ManualCandidateIntakeError,
+    intake_manual_aliexpress_candidate,
+)
 from apps.catalog.services.owner_editorial import (
     OwnerEditorialError,
     hide_offer_from_storefront,
@@ -303,6 +307,50 @@ def family_manage(request, family_slug):
             },
         )
     )
+
+
+@require_POST
+@_owner_staff_required
+def manual_candidate_intake(request, family_slug):
+    family = _family_or_404(family_slug)
+    if family.status == ProductFamily.Status.RETIRED:
+        return _private(HttpResponseForbidden("Acesso negado."))
+    product_url = request.POST.get("product_url", "").strip()
+    if not product_url:
+        request.session["owner_panel_error"] = "Indique um link AliExpress."
+        return _return_family(family, "rever", request)
+    try:
+        result = intake_manual_aliexpress_candidate(url=product_url, family=family)
+    except (ManualCandidateIntakeError, AliExpressError) as exc:
+        request.session["owner_panel_error"] = str(exc)
+        return _return_family(family, "rever", request)
+
+    if result.outcome == "CREATED":
+        request.session["owner_panel_notice"] = (
+            f"Produto adicionado a A rever (Candidate #{result.candidate.pk})."
+        )
+    elif result.outcome == "ALREADY_PENDING":
+        request.session["owner_panel_notice"] = (
+            f"Este produto já está em A rever (Candidate #{result.candidate.pk})."
+        )
+    elif result.outcome == "ALREADY_APPROVED":
+        request.session["owner_panel_notice"] = (
+            f"Este produto já está aprovado (Candidate #{result.candidate.pk})."
+        )
+    elif result.outcome == "ALREADY_REJECTED":
+        request.session["owner_panel_notice"] = (
+            f"Este produto já foi rejeitado (Candidate #{result.candidate.pk})."
+        )
+    elif result.outcome.endswith("_OTHER_FAMILY"):
+        request.session["owner_panel_notice"] = (
+            f"Este produto já existe na família {result.candidate.product_family.name} "
+            f"(Candidate #{result.candidate.pk}); não foi movido."
+        )
+    elif result.outcome == "OFFER_EXISTS":
+        request.session["owner_panel_notice"] = (
+            f"Este produto já existe como Offer #{result.offer.pk}."
+        )
+    return _return_family(family, "rever", request)
 
 
 def _safe_next(request):
