@@ -48,6 +48,10 @@ class TaxonomyReduction001Tests(TestCase):
             "apps.catalog.migrations.0017_taxonomy_reduction_menu_realignment"
         )
         migration.apply_taxonomy_reduction(apps, None)
+        rename_migration = importlib.import_module(
+            "apps.catalog.migrations.0018_rename_family_03_rf_tecar"
+        )
+        rename_migration.rename_family(apps, None)
 
     def test_exact_surviving_operational_taxonomy(self):
         active = list(
@@ -65,7 +69,7 @@ class TaxonomyReduction001Tests(TestCase):
                     "hydrodermoabrasao-aqua-facial-multifuncoes",
                     5,
                 ),
-                (3, "Pressoterapia / Drenagem", "pressoterapia-vacuum-drenagem", 7),
+                (3, "Pressoterapia / RF Tecar", "pressoterapia-vacuum-drenagem", 7),
                 (4, "HIFU", "hifu", 1),
                 (
                     5,
@@ -90,4 +94,5 @@ class TaxonomyReduction001Tests(TestCase):
         self.assertNotContains(response, "Microcorrente / Ultrassons")
         self.assertContains(response, "5 categorias")
         self.assertContains(response, "Cavitação + RF + Vacuum")
-        self.assertContains(response, "Pressoterapia / Drenagem")
+        self.assertContains(response, "Pressoterapia / RF Tecar")
+        self.assertNotContains(response, "Pressoterapia / Drenagem")
