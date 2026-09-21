@@ -47,7 +47,7 @@ class DeepDiscoveryTests(TestCase):
                 )
 
 
-    def test_deep_discovery_forwards_five_day_filter_through_candidate_path(self):
+    def test_deep_discovery_preserves_original_search_arguments_through_candidate_path(self):
         client = Mock()
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[])
         result = discover_family_deep(
@@ -61,7 +61,6 @@ class DeepDiscoveryTests(TestCase):
             page_no=1,
             page_size=15,
             target_language="EN",
-            delivery_days=5,
         )
 
     def test_management_command_page_option_is_forwarded_and_reported(self):

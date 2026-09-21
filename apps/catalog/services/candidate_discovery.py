@@ -77,7 +77,6 @@ def discover_family_candidates(
         page_no=page_no,
         page_size=limit,
         target_language="EN",
-        delivery_days=5,
     )
     products = search.products[:limit]
     result.search_results = len(products) + search.invalid_items
