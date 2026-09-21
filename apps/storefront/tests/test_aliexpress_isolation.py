@@ -16,6 +16,8 @@ class StorefrontAliExpressIsolationTests(TestCase):
             product_family=self.family,
             title="Persisted product",
             affiliate_url="https://affiliate.example.test/42",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
             is_active=True,
             is_primary=True,
             ship_from_country="PL",

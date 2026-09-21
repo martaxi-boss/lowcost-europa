@@ -88,6 +88,10 @@ def _decorate_offer(offer):
     offer.was_editorially_hidden = offer.editorial_events.filter(action="HIDE").exists()
     if not offer.is_active:
         offer.owner_state_label = "Indisponível"
+    elif offer.affiliate_promotion_status == Offer.AffiliatePromotionStatus.INELIGIBLE:
+        offer.owner_state_label = "Não elegível para promoção / afiliado"
+    elif offer.affiliate_promotion_status == Offer.AffiliatePromotionStatus.UNKNOWN:
+        offer.owner_state_label = "Elegibilidade promocional por confirmar"
     elif not offer.protocol_fresh:
         offer.owner_state_label = "Revalidação necessária"
     elif offer.owner_hidden and offer.was_editorially_hidden:
@@ -138,6 +142,12 @@ def _family_counts(family):
             product_family=family,
             offer__owner_hidden=True,
             offer__editorial_events__action="HIDE",
+        )
+        .distinct()
+        .count(),
+        "promotion_ineligible": OfferFamilyPlacement.objects.filter(
+            product_family=family,
+            offer__affiliate_promotion_status=Offer.AffiliatePromotionStatus.INELIGIBLE,
         )
         .distinct()
         .count(),
@@ -205,7 +215,15 @@ def family_manage(request, family_slug):
     if family.status == ProductFamily.Status.RETIRED:
         return _private(HttpResponseForbidden("Acesso negado."))
     view = request.GET.get("vista", "rever")
-    allowed = {"rever", "montra", "aprovados", "retirados", "revalidar", "rejeitados"}
+    allowed = {
+        "rever",
+        "montra",
+        "aprovados",
+        "retirados",
+        "revalidar",
+        "rejeitados",
+        "nao-promovivel",
+    }
     if view not in allowed:
         view = "rever"
     candidates = [
@@ -252,6 +270,13 @@ def family_manage(request, family_slug):
     elif view == "retirados":
         shown_candidates = []
         shown_offers = [o for o in offers if o.owner_hidden and o.was_editorially_hidden]
+    elif view == "nao-promovivel":
+        shown_candidates = []
+        shown_offers = [
+            o
+            for o in offers
+            if o.affiliate_promotion_status == Offer.AffiliatePromotionStatus.INELIGIBLE
+        ]
     else:
         shown_candidates = []
         shown_offers = [o for o in offers if o.in_storefront]

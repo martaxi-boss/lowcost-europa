@@ -66,6 +66,8 @@ def publish_offer_to_storefront(offer, *, family, user, now=None):
         raise OwnerEditorialError("É necessário revalidar o protocolo antes de publicar")
     if not locked.affiliate_url:
         raise OwnerEditorialError("A oferta não tem link de parceiro disponível")
+    if locked.affiliate_promotion_status != Offer.AffiliatePromotionStatus.ELIGIBLE:
+        raise OwnerEditorialError("A oferta não está tecnicamente elegível para promoção")
     operational_family_ids = list(
         OfferFamilyPlacement.objects.filter(offer=locked)
         .exclude(product_family__status=ProductFamily.Status.RETIRED)
