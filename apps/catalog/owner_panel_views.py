@@ -2,6 +2,7 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Prefetch
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -25,6 +26,10 @@ from apps.catalog.services.candidate_move import CandidateMoveError, move_candid
 from apps.catalog.services.manual_candidate_intake import (
     ManualCandidateIntakeError,
     intake_manual_aliexpress_candidate,
+)
+from apps.catalog.services.observation_display import (
+    build_observation_display,
+    observation_history_queryset,
 )
 from apps.catalog.services.owner_editorial import (
     OwnerEditorialError,
@@ -87,7 +92,7 @@ def _decorate_offer(offer):
         .order_by("pk")
         .first()
     )
-    offer.latest_observation = offer.observations.order_by("-observed_at", "-pk").first()
+    offer.observation_display = build_observation_display(offer.observation_history)
     offer.protocol_fresh = is_protocol_verification_fresh(offer)
     offer.was_editorially_hidden = offer.editorial_events.filter(action="HIDE").exists()
     if not offer.is_active:
@@ -234,11 +239,25 @@ def family_manage(request, family_slug):
         _decorate_candidate(candidate)
         for candidate in OfferCandidate.objects.filter(product_family=family)
         .select_related("approved_offer")
+        .prefetch_related(
+            Prefetch(
+                "approved_offer__observations",
+                queryset=observation_history_queryset(),
+                to_attr="observation_history",
+            )
+        )
         .order_by("status", "-last_observed_at", "pk")
     ]
     placements = list(
         OfferFamilyPlacement.objects.filter(product_family=family)
         .select_related("offer")
+        .prefetch_related(
+            Prefetch(
+                "offer__observations",
+                queryset=observation_history_queryset(),
+                to_attr="observation_history",
+            )
+        )
         .order_by("display_order", "pk")
     )
     offers = [_decorate_offer(p.offer) for p in placements]

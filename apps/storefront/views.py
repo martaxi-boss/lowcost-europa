@@ -14,8 +14,11 @@ from apps.catalog.models import (
     OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
-    OfferObservation,
     ProductFamily,
+)
+from apps.catalog.services.observation_display import (
+    build_observation_display,
+    observation_history_queryset,
 )
 from apps.catalog.services.public_eligibility import (
     is_protocol_verification_fresh,
@@ -63,16 +66,22 @@ INSTITUTIONAL_PAGES = {
 
 
 def _family_queryset():
-    observations = OfferObservation.objects.order_by("-observed_at", "-pk")[:1]
     placements = (
         OfferFamilyPlacement.objects.filter(public_eligibility_q(prefix="offer__"))
         .select_related("offer")
         .prefetch_related(
             Prefetch(
                 "offer__observations",
-                queryset=observations,
-                to_attr="latest_observations",
-            )
+                queryset=observation_history_queryset(),
+                to_attr="observation_history",
+            ),
+            Prefetch(
+                "offer__approved_candidates",
+                queryset=OfferCandidate.objects.filter(status=OfferCandidate.Status.APPROVED).order_by(
+                    "pk"
+                ),
+                to_attr="approved_candidates_for_display",
+            ),
         )
         .order_by(
             F("selection_position").asc(nulls_last=True),
@@ -87,13 +96,11 @@ def _family_queryset():
 
 
 def _prepare_offer(offer, family):
-    offer.latest_observation = offer.latest_observations[0] if offer.latest_observations else None
-    offer.logistics_text = _logistics_text(offer.latest_observation)
+    offer.observation_display = build_observation_display(offer.observation_history)
+    offer.logistics_text = offer.observation_display.logistics_text
     offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
     offer.approved_candidate = (
-        OfferCandidate.objects.filter(approved_offer=offer, status=OfferCandidate.Status.APPROVED)
-        .order_by("pk")
-        .first()
+        offer.approved_candidates_for_display[0] if offer.approved_candidates_for_display else None
     )
     return offer
 
@@ -118,21 +125,6 @@ def _prepare_family(family):
     family.display_offer = placements[0].offer if placements else None
     return family
 
-
-def _logistics_text(observation):
-    if observation is None:
-        return None
-    search_days = observation.search_delivery_days
-    detail_days = observation.delivery_days
-    if search_days is not None and detail_days is not None:
-        if search_days == detail_days:
-            return f"Pesquisa e detalhe indicaram {search_days} dias"
-        return "As fontes apresentam estimativas diferentes"
-    if search_days is not None:
-        return f"Estimativa indicada pela pesquisa: {search_days} dias"
-    if detail_days is not None:
-        return f"Estimativa indicada no detalhe: {detail_days} dias"
-    return None
 
 
 def _public_indexing_active():

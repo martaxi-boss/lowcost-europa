@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 from django.conf import settings
@@ -14,6 +15,7 @@ from apps.catalog.models import (
     OfferClick,
     OfferEditorialEvent,
     OfferFamilyPlacement,
+    OfferObservation,
     ProductFamily,
 )
 from apps.catalog.services.aliexpress_persistence import import_aliexpress_product
@@ -450,6 +452,35 @@ class OwnerPanelCatalogTests(TestCase):
         self.assertNotContains(response, "owner_hidden")
         self.assertNotContains(response, "protocol_verified_at")
         self.assertNotContains(response, "is_active")
+
+    def test_offer_display_uses_field_by_field_observation_fallback(self):
+        now = timezone.now()
+        OfferObservation.objects.create(
+            offer=self.offer,
+            price=Decimal("500.00"),
+            currency="EUR",
+            commission_rate=Decimal("8.5000"),
+            sales_count=10,
+            evaluation_rate_percent=Decimal("95.00"),
+            observed_at=now - timedelta(hours=1),
+        )
+        OfferObservation.objects.create(
+            offer=self.offer,
+            price=Decimal("450.00"),
+            currency="EUR",
+            sales_count=12,
+            observed_at=now,
+        )
+
+        response = self.client.get(
+            reverse("owner-panel:family", args=[self.family.slug]) + "?vista=montra"
+        )
+
+        self.assertContains(response, "450,00 EUR")
+        self.assertContains(response, "8,5000")
+        self.assertContains(response, ">12<", html=False)
+        self.assertContains(response, "95,00%")
+        self.assertNotContains(response, "500,00 EUR")
 
     def test_panel_mutations_are_post_only(self):
         routes = [
