@@ -147,7 +147,7 @@ class StorefrontViewTests(TestCase):
         )
         self.assertContains(response, "Seleção em preparação")
 
-    def test_latest_observation_is_used_for_display(self):
+    def test_latest_valid_price_observation_is_used_for_display(self):
         family = ProductFamily.objects.create(name="Latest", slug="latest")
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
