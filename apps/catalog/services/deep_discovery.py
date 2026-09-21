@@ -103,7 +103,13 @@ def discover_family_deep(
             aggregate.cross_keyword_duplicates += len(cross_keyword_ids)
             aggregate.unique_product_ids.update(raw_ids)
             stop_reason = ""
-            if not raw_ids:
+            if (
+                result.total_page_no is not None
+                and result.current_page_no is not None
+                and result.current_page_no >= result.total_page_no
+            ):
+                stop_reason = "LAST_PAGE"
+            elif not raw_ids:
                 stop_reason = "EMPTY_PAGE"
             elif not new_ids:
                 stop_reason = "NO_NEW_IDS"

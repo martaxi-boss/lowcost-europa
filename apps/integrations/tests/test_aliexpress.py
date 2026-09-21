@@ -102,6 +102,67 @@ class ClientTests(SimpleTestCase):
         self.assertIn("ship_to_country=PT", calls[0][2])
         self.assertIn("target_currency=EUR", calls[0][2])
 
+    def test_search_parses_optional_pagination_metadata(self):
+        client = AliExpressClient(self.config, **self.runtime_paths)
+        payload = {
+            "aliexpress_affiliate_product_query_response": {
+                "resp_result": {
+                    "result": {
+                        "current_page_no": "1",
+                        "current_record_count": 2,
+                        "total_page_no": "1",
+                        "total_record_count": "2",
+                        "products": {
+                            "product": [
+                                {
+                                    "product_id": "42",
+                                    "product_title": "Professional pressotherapy machine",
+                                }
+                            ]
+                        },
+                    }
+                }
+            }
+        }
+        with patch.object(client, "_call", return_value=payload):
+            result = client.search_products_diagnostic("pressotherapy", delivery_days=5)
+        self.assertEqual(result.current_page_no, 1)
+        self.assertEqual(result.current_record_count, 2)
+        self.assertEqual(result.total_page_no, 1)
+        self.assertEqual(result.total_record_count, 2)
+
+    def test_search_unparseable_optional_pagination_metadata_becomes_none(self):
+        client = AliExpressClient(self.config, **self.runtime_paths)
+        payload = {
+            "aliexpress_affiliate_product_query_response": {
+                "resp_result": {
+                    "result": {
+                        "current_page_no": "unknown",
+                        "current_record_count": {},
+                        "total_page_no": "1.5",
+                        "total_record_count": None,
+                        "products": {"product": []},
+                    }
+                }
+            }
+        }
+        with patch.object(client, "_call", return_value=payload):
+            result = client.search_products_diagnostic("pressotherapy", delivery_days=5)
+        self.assertIsNone(result.current_page_no)
+        self.assertIsNone(result.current_record_count)
+        self.assertIsNone(result.total_page_no)
+        self.assertIsNone(result.total_record_count)
+
+    def test_search_missing_result_structure_still_fails_closed(self):
+        client = AliExpressClient(self.config, **self.runtime_paths)
+        with patch.object(
+            client,
+            "_call",
+            return_value={"aliexpress_affiliate_product_query_response": {}},
+        ):
+            with self.assertRaises(AliExpressResponseError):
+                client.search_products_diagnostic("pressotherapy", delivery_days=5)
+
     def test_api_auth_error_becomes_structured_exception(self):
         client = AliExpressClient(
             self.config,

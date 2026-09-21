@@ -379,6 +379,24 @@ class AliExpressClient:
         categories = result.get("categories", {}).get("category", [])
         return [normalize_category(item) for item in categories]
 
+    @staticmethod
+    def _optional_int(value) -> int | None:
+        if value is None or isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float):
+            return int(value) if value.is_integer() else None
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+            try:
+                return int(value)
+            except ValueError:
+                return None
+        return None
+
     def search_products_diagnostic(
         self,
         keyword: str,
@@ -428,7 +446,14 @@ class AliExpressClient:
                 products.append(normalize_product(item, country))
             except AliExpressResponseError:
                 invalid_items += 1
-        return AliExpressSearchResult(products=products, invalid_items=invalid_items)
+        return AliExpressSearchResult(
+            products=products,
+            invalid_items=invalid_items,
+            current_page_no=self._optional_int(result.get("current_page_no")),
+            current_record_count=self._optional_int(result.get("current_record_count")),
+            total_page_no=self._optional_int(result.get("total_page_no")),
+            total_record_count=self._optional_int(result.get("total_record_count")),
+        )
 
     def search_products(
         self,

@@ -32,3 +32,7 @@ class AliExpressProduct:
 class AliExpressSearchResult:
     products: list[AliExpressProduct]
     invalid_items: int = 0
+    current_page_no: int | None = None
+    current_record_count: int | None = None
+    total_page_no: int | None = None
+    total_record_count: int | None = None
