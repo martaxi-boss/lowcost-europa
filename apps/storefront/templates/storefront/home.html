@@ -6,25 +6,12 @@
       <p class="eyebrow">Equipamentos de estética · seleção editorial</p>
       <h1>Selecionamos. Organizamos. Comparamos.</h1>
       <p class="lead">O Lowcost Europa organiza equipamentos e ofertas de parceiros externos para tornar a comparação mais clara. Escolhe aqui; a compra acontece no parceiro.</p>
-      <div class="hero-actions">
-        <a class="button button--large" href="#familias">Explorar categorias</a>
-        <a class="text-link" href="{% url 'storefront:como-funciona' %}">Como funciona <span aria-hidden="true">→</span></a>
-      </div>
-      <ul class="trust-list" aria-label="Princípios Lowcost Europa">
-        <li>Curadoria editorial</li>
-        <li>Dados observados</li>
-        <li>Compra no parceiro</li>
-      </ul>
     </div>
   </div>
 </section>
 
 <section class="section section--compact" id="familias">
   <div class="container">
-    <div class="section-heading section-heading--split">
-      <div><p class="eyebrow">5 categorias</p><h2>Encontre a família certa para comparar.</h2></div>
-      <p class="section-intro">O catálogo cresce por validação, não por volume. Categorias ainda sem ofertas continuam visíveis com um estado de preparação claro.</p>
-    </div>
     {% if families %}
       <nav class="family-index family-index--compact" aria-label="Famílias de produtos">
         {% for family in families %}
