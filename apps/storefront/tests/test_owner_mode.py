@@ -258,7 +258,10 @@ class OwnerStorefrontNavigationTests(TestCase):
     def test_staff_home_keeps_public_home_and_adds_manage_link(self):
         self.client.force_login(self.staff)
         response = self.client.get(reverse("storefront:home"))
-        self.assertContains(response, "Selecionamos. Organizamos. Comparamos.")
+        self.assertContains(
+            response,
+            "Equipamentos profissionais, enviados da Europa, a preços mais acessíveis.",
+        )
         self.assertContains(response, "Gestão ativa")
         self.assertContains(response, "Gerir")
         family_url = reverse("storefront:product-family-detail", args=[self.family.slug])
