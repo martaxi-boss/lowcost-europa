@@ -62,6 +62,11 @@ class CandidateApprovalTests(TestCase):
         result = self.approve()
         self.candidate.refresh_from_db()
         self.assertEqual(result.offer.affiliate_url, "https://affiliate.example/1")
+        self.assertEqual(
+            result.offer.affiliate_promotion_status,
+            Offer.AffiliatePromotionStatus.ELIGIBLE,
+        )
+        self.assertIsNotNone(result.offer.affiliate_promotion_verified_at)
         self.assertTrue(result.offer.owner_hidden)
         self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
         self.assertEqual(self.candidate.approved_offer_id, result.offer.pk)

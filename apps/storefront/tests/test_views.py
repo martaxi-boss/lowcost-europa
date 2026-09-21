@@ -17,11 +17,15 @@ class StorefrontViewTests(TestCase):
                 affiliate_url = instance.affiliate_url or f"https://affiliate.example/{instance.pk}"
                 Offer.objects.filter(pk=instance.pk).update(
                     affiliate_url=affiliate_url,
+                    affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+                    affiliate_promotion_verified_at=verified_at,
                     ship_from_country="PL",
                     ship_from_verified_at=verified_at,
                     protocol_verified_at=verified_at
                 )
                 instance.affiliate_url = affiliate_url
+                instance.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
+                instance.affiliate_promotion_verified_at = verified_at
                 instance.ship_from_country = "PL"
                 instance.ship_from_verified_at = verified_at
                 instance.protocol_verified_at = verified_at

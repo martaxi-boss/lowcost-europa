@@ -10,7 +10,11 @@ from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
 from apps.integrations.aliexpress.client import AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressAPIError,
+    AliExpressError,
+    AliExpressRateLimitError,
+)
 
 MAINTENANCE_LOCK_PATH = "/tmp/lowcost-europa-catalog-maintenance.lock"
 
@@ -35,8 +39,52 @@ class MaintenanceResult:
     unavailable_confirmed: int = 0
     transient_failures: int = 0
     offers_deactivated: int = 0
+    promotion_attempts: int = 0
+    promotion_eligible: int = 0
+    promotion_ineligible: int = 0
+    promotion_transient_failures: int = 0
     failures: list[str] = field(default_factory=list)
 
+
+
+_PROMOTION_INELIGIBLE_FRAGMENT = "cannot be sold or promoted in the selected country"
+
+
+def verify_affiliate_promotion(offer, *, client, now):
+    """Refresh technical promotional eligibility without changing editorial state."""
+    if offer.source != Offer.Source.ALIEXPRESS:
+        return None
+    if not offer.product_url:
+        raise ValueError("Offer has no product URL for affiliate verification")
+    try:
+        affiliate_url = client.generate_affiliate_link(offer.product_url)
+    except AliExpressAPIError as exc:
+        if _PROMOTION_INELIGIBLE_FRAGMENT in str(exc).lower():
+            offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.INELIGIBLE
+            offer.affiliate_promotion_verified_at = now
+            offer.save(
+                update_fields=[
+                    "affiliate_promotion_status",
+                    "affiliate_promotion_verified_at",
+                    "updated_at",
+                ]
+            )
+            return Offer.AffiliatePromotionStatus.INELIGIBLE
+        raise
+    if not affiliate_url:
+        raise ValueError("AliExpress returned no promotion link")
+    offer.affiliate_url = affiliate_url
+    offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
+    offer.affiliate_promotion_verified_at = now
+    offer.save(
+        update_fields=[
+            "affiliate_url",
+            "affiliate_promotion_status",
+            "affiliate_promotion_verified_at",
+            "updated_at",
+        ]
+    )
+    return Offer.AffiliatePromotionStatus.ELIGIBLE
 
 def is_factually_unavailable(product):
     raw = " ".join(str(getattr(product, "availability_raw", "") or "").lower().split())
@@ -123,6 +171,22 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
 
     with maintenance_run_lock():
         for offer in offers:
+            result.promotion_attempts += 1
+            try:
+                promotion_status = verify_affiliate_promotion(offer, client=client, now=now)
+            except AliExpressRateLimitError:
+                raise
+            except (AliExpressError, ValueError) as exc:
+                result.promotion_transient_failures += 1
+                result.failures.append(
+                    f"{offer.external_product_id}:Promotion:{exc.__class__.__name__}"
+                )
+            else:
+                if promotion_status == Offer.AffiliatePromotionStatus.ELIGIBLE:
+                    result.promotion_eligible += 1
+                elif promotion_status == Offer.AffiliatePromotionStatus.INELIGIBLE:
+                    result.promotion_ineligible += 1
+
             result.detail_attempts += 1
             try:
                 detail = client.get_product_detail(offer.external_product_id, "PT", "EUR")

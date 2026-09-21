@@ -58,6 +58,11 @@ class Offer(models.Model):
         DEDICATED = "DEDICATED", "Dedicated"
         COMBO = "COMBO", "Combo"
 
+    class AffiliatePromotionStatus(models.TextChoices):
+        UNKNOWN = "UNKNOWN", "Unknown"
+        ELIGIBLE = "ELIGIBLE", "Eligible"
+        INELIGIBLE = "INELIGIBLE", "Ineligible"
+
     source = models.CharField(max_length=30, choices=Source.choices)
     external_product_id = models.CharField(max_length=120)
     product_family = models.ForeignKey(
@@ -71,6 +76,12 @@ class Offer(models.Model):
     product_url = models.URLField(max_length=1000, blank=True)
     image_url = models.URLField(max_length=1000, blank=True)
     affiliate_url = models.URLField(max_length=1000, blank=True)
+    affiliate_promotion_status = models.CharField(
+        max_length=20,
+        choices=AffiliatePromotionStatus.choices,
+        default=AffiliatePromotionStatus.UNKNOWN,
+    )
+    affiliate_promotion_verified_at = models.DateTimeField(null=True, blank=True)
     ship_from_country = models.CharField(max_length=2, null=True, blank=True)
     ship_from_verified_at = models.DateTimeField(null=True, blank=True)
     protocol_verified_at = models.DateTimeField(null=True, blank=True)
@@ -119,6 +130,12 @@ class Offer(models.Model):
             models.CheckConstraint(
                 condition=Q(equipment_type__in=["UNKNOWN", "DEDICATED", "COMBO"]),
                 name="catalog_offer_equipment_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    affiliate_promotion_status__in=["UNKNOWN", "ELIGIBLE", "INELIGIBLE"]
+                ),
+                name="catalog_offer_affiliate_promotion_status_valid",
             ),
             models.CheckConstraint(
                 condition=Q(ship_from_country__isnull=True)

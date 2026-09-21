@@ -143,6 +143,8 @@ class OwnerEditorialServiceTests(TestCase):
             title="Owner Offer",
             product_url="https://example.com/product",
             affiliate_url="https://affiliate.example/product",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
             ship_from_country="PL",
             ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
@@ -235,6 +237,8 @@ class OwnerEditorialServiceTests(TestCase):
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=f"cap-{i}",
                 affiliate_url=f"https://affiliate.example/{i}",
+                affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+                affiliate_promotion_verified_at=now,
                 ship_from_country="PL",
                 ship_from_verified_at=now,
                 protocol_verified_at=now,
@@ -270,6 +274,8 @@ class OwnerEditorialServiceTests(TestCase):
                 source=Offer.Source.ALIEXPRESS,
                 external_product_id=f"rf-cap-{i}",
                 affiliate_url=f"https://affiliate.example/rf/{i}",
+                affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+                affiliate_promotion_verified_at=now,
                 ship_from_country="PL",
                 ship_from_verified_at=now,
                 protocol_verified_at=now,
@@ -353,6 +359,7 @@ class OwnerEditorialServiceTests(TestCase):
             destination_country="PT",
         )
         client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
         client.get_product_detail.return_value = detail
         maintain_catalog_offers(batch_size=5, client=client)
         self.offer.refresh_from_db()
@@ -383,6 +390,8 @@ class OwnerPanelCatalogTests(TestCase):
             title="Máquina aprovada",
             product_url="https://example.com/approved",
             affiliate_url="https://affiliate.example/approved",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
             ship_from_country="PL",
             ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),
@@ -426,6 +435,7 @@ class OwnerPanelCatalogTests(TestCase):
                 "review_required": 0,
                 "storefront": 1,
                 "hidden": 0,
+                "promotion_ineligible": 0,
             },
         )
 
@@ -572,6 +582,8 @@ class PrivateStorefrontControlsTests(TestCase):
             external_product_id="private-controls-offer",
             title="Visible offer",
             affiliate_url="https://affiliate.example/private",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
             ship_from_country="PL",
             ship_from_verified_at=timezone.now(),
             protocol_verified_at=timezone.now(),

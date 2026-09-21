@@ -34,6 +34,12 @@ class Command(BaseCommand):
         self.stdout.write(f"Unavailable confirmed: {result.unavailable_confirmed}")
         self.stdout.write(f"Transient failures: {result.transient_failures}")
         self.stdout.write(f"Offers deactivated: {result.offers_deactivated}")
+        self.stdout.write(f"Promotion attempts: {result.promotion_attempts}")
+        self.stdout.write(f"Promotion eligible: {result.promotion_eligible}")
+        self.stdout.write(f"Promotion ineligible: {result.promotion_ineligible}")
+        self.stdout.write(
+            f"Promotion transient failures: {result.promotion_transient_failures}"
+        )
         if result.failures:
             self.stdout.write("Failures: " + ", ".join(result.failures))
         self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))

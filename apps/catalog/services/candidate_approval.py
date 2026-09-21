@@ -66,6 +66,8 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             "product_url": locked.product_url,
             "image_url": locked.image_url,
             "affiliate_url": affiliate_url,
+            "affiliate_promotion_status": Offer.AffiliatePromotionStatus.ELIGIBLE,
+            "affiliate_promotion_verified_at": now,
             "protocol_verified_at": now,
             "is_active": True,
             "owner_hidden": True,

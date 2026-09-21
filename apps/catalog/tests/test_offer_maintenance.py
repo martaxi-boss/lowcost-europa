@@ -27,6 +27,8 @@ class OfferMaintenanceTests(TestCase):
             title=f"Offer {external_id}",
             product_url=f"https://example.com/{external_id}",
             affiliate_url=f"https://affiliate.example/{external_id}",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=checked_at or timezone.now(),
             ship_from_country="PL",
             ship_from_verified_at=protocol_at,
             protocol_verified_at=protocol_at,
@@ -67,6 +69,7 @@ class OfferMaintenanceTests(TestCase):
         inactive = self.make_offer("inactive", is_active=False)
         active = self.make_offer("active")
         client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
         client.get_product_detail.return_value = self.detail("active")
 
         maintain_catalog_offers(batch_size=1, client=client)
@@ -81,6 +84,7 @@ class OfferMaintenanceTests(TestCase):
         protocol_at = timezone.now() - timedelta(days=3)
         offer = self.make_offer("available", protocol_at=protocol_at)
         client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
         client.get_product_detail.return_value = self.detail("available")
         result = maintain_catalog_offers(batch_size=1, client=client, now=timezone.now())
         offer.refresh_from_db()
@@ -92,6 +96,7 @@ class OfferMaintenanceTests(TestCase):
     def test_factual_unavailable_deactivates_and_records_unavailable(self):
         offer = self.make_offer("gone", protocol_at=timezone.now())
         client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
         client.get_product_detail.return_value = self.detail("gone", status="unavailable")
         result = maintain_catalog_offers(batch_size=1, client=client)
         offer.refresh_from_db()
@@ -105,6 +110,9 @@ class OfferMaintenanceTests(TestCase):
             with self.subTest(error_type=error_type.__name__):
                 offer = self.make_offer(f"transient-{index}", protocol_at=timezone.now())
                 client = Mock()
+                client.generate_affiliate_link.return_value = (
+                    "https://affiliate.example/refreshed"
+                )
                 client.get_product_detail.side_effect = error_type("temporary")
 
                 result = maintain_catalog_offers(batch_size=1, client=client)
@@ -122,6 +130,7 @@ class OfferMaintenanceTests(TestCase):
         first = self.make_offer("rate-first", protocol_at=timezone.now())
         second = self.make_offer("rate-second", protocol_at=timezone.now())
         client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
         client.get_product_detail.side_effect = AliExpressRateLimitError("429")
 
         with self.assertRaises(AliExpressRateLimitError):
@@ -166,6 +175,7 @@ class OfferMaintenanceTests(TestCase):
 
         maintenance_now = timezone.now() + timedelta(seconds=1)
         client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
         client.get_product_detail.return_value = self.detail("eligible-0")
         maintain_catalog_offers(batch_size=1, client=client, now=maintenance_now)
 

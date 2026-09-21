@@ -17,6 +17,8 @@ class PublicEligibilityTests(TestCase):
             external_product_id=ext,
             title=ext,
             affiliate_url=f"https://affiliate.example/{ext}",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=when,
             ship_from_country=country,
             ship_from_verified_at=when,
             protocol_verified_at=when,

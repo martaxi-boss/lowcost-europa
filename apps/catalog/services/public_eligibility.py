@@ -34,6 +34,8 @@ def public_eligibility_q(as_of=None, prefix=""):
             f"{prefix}is_active": True,
             f"{prefix}owner_hidden": False,
             f"{prefix}affiliate_url__gt": "",
+            f"{prefix}affiliate_promotion_status": "ELIGIBLE",
+            f"{prefix}affiliate_promotion_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__lte": as_of,
             f"{prefix}protocol_verified_at__gte": as_of - protocol_verification_max_age(),
