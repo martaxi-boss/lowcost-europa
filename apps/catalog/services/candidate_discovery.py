@@ -32,10 +32,6 @@ class CandidateDiscoveryResult:
     skipped_not_shippable_to_pt: int = 0
     failures: list[str] = field(default_factory=list)
     raw_product_ids: set[str] = field(default_factory=set)
-    current_page_no: int | None = None
-    current_record_count: int | None = None
-    total_page_no: int | None = None
-    total_record_count: int | None = None
 
 
 def _learning_inputs(family):
@@ -81,10 +77,6 @@ def discover_family_candidates(
     products = search.products[:limit]
     result.search_results = len(products) + search.invalid_items
     result.raw_product_ids = {product.product_id for product in products if product.product_id}
-    result.current_page_no = search.current_page_no
-    result.current_record_count = search.current_record_count
-    result.total_page_no = search.total_page_no
-    result.total_record_count = search.total_record_count
     seen = set()
     shortlist = []
     for product in products:

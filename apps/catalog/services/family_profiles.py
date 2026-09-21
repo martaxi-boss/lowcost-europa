@@ -229,15 +229,6 @@ PRESSOTHERAPY_PROFILE = FamilyProfile(
         "replacement cuffs",
         "controller only",
         "pump only",
-        "replacement electrode",
-        "electrode only",
-        "replacement handpiece",
-        "handpiece only",
-        "replacement probe",
-        "probe only",
-        "plate only",
-        "replacement cable",
-        "cable only",
         "replacement part",
         "spare part",
         "accessory",
@@ -251,19 +242,6 @@ PRESSOTHERAPY_PROFILE = FamilyProfile(
         ("PNEUMATIC COMPRESSION", _rx(r"\bpneumatic\s+compression\b")),
         ("VACUUM + DRAINAGE", _rx(r"(?=.*\bvacuum\b)(?=.*\blymph(?:atic)?\s+drainage\b)")),
         ("PRESSOTHERAPY + VACUUM", _rx(r"(?=.*\bpressotherap(?:y|ia)\b)(?=.*\bvacuum\b)")),
-        ("TECAR", _rx(r"\b(?:tecar|tecartherapy)\b")),
-        ("TECAR THERAPY", _rx(r"\btecar\s+therapy\b|\btecartherapy\b")),
-        (
-            "CAPACITIVE + RESISTIVE",
-            _rx(r"(?=.*\bcapacitive\b)(?=.*\bresistive\b)"),
-        ),
-        (
-            "CAPACITIVE RESISTIVE RADIOFREQUENCY",
-            _rx(
-                r"(?=.*\bcapacitive\b)(?=.*\bresistive\b)"
-                r"(?=.*\b(?:radio\s*frequency|radiofrequency|rf)\b)"
-            ),
-        ),
     ),
     scoring_terms=(
         *_COMMON_SCORING,
@@ -276,10 +254,6 @@ PRESSOTHERAPY_PROFILE = FamilyProfile(
         ("pneumatic compression", 16, "pneumatic compression"),
         ("compression therapy", 14, "compression therapy"),
         ("vacuum", 5, "vacuum"),
-        ("tecar", 18, "tecar"),
-        ("tecar therapy", 6, "tecar therapy"),
-        ("capacitive", 8, "capacitive"),
-        ("resistive", 8, "resistive"),
         ("clinic", 10, "clinic"),
     ),
     search_keywords=(
