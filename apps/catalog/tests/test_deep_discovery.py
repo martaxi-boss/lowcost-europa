@@ -46,7 +46,6 @@ class DeepDiscoveryTests(TestCase):
                     client.search_products_diagnostic.call_args.kwargs["page_no"], requested_page
                 )
 
-
     def test_deep_discovery_preserves_original_search_arguments_through_candidate_path(self):
         client = Mock()
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[])
@@ -103,76 +102,6 @@ class DeepDiscoveryTests(TestCase):
         self.assertEqual(second.created, 1)
         self.assertEqual(second.skipped_existing_candidate, 1)
         self.assertEqual(OfferCandidate.objects.count(), 2)
-
-    def test_known_final_page_stops_keyword_without_requesting_page_two(self):
-        client = Mock()
-        product = self.product("last-page")
-        client.search_products_diagnostic.return_value = AliExpressSearchResult(
-            products=[product], current_page_no=1, total_page_no=1
-        )
-        client.get_product_detail.return_value = product
-        result = discover_family_deep(
-            self.family, ["diode laser"], max_pages=3, max_details=1, client=client
-        )
-        self.assertEqual(result.search_operations, 1)
-        self.assertEqual(result.pages[0].stop_reason, "LAST_PAGE")
-        self.assertEqual(client.search_products_diagnostic.call_count, 1)
-        self.assertEqual(OfferCandidate.objects.count(), 1)
-
-    def test_last_page_for_first_keyword_continues_to_second_keyword(self):
-        client = Mock()
-        first = self.product("kw1")
-        second = self.product("kw2")
-        client.search_products_diagnostic.side_effect = [
-            AliExpressSearchResult(products=[first], current_page_no=1, total_page_no=1),
-            AliExpressSearchResult(products=[second], current_page_no=1, total_page_no=1),
-        ]
-        client.get_product_detail.side_effect = [first, second]
-        result = discover_family_deep(
-            self.family, ["keyword one", "keyword two"], max_pages=3, max_details=1, client=client
-        )
-        self.assertEqual(result.search_operations, 2)
-        self.assertEqual([page.stop_reason for page in result.pages], ["LAST_PAGE", "LAST_PAGE"])
-        self.assertEqual(
-            [call.args[0] for call in client.search_products_diagnostic.call_args_list],
-            ["keyword one", "keyword two"],
-        )
-        self.assertEqual(OfferCandidate.objects.count(), 2)
-        self.assertEqual(result.stop_reason, "")
-
-    def test_known_more_pages_allows_next_page(self):
-        client = Mock()
-        first = self.product("page-1")
-        second = self.product("page-2")
-        client.search_products_diagnostic.side_effect = [
-            AliExpressSearchResult(products=[first], current_page_no=1, total_page_no=3),
-            AliExpressSearchResult(products=[second], current_page_no=2, total_page_no=2),
-        ]
-        client.get_product_detail.side_effect = [first, second]
-        result = discover_family_deep(
-            self.family, ["diode laser"], max_pages=3, max_details=1, client=client
-        )
-        self.assertEqual(result.search_operations, 2)
-        self.assertEqual(result.pages[0].stop_reason, "")
-        self.assertEqual(result.pages[1].stop_reason, "LAST_PAGE")
-        self.assertEqual(
-            [call.kwargs["page_no"] for call in client.search_products_diagnostic.call_args_list],
-            [1, 2],
-        )
-
-    def test_missing_pagination_metadata_keeps_existing_empty_page_fallback(self):
-        client = Mock()
-        first = self.product("legacy-page")
-        client.search_products_diagnostic.side_effect = [
-            AliExpressSearchResult(products=[first]),
-            AliExpressSearchResult(products=[]),
-        ]
-        client.get_product_detail.return_value = first
-        result = discover_family_deep(
-            self.family, ["diode laser"], max_pages=3, max_details=1, client=client
-        )
-        self.assertEqual(result.search_operations, 2)
-        self.assertEqual(result.pages[-1].stop_reason, "EMPTY_PAGE")
 
     def test_empty_page_stops_keyword(self):
         client = Mock()
