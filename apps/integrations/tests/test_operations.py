@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.config import AliExpressConfig
+from apps.integrations.aliexpress.exceptions import AliExpressAPIError
 
 
 class FakeResponse:
@@ -90,3 +91,18 @@ class OperationTests(SimpleTestCase):
             client.generate_affiliate_link("https://example.test/p/42"),
             "https://s.click.aliexpress.com/example",
         )
+
+    def test_affiliate_link_preserves_official_promotion_ineligible_message(self):
+        body = (
+            '{"aliexpress_affiliate_link_generate_response":'
+            '{"resp_result":{"result":{"promotion_links":{"promotion_link":['
+            '{"message":"This item cannot be sold or promoted in the selected country.",'
+            '"source_value":"https://example.test/p/42"}'
+            ']}}}}}'
+        )
+        client = self.make_client(lambda *_a, **_k: FakeResponse(body))
+        with self.assertRaisesRegex(
+            AliExpressAPIError,
+            "cannot be sold or promoted in the selected country",
+        ):
+            client.generate_affiliate_link("https://example.test/p/42")
