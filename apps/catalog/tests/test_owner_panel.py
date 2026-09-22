@@ -27,6 +27,7 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import public_eligibility_q
+from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 TEST_PASSWORD = "owner-test-password-only"
@@ -550,6 +551,32 @@ class OwnerPanelCatalogTests(TestCase):
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.status, OfferCandidate.Status.APPROVED)
         self.assertIsNotNone(self.pending.approved_offer_id)
+
+    @patch("apps.catalog.owner_panel_views.approve_candidate")
+    def test_panel_approve_rate_limit_is_safe_and_returns_to_review(self, approve):
+        approve.side_effect = AliExpressRateLimitError("429 secret-token")
+        url = reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk])
+
+        response = self.client.post(url, {})
+
+        self.assertEqual(response.status_code, 302)
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.pending.decisions.count(), 0)
+        self.assertIn("owner_panel_error", self.client.session)
+        self.assertNotIn("429", self.client.session["owner_panel_error"])
+        self.assertNotIn("secret-token", self.client.session["owner_panel_error"])
+
+        follow = self.client.get(
+            reverse("owner-panel:family", args=[self.family.slug]) + "?vista=rever"
+        )
+        self.assertContains(
+            follow,
+            "A AliExpress está temporariamente indisponível. "
+            "Tente novamente dentro de instantes.",
+        )
+        self.assertNotContains(follow, "429")
+        self.assertNotContains(follow, "secret-token")
 
     def test_panel_reject_preserves_five_signal_multiselect(self):
         signals = [
