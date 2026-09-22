@@ -68,8 +68,9 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .section-intro { margin: 0; max-width: 610px; color: var(--muted); }
 .section--dark .section-intro { color: #c7d6d2; }
 .family-index { display: grid; grid-template-columns: 1fr; gap: 8px; }
-.family-index a { display: flex; align-items: center; justify-content: space-between; min-height: 55px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); text-decoration: none; font-weight: 700; transition: border-color .2s ease, transform .2s ease; }
-.family-index a:hover { border-color: #8baaa2; transform: translateY(-1px); }
+.family-index a { display: flex; align-items: center; justify-content: space-between; min-height: 55px; padding: 12px 16px; border: 1px solid #b9d4cc; border-radius: 14px; background: var(--accent-soft); color: var(--text); text-decoration: none; font-weight: 700; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+.family-index a:hover { background: #dbece7; border-color: #75a89a; transform: translateY(-1px); }
+.family-index a:active { background: #d5e8e2; border-color: #66998b; }
 
 .card-grid, .offer-list { display: grid; gap: 18px; }
 .product-card, .offer-card { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
@@ -227,8 +228,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .hero--commercial .hero-copy { max-width: 820px; }
 .hero--commercial .hero-copy h1 { max-width: 780px; }
 .family-index--compact a { gap: 11px; justify-content: flex-start; }
-.family-index--compact a > span:last-child { margin-left: auto; }
-.family-index__number { color: var(--accent); font-size: .73rem; font-weight: 850; letter-spacing: .08em; }
+.family-index--compact a > span:last-child { margin-left: auto; color: var(--accent); font-weight: 800; }
+.family-index__number { color: var(--accent-strong); font-size: .73rem; font-weight: 850; letter-spacing: .08em; }
 .product-card--empty { box-shadow: none; border-style: dashed; }
 .product-card__media--placeholder { align-content: center; gap: 5px; text-align: center; }
 .product-card__media--placeholder span { font-size: 2rem; font-weight: 850; }
