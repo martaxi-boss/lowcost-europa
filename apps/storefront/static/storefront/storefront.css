@@ -160,7 +160,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .whatsapp-float svg { width: 31px; height: 31px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .whatsapp-float svg path + path { fill: currentColor; stroke: none; }
 
-.site-footer { margin-top: 30px; padding: 48px 0 20px; background: #0c211d; color: #edf4f2; }
+.site-footer { margin-top: 30px; padding: 48px 0 calc(96px + env(safe-area-inset-bottom)); background: #0c211d; color: #edf4f2; }
 .footer-grid { display: grid; gap: 30px; }
 .footer-brand p { max-width: 590px; color: #bdd0ca; }
 .footer-wordmark, .footer-title { margin: 0 0 10px !important; color: #fff !important; font-weight: 850; letter-spacing: .045em; }
