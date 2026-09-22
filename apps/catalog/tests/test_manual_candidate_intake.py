@@ -12,7 +12,6 @@ from apps.catalog.services.manual_candidate_intake import (
     intake_manual_aliexpress_candidate,
     resolve_aliexpress_product_url,
 )
-from apps.integrations.aliexpress.exceptions import AliExpressAPIError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 
@@ -92,7 +91,7 @@ class ManualCandidateIntakeServiceTests(TestCase):
             )
         opener.assert_not_called()
 
-    def test_creates_pending_candidate_from_official_detail_and_validates_affiliate(self):
+    def test_creates_pending_candidate_from_official_detail_without_affiliate_generation(self):
         client = self.fake_client()
 
         result = intake_manual_aliexpress_candidate(
@@ -118,26 +117,27 @@ class ManualCandidateIntakeServiceTests(TestCase):
         self.assertEqual(candidate.detail_delivery_days, 5)
         self.assertIsNone(candidate.search_delivery_days)
         client.get_product_detail.assert_called_once_with(self.product_id, "PT", "EUR")
-        client.generate_affiliate_link.assert_called_once_with(self.canonical)
+        client.generate_affiliate_link.assert_not_called()
         self.assertEqual(Offer.objects.count(), 0)
         self.assertEqual(CandidateDecision.objects.count(), 0)
 
-    def test_affiliate_validation_failure_creates_nothing(self):
+    def test_affiliate_generation_is_never_attempted_during_manual_intake(self):
         client = self.fake_client()
-        client.generate_affiliate_link.side_effect = AliExpressAPIError(
-            "This item cannot be sold or promoted in the selected country."
+        client.generate_affiliate_link.side_effect = AssertionError(
+            "manual intake must not generate affiliate links"
         )
 
-        with self.assertRaises(AliExpressAPIError):
-            intake_manual_aliexpress_candidate(
-                url=self.canonical,
-                family=self.family,
-                client=client,
-                resolver=self.resolver,
-            )
+        result = intake_manual_aliexpress_candidate(
+            url=self.canonical,
+            family=self.family,
+            client=client,
+            resolver=self.resolver,
+        )
 
-        self.assertEqual(OfferCandidate.objects.count(), 0)
+        self.assertEqual(result.candidate.status, OfferCandidate.Status.PENDING)
+        client.generate_affiliate_link.assert_not_called()
         self.assertEqual(Offer.objects.count(), 0)
+        self.assertEqual(CandidateDecision.objects.count(), 0)
 
     def test_existing_pending_candidate_is_not_duplicated(self):
         existing = OfferCandidate.objects.create(

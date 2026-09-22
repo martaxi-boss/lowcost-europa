@@ -178,11 +178,13 @@ class OwnerEditorialServiceTests(TestCase):
         self.assertEqual(OfferEditorialEvent.objects.count(), 1)
 
     def test_publish_fresh_active_hidden_with_capacity(self):
+        original_affiliate_url = self.offer.affiliate_url
         hide_offer_from_storefront(self.offer, user=self.user)
         result = publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
         self.offer.refresh_from_db()
         self.assertTrue(result.changed)
         self.assertFalse(self.offer.owner_hidden)
+        self.assertEqual(self.offer.affiliate_url, original_affiliate_url)
         events = list(OfferEditorialEvent.objects.order_by("acted_at", "pk"))
         self.assertEqual([e.action for e in events], ["HIDE", "PUBLISH"])
         self.assertTrue(events[1].previous_owner_hidden)
@@ -218,6 +220,17 @@ class OwnerEditorialServiceTests(TestCase):
         self.offer.save(update_fields=["owner_hidden", "affiliate_url"])
         with self.assertRaises(OwnerEditorialError):
             publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+
+    def test_publish_without_affiliate_promotion_verified_at_is_blocked(self):
+        self.offer.owner_hidden = True
+        self.offer.affiliate_promotion_verified_at = None
+        self.offer.save(update_fields=["owner_hidden", "affiliate_promotion_verified_at"])
+
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+
+        self.offer.refresh_from_db()
+        self.assertTrue(self.offer.owner_hidden)
 
     def test_publish_accepts_fresh_owner_attestation_without_individual_country(self):
         self.offer.owner_hidden = True

@@ -102,6 +102,48 @@ class ClientTests(SimpleTestCase):
         self.assertIn("ship_to_country=PT", calls[0][2])
         self.assertIn("target_currency=EUR", calls[0][2])
 
+    def test_generate_affiliate_link_uses_tracking_id_from_config(self):
+        config = AliExpressConfig(
+            app_key="fake-key",
+            app_secret="fake-secret",
+            tracking_id="fake-tracking",
+            timeout_seconds=3,
+            max_retries=1,
+            min_interval_seconds=0,
+            backoff_base_seconds=0,
+            backoff_max_seconds=0,
+            jitter_max_seconds=0,
+        )
+        client = AliExpressClient(config, opener=lambda *_a, **_k: None, **self.runtime_paths)
+        payload = {
+            "aliexpress_affiliate_link_generate_response": {
+                "resp_result": {
+                    "result": {
+                        "promotion_links": {
+                            "promotion_link": [
+                                {"promotion_link": "https://affiliate.example/fresh"}
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+
+        with patch.object(client, "_call", return_value=payload) as call:
+            affiliate_url = client.generate_affiliate_link(
+                "https://www.aliexpress.com/item/123.html"
+            )
+
+        self.assertEqual(affiliate_url, "https://affiliate.example/fresh")
+        call.assert_called_once_with(
+            client.LINK_METHOD,
+            {
+                "source_values": "https://www.aliexpress.com/item/123.html",
+                "tracking_id": "fake-tracking",
+                "promotion_link_type": "0",
+            },
+        )
+
     def test_api_auth_error_becomes_structured_exception(self):
         client = AliExpressClient(
             self.config,

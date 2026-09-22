@@ -128,11 +128,6 @@ def intake_manual_aliexpress_candidate(
             "O detalhe AliExpress não corresponde ao produto resolvido."
         )
 
-    # Validation only. OfferCandidate intentionally has no affiliate_url field.
-    affiliate_url = api.generate_affiliate_link(canonical_url)
-    if not affiliate_url:
-        raise ManualCandidateIntakeError("A AliExpress não devolveu um link de promoção válido.")
-
     observed_at = now or timezone.now()
     with transaction.atomic():
         existing = _existing_result(product_id, family)

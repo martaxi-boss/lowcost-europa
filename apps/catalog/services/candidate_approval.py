@@ -49,17 +49,21 @@ def approve_candidate(candidate, *, user, client=None, now=None):
         if locked_family.status == ProductFamily.Status.RETIRED:
             raise CandidateApprovalError("Retired family cannot receive approvals")
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
+        if locked.status != OfferCandidate.Status.PENDING:
+            raise CandidateApprovalError("Candidate is no longer pending")
+        if not locked.product_url:
+            raise CandidateApprovalError("Candidate has no product URL")
 
         existing_offer = (
-            Offer.objects.filter(pk=locked.approved_offer_id).first()
-            if locked.approved_offer_id
-            else None
+            Offer.objects.select_for_update()
+            .filter(
+                source=locked.source,
+                external_product_id=locked.external_product_id,
+            )
+            .first()
         )
-        if existing_offer and existing_offer.affiliate_url:
-            affiliate_url = existing_offer.affiliate_url
-        else:
-            client = client or AliExpressClient()
-            affiliate_url = _affiliate_url(locked, client)
+        client = client or AliExpressClient()
+        affiliate_url = _affiliate_url(locked, client)
 
         defaults = {
             "title": locked.title,
@@ -74,21 +78,39 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             "first_seen_at": now,
             "last_seen_at": now,
         }
-        offer, created = Offer.objects.get_or_create(
-            source=locked.source,
-            external_product_id=locked.external_product_id,
-            defaults=defaults,
-        )
+        if existing_offer is None:
+            offer, created = Offer.objects.get_or_create(
+                source=locked.source,
+                external_product_id=locked.external_product_id,
+                defaults=defaults,
+            )
+        else:
+            offer, created = existing_offer, False
         if not created:
             offer.title = locked.title or offer.title
             offer.product_url = locked.product_url or offer.product_url
             offer.image_url = locked.image_url or offer.image_url
             offer.affiliate_url = affiliate_url
+            offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
+            offer.affiliate_promotion_verified_at = now
             offer.protocol_verified_at = now
             offer.is_active = True
             offer.last_seen_at = now
             # Approval is not an editorial publish action: preserve owner_hidden exactly.
-        offer.save()
+            offer.save(
+                update_fields=[
+                    "title",
+                    "product_url",
+                    "image_url",
+                    "affiliate_url",
+                    "affiliate_promotion_status",
+                    "affiliate_promotion_verified_at",
+                    "protocol_verified_at",
+                    "is_active",
+                    "last_seen_at",
+                    "updated_at",
+                ]
+            )
 
         observation = OfferObservation.objects.create(
             offer=offer,
