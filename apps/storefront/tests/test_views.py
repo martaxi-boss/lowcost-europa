@@ -515,6 +515,15 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertContains(response, reverse("storefront:contacto"))
         self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
 
+    def test_whatsapp_float_is_available_sitewide(self):
+        response = self.client.get(reverse("storefront:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "class=\"whatsapp-float\"")
+        self.assertContains(response, "https://wa.me/351961726755?text=")
+        self.assertContains(response, "Contactar Lowcost Europa pelo WhatsApp")
+        self.assertContains(response, 'target="_blank"')
+        self.assertContains(response, 'rel="noopener noreferrer"')
+
     def test_privacy_and_affiliates_link_to_contact(self):
         for name in ("privacidade", "afiliados"):
             response = self.client.get(reverse(f"storefront:{name}"))
