@@ -408,7 +408,10 @@ def candidate_approve(request, family_slug, candidate_id):
     try:
         approve_candidate(candidate, user=request.user)
     except AliExpressRateLimitError:
-        raise
+        request.session["owner_panel_error"] = (
+            "A AliExpress está temporariamente indisponível. "
+            "Tente novamente dentro de instantes."
+        )
     except (AliExpressError, CandidateApprovalError) as exc:
         request.session["owner_panel_error"] = str(exc)
     return _return_family(family, "rever", request)

@@ -130,7 +130,10 @@ def candidate_approve(request, family_slug, candidate_id):
     try:
         approve_candidate(candidate, user=request.user)
     except AliExpressRateLimitError:
-        raise
+        request.session["ops_error"] = (
+            "A AliExpress está temporariamente indisponível. "
+            "Tente novamente dentro de instantes."
+        )
     except (AliExpressError, CandidateApprovalError) as exc:
         request.session["ops_error"] = str(exc)
     return redirect("catalog:candidate-queue", family_slug=family_slug)

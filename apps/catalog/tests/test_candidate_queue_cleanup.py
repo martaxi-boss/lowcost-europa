@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
@@ -15,6 +16,7 @@ from apps.catalog.models import (
 )
 from apps.catalog.services.candidate_approval import approve_candidate, reject_candidate
 from apps.catalog.services.candidate_move import move_candidate_to_family
+from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError
 
 
 class CandidateQueueFilteringTests(TestCase):
@@ -114,6 +116,34 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertRedirects(response, self.url)
         self.assertNotContains(self.client.get(self.url), "pending-id")
         self.assertContains(self.client.get(self.url + "?view=rejected"), "pending-id")
+
+    @patch("apps.catalog.views.approve_candidate")
+    def test_approve_rate_limit_is_safe_and_returns_to_queue(self, approve):
+        approve.side_effect = AliExpressRateLimitError("429 secret-token")
+        url = reverse(
+            "catalog:candidate-approve",
+            kwargs={"family_slug": "hifu", "candidate_id": self.pending.pk},
+        )
+
+        response = self.client.post(url, {})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.url)
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.pending.decisions.count(), 0)
+        self.assertIn("ops_error", self.client.session)
+        self.assertNotIn("429", self.client.session["ops_error"])
+        self.assertNotIn("secret-token", self.client.session["ops_error"])
+
+        follow = self.client.get(self.url)
+        self.assertContains(
+            follow,
+            "A AliExpress está temporariamente indisponível. "
+            "Tente novamente dentro de instantes.",
+        )
+        self.assertNotContains(follow, "429")
+        self.assertNotContains(follow, "secret-token")
 
     def test_approve_post_needs_no_shipping_fields(self):
         api = __import__("unittest.mock").mock.Mock()

@@ -27,6 +27,7 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import public_eligibility_q
+from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 TEST_PASSWORD = "owner-test-password-only"
@@ -178,11 +179,13 @@ class OwnerEditorialServiceTests(TestCase):
         self.assertEqual(OfferEditorialEvent.objects.count(), 1)
 
     def test_publish_fresh_active_hidden_with_capacity(self):
+        original_affiliate_url = self.offer.affiliate_url
         hide_offer_from_storefront(self.offer, user=self.user)
         result = publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
         self.offer.refresh_from_db()
         self.assertTrue(result.changed)
         self.assertFalse(self.offer.owner_hidden)
+        self.assertEqual(self.offer.affiliate_url, original_affiliate_url)
         events = list(OfferEditorialEvent.objects.order_by("acted_at", "pk"))
         self.assertEqual([e.action for e in events], ["HIDE", "PUBLISH"])
         self.assertTrue(events[1].previous_owner_hidden)
@@ -218,6 +221,17 @@ class OwnerEditorialServiceTests(TestCase):
         self.offer.save(update_fields=["owner_hidden", "affiliate_url"])
         with self.assertRaises(OwnerEditorialError):
             publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+
+    def test_publish_without_affiliate_promotion_verified_at_is_blocked(self):
+        self.offer.owner_hidden = True
+        self.offer.affiliate_promotion_verified_at = None
+        self.offer.save(update_fields=["owner_hidden", "affiliate_promotion_verified_at"])
+
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+
+        self.offer.refresh_from_db()
+        self.assertTrue(self.offer.owner_hidden)
 
     def test_publish_accepts_fresh_owner_attestation_without_individual_country(self):
         self.offer.owner_hidden = True
@@ -537,6 +551,32 @@ class OwnerPanelCatalogTests(TestCase):
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.status, OfferCandidate.Status.APPROVED)
         self.assertIsNotNone(self.pending.approved_offer_id)
+
+    @patch("apps.catalog.owner_panel_views.approve_candidate")
+    def test_panel_approve_rate_limit_is_safe_and_returns_to_review(self, approve):
+        approve.side_effect = AliExpressRateLimitError("429 secret-token")
+        url = reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk])
+
+        response = self.client.post(url, {})
+
+        self.assertEqual(response.status_code, 302)
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.pending.decisions.count(), 0)
+        self.assertIn("owner_panel_error", self.client.session)
+        self.assertNotIn("429", self.client.session["owner_panel_error"])
+        self.assertNotIn("secret-token", self.client.session["owner_panel_error"])
+
+        follow = self.client.get(
+            reverse("owner-panel:family", args=[self.family.slug]) + "?vista=rever"
+        )
+        self.assertContains(
+            follow,
+            "A AliExpress está temporariamente indisponível. "
+            "Tente novamente dentro de instantes.",
+        )
+        self.assertNotContains(follow, "429")
+        self.assertNotContains(follow, "secret-token")
 
     def test_panel_reject_preserves_five_signal_multiselect(self):
         signals = [

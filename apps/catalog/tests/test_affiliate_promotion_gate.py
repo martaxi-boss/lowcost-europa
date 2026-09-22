@@ -150,12 +150,12 @@ class AffiliatePromotionGateTests(TestCase):
         self.assertEqual(self.offer.external_product_id, original_id)
         self.assertEqual(self.offer.product_url, original_url)
 
-    def test_approval_and_revalidation_do_not_override_existing_ineligible_state(self):
+    def test_approval_refreshes_existing_ineligible_then_revalidation_preserves_promotion(self):
         user = get_user_model().objects.create_user(
             username="promotion-staff", password="x", is_staff=True
         )
         self.offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.INELIGIBLE
-        self.offer.affiliate_promotion_verified_at = self.now
+        self.offer.affiliate_promotion_verified_at = self.now - timedelta(days=1)
         self.offer.owner_hidden = True
         self.offer.save(
             update_fields=[
@@ -169,16 +169,22 @@ class AffiliatePromotionGateTests(TestCase):
             source=Offer.Source.ALIEXPRESS,
             external_product_id=self.offer.external_product_id,
             product_url=self.offer.product_url,
-            status=OfferCandidate.Status.APPROVED,
-            approved_offer=self.offer,
+            status=OfferCandidate.Status.PENDING,
         )
-        approve_candidate(candidate, user=user, client=Mock(), now=self.now)
-        revalidate_candidate(candidate, user=user, now=self.now)
+        client = Mock()
+        client.generate_affiliate_link.return_value = "https://affiliate.example/approval-fresh"
+
+        result = approve_candidate(candidate, user=user, client=client, now=self.now)
+        client.generate_affiliate_link.assert_called_once_with(candidate.product_url)
+        revalidate_candidate(result.candidate, user=user, now=self.now + timedelta(seconds=1))
+
         self.offer.refresh_from_db()
+        self.assertEqual(self.offer.affiliate_url, "https://affiliate.example/approval-fresh")
         self.assertEqual(
             self.offer.affiliate_promotion_status,
-            Offer.AffiliatePromotionStatus.INELIGIBLE,
+            Offer.AffiliatePromotionStatus.ELIGIBLE,
         )
+        self.assertEqual(self.offer.affiliate_promotion_verified_at, self.now)
         self.assertTrue(self.offer.owner_hidden)
 
     def test_owner_panel_distinguishes_promotion_ineligible(self):
