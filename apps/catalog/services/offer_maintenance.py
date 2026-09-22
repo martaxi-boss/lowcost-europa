@@ -30,6 +30,15 @@ _UNAVAILABLE_VALUES = frozenset(
     }
 )
 
+_DEAD_LISTING_ERROR_FRAGMENTS = (
+    "product does not exist",
+    "item does not exist",
+    "product removed",
+    "item removed",
+    "product unavailable",
+    "item unavailable",
+)
+
 
 @dataclass
 class MaintenanceResult:
@@ -89,6 +98,11 @@ def verify_affiliate_promotion(offer, *, client, now):
 def is_factually_unavailable(product):
     raw = " ".join(str(getattr(product, "availability_raw", "") or "").lower().split())
     return raw in _UNAVAILABLE_VALUES
+
+
+def is_factually_unavailable_error(exc):
+    message = " ".join(str(exc).lower().split())
+    return any(fragment in message for fragment in _DEAD_LISTING_ERROR_FRAGMENTS)
 
 
 def is_factually_available(product):
@@ -162,6 +176,23 @@ def _unknown_observation(offer, *, now):
     )
 
 
+def _unavailable_observation(offer, *, now):
+    return OfferObservation.objects.create(
+        offer=offer,
+        observed_at=now,
+        destination_country="PT",
+        availability=OfferObservation.Availability.UNAVAILABLE,
+    )
+
+
+def _deactivate_unavailable_offer(offer, *, result):
+    result.unavailable_confirmed += 1
+    if offer.is_active:
+        offer.is_active = False
+        offer.save(update_fields=["is_active", "updated_at"])
+        result.offers_deactivated += 1
+
+
 def maintain_catalog_offers(*, batch_size, client=None, now=None):
     client = client or AliExpressClient()
     now = now or timezone.now()
@@ -192,6 +223,15 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
                 detail = client.get_product_detail(offer.external_product_id, "PT", "EUR")
             except AliExpressRateLimitError:
                 raise
+            except AliExpressAPIError as exc:
+                if is_factually_unavailable_error(exc):
+                    _unavailable_observation(offer, now=now)
+                    _deactivate_unavailable_offer(offer, result=result)
+                    continue
+                result.transient_failures += 1
+                result.failures.append(f"{offer.external_product_id}:{exc.__class__.__name__}")
+                _unknown_observation(offer, now=now)
+                continue
             except AliExpressError as exc:
                 result.transient_failures += 1
                 result.failures.append(f"{offer.external_product_id}:{exc.__class__.__name__}")
@@ -211,11 +251,7 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
                     now=now,
                     availability=OfferObservation.Availability.UNAVAILABLE,
                 )
-                result.unavailable_confirmed += 1
-                if offer.is_active:
-                    offer.is_active = False
-                    offer.save(update_fields=["is_active", "updated_at"])
-                    result.offers_deactivated += 1
+                _deactivate_unavailable_offer(offer, result=result)
                 continue
 
             if not is_factually_available(detail):
