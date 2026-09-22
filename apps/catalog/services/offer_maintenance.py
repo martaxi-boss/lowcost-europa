@@ -33,6 +33,8 @@ _UNAVAILABLE_VALUES = frozenset(
 _DEAD_LISTING_ERROR_FRAGMENTS = (
     "product does not exist",
     "item does not exist",
+    "product not found",
+    "item not found",
     "product removed",
     "item removed",
     "product unavailable",

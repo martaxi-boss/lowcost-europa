@@ -168,21 +168,61 @@ class OfferMaintenanceTests(TestCase):
         self.assertEqual(result.offers_deactivated, 1)
 
     def test_dead_listing_error_matching_is_narrow(self):
-        self.assertTrue(
-            is_factually_unavailable_error(
-                AliExpressAPIError("AliExpress API error: item removed")
-            )
-        )
-        self.assertFalse(
-            is_factually_unavailable_error(
-                AliExpressAPIError("AliExpress API error: Product not found")
-            )
-        )
-        self.assertFalse(
-            is_factually_unavailable_error(
-                AliExpressAPIError("AliExpress API error: temporary backend error")
-            )
-        )
+        for message in (
+            "AliExpress API error: item removed",
+            "AliExpress API error: product not found",
+            "AliExpress API error: item not found",
+        ):
+            with self.subTest(message=message):
+                self.assertTrue(is_factually_unavailable_error(AliExpressAPIError(message)))
+
+        for message in (
+            "route not found",
+            "endpoint not found",
+            "AliExpress API error: temporary backend error",
+        ):
+            with self.subTest(message=message):
+                self.assertFalse(is_factually_unavailable_error(AliExpressAPIError(message)))
+
+    def test_product_and_item_not_found_api_errors_deactivate(self):
+        for index, phrase in enumerate(("product not found", "item not found")):
+            with self.subTest(phrase=phrase):
+                offer = self.make_offer(f"not-found-{index}", protocol_at=timezone.now())
+                client = Mock()
+                client.generate_affiliate_link.return_value = offer.affiliate_url
+                client.get_product_detail.side_effect = AliExpressAPIError(
+                    f"AliExpress API error: {phrase}"
+                )
+
+                result = maintain_catalog_offers(batch_size=1, client=client)
+
+                offer.refresh_from_db()
+                self.assertFalse(offer.is_active)
+                self.assertEqual(result.unavailable_confirmed, 1)
+                self.assertEqual(result.offers_deactivated, 1)
+                self.assertEqual(
+                    offer.observations.latest("observed_at").availability,
+                    OfferObservation.Availability.UNAVAILABLE,
+                )
+
+    def test_route_and_endpoint_not_found_are_transient(self):
+        for index, message in enumerate(("route not found", "endpoint not found")):
+            with self.subTest(message=message):
+                offer = self.make_offer(f"generic-not-found-{index}", protocol_at=timezone.now())
+                client = Mock()
+                client.generate_affiliate_link.return_value = offer.affiliate_url
+                client.get_product_detail.side_effect = AliExpressAPIError(message)
+
+                result = maintain_catalog_offers(batch_size=1, client=client)
+
+                offer.refresh_from_db()
+                self.assertTrue(offer.is_active)
+                self.assertEqual(result.transient_failures, 1)
+                self.assertEqual(result.offers_deactivated, 0)
+                self.assertEqual(
+                    offer.observations.latest("observed_at").availability,
+                    OfferObservation.Availability.UNKNOWN,
+                )
 
     def test_generic_api_and_transport_errors_are_transient(self):
         for index, error_type in enumerate((AliExpressAPIError, AliExpressTransportError)):
