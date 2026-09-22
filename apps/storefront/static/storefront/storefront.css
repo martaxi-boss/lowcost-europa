@@ -138,6 +138,28 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .offer-cta .meta { margin: 10px 0 0; }
 .transparency-box--detail { margin-top: 2px; }
 
+.whatsapp-float {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 80;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(0,0,0,.24);
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.whatsapp-float:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 14px 32px rgba(0,0,0,.28); }
+.whatsapp-float:focus-visible { outline: 3px solid #0f3d34; outline-offset: 4px; }
+.whatsapp-float svg { width: 31px; height: 31px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.whatsapp-float svg path + path { fill: currentColor; stroke: none; }
+
 .site-footer { margin-top: 30px; padding: 48px 0 20px; background: #0c211d; color: #edf4f2; }
 .footer-grid { display: grid; gap: 30px; }
 .footer-brand p { max-width: 590px; color: #bdd0ca; }
