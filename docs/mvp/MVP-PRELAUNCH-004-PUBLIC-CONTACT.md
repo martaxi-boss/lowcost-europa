@@ -5,8 +5,8 @@
 The only public contact channels authorized for this task are:
 
 - Email: `help.onlinefuture@gmail.com`
-- WhatsApp: `+351 961 726 755`
-- WhatsApp link: `https://wa.me/351961726755`
+- WhatsApp: `+351 965 471 236`
+- WhatsApp link: `https://wa.me/351965471236`
 
 No operator legal identity, registration data or private address is introduced by this task.
 
