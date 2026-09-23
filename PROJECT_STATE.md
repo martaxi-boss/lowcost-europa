@@ -327,7 +327,7 @@ Factual open/deferred items at this reconciliation:
 
 Current core infrastructure remains:
 
-- DigitalOcean Droplet;
+- OVH VPS (`vps-32bea5b6`, public IPv4 `146.59.145.3`);
 - Django;
 - PostgreSQL;
 - Gunicorn;
