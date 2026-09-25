@@ -1,0 +1,228 @@
+name: VPS Final Cleanup DC Replacement Stack
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-final-cleanup-dc-replacement.yml"
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Remove runner experiments and Martaxi Commander from VPS
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+          COMMANDER_HOST="martaxi-commander.146-59-145-3.sslip.io"
+          LOWCOST_HOST="lowcost-europa.146-59-145-3.sslip.io"
+
+          echo "== PRE-CLEANUP INVENTORY =="
+          echo "HOST=$(hostname)"
+          echo "RUNNER_UNITS:"
+          systemctl list-unit-files 'actions.runner.*.service' --no-legend 2>/dev/null || true
+          echo "RUNNER_CONFIGS:"
+          find /home /opt -maxdepth 5 -type f -name .runner -print 2>/dev/null || true
+          echo "COMMANDER_UNITS:"
+          systemctl list-unit-files 'martaxi-commander*.service' --no-legend 2>/dev/null || true
+          echo "SWAP_BEFORE:"
+          swapon --show || true
+          free -h
+          df -h /
+
+          echo "== REMOVE MARTAXI COMMANDER SERVICES =="
+          for svc in             martaxi-commander.service             martaxi-commander-http.service             martaxi-commander-mtls-verifier.service
+          do
+            sudo -n systemctl disable --now "$svc" >/dev/null 2>&1 || true
+            sudo -n systemctl reset-failed "$svc" >/dev/null 2>&1 || true
+            sudo -n rm -f "/etc/systemd/system/$svc"
+          done
+          sudo -n systemctl daemon-reload
+
+          echo "== REMOVE MARTAXI COMMANDER FILES =="
+          sudo -n rm -rf /opt/martaxi-commander
+          sudo -n rm -rf /etc/martaxi-commander
+          sudo -n rm -f /usr/local/bin/martaxi-commander-mcp
+          sudo -n rm -f /usr/local/bin/tunnel-client
+          sudo -n rm -f /usr/local/sbin/martaxi-commander-activate
+          sudo -n rm -rf /etc/nginx/openai-mtls
+          sudo -n rm -f /var/log/nginx/martaxi-commander.access.log
+          sudo -n rm -f /var/log/nginx/martaxi-commander.error.log
+
+          echo "== REMOVE MARTAXI COMMANDER NGINX SITE =="
+          sudo -n rm -f /etc/nginx/sites-enabled/martaxi-commander.conf
+          sudo -n rm -f /etc/nginx/sites-available/martaxi-commander.conf
+          sudo -n nginx -t
+          sudo -n systemctl reload nginx
+
+          echo "== REMOVE MARTAXI COMMANDER CERTIFICATE =="
+          if sudo -n certbot certificates 2>/dev/null | grep -Fq "Certificate Name: $COMMANDER_HOST"; then
+            sudo -n certbot delete --cert-name "$COMMANDER_HOST" --non-interactive
+          fi
+
+          echo "== REMOVE TWO-RUNNER MEMORY GUARD =="
+          if swapon --show=NAME --noheadings 2>/dev/null | awk '{print $1}' | grep -Fxq /swapfile; then
+            sudo -n swapoff /swapfile
+          fi
+          sudo -n sed -i '\|^/swapfile[[:space:]]|d' /etc/fstab
+          sudo -n rm -f /swapfile
+          sudo -n rm -f /etc/sysctl.d/99-martaxi-runner-memory.conf
+          sudo -n sysctl -w vm.swappiness=60 >/dev/null
+
+          echo "== REMOVE UNUSED BOOTSTRAP RUNNER PATHS =="
+          sudo -n rm -rf /opt/actions-runner/lowcost-europa
+
+          echo "== KEEP OLD DESKTOP COMMANDER OFF =="
+          sudo -n systemctl disable --now desktop-commander-remote.service >/dev/null 2>&1 || true
+          sudo -n systemctl reset-failed desktop-commander-remote.service >/dev/null 2>&1 || true
+
+          echo "== VERIFY APPLICATION INGRESS =="
+          sudo -n nginx -t
+          test "$(sudo -n systemctl is-active nginx)" = "active"
+          set +e
+          LOW_CODE="$(curl --noproxy '*' --resolve "$LOWCOST_HOST:443:127.0.0.1"             --max-time 10 -sS -o "$TMP/lowcost.body" -w '%{http_code}'             "https://$LOWCOST_HOST/")"
+          LOW_RC=$?
+          set -e
+          echo "LOWCOST_CURL_RC=$LOW_RC"
+          echo "LOWCOST_HTTP_CODE=$LOW_CODE"
+          if [ "$LOW_RC" -ne 0 ] || [ "$LOW_CODE" != "200" ]; then
+            echo "ERROR: Lowcost Europa HTTPS baseline not healthy after cleanup"
+            exit 1
+          fi
+
+          echo "== VERIFY COMMANDER REMOVED =="
+          for p in             /opt/martaxi-commander             /etc/martaxi-commander             /usr/local/bin/martaxi-commander-mcp             /usr/local/bin/tunnel-client             /usr/local/sbin/martaxi-commander-activate             /etc/nginx/openai-mtls             /etc/nginx/sites-enabled/martaxi-commander.conf             /etc/nginx/sites-available/martaxi-commander.conf
+          do
+            if [ -e "$p" ]; then
+              echo "ERROR: still exists: $p"
+              exit 1
+            fi
+          done
+          if systemctl list-unit-files 'martaxi-commander*.service' --no-legend 2>/dev/null | grep -q .; then
+            echo "ERROR: Martaxi Commander unit still registered"
+            systemctl list-unit-files 'martaxi-commander*.service' --no-legend || true
+            exit 1
+          fi
+
+          echo "== VERIFY MEMORY GUARD REMOVED =="
+          ! swapon --show=NAME --noheadings 2>/dev/null | awk '{print $1}' | grep -Fxq /swapfile
+          ! grep -Eq '^/swapfile[[:space:]]' /etc/fstab
+          test ! -e /swapfile
+          test ! -e /etc/sysctl.d/99-martaxi-runner-memory.conf
+          echo "SWAPPINESS=$(cat /proc/sys/vm/swappiness)"
+
+          echo "== PREPARE SELF-HOSTED RUNNER FINAL REMOVAL =="
+          mapfile -t RUNNER_UNITS < <(systemctl list-unit-files 'actions.runner.*.service' --no-legend 2>/dev/null | awk '{print $1}' | grep '^actions\.runner\.' || true)
+          mapfile -t RUNNER_DIRS < <(find /home /opt -maxdepth 5 -type f -name .runner -printf '%h\n' 2>/dev/null | sort -u || true)
+
+          printf 'RUNNER_UNIT_COUNT=%s\n' "${#RUNNER_UNITS[@]}"
+          printf 'RUNNER_DIR_COUNT=%s\n' "${#RUNNER_DIRS[@]}"
+          printf '%s\n' "${RUNNER_UNITS[@]:-}" | sed '/^$/d' || true
+          printf '%s\n' "${RUNNER_DIRS[@]:-}" | sed '/^$/d' || true
+
+          REMOVE_TOKEN_FILE="/root/martaxi-runner-remove-token"
+          sudo -n rm -f "$REMOVE_TOKEN_FILE"
+          TOKEN_HTTP="$(curl -sS -o "$TMP/remove-token.json" -w '%{http_code}'             -X POST             -H "Accept: application/vnd.github+json"             -H "Authorization: Bearer $GH_TOKEN"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners/remove-token" || true)"
+          echo "RUNNER_REMOVE_TOKEN_HTTP=$TOKEN_HTTP"
+          if [ "$TOKEN_HTTP" = "201" ]; then
+            python3 - "$TMP/remove-token.json" "$TMP/token" <<'PY'
+          import json, pathlib, sys
+          data=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          token=data.get("token","")
+          if not token:
+              raise SystemExit("runner remove token missing")
+          pathlib.Path(sys.argv[2]).write_text(token)
+          PY
+            sudo -n install -m 0600 -o root -g root "$TMP/token" "$REMOVE_TOKEN_FILE"
+            echo "RUNNER_REMOVE_TOKEN=AVAILABLE"
+          else
+            echo "RUNNER_REMOVE_TOKEN=UNAVAILABLE_LOCAL_CLEANUP_WILL_CONTINUE"
+          fi
+
+          RUNNER_UNITS_FILE="/root/martaxi-runner-units"
+          RUNNER_DIRS_FILE="/root/martaxi-runner-dirs"
+          printf '%s\n' "${RUNNER_UNITS[@]:-}" | sed '/^$/d' | sudo -n tee "$RUNNER_UNITS_FILE" >/dev/null
+          printf '%s\n' "${RUNNER_DIRS[@]:-}" | sed '/^$/d' | sudo -n tee "$RUNNER_DIRS_FILE" >/dev/null
+          sudo -n chmod 0600 "$RUNNER_UNITS_FILE" "$RUNNER_DIRS_FILE"
+
+          cat > "$TMP/finalize-runner-cleanup.sh" <<'EOF'
+          #!/bin/bash
+          set +e
+          UNITS_FILE=/root/martaxi-runner-units
+          DIRS_FILE=/root/martaxi-runner-dirs
+          TOKEN_FILE=/root/martaxi-runner-remove-token
+
+          mapfile -t units < "$UNITS_FILE" 2>/dev/null
+          mapfile -t dirs < "$DIRS_FILE" 2>/dev/null
+
+          for unit in "${units[@]}"; do
+            [ -n "$unit" ] || continue
+            systemctl disable "$unit" >/dev/null 2>&1 || true
+            systemctl stop "$unit" >/dev/null 2>&1 || true
+          done
+
+          for dir in "${dirs[@]}"; do
+            [ -d "$dir" ] || continue
+            if [ -x "$dir/svc.sh" ]; then
+              "$dir/svc.sh" stop >/dev/null 2>&1 || true
+              "$dir/svc.sh" uninstall >/dev/null 2>&1 || true
+            fi
+            if [ -f "$TOKEN_FILE" ] && [ -x "$dir/config.sh" ]; then
+              token="$(cat "$TOKEN_FILE")"
+              sudo -u ubuntu "$dir/config.sh" remove --token "$token" >/dev/null 2>&1 || true
+            fi
+          done
+
+          pkill -f '/actions-runner/bin/Runner.Listener' >/dev/null 2>&1 || true
+          pkill -f '/actions-runner/bin/Runner.Worker' >/dev/null 2>&1 || true
+
+          for unit in "${units[@]}"; do
+            [ -n "$unit" ] || continue
+            rm -f "/etc/systemd/system/$unit"
+          done
+          systemctl daemon-reload >/dev/null 2>&1 || true
+          systemctl reset-failed >/dev/null 2>&1 || true
+
+          for dir in "${dirs[@]}"; do
+            [ -n "$dir" ] || continue
+            rm -rf "$dir"
+          done
+          rm -rf /opt/actions-runner
+
+          rm -f "$TOKEN_FILE" "$UNITS_FILE" "$DIRS_FILE"
+          logger -t martaxi-cleanup "Self-hosted GitHub runner local cleanup completed"
+          rm -f /usr/local/sbin/martaxi-finalize-runner-cleanup
+          EOF
+          sudo -n install -m 0700 -o root -g root "$TMP/finalize-runner-cleanup.sh" /usr/local/sbin/martaxi-finalize-runner-cleanup
+
+          echo "== FINAL PRE-DISCONNECT SNAPSHOT =="
+          echo "OLD_DC_ACTIVE=$(sudo -n systemctl is-active desktop-commander-remote.service || true)"
+          echo "OLD_DC_ENABLED=$(sudo -n systemctl is-enabled desktop-commander-remote.service || true)"
+          echo "CURRENT_RUNNER_ACTIVE_UNTIL_FINALIZER:"
+          for unit in "${RUNNER_UNITS[@]}"; do
+            [ -n "$unit" ] || continue
+            echo "$unit=$(systemctl is-active "$unit" || true)"
+          done
+          swapon --show || true
+          free -h
+          df -h /
+
+          echo "== SCHEDULE RUNNER SELF-REMOVAL AFTER JOB RETURNS =="
+          sudo -n systemd-run             --unit=martaxi-final-runner-cleanup             --on-active=90s             --timer-property=AccuracySec=1s             --collect             /usr/local/sbin/martaxi-finalize-runner-cleanup
+
+          echo "MARTAXI_COMMANDER_REMOVED=PASS"
+          echo "RUNNER_MEMORY_GUARD_REMOVED=PASS"
+          echo "LOWCOST_RUNTIME_CHECK=PASS"
+          echo "SELF_HOSTED_RUNNER_REMOVAL=SCHEDULED_90_SECONDS"
+          echo "VPS_DC_REPLACEMENT_CLEANUP=PASS"
