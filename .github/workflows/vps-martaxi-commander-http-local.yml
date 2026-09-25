@@ -82,44 +82,88 @@ jobs:
           ss -lnt | awk '$4 ~ /(^|:)8766$/ {print $4}' | grep -q '127.0.0.1:8766'
 
           echo "== MCP STREAMABLE HTTP ROUNDTRIP =="
-          cat > "$TMP/input.jsonl" <<'EOF'
-          {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"martaxi-http-smoke","version":"1.0"}}}
-          {"jsonrpc":"2.0","method":"notifications/initialized","params":{}}
-          {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
-          EOF
+          "$VENV/bin/python" - <<'PY'
+          import json
+          import httpx
 
-          rc=0
-          timeout 12s "$VENV/bin/mcp-proxy" --transport streamablehttp http://127.0.0.1:8766/mcp < "$TMP/input.jsonl" > "$TMP/out" 2> "$TMP/err" || rc=$?
-          echo "ROUNDTRIP_CLIENT_EXIT=$rc"
-          if grep -Eqi 'Traceback|ERROR|exception' "$TMP/err"; then
-            cat "$TMP/err"
-          fi
+          url = "http://127.0.0.1:8766/mcp"
+          base_headers = {
+              "accept": "application/json, text/event-stream",
+              "content-type": "application/json",
+          }
 
-          python3 - "$TMP/out" <<'PY'
-          import json, pathlib, sys
-          p=pathlib.Path(sys.argv[1])
-          objs=[]
-          for line in p.read_text(errors="replace").splitlines():
-              line=line.strip()
-              if not line:
-                  continue
-              try:
-                  objs.append(json.loads(line))
-              except json.JSONDecodeError:
-                  pass
-          init=next((o for o in objs if o.get("id")==1), None)
-          tools=next((o for o in objs if o.get("id")==2), None)
-          if not init or "result" not in init:
-              raise SystemExit("HTTP initialize response missing")
-          if not tools or "result" not in tools:
-              raise SystemExit("HTTP tools/list response missing")
-          names=[t.get("name") for t in tools["result"].get("tools",[])]
-          print("HTTP_MCP_PROTOCOL="+str(init["result"].get("protocolVersion")))
-          print("HTTP_MCP_TOOL_COUNT="+str(len(names)))
-          print("HTTP_MCP_SAMPLE_TOOLS="+",".join(names[:12]))
-          if len(names) < 20:
-              raise SystemExit("unexpectedly small MCP tool surface")
-          print("MARTAXI_COMMANDER_HTTP_ROUNDTRIP=PASS")
+          def decode_response(resp):
+              text = resp.text
+              if "text/event-stream" in resp.headers.get("content-type", ""):
+                  for line in text.splitlines():
+                      if line.startswith("data:"):
+                          data = line[5:].strip()
+                          if data:
+                              obj = json.loads(data)
+                              if isinstance(obj, dict) and ("result" in obj or "error" in obj):
+                                  return obj
+                  raise RuntimeError(f"no terminal JSON-RPC event in SSE response: {text[:500]!r}")
+              return resp.json()
+
+          with httpx.Client(timeout=10.0) as client:
+              init_req = {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "method": "initialize",
+                  "params": {
+                      "protocolVersion": "2025-06-18",
+                      "capabilities": {},
+                      "clientInfo": {"name": "martaxi-http-smoke", "version": "1.0"},
+                  },
+              }
+              r = client.post(url, headers=base_headers, json=init_req)
+              r.raise_for_status()
+              init = decode_response(r)
+              if "result" not in init:
+                  raise RuntimeError(f"initialize failed: {init}")
+
+              session = r.headers.get("mcp-session-id")
+              if not session:
+                  raise RuntimeError("initialize response did not return mcp-session-id")
+
+              session_headers = dict(base_headers)
+              session_headers["mcp-session-id"] = session
+              session_headers["mcp-protocol-version"] = str(
+                  init["result"].get("protocolVersion", "2025-06-18")
+              )
+
+              n = client.post(
+                  url,
+                  headers=session_headers,
+                  json={
+                      "jsonrpc": "2.0",
+                      "method": "notifications/initialized",
+                      "params": {},
+                  },
+              )
+              if n.status_code not in (200, 202, 204):
+                  raise RuntimeError(
+                      f"initialized notification failed: {n.status_code} {n.text[:300]}"
+                  )
+
+              r = client.post(
+                  url,
+                  headers=session_headers,
+                  json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+              )
+              r.raise_for_status()
+              tools = decode_response(r)
+              if "result" not in tools:
+                  raise RuntimeError(f"tools/list failed: {tools}")
+              names = [t.get("name") for t in tools["result"].get("tools", [])]
+
+              print("HTTP_MCP_PROTOCOL=" + str(init["result"].get("protocolVersion")))
+              print("HTTP_MCP_SESSION=present")
+              print("HTTP_MCP_TOOL_COUNT=" + str(len(names)))
+              print("HTTP_MCP_SAMPLE_TOOLS=" + ",".join(names[:12]))
+              if len(names) < 20:
+                  raise RuntimeError("unexpectedly small MCP tool surface")
+              print("MARTAXI_COMMANDER_HTTP_ROUNDTRIP=PASS")
           PY
 
           echo "== SERVICE RESOURCE SNAPSHOT =="
