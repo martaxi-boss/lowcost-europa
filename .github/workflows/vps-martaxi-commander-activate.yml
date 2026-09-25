@@ -1,0 +1,78 @@
+name: VPS Martaxi Commander Activate
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-activate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  activate:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 10
+    env:
+      MARTAXI_TUNNEL_ID: ${{ secrets.MARTAXI_TUNNEL_ID }}
+      MARTAXI_TUNNEL_API_KEY: ${{ secrets.MARTAXI_TUNNEL_API_KEY }}
+    steps:
+      - name: Activate Martaxi Commander when tunnel credentials exist
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "HOST=$(hostname)"
+          echo "OLD_DC_ACTIVE=$(sudo -n systemctl is-active desktop-commander-remote.service || true)"
+          echo "OLD_DC_ENABLED=$(sudo -n systemctl is-enabled desktop-commander-remote.service || true)"
+
+          if [ -z "${MARTAXI_TUNNEL_ID:-}" ] || [ -z "${MARTAXI_TUNNEL_API_KEY:-}" ]; then
+            echo "MARTAXI_COMMANDER_ACTIVATION=WAITING_FOR_GITHUB_SECRETS"
+            echo "REQUIRED_SECRET_1=MARTAXI_TUNNEL_ID"
+            echo "REQUIRED_SECRET_2=MARTAXI_TUNNEL_API_KEY"
+            exit 0
+          fi
+
+          if ! printf '%s' "$MARTAXI_TUNNEL_ID" | grep -Eq '^tunnel_[0-9a-f]{32}$'; then
+            echo "MARTAXI_COMMANDER_ACTIVATION=INVALID_TUNNEL_ID"
+            exit 1
+          fi
+
+          if ! printf '%s' "$MARTAXI_TUNNEL_API_KEY" | grep -Eq '^sk-.+'; then
+            echo "MARTAXI_COMMANDER_ACTIVATION=INVALID_RUNTIME_KEY_FORMAT"
+            exit 1
+          fi
+
+          TMP="$(mktemp)"
+          trap 'rm -f "$TMP"' EXIT
+          umask 077
+          {
+            printf 'CONTROL_PLANE_TUNNEL_ID=%s\n' "$MARTAXI_TUNNEL_ID"
+            printf 'CONTROL_PLANE_API_KEY=%s\n' "$MARTAXI_TUNNEL_API_KEY"
+          } > "$TMP"
+
+          sudo -n install -m 0600 -o root -g root "$TMP" /etc/martaxi-commander/tunnel.env
+          sudo -n systemctl daemon-reload
+          sudo -n systemctl enable --now martaxi-commander.service
+
+          ready=0
+          for i in $(seq 1 30); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8765/readyz >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          echo "NEW_SERVICE_ACTIVE=$(sudo -n systemctl is-active martaxi-commander.service || true)"
+          echo "NEW_SERVICE_ENABLED=$(sudo -n systemctl is-enabled martaxi-commander.service || true)"
+
+          if [ "$ready" -ne 1 ]; then
+            echo "MARTAXI_COMMANDER_ACTIVATION=NOT_READY"
+            sudo -n systemctl status martaxi-commander.service --no-pager -l | sed -E 's/sk-[A-Za-z0-9_-]+/[REDACTED]/g' | tail -n 30 || true
+            exit 1
+          fi
+
+          curl -fsS --max-time 2 http://127.0.0.1:8765/healthz >/dev/null
+          echo "MARTAXI_COMMANDER_ACTIVATION=PASS"
