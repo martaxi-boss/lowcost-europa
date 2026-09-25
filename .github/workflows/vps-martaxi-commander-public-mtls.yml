@@ -1,0 +1,154 @@
+name: VPS Martaxi Commander Public mTLS Endpoint
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-public-mtls.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Publish HTTPS MCP endpoint restricted to OpenAI connector certificates
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HOST="martaxi-commander.146-59-145-3.sslip.io"
+          EXPECTED_IP="146.59.145.3"
+          SITE="/etc/nginx/sites-available/martaxi-commander.conf"
+          LINK="/etc/nginx/sites-enabled/martaxi-commander.conf"
+          CA_DIR="/etc/nginx/openai-mtls"
+          WEBROOT="/var/www/html"
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+
+          echo "== PRECHECK =="
+          test "$(sudo -n systemctl is-active martaxi-commander-http.service)" = "active"
+          curl -fsS --max-time 3 http://127.0.0.1:8766/status >/dev/null
+          command -v nginx
+          command -v certbot
+
+          RESOLVED="$(getent ahostsv4 "$HOST" | awk 'NR==1{print $1}')"
+          echo "PUBLIC_HOST=$HOST"
+          echo "PUBLIC_RESOLVED_IP=$RESOLVED"
+          test "$RESOLVED" = "$EXPECTED_IP"
+
+          echo "== HTTP ACME VHOST =="
+          sudo -n mkdir -p "$WEBROOT"
+          cat > "$TMP/http.conf" <<EOF
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $HOST;
+
+              location ^~ /.well-known/acme-challenge/ {
+                  root $WEBROOT;
+                  default_type "text/plain";
+              }
+
+              location / {
+                  return 301 https://\$host\$request_uri;
+              }
+          }
+          EOF
+          sudo -n install -m 0644 "$TMP/http.conf" "$SITE"
+          sudo -n ln -sfn "$SITE" "$LINK"
+          sudo -n nginx -t
+          sudo -n systemctl reload nginx
+
+          echo "== LETSENCRYPT CERTIFICATE =="
+          sudo -n certbot certonly             --webroot -w "$WEBROOT"             -d "$HOST"             --non-interactive             --agree-tos             --register-unsafely-without-email             --keep-until-expiring
+
+          CERT_DIR="/etc/letsencrypt/live/$HOST"
+          sudo -n test -f "$CERT_DIR/fullchain.pem"
+          sudo -n test -f "$CERT_DIR/privkey.pem"
+
+          echo "== OPENAI CONNECTOR mTLS CA =="
+          sudo -n install -d -m 0755 -o root -g root "$CA_DIR"
+          curl -fsSL --retry 3             https://developers.openai.com/plugins/mtls/openai-root-ca.pem             -o "$TMP/openai-root-ca.pem"
+          curl -fsSL --retry 3             https://developers.openai.com/plugins/mtls/openai-connectors-mtls-ca.pem             -o "$TMP/openai-connectors-mtls-ca.pem"
+          openssl x509 -in "$TMP/openai-root-ca.pem" -noout -subject -issuer
+          openssl x509 -in "$TMP/openai-connectors-mtls-ca.pem" -noout -subject -issuer
+          cat "$TMP/openai-connectors-mtls-ca.pem" "$TMP/openai-root-ca.pem" > "$TMP/openai-connectors-chain.pem"
+          sudo -n install -m 0644 -o root -g root "$TMP/openai-root-ca.pem" "$CA_DIR/openai-root-ca.pem"
+          sudo -n install -m 0644 -o root -g root "$TMP/openai-connectors-mtls-ca.pem" "$CA_DIR/openai-connectors-mtls-ca.pem"
+          sudo -n install -m 0644 -o root -g root "$TMP/openai-connectors-chain.pem" "$CA_DIR/openai-connectors-chain.pem"
+
+          echo "== FINAL NGINX mTLS REVERSE PROXY =="
+          cat > "$TMP/final.conf" <<EOF
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $HOST;
+
+              location ^~ /.well-known/acme-challenge/ {
+                  root $WEBROOT;
+                  default_type "text/plain";
+              }
+
+              location / {
+                  return 301 https://\$host\$request_uri;
+              }
+          }
+
+          server {
+              listen 443 ssl;
+              listen [::]:443 ssl;
+              server_name $HOST;
+
+              ssl_certificate $CERT_DIR/fullchain.pem;
+              ssl_certificate_key $CERT_DIR/privkey.pem;
+
+              ssl_client_certificate $CA_DIR/openai-connectors-chain.pem;
+              ssl_verify_client on;
+              ssl_verify_depth 3;
+
+              access_log /var/log/nginx/martaxi-commander.access.log;
+              error_log /var/log/nginx/martaxi-commander.error.log warn;
+
+              location = /mcp {
+                  proxy_pass http://127.0.0.1:8766/mcp;
+                  proxy_http_version 1.1;
+                  proxy_buffering off;
+                  proxy_cache off;
+                  proxy_read_timeout 600s;
+                  proxy_send_timeout 600s;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Forwarded-Proto https;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+              }
+
+              location / {
+                  return 404;
+              }
+          }
+          EOF
+
+          sudo -n install -m 0644 "$TMP/final.conf" "$SITE"
+          sudo -n nginx -t
+          sudo -n systemctl reload nginx
+
+          echo "== VERIFY HTTPS IS NOT PUBLICLY ANONYMOUS =="
+          CODE="$(curl -sS --resolve "$HOST:443:127.0.0.1"             -o "$TMP/no-client.body" -w '%{http_code}'             "https://$HOST/mcp" || true)"
+          echo "NO_CLIENT_CERT_HTTP_CODE=$CODE"
+          if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then
+            echo "ERROR: public endpoint accepted request without client certificate"
+            exit 1
+          fi
+
+          echo "== VERIFY SERVER CERTIFICATE =="
+          echo | openssl s_client -connect 127.0.0.1:443 -servername "$HOST" 2>/dev/null             | openssl x509 -noout -subject -issuer -dates
+
+          echo "== FINAL STATE =="
+          sudo -n systemctl is-active nginx
+          sudo -n systemctl is-active martaxi-commander-http.service
+          sudo -n ss -lntp | grep -E ':(443|8766)([[:space:]]|$)'
+          echo "MARTAXI_COMMANDER_ENDPOINT=https://$HOST/mcp"
+          echo "MARTAXI_COMMANDER_PUBLIC_MTLS=PASS"
