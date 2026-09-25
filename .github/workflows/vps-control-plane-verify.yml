@@ -1,5 +1,4 @@
 name: Verify VPS Control Plane
-# Final post-remediation verification
 
 on:
   push:
@@ -21,9 +20,7 @@ jobs:
         run: |
           set -euo pipefail
           DC_SERVICE="desktop-commander-remote.service"
-          RUNNER_SERVICE="$(systemctl list-unit-files --type=service --no-legend | awk '/^actions\.runner\.martaxi-boss-lowcost-europa\./ {print $1; exit}')"
-
-          test -n "$RUNNER_SERVICE"
+          RUNNER_SERVICE="actions.runner.martaxi-boss-lowcost-europa.vps-32bea5b6.service"
 
           RUNNER_ACTIVE="$(systemctl is-active "$RUNNER_SERVICE" || true)"
           RUNNER_ENABLED="$(systemctl is-enabled "$RUNNER_SERVICE" || true)"
