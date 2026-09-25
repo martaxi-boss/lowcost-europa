@@ -1,0 +1,29 @@
+name: VPS DC Inventory
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-dc-inventory.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Inventory Desktop Commander service
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "HOSTNAME=$(hostname)"
+          echo "RUNNER_USER=$(id -un)"
+          echo "SERVICE_FILES"
+          systemctl list-unit-files --type=service --no-pager | grep -Ei 'desktop|commander|remote' || true
+          echo "ACTIVE_SERVICES"
+          systemctl list-units --type=service --all --no-pager | grep -Ei 'desktop|commander|remote' || true
+          echo "PROCESSES"
+          ps -eo pid,user,comm,args | grep -Ei 'desktop.?commander|remote.?desktop|remote-mcp|desktopcommander' | grep -v grep || true
