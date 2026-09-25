@@ -1,0 +1,93 @@
+name: VPS Martaxi Commander Public mTLS Verify
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-public-mtls-verify.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 8
+    steps:
+      - name: Verify mTLS endpoint and no collateral ingress impact
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HOST="martaxi-commander.146-59-145-3.sslip.io"
+          LOWCOST_HOST="lowcost-europa.146-59-145-3.sslip.io"
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+
+          echo "== SERVICES =="
+          test "$(sudo -n systemctl is-active nginx)" = "active"
+          test "$(sudo -n systemctl is-active martaxi-commander-http.service)" = "active"
+          test "$(sudo -n systemctl is-enabled martaxi-commander-http.service)" = "enabled"
+
+          echo "== LOOPBACK MCP =="
+          curl --noproxy '*' -fsS --max-time 3 http://127.0.0.1:8766/status
+          ss -lnt | awk '$4 ~ /(^|:)8766$/ {print $4}' | grep -q '^127.0.0.1:8766$'
+
+          echo "== SERVER CERTIFICATE / SNI =="
+          echo | openssl s_client -connect 127.0.0.1:443 -servername "$HOST" 2>"$TMP/sclient.err"             | openssl x509 -noout -subject -issuer -dates -ext subjectAltName > "$TMP/cert.txt"
+          cat "$TMP/cert.txt"
+          grep -q "DNS:$HOST" "$TMP/cert.txt"
+
+          echo "== ANONYMOUS CLIENT MUST BE REJECTED =="
+          set +e
+          CODE="$(curl --noproxy '*' --resolve "$HOST:443:127.0.0.1"             --max-time 8 -sS -o "$TMP/no-client.body" -w '%{http_code}'             "https://$HOST/mcp")"
+          RC=$?
+          set -e
+          echo "NO_CLIENT_CERT_CURL_RC=$RC"
+          echo "NO_CLIENT_CERT_HTTP_CODE=$CODE"
+          head -c 300 "$TMP/no-client.body" 2>/dev/null || true
+          echo
+          if [ "$RC" -eq 0 ] && { [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; }; then
+            echo "ERROR: endpoint accepted anonymous HTTPS client"
+            exit 1
+          fi
+          if [ "$CODE" = "000" ]; then
+            grep -Eqi 'certificate required|alert|handshake|client certificate' "$TMP/no-client.body" "$TMP/sclient.err" 2>/dev/null || true
+          fi
+
+          echo "== NGINX mTLS POLICY =="
+          sudo -n nginx -T 2>&1 > "$TMP/nginx.txt"
+          python3 - "$TMP/nginx.txt" "$HOST" <<'PY'
+          import pathlib, re, sys
+          text = pathlib.Path(sys.argv[1]).read_text(errors="replace")
+          host = re.escape(sys.argv[2])
+          blocks = re.findall(r"server\s*\{.*?\n\}", text, re.S)
+          matching = [b for b in blocks if re.search(rf"server_name\s+{host}\s*;", b)]
+          if not matching:
+              raise SystemExit("martaxi commander nginx server block missing")
+          joined = "\n".join(matching)
+          required = [
+              "ssl_verify_client on;",
+              "ssl_client_certificate /etc/nginx/openai-mtls/openai-connectors-chain.pem;",
+              "proxy_pass http://127.0.0.1:8766/mcp;",
+          ]
+          for needle in required:
+              if needle not in joined:
+                  raise SystemExit(f"missing nginx policy: {needle}")
+          print("NGINX_MTLS_POLICY=PASS")
+          PY
+
+          echo "== EXISTING LOWCOST HOST STILL REACHABLE =="
+          set +e
+          LOW_CODE="$(curl --noproxy '*' --resolve "$LOWCOST_HOST:443:127.0.0.1"             --max-time 8 -sS -o "$TMP/lowcost.body" -w '%{http_code}'             "https://$LOWCOST_HOST/")"
+          LOW_RC=$?
+          set -e
+          echo "LOWCOST_CURL_RC=$LOW_RC"
+          echo "LOWCOST_HTTP_CODE=$LOW_CODE"
+          if [ "$LOW_RC" -ne 0 ] || [ "$LOW_CODE" = "000" ]; then
+            echo "ERROR: existing lowcost HTTPS host was disrupted"
+            exit 1
+          fi
+
+          echo "MARTAXI_COMMANDER_PUBLIC_MTLS_VERIFY=PASS"
