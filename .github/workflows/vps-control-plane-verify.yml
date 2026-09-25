@@ -1,4 +1,5 @@
 name: Verify VPS Control Plane
+# Final post-remediation verification
 
 on:
   push:
