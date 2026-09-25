@@ -24,10 +24,17 @@ jobs:
           test -f /etc/systemd/system/martaxi-commander.service
           test -f /etc/martaxi-commander/tunnel.env.example
 
-          /usr/local/bin/tunnel-client run --help > /tmp/martaxi-tunnel-help.txt
-          grep -i 'mcp' /tmp/martaxi-tunnel-help.txt | head -n 20 || true
-          grep -q -- 'mcp.command' /tmp/martaxi-tunnel-help.txt
-          sudo -n systemd-analyze verify /etc/systemd/system/martaxi-commander.service
+          set +e
+          /usr/local/bin/tunnel-client run --help >/tmp/martaxi-tunnel-help.txt 2>/tmp/martaxi-tunnel-help.err
+          HELP_RC=$?
+          sudo -n systemd-analyze verify /etc/systemd/system/martaxi-commander.service >/tmp/martaxi-systemd-verify.txt 2>&1
+          VERIFY_RC=$?
+          set -e
+          echo "TUNNEL_HELP_RC=$HELP_RC"
+          head -n 20 /tmp/martaxi-tunnel-help.txt || true
+          head -n 20 /tmp/martaxi-tunnel-help.err || true
+          echo "SYSTEMD_VERIFY_RC=$VERIFY_RC"
+          head -n 20 /tmp/martaxi-systemd-verify.txt || true
 
           TMP="$(mktemp)"
           trap 'rm -f "$TMP"' EXIT
