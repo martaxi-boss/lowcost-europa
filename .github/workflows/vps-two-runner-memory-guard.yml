@@ -1,0 +1,60 @@
+name: VPS Two-Runner Memory Guard
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-two-runner-memory-guard.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  harden:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 10
+    steps:
+      - name: Add 4 GiB swap safety net
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "PRE_MEMORY"
+          free -h
+          echo "PRE_SWAP"
+          swapon --show || true
+          echo "PRE_DISK"
+          df -h /
+
+          if ! swapon --show=NAME --noheadings | grep -qx '/swapfile'; then
+            if [ ! -f /swapfile ]; then
+              sudo -n fallocate -l 4G /swapfile
+              sudo -n chmod 600 /swapfile
+              sudo -n mkswap /swapfile
+            else
+              sudo -n chmod 600 /swapfile
+              if ! sudo -n file /swapfile | grep -q 'swap file'; then
+                sudo -n mkswap /swapfile
+              fi
+            fi
+            sudo -n swapon /swapfile
+          fi
+
+          if ! grep -Eq '^/swapfile[[:space:]]+none[[:space:]]+swap[[:space:]]' /etc/fstab; then
+            echo '/swapfile none swap sw 0 0' | sudo -n tee -a /etc/fstab >/dev/null
+          fi
+
+          echo 'vm.swappiness=10' | sudo -n tee /etc/sysctl.d/99-martaxi-runner-memory.conf >/dev/null
+          sudo -n sysctl -p /etc/sysctl.d/99-martaxi-runner-memory.conf
+
+          echo "POST_MEMORY"
+          free -h
+          echo "POST_SWAP"
+          swapon --show
+          echo "POST_DISK"
+          df -h /
+
+          test "$(swapon --show=NAME --noheadings | tr -d ' ')" = "/swapfile"
+          test "$(cat /proc/sys/vm/swappiness)" = "10"
+          echo "TWO_RUNNER_MEMORY_GUARD=PASS"
