@@ -1,0 +1,198 @@
+name: VPS Martaxi Commander mTLS SAN Hardening
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-mtls-san.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  harden:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 10
+    steps:
+      - name: Enforce OpenAI connector client SAN and clientAuth EKU
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HOST="martaxi-commander.146-59-145-3.sslip.io"
+          CERT_DIR="/etc/letsencrypt/live/$HOST"
+          CA_DIR="/etc/nginx/openai-mtls"
+          SITE="/etc/nginx/sites-available/martaxi-commander.conf"
+          ROOT="/opt/martaxi-commander"
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+
+          test "$(sudo -n systemctl is-active martaxi-commander-http.service)" = "active"
+          test -x "$ROOT/http-venv/bin/python"
+          test -f "$ROOT/http-venv/lib/python3.12/site-packages/cryptography/__init__.py"
+
+          cat > "$TMP/mtls_verifier.py" <<'PY'
+          from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+          from urllib.parse import unquote
+          from cryptography import x509
+          from cryptography.x509.oid import ExtendedKeyUsageOID
+
+          EXPECTED_SAN = "mtls.prod.connectors.openai.com"
+
+          class Handler(BaseHTTPRequestHandler):
+              server_version = "MartaxiMTLSVerifier/1.0"
+
+              def log_message(self, fmt, *args):
+                  return
+
+              def do_GET(self):
+                  verify = self.headers.get("X-SSL-Client-Verify", "")
+                  escaped = self.headers.get("X-SSL-Client-Cert", "")
+                  if verify != "SUCCESS" or not escaped:
+                      self.send_response(403)
+                      self.end_headers()
+                      return
+                  try:
+                      pem = unquote(escaped).encode("utf-8")
+                      cert = x509.load_pem_x509_certificate(pem)
+                      san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+                      dns = san.get_values_for_type(x509.DNSName)
+                      if EXPECTED_SAN not in dns:
+                          raise ValueError("unexpected SAN")
+                      eku = cert.extensions.get_extension_for_class(x509.ExtendedKeyUsage).value
+                      if ExtendedKeyUsageOID.CLIENT_AUTH not in eku:
+                          raise ValueError("clientAuth EKU missing")
+                  except Exception:
+                      self.send_response(403)
+                      self.end_headers()
+                      return
+                  self.send_response(204)
+                  self.end_headers()
+
+          ThreadingHTTPServer(("127.0.0.1", 8767), Handler).serve_forever()
+          PY
+
+          sudo -n install -m 0644 -o root -g root "$TMP/mtls_verifier.py" "$ROOT/mtls_verifier.py"
+
+          cat > "$TMP/martaxi-commander-mtls-verifier.service" <<EOF
+          [Unit]
+          Description=Martaxi Commander OpenAI mTLS SAN verifier
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User=www-data
+          Group=www-data
+          ExecStart=$ROOT/http-venv/bin/python $ROOT/mtls_verifier.py
+          Restart=always
+          RestartSec=3
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ProtectHome=true
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          sudo -n install -m 0644 "$TMP/martaxi-commander-mtls-verifier.service" /etc/systemd/system/martaxi-commander-mtls-verifier.service
+          sudo -n systemctl daemon-reload
+          sudo -n systemctl enable --now martaxi-commander-mtls-verifier.service
+
+          for i in $(seq 1 15); do
+            if ss -lnt | grep -q '127.0.0.1:8767'; then
+              break
+            fi
+            sleep 1
+          done
+          ss -lnt | grep -q '127.0.0.1:8767'
+
+          echo "== NEGATIVE VERIFIER TESTS =="
+          CODE="$(curl --noproxy '*' -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8767/verify)"
+          echo "NO_CERT_VERIFIER_CODE=$CODE"
+          test "$CODE" = "403"
+
+          SERVER_PEM="$(sudo -n cat "$CERT_DIR/cert.pem" | python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read(), safe=""))')"
+          CODE="$(curl --noproxy '*' -sS -o /dev/null -w '%{http_code}'             -H 'X-SSL-Client-Verify: SUCCESS'             -H "X-SSL-Client-Cert: $SERVER_PEM"             http://127.0.0.1:8767/verify)"
+          echo "WRONG_SAN_VERIFIER_CODE=$CODE"
+          test "$CODE" = "403"
+
+          echo "== NGINX AUTH_REQUEST POLICY =="
+          cat > "$TMP/final.conf" <<EOF
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $HOST;
+
+              location ^~ /.well-known/acme-challenge/ {
+                  root /var/www/html;
+                  default_type "text/plain";
+              }
+
+              location / {
+                  return 301 https://\$host\$request_uri;
+              }
+          }
+
+          server {
+              listen 443 ssl;
+              listen [::]:443 ssl;
+              server_name $HOST;
+
+              ssl_certificate $CERT_DIR/fullchain.pem;
+              ssl_certificate_key $CERT_DIR/privkey.pem;
+
+              ssl_client_certificate $CA_DIR/openai-connectors-chain.pem;
+              ssl_verify_client on;
+              ssl_verify_depth 3;
+
+              access_log /var/log/nginx/martaxi-commander.access.log;
+              error_log /var/log/nginx/martaxi-commander.error.log warn;
+
+              location = /_openai_mtls_check {
+                  internal;
+                  proxy_pass http://127.0.0.1:8767/verify;
+                  proxy_pass_request_body off;
+                  proxy_set_header Content-Length "";
+                  proxy_set_header X-SSL-Client-Verify \$ssl_client_verify;
+                  proxy_set_header X-SSL-Client-Cert \$ssl_client_escaped_cert;
+              }
+
+              location = /mcp {
+                  auth_request /_openai_mtls_check;
+                  proxy_pass http://127.0.0.1:8766/mcp;
+                  proxy_http_version 1.1;
+                  proxy_buffering off;
+                  proxy_cache off;
+                  proxy_read_timeout 600s;
+                  proxy_send_timeout 600s;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Forwarded-Proto https;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+              }
+
+              location / {
+                  return 404;
+              }
+          }
+          EOF
+
+          sudo -n install -m 0644 "$TMP/final.conf" "$SITE"
+          sudo -n nginx -t
+          sudo -n systemctl reload nginx
+
+          echo "== FAIL-CLOSED PUBLIC TEST =="
+          set +e
+          CODE="$(curl --noproxy '*' --resolve "$HOST:443:127.0.0.1"             --max-time 8 -sS -o "$TMP/body" -w '%{http_code}'             "https://$HOST/mcp")"
+          RC=$?
+          set -e
+          echo "ANON_CURL_RC=$RC"
+          echo "ANON_HTTP_CODE=$CODE"
+          test "$CODE" = "400"
+
+          echo "== FINAL =="
+          test "$(sudo -n systemctl is-active martaxi-commander-mtls-verifier.service)" = "active"
+          test "$(sudo -n systemctl is-enabled martaxi-commander-mtls-verifier.service)" = "enabled"
+          sudo -n systemctl show martaxi-commander-mtls-verifier.service -p MemoryCurrent -p MainPID --no-pager
+          echo "MARTAXI_COMMANDER_MTLS_SAN_HARDENING=PASS"
