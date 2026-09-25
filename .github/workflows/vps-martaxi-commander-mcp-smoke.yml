@@ -1,0 +1,65 @@
+name: VPS Martaxi Commander MCP Smoke
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-mcp-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Exercise local MCP stdio initialize and tools/list
+        shell: bash
+        run: |
+          set -euo pipefail
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+
+          cat > "$TMP/input.jsonl" <<'EOF'
+          {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"martaxi-smoke","version":"1.0"}}}
+          {"jsonrpc":"2.0","method":"notifications/initialized","params":{}}
+          {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
+          EOF
+
+          rc=0
+          timeout 8s /usr/local/bin/martaxi-commander-mcp < "$TMP/input.jsonl" > "$TMP/out" 2> "$TMP/err" || rc=$?
+          echo "MCP_PROCESS_EXIT=$rc"
+
+          if grep -Eqi 'Cannot find module|MODULE_NOT_FOUND|SyntaxError|permission denied' "$TMP/err"; then
+            cat "$TMP/err"
+            exit 1
+          fi
+
+          python3 - "$TMP/out" <<'PY'
+          import json, pathlib, sys
+          path = pathlib.Path(sys.argv[1])
+          lines = [line.strip() for line in path.read_text(errors="replace").splitlines() if line.strip()]
+          objs = []
+          for line in lines:
+              try:
+                  objs.append(json.loads(line))
+              except json.JSONDecodeError:
+                  continue
+
+          init = next((o for o in objs if o.get("id") == 1), None)
+          tools = next((o for o in objs if o.get("id") == 2), None)
+          if not init or "result" not in init:
+              raise SystemExit("initialize response missing")
+          if not tools or "result" not in tools:
+              raise SystemExit("tools/list response missing")
+          names = [t.get("name") for t in tools["result"].get("tools", [])]
+          required_any = {"start_process","read_file","write_file","list_directory","get_config"}
+          print("MCP_PROTOCOL=" + str(init["result"].get("protocolVersion", "unknown")))
+          print("MCP_TOOL_COUNT=" + str(len(names)))
+          print("MCP_SAMPLE_TOOLS=" + ",".join(names[:12]))
+          if not (set(names) & required_any):
+              raise SystemExit("expected Desktop Commander tool surface not found")
+          print("MARTAXI_COMMANDER_MCP_SMOKE=PASS")
+          PY
