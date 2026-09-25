@@ -1,0 +1,33 @@
+name: VPS Runner Capacity Audit
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-runner-capacity-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Audit VPS capacity for two runners
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "HOSTNAME=$(hostname)"
+          echo "CPUS=$(nproc)"
+          echo "MEMORY"
+          free -h
+          echo "DISK"
+          df -h /
+          echo "RUNNER_PROCESSES"
+          ps -eo pid,ppid,user,%cpu,%mem,rss,vsz,comm,args --sort=-rss | grep -E 'Runner.Listener|Runner.Worker|run.sh|actions-runner' | grep -v grep || true
+          echo "TOP_MEMORY"
+          ps -eo pid,user,%cpu,%mem,rss,comm,args --sort=-rss | head -n 20
+          echo "LOAD"
+          uptime
