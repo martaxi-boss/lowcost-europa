@@ -7,6 +7,12 @@ on:
     paths:
       - ".github/workflows/self-hosted-runner-smoke.yml"
       - "ops/bootstrap_self_hosted_runner.sh"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/self-hosted-runner-smoke.yml"
+      - "ops/bootstrap_self_hosted_runner.sh"
   workflow_dispatch:
 
 permissions:
