@@ -1,0 +1,153 @@
+name: VPS Martaxi Commander Local HTTP Bridge
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-http-local.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  install-and-audit:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 15
+    steps:
+      - name: Install loopback-only Streamable HTTP bridge and audit ingress
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ROOT=/opt/martaxi-commander
+          VENV="$ROOT/http-venv"
+          SERVICE=/etc/systemd/system/martaxi-commander-http.service
+          TMP="$(mktemp -d)"
+          trap 'rm -rf "$TMP"' EXIT
+
+          echo "== PRECHECK =="
+          test -x /usr/local/bin/martaxi-commander-mcp
+          python3 --version
+          echo "HOST=$(hostname)"
+
+          echo "== INSTALL MCP-PROXY 0.12.0 =="
+          if [ ! -x "$VENV/bin/python" ]; then
+            sudo -n python3 -m venv "$VENV"
+          fi
+          sudo -n "$VENV/bin/python" -m pip install --disable-pip-version-check --no-input --upgrade "pip<26"
+          sudo -n "$VENV/bin/python" -m pip install --disable-pip-version-check --no-input "mcp-proxy==0.12.0"
+          sudo -n chown -R root:root "$VENV"
+          sudo -n chmod -R go-w "$VENV"
+          "$VENV/bin/mcp-proxy" --version
+
+          echo "== SYSTEMD LOOPBACK BRIDGE =="
+          cat > "$TMP/martaxi-commander-http.service" <<'EOF'
+          [Unit]
+          Description=Martaxi Commander MCP loopback HTTP bridge
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory=/home/ubuntu
+          ExecStart=/opt/martaxi-commander/http-venv/bin/mcp-proxy --host 127.0.0.1 --port 8766 /usr/local/bin/martaxi-commander-mcp
+          Restart=always
+          RestartSec=3
+          NoNewPrivileges=false
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          sudo -n install -m 0644 "$TMP/martaxi-commander-http.service" "$SERVICE"
+          sudo -n systemctl daemon-reload
+          sudo -n systemctl enable --now martaxi-commander-http.service
+
+          for i in $(seq 1 20); do
+            if curl -fsS --max-time 2 http://127.0.0.1:8766/status >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS --max-time 3 http://127.0.0.1:8766/status
+
+          echo "== VERIFY BIND IS LOOPBACK ONLY =="
+          ss -lntp | grep ':8766'
+          if ss -lnt | awk '$4 ~ /(^|:)8766$/ {print $4}' | grep -Eq '(^|\[::\]:|0\.0\.0\.0:)8766$'; then
+            echo "ERROR: bridge exposed on wildcard interface"
+            exit 1
+          fi
+          ss -lnt | awk '$4 ~ /(^|:)8766$/ {print $4}' | grep -q '127.0.0.1:8766'
+
+          echo "== MCP STREAMABLE HTTP ROUNDTRIP =="
+          cat > "$TMP/input.jsonl" <<'EOF'
+          {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"martaxi-http-smoke","version":"1.0"}}}
+          {"jsonrpc":"2.0","method":"notifications/initialized","params":{}}
+          {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
+          EOF
+
+          rc=0
+          timeout 12s "$VENV/bin/mcp-proxy" --transport streamablehttp http://127.0.0.1:8766/mcp < "$TMP/input.jsonl" > "$TMP/out" 2> "$TMP/err" || rc=$?
+          echo "ROUNDTRIP_CLIENT_EXIT=$rc"
+          if grep -Eqi 'Traceback|ERROR|exception' "$TMP/err"; then
+            cat "$TMP/err"
+          fi
+
+          python3 - "$TMP/out" <<'PY'
+          import json, pathlib, sys
+          p=pathlib.Path(sys.argv[1])
+          objs=[]
+          for line in p.read_text(errors="replace").splitlines():
+              line=line.strip()
+              if not line:
+                  continue
+              try:
+                  objs.append(json.loads(line))
+              except json.JSONDecodeError:
+                  pass
+          init=next((o for o in objs if o.get("id")==1), None)
+          tools=next((o for o in objs if o.get("id")==2), None)
+          if not init or "result" not in init:
+              raise SystemExit("HTTP initialize response missing")
+          if not tools or "result" not in tools:
+              raise SystemExit("HTTP tools/list response missing")
+          names=[t.get("name") for t in tools["result"].get("tools",[])]
+          print("HTTP_MCP_PROTOCOL="+str(init["result"].get("protocolVersion")))
+          print("HTTP_MCP_TOOL_COUNT="+str(len(names)))
+          print("HTTP_MCP_SAMPLE_TOOLS="+",".join(names[:12]))
+          if len(names) < 20:
+              raise SystemExit("unexpectedly small MCP tool surface")
+          print("MARTAXI_COMMANDER_HTTP_ROUNDTRIP=PASS")
+          PY
+
+          echo "== SERVICE RESOURCE SNAPSHOT =="
+          sudo -n systemctl is-active martaxi-commander-http.service
+          sudo -n systemctl is-enabled martaxi-commander-http.service
+          sudo -n systemctl show martaxi-commander-http.service -p MainPID -p MemoryCurrent -p CPUUsageNSec --no-pager
+          du -sh "$VENV" /opt/martaxi-commander/desktop-commander
+
+          echo "== EXISTING PUBLIC INGRESS AUDIT =="
+          echo "-- listeners 80/443/8766 --"
+          sudo -n ss -lntp | grep -E ':(80|443|8766)([[:space:]]|$)' || true
+          echo "-- nginx selected lines --"
+          if command -v nginx >/dev/null 2>&1; then
+            sudo -n nginx -T 2>&1 | grep -E '^[[:space:]]*(listen|server_name|ssl_certificate|ssl_certificate_key)' | sed -E 's#(ssl_certificate_key)[[:space:]]+[^;]+;#\1 [REDACTED];#' | head -n 120 || true
+          else
+            echo "NGINX=not-installed"
+          fi
+          echo "-- certbot certificate names/domains --"
+          if command -v certbot >/dev/null 2>&1; then
+            sudo -n certbot certificates 2>/dev/null | grep -E 'Certificate Name:|Domains:|Expiry Date:' | head -n 80 || true
+          else
+            echo "CERTBOT=not-installed"
+          fi
+          echo "-- ufw --"
+          if command -v ufw >/dev/null 2>&1; then
+            sudo -n ufw status verbose || true
+          else
+            echo "UFW=not-installed"
+          fi
+
+          echo "MARTAXI_COMMANDER_LOCAL_HTTP=PASS"
