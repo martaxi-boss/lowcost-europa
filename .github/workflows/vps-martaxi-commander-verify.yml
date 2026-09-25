@@ -21,8 +21,8 @@ jobs:
           set -euo pipefail
           test -x /usr/local/bin/martaxi-commander-mcp
           test -x /usr/local/bin/tunnel-client
-          test -f /etc/systemd/system/martaxi-commander.service
-          test -f /etc/martaxi-commander/tunnel.env.example
+          sudo -n test -f /etc/systemd/system/martaxi-commander.service
+          sudo -n test -f /etc/martaxi-commander/tunnel.env.example
 
           set +e
           /usr/local/bin/tunnel-client run --help >/tmp/martaxi-tunnel-help.txt 2>/tmp/martaxi-tunnel-help.err
