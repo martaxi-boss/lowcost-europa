@@ -1,0 +1,59 @@
+name: VPS Martaxi Commander Verify
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-martaxi-commander-verify.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Verify installed Commander and install activation helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x /usr/local/bin/martaxi-commander-mcp
+          test -x /usr/local/bin/tunnel-client
+          test -f /etc/systemd/system/martaxi-commander.service
+          test -f /etc/martaxi-commander/tunnel.env.example
+
+          /usr/local/bin/tunnel-client run --help | grep -q -- '--mcp.command'
+          sudo -n systemd-analyze verify /etc/systemd/system/martaxi-commander.service
+
+          TMP="$(mktemp)"
+          trap 'rm -f "$TMP"' EXIT
+          cat > "$TMP" <<'EOF'
+          #!/bin/sh
+          set -eu
+          ENV=/etc/martaxi-commander/tunnel.env
+          if [ ! -f "$ENV" ]; then
+            echo "Missing $ENV" >&2
+            exit 2
+          fi
+          grep -Eq '^CONTROL_PLANE_TUNNEL_ID=tunnel_[A-Za-z0-9_-]+$' "$ENV"
+          grep -Eq '^CONTROL_PLANE_API_KEY=sk-.+' "$ENV"
+          chmod 600 "$ENV"
+          systemctl daemon-reload
+          systemctl enable --now martaxi-commander.service
+          sleep 3
+          systemctl is-active --quiet martaxi-commander.service
+          systemctl is-enabled --quiet martaxi-commander.service
+          echo "MARTAXI_COMMANDER_ACTIVATED=PASS"
+          EOF
+          sudo -n install -m 0750 -o root -g root "$TMP" /usr/local/sbin/martaxi-commander-activate
+
+          echo "OLD_DC_ACTIVE=$(sudo -n systemctl is-active desktop-commander-remote.service || true)"
+          echo "OLD_DC_ENABLED=$(sudo -n systemctl is-enabled desktop-commander-remote.service || true)"
+          echo "NEW_SERVICE_ACTIVE=$(sudo -n systemctl is-active martaxi-commander.service || true)"
+          echo "NEW_SERVICE_ENABLED=$(sudo -n systemctl is-enabled martaxi-commander.service || true)"
+          echo "TUNNEL_CLIENT=$(/usr/local/bin/tunnel-client --version)"
+          echo "LOCAL_CORE=$(node -p "require('/opt/martaxi-commander/desktop-commander/package.json').version")"
+          du -sh /opt/martaxi-commander/desktop-commander /usr/local/bin/tunnel-client
+          echo "MARTAXI_COMMANDER_VERIFY=PASS"
