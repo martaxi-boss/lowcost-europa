@@ -1,0 +1,57 @@
+name: VPS Stale Android Cleanup
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-stale-android-cleanup.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Stop stale PINK Android emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          PATTERN='@pink_tv_finalproof_api36'
+
+          echo "BEFORE"
+          ps -eo pid,ppid,user,etime,rss,args | grep -F "$PATTERN" | grep -v grep || true
+
+          if ps -eo args | grep -F "$PATTERN" | grep -v grep >/dev/null; then
+            /opt/android-sdk/platform-tools/adb -s emulator-5578 emu kill >/dev/null 2>&1 || true
+            sleep 5
+          fi
+
+          if ps -eo args | grep -F "$PATTERN" | grep -v grep >/dev/null; then
+            PIDS="$(ps -eo pid,args | awk -v p="$PATTERN" 'index($0,p){print $1}')"
+            if [ -n "$PIDS" ]; then
+              sudo -n kill -TERM $PIDS || true
+              sleep 3
+            fi
+          fi
+
+          if ps -eo args | grep -F "$PATTERN" | grep -v grep >/dev/null; then
+            PIDS="$(ps -eo pid,args | awk -v p="$PATTERN" 'index($0,p){print $1}')"
+            if [ -n "$PIDS" ]; then
+              sudo -n kill -KILL $PIDS || true
+              sleep 1
+            fi
+          fi
+
+          echo "AFTER"
+          ps -eo pid,ppid,user,etime,rss,args | grep -F "$PATTERN" | grep -v grep || true
+
+          if ps -eo args | grep -F "$PATTERN" | grep -v grep >/dev/null; then
+            echo "STALE_ANDROID_CLEANUP=FAIL"
+            exit 1
+          fi
+
+          echo "STALE_ANDROID_CLEANUP=PASS"
+          free -h
