@@ -1,0 +1,47 @@
+name: Remediate Desktop Commander Shutdown
+
+on:
+  push:
+    branches:
+      - "ops/self-hosted-runner-bootstrap-001"
+    paths:
+      - ".github/workflows/vps-dc-shutdown-remediation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  remediate:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Force clean Desktop Commander shutdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          SERVICE="desktop-commander-remote.service"
+
+          echo "INITIAL_ACTIVE=$(systemctl is-active "$SERVICE" || true)"
+          echo "INITIAL_ENABLED=$(systemctl is-enabled "$SERVICE" || true)"
+
+          sudo -n systemctl kill --kill-who=all --signal=SIGKILL "$SERVICE" || true
+          sudo -n pkill -9 -f '/usr/lib/node_modules/@wonderwhy-er/desktop-commander/dist/index.js' || true
+          sleep 1
+          sudo -n systemctl reset-failed "$SERVICE" || true
+
+          ACTIVE="$(systemctl is-active "$SERVICE" || true)"
+          ENABLED="$(systemctl is-enabled "$SERVICE" || true)"
+
+          echo "FINAL_ACTIVE=$ACTIVE"
+          echo "FINAL_ENABLED=$ENABLED"
+
+          test "$ACTIVE" = "inactive"
+          test "$ENABLED" = "disabled"
+
+          if ps -eo args | grep -F '@wonderwhy-er/desktop-commander' | grep -v grep >/dev/null; then
+            echo "DC_PROCESS_REMAINS"
+            ps -eo pid,user,comm,args | grep -F '@wonderwhy-er/desktop-commander' | grep -v grep
+            exit 1
+          fi
+
+          echo "DESKTOP_COMMANDER_SHUTDOWN_REMEDIATION=PASS"
