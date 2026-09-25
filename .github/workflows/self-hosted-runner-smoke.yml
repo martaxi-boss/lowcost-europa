@@ -21,7 +21,7 @@ permissions:
 jobs:
   smoke:
     name: VPS self-hosted runner smoke
-    runs-on: [self-hosted, linux, x64, martaxi-vps]
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
 
     steps:
