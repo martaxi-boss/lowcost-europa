@@ -29,5 +29,11 @@ jobs:
           ps -eo pid,ppid,user,%cpu,%mem,rss,vsz,comm,args --sort=-rss | grep -E 'Runner.Listener|Runner.Worker|run.sh|actions-runner' | grep -v grep || true
           echo "TOP_MEMORY"
           ps -eo pid,user,%cpu,%mem,rss,comm,args --sort=-rss | head -n 20
+          echo "RUNNER_DISK"
+          du -sh /home/ubuntu/actions-runner 2>/dev/null || true
+          du -sh /home/ubuntu/actions-runner/_work 2>/dev/null || true
+          du -sh /home/ubuntu/actions-runner/bin /home/ubuntu/actions-runner/externals 2>/dev/null || true
+          echo "ANDROID_SDK_DISK"
+          du -sh /opt/android-sdk 2>/dev/null || true
           echo "LOAD"
           uptime
