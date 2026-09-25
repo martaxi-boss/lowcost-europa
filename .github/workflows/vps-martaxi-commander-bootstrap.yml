@@ -41,33 +41,33 @@ jobs:
 
           echo "== Install official OpenAI Secure MCP Tunnel client =="
           python3 - "$VERSION" "$TMP" <<'PY'
-import json, pathlib, sys, urllib.request
-version, tmp = sys.argv[1], pathlib.Path(sys.argv[2])
-api = f"https://api.github.com/repos/openai/tunnel-client/releases/tags/{version}"
-req = urllib.request.Request(api, headers={"User-Agent":"martaxi-commander-bootstrap"})
-with urllib.request.urlopen(req, timeout=30) as r:
-    rel = json.load(r)
-assets = {a["name"]: a["browser_download_url"] for a in rel["assets"]}
-candidates = [n for n in assets if n.endswith("linux-amd64.zip") and n.startswith("tunnel-client-v")]
-if len(candidates) != 1:
-    raise SystemExit(f"unexpected linux-amd64 client assets: {candidates}")
-archive = candidates[0]
-for name in (archive, "SHA256SUMS.txt"):
-    with urllib.request.urlopen(assets[name], timeout=60) as r:
-        (tmp / name).write_bytes(r.read())
-(tmp / "archive-name").write_text(archive)
-PY
+          import json, pathlib, sys, urllib.request
+          version, tmp = sys.argv[1], pathlib.Path(sys.argv[2])
+          api = f"https://api.github.com/repos/openai/tunnel-client/releases/tags/{version}"
+          req = urllib.request.Request(api, headers={"User-Agent":"martaxi-commander-bootstrap"})
+          with urllib.request.urlopen(req, timeout=30) as r:
+              rel = json.load(r)
+          assets = {a["name"]: a["browser_download_url"] for a in rel["assets"]}
+          candidates = [n for n in assets if n.endswith("linux-amd64.zip") and n.startswith("tunnel-client-v")]
+          if len(candidates) != 1:
+              raise SystemExit(f"unexpected linux-amd64 client assets: {candidates}")
+          archive = candidates[0]
+          for name in (archive, "SHA256SUMS.txt"):
+              with urllib.request.urlopen(assets[name], timeout=60) as r:
+                  (tmp / name).write_bytes(r.read())
+          (tmp / "archive-name").write_text(archive)
+          PY
 
           ARCHIVE="$(cat "$TMP/archive-name")"
           (cd "$TMP" && grep "  $ARCHIVE$" SHA256SUMS.txt | sha256sum -c -)
 
           python3 - "$TMP/$ARCHIVE" "$TMP/extracted" <<'PY'
-import pathlib, sys, zipfile
-archive, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-out.mkdir()
-with zipfile.ZipFile(archive) as z:
-    z.extractall(out)
-PY
+          import pathlib, sys, zipfile
+          archive, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+          out.mkdir()
+          with zipfile.ZipFile(archive) as z:
+              z.extractall(out)
+          PY
 
           BIN="$(find "$TMP/extracted" -type f -name tunnel-client -print -quit)"
           test -n "$BIN"
@@ -76,45 +76,45 @@ PY
 
           echo "== Install Martaxi Commander wrapper =="
           cat > "$TMP/martaxi-commander-mcp" <<'EOF'
-#!/bin/sh
-set -eu
-exec /usr/bin/node /opt/martaxi-commander/desktop-commander/dist/index.js
-EOF
+          #!/bin/sh
+          set -eu
+          exec /usr/bin/node /opt/martaxi-commander/desktop-commander/dist/index.js
+          EOF
           sudo -n install -m 0755 "$TMP/martaxi-commander-mcp" /usr/local/bin/martaxi-commander-mcp
 
           echo "== Create private configuration area =="
           sudo -n install -d -m 0700 -o root -g root /etc/martaxi-commander
           if [ ! -f /etc/martaxi-commander/tunnel.env ]; then
             cat > "$TMP/tunnel.env.example" <<'EOF'
-# Copy to /etc/martaxi-commander/tunnel.env and replace values.
-# Keep this file root-only and NEVER commit or paste the key into chat.
-CONTROL_PLANE_TUNNEL_ID=tunnel_REPLACE_ME
-CONTROL_PLANE_API_KEY=sk-REPLACE_ME
-EOF
+          # Copy to /etc/martaxi-commander/tunnel.env and replace values.
+          # Keep this file root-only and NEVER commit or paste the key into chat.
+          CONTROL_PLANE_TUNNEL_ID=tunnel_REPLACE_ME
+          CONTROL_PLANE_API_KEY=sk-REPLACE_ME
+          EOF
             sudo -n install -m 0600 -o root -g root "$TMP/tunnel.env.example" /etc/martaxi-commander/tunnel.env.example
           fi
 
           echo "== Install systemd service (not started until credentials exist) =="
           cat > "$TMP/martaxi-commander.service" <<'EOF'
-[Unit]
-Description=Martaxi Commander - OpenAI Secure MCP Tunnel
-Wants=network-online.target
-After=network-online.target
-ConditionPathExists=/etc/martaxi-commander/tunnel.env
+          [Unit]
+          Description=Martaxi Commander - OpenAI Secure MCP Tunnel
+          Wants=network-online.target
+          After=network-online.target
+          ConditionPathExists=/etc/martaxi-commander/tunnel.env
 
-[Service]
-Type=simple
-User=ubuntu
-Group=ubuntu
-EnvironmentFile=/etc/martaxi-commander/tunnel.env
-ExecStart=/usr/local/bin/tunnel-client run --mcp.command /usr/local/bin/martaxi-commander-mcp --health.listen-addr 127.0.0.1:8765
-Restart=always
-RestartSec=5
-NoNewPrivileges=false
+          [Service]
+          Type=simple
+          User=ubuntu
+          Group=ubuntu
+          EnvironmentFile=/etc/martaxi-commander/tunnel.env
+          ExecStart=/usr/local/bin/tunnel-client run --mcp.command /usr/local/bin/martaxi-commander-mcp --health.listen-addr 127.0.0.1:8765
+          Restart=always
+          RestartSec=5
+          NoNewPrivileges=false
 
-[Install]
-WantedBy=multi-user.target
-EOF
+          [Install]
+          WantedBy=multi-user.target
+          EOF
           sudo -n install -m 0644 "$TMP/martaxi-commander.service" /etc/systemd/system/martaxi-commander.service
           sudo -n systemctl daemon-reload
           sudo -n systemctl disable martaxi-commander.service >/dev/null 2>&1 || true
@@ -122,10 +122,9 @@ EOF
           echo "== Verify local MCP core starts without Remote service =="
           sudo -n systemctl is-enabled desktop-commander-remote.service || true
           sudo -n systemctl is-active desktop-commander-remote.service || true
+          rc=0
           timeout 3s /usr/local/bin/martaxi-commander-mcp </dev/null >"$TMP/mcp.out" 2>"$TMP/mcp.err" || rc=$?
-          rc="${rc:-0}"
           echo "MCP_SMOKE_EXIT=$rc"
-          # With stdin closed, a stdio MCP server may exit normally; reject obvious startup crashes.
           if grep -Eqi 'Cannot find module|MODULE_NOT_FOUND|SyntaxError|permission denied' "$TMP/mcp.err"; then
             cat "$TMP/mcp.err"
             exit 1
