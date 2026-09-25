@@ -24,7 +24,9 @@ jobs:
           test -f /etc/systemd/system/martaxi-commander.service
           test -f /etc/martaxi-commander/tunnel.env.example
 
-          /usr/local/bin/tunnel-client run --help | grep -q -- '--mcp.command'
+          /usr/local/bin/tunnel-client run --help > /tmp/martaxi-tunnel-help.txt
+          grep -i 'mcp' /tmp/martaxi-tunnel-help.txt | head -n 20 || true
+          grep -q -- 'mcp.command' /tmp/martaxi-tunnel-help.txt
           sudo -n systemd-analyze verify /etc/systemd/system/martaxi-commander.service
 
           TMP="$(mktemp)"
