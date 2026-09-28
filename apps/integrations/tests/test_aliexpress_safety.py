@@ -1,11 +1,12 @@
 import fcntl
+import os
 import multiprocessing
 import tempfile
 import threading
 import time
 from email.message import Message
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib import error
 
 from django.test import SimpleTestCase
@@ -22,6 +23,7 @@ from apps.integrations.aliexpress.exceptions import (
     AliExpressConfigurationError,
     AliExpressRateLimitError,
     AliExpressResponseError,
+    AliExpressRuntimeStateError,
     AliExpressTransportError,
 )
 
@@ -307,7 +309,7 @@ class SafetyClientTests(SimpleTestCase):
             lock_path=lock_path,
             cadence_path=str(Path(temp.name) / "cadence"),
         )
-        with self.assertRaises(AliExpressTransportError):
+        with self.assertRaises(AliExpressRuntimeStateError):
             c._call("demo.method")
 
     def test_retry_rebuilds_timestamp_and_signature(self):
@@ -491,10 +493,89 @@ class RuntimeStateSecurityTests(SimpleTestCase):
             lock_path=str(lock_path),
             cadence_path=str(base / "cadence"),
         )
-        with self.assertRaises(AliExpressTransportError):
+        with self.assertRaises(AliExpressRuntimeStateError):
             client._call("demo.method")
         self.assertEqual(calls, [])
+        self.assertEqual(client.execution_metrics.logical_operations, 1)
+        self.assertEqual(client.execution_metrics.attempts, 0)
         self.assertEqual(target.read_text(), "protected")
+
+    def test_missing_lock_parent_is_runtime_state_failure_before_upstream(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        base = Path(temp.name)
+        opener = Mock()
+        client = AliExpressClient(
+            AliExpressConfig(
+                app_key="k",
+                app_secret="s",
+                tracking_id="t",
+                min_interval_seconds=0,
+            ),
+            opener=opener,
+            lock_path=str(base / "missing" / "lock"),
+            cadence_path=str(base / "cadence"),
+        )
+
+        with self.assertRaises(AliExpressRuntimeStateError):
+            client._call("demo.method")
+
+        opener.assert_not_called()
+        self.assertEqual(client.execution_metrics.logical_operations, 1)
+        self.assertEqual(client.execution_metrics.attempts, 0)
+
+    def test_runtime_state_ownership_mismatch_is_typed_and_pre_http(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        base = Path(temp.name)
+        lock_path = base / "lock"
+        lock_path.write_text("")
+        opener = Mock()
+        client = AliExpressClient(
+            AliExpressConfig(
+                app_key="k",
+                app_secret="s",
+                tracking_id="t",
+                min_interval_seconds=0,
+            ),
+            opener=opener,
+            lock_path=str(lock_path),
+            cadence_path=str(base / "cadence"),
+        )
+        wrong_euid = os.geteuid() + 1
+
+        with patch("apps.integrations.aliexpress.client.os.geteuid", return_value=wrong_euid):
+            with self.assertRaises(AliExpressRuntimeStateError):
+                client._call("demo.method")
+
+        opener.assert_not_called()
+        self.assertEqual(client.execution_metrics.attempts, 0)
+
+    def test_invalid_cadence_path_is_runtime_state_failure_before_upstream(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        base = Path(temp.name)
+        cadence_path = base / "cadence"
+        cadence_path.mkdir()
+        opener = Mock()
+        client = AliExpressClient(
+            AliExpressConfig(
+                app_key="k",
+                app_secret="s",
+                tracking_id="t",
+                min_interval_seconds=0,
+            ),
+            opener=opener,
+            lock_path=str(base / "lock"),
+            cadence_path=str(cadence_path),
+        )
+
+        with self.assertRaises(AliExpressRuntimeStateError):
+            client._call("demo.method")
+
+        opener.assert_not_called()
+        self.assertEqual(client.execution_metrics.logical_operations, 1)
+        self.assertEqual(client.execution_metrics.attempts, 0)
 
     def test_execution_metrics_distinguish_logical_operation_and_attempts(self):
         calls = 0

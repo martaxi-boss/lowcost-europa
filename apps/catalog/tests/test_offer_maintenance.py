@@ -24,6 +24,7 @@ from apps.catalog.services.public_eligibility import public_eligibility_q
 from apps.integrations.aliexpress.exceptions import (
     AliExpressAPIError,
     AliExpressRateLimitError,
+    AliExpressRuntimeStateError,
     AliExpressTransportError,
 )
 from apps.integrations.aliexpress.types import AliExpressProduct
@@ -226,6 +227,42 @@ class OfferMaintenanceTests(TestCase):
                     offer.observations.latest("observed_at").availability,
                     OfferObservation.Availability.UNKNOWN,
                 )
+
+    def test_runtime_state_failure_aborts_batch_on_first_offer_without_unknown(self):
+        first = self.make_offer("runtime-first", protocol_at=timezone.now())
+        second = self.make_offer("runtime-second", protocol_at=timezone.now())
+        client = Mock()
+        client.generate_affiliate_link.side_effect = AliExpressRuntimeStateError(
+            "local runtime unavailable"
+        )
+
+        with self.assertRaises(AliExpressRuntimeStateError):
+            maintain_catalog_offers(batch_size=2, client=client)
+
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertTrue(first.is_active)
+        self.assertTrue(second.is_active)
+        self.assertFalse(first.observations.exists())
+        self.assertFalse(second.observations.exists())
+        client.generate_affiliate_link.assert_called_once_with(first.product_url)
+        client.get_product_detail.assert_not_called()
+
+    def test_runtime_state_failure_from_detail_aborts_without_unknown(self):
+        offer = self.make_offer("runtime-detail", protocol_at=timezone.now())
+        client = Mock()
+        client.generate_affiliate_link.return_value = offer.affiliate_url
+        client.get_product_detail.side_effect = AliExpressRuntimeStateError(
+            "cadence unavailable"
+        )
+
+        with self.assertRaises(AliExpressRuntimeStateError):
+            maintain_catalog_offers(batch_size=1, client=client)
+
+        offer.refresh_from_db()
+        self.assertTrue(offer.is_active)
+        self.assertFalse(offer.observations.exists())
+        client.get_product_detail.assert_called_once_with("runtime-detail", "PT", "EUR")
 
     def test_generic_api_and_transport_errors_are_transient(self):
         for index, error_type in enumerate((AliExpressAPIError, AliExpressTransportError)):

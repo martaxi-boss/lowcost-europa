@@ -16,6 +16,7 @@ from .exceptions import (
     AliExpressAuthenticationError,
     AliExpressRateLimitError,
     AliExpressResponseError,
+    AliExpressRuntimeStateError,
     AliExpressTransportError,
 )
 from .normalizers import normalize_category, normalize_product
@@ -38,9 +39,9 @@ def _secure_state_open(path: str, flags: int, mode: int = 0o600):
     try:
         info = os.fstat(fd)
         if not stat.S_ISREG(info.st_mode):
-            raise AliExpressTransportError("AliExpress runtime state is not a regular file")
+            raise AliExpressRuntimeStateError("AliExpress runtime state is not a regular file")
         if info.st_uid != os.geteuid():
-            raise AliExpressTransportError("AliExpress runtime state ownership mismatch")
+            raise AliExpressRuntimeStateError("AliExpress runtime state ownership mismatch")
         os.fchmod(fd, mode)
         return fd
     except Exception:
@@ -91,7 +92,7 @@ class _LocalOperationLock:
             fd = _secure_state_open(self.path, os.O_RDWR | os.O_CREAT)
             self.handle = os.fdopen(fd, "a+", encoding="utf-8")
         except OSError as exc:
-            raise AliExpressTransportError("AliExpress operation lock unavailable") from exc
+            raise AliExpressRuntimeStateError("AliExpress operation lock unavailable") from exc
         while True:
             try:
                 fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -99,11 +100,15 @@ class _LocalOperationLock:
                 return self
             except OSError as exc:
                 if exc.errno not in {errno.EACCES, errno.EAGAIN}:
-                    raise
+                    raise AliExpressRuntimeStateError(
+                        "AliExpress operation lock unavailable"
+                    ) from exc
                 if self.monotonic() - started >= self.timeout:
                     self.handle.close()
                     self.handle = None
-                    raise AliExpressTransportError("AliExpress operation lock timeout") from exc
+                    raise AliExpressRuntimeStateError(
+                        "AliExpress operation lock timeout"
+                    ) from exc
                 self.sleeper(min(0.05, self.timeout))
 
     def __exit__(self, *_args):
@@ -187,7 +192,7 @@ class AliExpressClient:
         except ValueError:
             last = None
         except OSError as exc:
-            raise AliExpressTransportError("AliExpress cadence state unavailable") from exc
+            raise AliExpressRuntimeStateError("AliExpress cadence state unavailable") from exc
         if last is not None:
             remaining = self.config.min_interval_seconds - (now - last)
             if remaining > 0:
@@ -201,7 +206,7 @@ class AliExpressClient:
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
                 handle.write(f"{started:.6f}")
         except OSError as exc:
-            raise AliExpressTransportError("AliExpress cadence state unavailable") from exc
+            raise AliExpressRuntimeStateError("AliExpress cadence state unavailable") from exc
 
     def _retry_after_seconds(self, exc: error.HTTPError) -> float | None:
         raw = exc.headers.get("Retry-After") if exc.headers else None
