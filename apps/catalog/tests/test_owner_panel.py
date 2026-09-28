@@ -191,12 +191,42 @@ class OwnerEditorialServiceTests(TestCase):
         self.assertTrue(events[1].previous_owner_hidden)
         self.assertFalse(events[1].new_owner_hidden)
 
-    def test_publish_stale_blocked(self):
+    def test_publish_old_verified_offer_succeeds(self):
+        now = timezone.now()
         self.offer.owner_hidden = True
-        self.offer.protocol_verified_at = timezone.now() - timedelta(days=8)
+        self.offer.protocol_verified_at = now - timedelta(days=30)
         self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
+
+        result = publish_offer_to_storefront(
+            self.offer, family=self.family, user=self.user, now=now
+        )
+
+        self.offer.refresh_from_db()
+        self.assertTrue(result.changed)
+        self.assertFalse(self.offer.owner_hidden)
+
+    def test_publish_without_protocol_verification_blocked(self):
+        self.offer.owner_hidden = True
+        self.offer.protocol_verified_at = None
+        self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
+
         with self.assertRaises(OwnerEditorialError):
             publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+
+        self.offer.refresh_from_db()
+        self.assertTrue(self.offer.owner_hidden)
+
+    def test_publish_with_future_protocol_verification_blocked(self):
+        now = timezone.now()
+        self.offer.owner_hidden = True
+        self.offer.protocol_verified_at = now + timedelta(hours=1)
+        self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
+
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(
+                self.offer, family=self.family, user=self.user, now=now
+            )
+
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
 

@@ -6,7 +6,7 @@ from django.utils import timezone
 from apps.catalog.models import Offer, OfferEditorialEvent, OfferFamilyPlacement, ProductFamily
 from apps.catalog.services.public_eligibility import (
     MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY,
-    is_protocol_verification_fresh,
+    is_protocol_verified,
     public_eligibility_q,
 )
 
@@ -62,8 +62,8 @@ def publish_offer_to_storefront(offer, *, family, user, now=None):
         raise OwnerEditorialError("A oferta não tem uma colocação válida nesta família")
     if not locked.is_active:
         raise OwnerEditorialError("A oferta está indisponível")
-    if not is_protocol_verification_fresh(locked, as_of=now):
-        raise OwnerEditorialError("É necessário revalidar o protocolo antes de publicar")
+    if not is_protocol_verified(locked, as_of=now):
+        raise OwnerEditorialError("É necessária verificação inicial do protocolo antes de publicar")
     if not locked.affiliate_url:
         raise OwnerEditorialError("A oferta não tem link de parceiro disponível")
     if locked.affiliate_promotion_status != Offer.AffiliatePromotionStatus.ELIGIBLE:
