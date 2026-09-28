@@ -14,6 +14,7 @@ from apps.integrations.aliexpress.exceptions import (
     AliExpressAPIError,
     AliExpressError,
     AliExpressRateLimitError,
+    AliExpressRuntimeStateError,
 )
 
 MAINTENANCE_LOCK_PATH = "/tmp/lowcost-europa-catalog-maintenance.lock"
@@ -207,6 +208,8 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
             result.promotion_attempts += 1
             try:
                 promotion_status = verify_affiliate_promotion(offer, client=client, now=now)
+            except AliExpressRuntimeStateError:
+                raise
             except AliExpressRateLimitError:
                 raise
             except (AliExpressError, ValueError) as exc:
@@ -223,6 +226,8 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
             result.detail_attempts += 1
             try:
                 detail = client.get_product_detail(offer.external_product_id, "PT", "EUR")
+            except AliExpressRuntimeStateError:
+                raise
             except AliExpressRateLimitError:
                 raise
             except AliExpressAPIError as exc:

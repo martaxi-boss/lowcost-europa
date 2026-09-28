@@ -14,6 +14,10 @@ class AliExpressTransportError(AliExpressError):
     pass
 
 
+class AliExpressRuntimeStateError(AliExpressTransportError):
+    pass
+
+
 class AliExpressRateLimitError(AliExpressTransportError):
     pass
 
