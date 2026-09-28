@@ -1,0 +1,145 @@
+name: OVH Cutover Reconciliation Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/ovh-cutover-reconciliation-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: lowcost_europa_ci
+          POSTGRES_USER: lowcost_europa_ci
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U lowcost_europa_ci -d lowcost_europa_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DJANGO_SECRET_KEY: ci-only-django-secret-key
+      DJANGO_DEBUG: "false"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      POSTGRES_DB: lowcost_europa_ci
+      POSTGRES_USER: lowcost_europa_ci
+      POSTGRES_PASSWORD: ci-only-password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/development.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/development.txt
+
+      - name: Focused reconciliation regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python manage.py test             apps.core.tests.test_offsite_backup_policy             apps.storefront.tests.test_public_eligibility             apps.catalog.tests.test_candidate_approval             apps.catalog.tests.test_candidate_discovery             apps.catalog.tests.test_deep_discovery             apps.catalog.tests.test_owner_panel             apps.catalog.tests.test_offer_maintenance             apps.catalog.tests.test_catalog_maintenance_command             apps.integrations.tests.test_aliexpress_safety             --verbosity 1
+          echo "FOCUSED_RECONCILIATION_TESTS=PASS"
+
+      - name: Migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python manage.py migrate --noinput >/dev/null
+          PLAN="$(python manage.py migrate --plan)"
+          printf '%s\n' "$PLAN"
+          printf '%s\n' "$PLAN" | grep -q "No planned migration operations"
+          echo "MIGRATE_PLAN=PASS"
+
+      - name: Nginx and OVH policy audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          nginx = Path("deploy/nginx/lowcost-europa.conf").read_text()
+          backup = Path("deploy/scripts/offsite-backup.sh").read_text()
+          health = Path("deploy/scripts/check-offsite-backup-health.sh").read_text()
+          state = Path("PROJECT_STATE.md").read_text()
+          policy_test = Path("apps/core/tests/test_offsite_backup_policy.py").read_text()
+
+          ovh_sslip = "lowcost-europa.146-59-145-3.sslip.io"
+          old_sslip = "lowcost-europa.165-22-114-67.sslip.io"
+          old_ip = "165.22.114.67"
+          old_host = "lowcost-europa-droplet"
+          ovh_host = "lowcost-europa-ovh"
+
+          assert ovh_sslip in nginx
+          assert old_sslip not in nginx
+          assert old_ip not in nginx
+          assert "lowcost-europa.duckdns.org" in nginx
+          assert 'X-Robots-Tag "noindex, nofollow"' in nginx
+          assert nginx.count("location ^~ /.well-known/acme-challenge/") >= 2
+
+          assert ovh_host in backup
+          assert ovh_host in health
+          assert old_host not in backup
+          assert old_host not in health
+          assert "OVH VPS (" in state
+          assert "public IPv4 " + "146.59.145.3" in state
+          assert "DigitalOcean Droplet;" not in state
+
+          assert "--host lowcost-europa-ovh" in policy_test
+          assert 'assertNotIn("--host lowcost-europa-droplet", selection)' in policy_test
+
+          active_paths = [
+              Path("PROJECT_STATE.md"),
+              Path("deploy"),
+              Path("config"),
+              Path(".github/workflows/ci.yml"),
+          ]
+          active_hits = []
+          needles = (old_host, old_ip, old_sslip)
+          for root in active_paths:
+              paths = [root] if root.is_file() else [p for p in root.rglob("*") if p.is_file()]
+              for path in paths:
+                  try:
+                      text = path.read_text()
+                  except UnicodeDecodeError:
+                      continue
+                  for needle in needles:
+                      if needle in text:
+                          active_hits.append((str(path), needle))
+          print(f"OLD_ACTIVE_REFERENCE_COUNT={len(active_hits)}")
+          for hit in active_hits:
+              print("OLD_ACTIVE_REFERENCE=" + "|".join(hit))
+          assert not active_hits
+
+          print("OVH_RESTIC_HOST=PASS")
+          print("OVH_SSLIP=PASS")
+          print("DUCKDNS_PRESERVED=YES")
+          print("NOINDEX_PRESERVED=YES")
+          print("ACME_CHALLENGE_PRESERVED=YES")
+          PY
+
+      - name: Diff check
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          git diff --check origin/main...HEAD
+          echo "GIT_DIFF_CHECK=PASS"
