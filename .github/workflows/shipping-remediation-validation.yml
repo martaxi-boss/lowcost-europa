@@ -1,0 +1,77 @@
+name: Shipping Remediation Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/shipping-remediation-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: lowcost_europa_ci
+          POSTGRES_USER: lowcost_europa_ci
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U lowcost_europa_ci -d lowcost_europa_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DJANGO_SECRET_KEY: ci-only-django-secret-key
+      DJANGO_DEBUG: "false"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      POSTGRES_DB: lowcost_europa_ci
+      POSTGRES_USER: lowcost_europa_ci
+      POSTGRES_PASSWORD: ci-only-password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/development.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/development.txt
+
+      - name: Focused shipping regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python manage.py test             apps.storefront.tests.test_public_eligibility             apps.storefront.tests.test_offer_go             apps.storefront.tests.test_owner_mode             apps.catalog.tests.test_candidate_approval             apps.catalog.tests.test_candidate_queue_cleanup             apps.catalog.tests.test_candidate_discovery             apps.catalog.tests.test_deep_discovery             apps.catalog.tests.test_owner_panel             apps.catalog.tests.test_affiliate_promotion_gate             apps.catalog.tests.test_offer_maintenance             apps.catalog.tests.test_approved_family_reclassification             --verbosity 1
+          echo "FOCUSED_TESTS=PASS"
+
+      - name: Migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python manage.py migrate --noinput >/dev/null
+          PLAN="$(python manage.py migrate --plan)"
+          printf '%s\n' "$PLAN"
+          printf '%s\n' "$PLAN" | grep -q "No planned migration operations"
+          echo "MIGRATE_PLAN=PASS"
+
+      - name: Diff check
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          git diff --check origin/main...HEAD
+          echo "GIT_DIFF_CHECK=PASS"
