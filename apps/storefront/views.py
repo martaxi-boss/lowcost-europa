@@ -21,7 +21,7 @@ from apps.catalog.services.observation_display import (
     observation_history_queryset,
 )
 from apps.catalog.services.public_eligibility import (
-    is_protocol_verification_fresh,
+    is_protocol_verified,
     public_eligibility_q,
 )
 
@@ -204,7 +204,7 @@ def _owner_family_context(request, family):
     approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
     for candidate in approved:
         offer = candidate.approved_offer
-        candidate.protocol_fresh = bool(offer and is_protocol_verification_fresh(offer))
+        candidate.protocol_fresh = bool(offer and is_protocol_verified(offer))
         if not offer:
             candidate.owner_state_label = "Aprovado"
         elif not offer.is_active:

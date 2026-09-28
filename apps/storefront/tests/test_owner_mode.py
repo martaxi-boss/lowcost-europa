@@ -148,18 +148,29 @@ class StorefrontOwnerModeTests(TestCase):
         self.assertContains(retired, "Private hidden approved offer")
         self.assertContains(retired, "Retirado da montra")
 
-        self.hidden_offer.protocol_verified_at = timezone.now() - timedelta(days=8)
+        self.hidden_offer.protocol_verified_at = None
         self.hidden_offer.save(update_fields=["protocol_verified_at"])
-        stale = self.client.get(f"{self.url}?gestao=revalidar")
-        self.assertContains(stale, "Private hidden approved offer")
-        self.assertContains(stale, "Revalidar")
+        revalidate = self.client.get(f"{self.url}?gestao=revalidar")
+        self.assertContains(revalidate, "Private hidden approved offer")
+        self.assertContains(revalidate, "Revalidar")
         self.hidden_offer.is_active = False
         self.hidden_offer.save(update_fields=["is_active"])
         inactive = self.client.get(f"{self.url}?gestao=retirados")
         self.assertContains(inactive, "Indisponível")
 
+    def test_old_verified_offer_does_not_require_revalidation(self):
+        self.hidden_offer.protocol_verified_at = timezone.now() - timedelta(days=30)
+        self.hidden_offer.save(update_fields=["protocol_verified_at"])
+        self.client.force_login(self.staff)
+
+        approved = self.client.get(f"{self.url}?gestao=aprovados")
+        revalidate = self.client.get(f"{self.url}?gestao=revalidar")
+
+        self.assertContains(approved, "Private hidden approved offer")
+        self.assertNotContains(revalidate, "Private hidden approved offer")
+
     def test_revalidation_and_rejected_tabs_are_inline(self):
-        self.hidden_offer.protocol_verified_at = timezone.now() - timedelta(days=8)
+        self.hidden_offer.protocol_verified_at = None
         self.hidden_offer.save(update_fields=["protocol_verified_at"])
         self.client.force_login(self.staff)
         revalidate = self.client.get(f"{self.url}?gestao=revalidar")

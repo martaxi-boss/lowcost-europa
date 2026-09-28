@@ -23,7 +23,7 @@ class SettingsTests(SimpleTestCase):
 
 class CatalogConfigTests(SimpleTestCase):
     def test_catalog_defaults_are_current_operational_values(self):
-        self.assertEqual(settings.CATALOG_PROTOCOL_FRESHNESS_DAYS, 7)
+        self.assertFalse(hasattr(settings, "CATALOG_PROTOCOL_FRESHNESS_DAYS"))
         self.assertEqual(settings.CATALOG_MAINTENANCE_BATCH_SIZE, 5)
 
     def test_env_int_range_override_and_default(self):

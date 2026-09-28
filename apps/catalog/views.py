@@ -11,7 +11,7 @@ from apps.catalog.services.candidate_approval import (
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.public_eligibility import (
-    is_protocol_verification_fresh,
+    is_protocol_verified,
     public_eligibility_q,
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
@@ -41,12 +41,12 @@ def _decorate_candidate(candidate):
     candidate.review_required = bool(
         offer
         and candidate.status == OfferCandidate.Status.APPROVED
-        and not is_protocol_verification_fresh(offer)
+        and not is_protocol_verified(offer)
     )
     candidate.fresh_approved = bool(
         offer
         and candidate.status == OfferCandidate.Status.APPROVED
-        and is_protocol_verification_fresh(offer)
+        and is_protocol_verified(offer)
     )
     candidate.history = list(candidate.decisions.all()[:5])
     signal_labels = dict(CandidateDecision.ReviewSignal.choices)

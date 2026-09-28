@@ -1,4 +1,3 @@
-from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -56,13 +55,12 @@ class CandidateQueueFilteringTests(TestCase):
             status=OfferCandidate.Status.APPROVED,
             approved_offer=fresh_offer,
         )
-        stale_now = timezone.now() - timedelta(days=8)
-        stale_offer = Offer.objects.create(
+        unverified_offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
-            external_product_id="stale-offer",
+            external_product_id="unverified-offer",
             ship_from_country="PL",
-            ship_from_verified_at=stale_now,
-            protocol_verified_at=stale_now,
+            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=None,
         )
         self.review_required = OfferCandidate.objects.create(
             product_family=self.family,
@@ -70,7 +68,7 @@ class CandidateQueueFilteringTests(TestCase):
             external_product_id="review-required",
             title="Review required HIFU",
             status=OfferCandidate.Status.APPROVED,
-            approved_offer=stale_offer,
+            approved_offer=unverified_offer,
         )
 
     def test_default_queue_is_work_only(self):

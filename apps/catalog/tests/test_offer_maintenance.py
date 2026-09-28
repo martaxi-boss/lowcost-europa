@@ -90,8 +90,8 @@ class OfferMaintenanceTests(TestCase):
         self.assertTrue(active.is_active)
         client.get_product_detail.assert_called_once_with("active", "PT", "EUR")
 
-    def test_available_stays_active_and_protocol_timestamp_is_not_renewed(self):
-        protocol_at = timezone.now() - timedelta(days=3)
+    def test_available_stays_active_and_old_protocol_timestamp_remains_public(self):
+        protocol_at = timezone.now() - timedelta(days=30)
         offer = self.make_offer("available", protocol_at=protocol_at)
         client = Mock()
         client.generate_affiliate_link.return_value = "https://affiliate.example/refreshed"
@@ -102,6 +102,9 @@ class OfferMaintenanceTests(TestCase):
         self.assertEqual(offer.protocol_verified_at, protocol_at)
         self.assertEqual(result.available_confirmed, 1)
         self.assertEqual(offer.observations.latest("observed_at").availability, "AVAILABLE")
+        self.assertTrue(
+            Offer.objects.filter(pk=offer.pk).filter(public_eligibility_q()).exists()
+        )
 
     def test_factual_unavailable_deactivates_and_records_unavailable(self):
         offer = self.make_offer("gone", protocol_at=timezone.now())
@@ -244,6 +247,23 @@ class OfferMaintenanceTests(TestCase):
                     offer.observations.latest("observed_at").availability,
                     "UNKNOWN",
                 )
+
+    def test_permission_api_error_is_transient_and_does_not_deactivate(self):
+        offer = self.make_offer("permission", protocol_at=timezone.now())
+        client = Mock()
+        client.generate_affiliate_link.return_value = offer.affiliate_url
+        client.get_product_detail.side_effect = AliExpressAPIError("InsufficientPermission")
+
+        result = maintain_catalog_offers(batch_size=1, client=client)
+
+        offer.refresh_from_db()
+        self.assertTrue(offer.is_active)
+        self.assertEqual(result.transient_failures, 1)
+        self.assertEqual(result.offers_deactivated, 0)
+        self.assertEqual(
+            offer.observations.latest("observed_at").availability,
+            OfferObservation.Availability.UNKNOWN,
+        )
 
     def test_rate_limit_breaker_aborts_batch_without_deactivation(self):
         first = self.make_offer("rate-first", protocol_at=timezone.now())

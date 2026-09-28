@@ -285,9 +285,11 @@ class ApprovedFamilyMoveUITests(TestCase):
             return candidate, offer
 
         self.approved, self.approved_offer = approved("ui-approved", hidden=True, verified_at=now)
-        self.stale, self.stale_offer = approved(
-            "ui-stale", hidden=True, verified_at=now - timedelta(days=30)
+        self.revalidation, self.revalidation_offer = approved(
+            "ui-unverified", hidden=True, verified_at=now
         )
+        self.revalidation_offer.protocol_verified_at = None
+        self.revalidation_offer.save(update_fields=["protocol_verified_at"])
         self.retired_candidate, self.retired_offer = approved(
             "ui-retired-offer", hidden=True, verified_at=now, hide_event=True
         )
@@ -312,7 +314,7 @@ class ApprovedFamilyMoveUITests(TestCase):
         cases = (
             ("rever", self.pending),
             ("aprovados", self.approved),
-            ("revalidar", self.stale),
+            ("revalidar", self.revalidation),
             ("retirados", self.retired_candidate),
             ("montra", self.public_candidate),
         )
@@ -325,7 +327,7 @@ class ApprovedFamilyMoveUITests(TestCase):
         cases = (
             ("rever", self.pending),
             ("aprovados", self.approved),
-            ("revalidar", self.stale),
+            ("revalidar", self.revalidation),
             ("retirados", self.retired_candidate),
             ("montra", self.public_candidate),
         )
