@@ -63,9 +63,9 @@ dump_age=$((now - dump_mtime))
     exit 1
 }
 
-restic backup     "$BACKUP_DIR"     "$APP_ENV"     --tag lowcost-europa     --tag offsite     --tag disaster-recovery     --host lowcost-europa-droplet     --no-cache
+restic backup     "$BACKUP_DIR"     "$APP_ENV"     --tag lowcost-europa     --tag offsite     --tag disaster-recovery     --host lowcost-europa-ovh     --no-cache
 
-snapshot_json=$(restic snapshots --json --latest 1     --tag lowcost-europa,offsite --host lowcost-europa-droplet --no-cache)
+snapshot_json=$(restic snapshots --json --latest 1     --tag lowcost-europa,offsite --host lowcost-europa-ovh --no-cache)
 snapshot_id=$(printf '%s' "$snapshot_json" | python3 -c '
 import json, sys
 data = json.load(sys.stdin)
