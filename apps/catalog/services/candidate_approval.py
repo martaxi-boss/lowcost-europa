@@ -10,12 +10,41 @@ from apps.catalog.models import (
     OfferFamilyPlacement,
     OfferObservation,
 )
-from apps.catalog.services.public_eligibility import ALLOWED_SHIP_FROM_COUNTRIES
 from apps.integrations.aliexpress.client import AliExpressClient
 
 
 class CandidateApprovalError(ValueError):
     pass
+
+
+OWNER_REJECTION_REASON_CHOICES = (
+    (CandidateDecision.Reason.DOES_NOT_SHIP_TO_PT, "Não envia para Portugal"),
+    (
+        CandidateDecision.Reason.PT_DELIVERY_NOT_CONFIRMED,
+        "Não consigo confirmar entrega em Portugal",
+    ),
+    (
+        CandidateDecision.Reason.ORIGIN_NOT_CONFIRMED,
+        "País de envio não aparece / não consigo confirmar",
+    ),
+    (
+        CandidateDecision.Reason.ORIGIN_NOT_ALLOWED,
+        "País de envio fora dos cinco países permitidos",
+    ),
+    (CandidateDecision.Reason.WRONG_FAMILY, "Produto pertence a outra família"),
+    (
+        CandidateDecision.Reason.ACCESSORY_OR_PART,
+        "Acessório, peça, cartucho ou consumível",
+    ),
+    (CandidateDecision.Reason.DUPLICATE, "Produto duplicado"),
+    (CandidateDecision.Reason.LISTING_UNAVAILABLE, "Anúncio indisponível"),
+    (CandidateDecision.Reason.LISTING_CHANGED, "Anúncio ou variante mudou"),
+    (
+        CandidateDecision.Reason.POOR_LISTING,
+        "Oferta/listagem sem qualidade suficiente",
+    ),
+    (CandidateDecision.Reason.OTHER, "Outro motivo"),
+)
 
 
 @dataclass(frozen=True)
@@ -29,28 +58,18 @@ class ApprovalResult:
 
 def _require_staff(user):
     if not user or not user.is_authenticated or not user.is_staff:
-        raise CandidateApprovalError("Staff user required")
-
-
-def _validated_ship_from_country(value):
-    country = (value or "").strip().upper()
-    if not country:
-        raise CandidateApprovalError("Confirme o país de envio antes de aprovar")
-    if country not in ALLOWED_SHIP_FROM_COUNTRIES:
-        raise CandidateApprovalError("País de envio não permitido")
-    return country
+        raise CandidateApprovalError("Acesso de proprietário necessário")
 
 
 def _affiliate_url(candidate, client):
     if not candidate.product_url:
-        raise CandidateApprovalError("Candidate has no product URL")
+        raise CandidateApprovalError("O produto não tem link do anúncio.")
     return client.generate_affiliate_link(candidate.product_url)
 
 
-def approve_candidate(candidate, *, user, ship_from_country="", client=None, now=None):
-    """Persist the Owner's fixed-protocol human attestation as an approval."""
+def approve_candidate(candidate, *, user, client=None, now=None):
+    """Persist the Owner's composite fixed-protocol human attestation."""
     _require_staff(user)
-    confirmed_ship_from = _validated_ship_from_country(ship_from_country)
     now = now or timezone.now()
 
     with transaction.atomic():
@@ -58,12 +77,12 @@ def approve_candidate(candidate, *, user, ship_from_country="", client=None, now
         ProductFamily = type(family)
         locked_family = ProductFamily.objects.select_for_update().get(pk=family.pk)
         if locked_family.status == ProductFamily.Status.RETIRED:
-            raise CandidateApprovalError("Retired family cannot receive approvals")
+            raise CandidateApprovalError("Não é possível aprovar numa família retirada.")
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
         if locked.status != OfferCandidate.Status.PENDING:
-            raise CandidateApprovalError("Candidate is no longer pending")
+            raise CandidateApprovalError("Este produto já não está em A rever.")
         if not locked.product_url:
-            raise CandidateApprovalError("Candidate has no product URL")
+            raise CandidateApprovalError("O produto não tem link do anúncio.")
 
         existing_offer = (
             Offer.objects.select_for_update()
@@ -84,8 +103,6 @@ def approve_candidate(candidate, *, user, ship_from_country="", client=None, now
             "affiliate_promotion_status": Offer.AffiliatePromotionStatus.ELIGIBLE,
             "affiliate_promotion_verified_at": now,
             "protocol_verified_at": now,
-            "ship_from_country": confirmed_ship_from,
-            "ship_from_verified_at": now,
             "is_active": True,
             "owner_hidden": True,
             "first_seen_at": now,
@@ -107,11 +124,9 @@ def approve_candidate(candidate, *, user, ship_from_country="", client=None, now
             offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
             offer.affiliate_promotion_verified_at = now
             offer.protocol_verified_at = now
-            offer.ship_from_country = confirmed_ship_from
-            offer.ship_from_verified_at = now
             offer.is_active = True
             offer.last_seen_at = now
-            # Approval is not an editorial publish action: preserve owner_hidden exactly.
+            # Preserve independently known factual ship-from metadata.
             offer.save(
                 update_fields=[
                     "title",
@@ -121,8 +136,6 @@ def approve_candidate(candidate, *, user, ship_from_country="", client=None, now
                     "affiliate_promotion_status",
                     "affiliate_promotion_verified_at",
                     "protocol_verified_at",
-                    "ship_from_country",
-                    "ship_from_verified_at",
                     "is_active",
                     "last_seen_at",
                     "updated_at",
@@ -156,45 +169,21 @@ def approve_candidate(candidate, *, user, ship_from_country="", client=None, now
         decision = CandidateDecision.objects.create(
             candidate=locked,
             decision=CandidateDecision.Decision.APPROVE,
-            ship_from_country=confirmed_ship_from,
-            review_signals=[CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED],
+            ship_from_country="",
+            review_signals=[],
             decided_by=user,
             decided_at=now,
         )
     return ApprovalResult(locked, offer, observation, placement, decision)
 
 
-def reject_candidate(
-    candidate,
-    *,
-    user,
-    review_signals=None,
-    reason="",
-    ship_from_country="",
-    evidence_url="",
-    note="",
-    now=None,
-):
+def reject_candidate(candidate, *, user, reason="", note="", now=None):
     _require_staff(user)
-    normalized_signals = []
-    if review_signals is not None:
-        valid_signals = set(CandidateDecision.ReviewSignal.values)
-        for signal in review_signals:
-            if signal not in valid_signals:
-                raise CandidateApprovalError("Sinal de revisão inválido")
-            if signal not in normalized_signals:
-                normalized_signals.append(signal)
+    if reason not in CandidateDecision.Reason.values:
+        raise CandidateApprovalError("Selecione o motivo da rejeição.")
     note = (note or "").strip()
-    if reason:
-        if reason not in CandidateDecision.Reason.values:
-            raise CandidateApprovalError("Valid rejection reason required")
-        if reason == CandidateDecision.Reason.OTHER and not note:
-            raise CandidateApprovalError("Other rejection reason requires a note")
-    if not normalized_signals and not reason:
-        raise CandidateApprovalError("Selecione pelo menos um sinal ou motivo para rejeitar")
-    if review_signals is not None:
-        ship_from_country = ""
-        evidence_url = ""
+    if reason == CandidateDecision.Reason.OTHER and not note:
+        raise CandidateApprovalError("Descreva o motivo em Outro motivo.")
 
     now = now or timezone.now()
     with transaction.atomic():
@@ -206,24 +195,24 @@ def reject_candidate(
         return CandidateDecision.objects.create(
             candidate=locked,
             decision=CandidateDecision.Decision.REJECT,
-            ship_from_country=(ship_from_country or "").upper(),
+            ship_from_country="",
             reason=reason,
-            review_signals=normalized_signals,
+            review_signals=[],
             note=note,
-            evidence_url=evidence_url,
+            evidence_url="",
             decided_by=user,
             decided_at=now,
         )
 
 
 def revalidate_candidate(candidate, *, user, now=None):
-    """Refresh the Owner's fixed-protocol human attestation without inventing country."""
+    """Refresh the Owner's composite human attestation without inventing country."""
     _require_staff(user)
     now = now or timezone.now()
     with transaction.atomic():
         locked = OfferCandidate.objects.select_for_update().get(pk=candidate.pk)
         if not locked.approved_offer_id:
-            raise CandidateApprovalError("Candidate has no approved offer to revalidate")
+            raise CandidateApprovalError("O produto não tem oferta aprovada para revalidar.")
         offer = Offer.objects.select_for_update().get(pk=locked.approved_offer_id)
         offer.protocol_verified_at = now
         offer.save(update_fields=["protocol_verified_at", "updated_at"])
@@ -231,8 +220,8 @@ def revalidate_candidate(candidate, *, user, now=None):
             candidate=locked,
             decision=CandidateDecision.Decision.APPROVE,
             ship_from_country="",
-            review_signals=[CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED],
-            note="Protocol revalidated",
+            review_signals=[],
+            note="Protocolo revalidado",
             decided_by=user,
             decided_at=now,
         )
