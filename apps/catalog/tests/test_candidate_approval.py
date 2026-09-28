@@ -21,7 +21,7 @@ from apps.catalog.services.candidate_approval import (
     reject_candidate,
     revalidate_candidate,
 )
-from apps.catalog.services.public_eligibility import is_protocol_verification_fresh
+from apps.catalog.services.public_eligibility import is_protocol_verified
 from apps.integrations.aliexpress.exceptions import AliExpressAPIError, AliExpressTransportError
 
 
@@ -44,21 +44,52 @@ class CandidateApprovalTests(TestCase):
         self.client_api = Mock()
         self.client_api.generate_affiliate_link.return_value = "https://affiliate.example/1"
 
-    def approve(self, candidate=None, now=None):
+    def approve(self, candidate=None, now=None, ship_from_country="PL"):
         return approve_candidate(
-            candidate or self.candidate, user=self.user, client=self.client_api, now=now
+            candidate or self.candidate,
+            user=self.user,
+            ship_from_country=ship_from_country,
+            client=self.client_api,
+            now=now,
         )
 
-    def test_approval_button_is_fixed_protocol_attestation_without_country(self):
-        result = self.approve()
-        self.assertIsNone(result.offer.ship_from_country)
-        self.assertIsNone(result.offer.ship_from_verified_at)
-        self.assertIsNotNone(result.offer.protocol_verified_at)
-        self.assertEqual(result.decision.ship_from_country, "")
-        self.assertIn(
-            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
-            result.decision.review_signals,
-        )
+    def test_approval_without_country_is_rejected_before_affiliate_generation(self):
+        with self.assertRaises(CandidateApprovalError):
+            self.approve(ship_from_country="")
+
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.candidate.decisions.count(), 0)
+        self.client_api.generate_affiliate_link.assert_not_called()
+
+    def test_approval_invalid_country_is_rejected_before_affiliate_generation(self):
+        for country in ("CN", "US", "XX"):
+            with self.subTest(country=country):
+                with self.assertRaises(CandidateApprovalError):
+                    self.approve(ship_from_country=country)
+        self.candidate.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
+        self.client_api.generate_affiliate_link.assert_not_called()
+
+    def test_all_allowed_countries_are_stored_on_successful_approval(self):
+        for index, country in enumerate(("PL", "CZ", "FR", "ES", "DE")):
+            candidate = self.candidate
+            if index:
+                candidate = OfferCandidate.objects.create(
+                    product_family=self.family,
+                    source=Offer.Source.ALIEXPRESS,
+                    external_product_id=f"allowed-{country}",
+                    title=f"Allowed {country}",
+                    product_url=f"https://www.aliexpress.com/item/{country}.html",
+                )
+            now = timezone.now()
+            result = self.approve(candidate, now=now, ship_from_country=country)
+            result.offer.refresh_from_db()
+            self.assertEqual(result.offer.ship_from_country, country)
+            self.assertEqual(result.offer.ship_from_verified_at, now)
+            self.assertEqual(result.offer.protocol_verified_at, now)
+            self.assertEqual(result.decision.ship_from_country, country)
+            self.assertTrue(result.offer.owner_hidden)
 
     def test_approval_creates_hidden_offer_observation_placement_and_history(self):
         result = self.approve()
@@ -75,7 +106,7 @@ class CandidateApprovalTests(TestCase):
         self.assertEqual(result.offer.observations.count(), 1)
         self.assertIsNone(result.placement.selection_position)
         self.assertEqual(self.candidate.decisions.count(), 1)
-        self.assertTrue(is_protocol_verification_fresh(result.offer))
+        self.assertTrue(is_protocol_verified(result.offer))
 
     def test_candidate_and_offer_identities_are_global(self):
         other = ProductFamily.objects.create(name="RF", slug="rf")
@@ -91,7 +122,7 @@ class CandidateApprovalTests(TestCase):
             with transaction.atomic():
                 Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="same")
 
-    def test_existing_offer_preserves_historical_country_and_hidden_override(self):
+    def test_existing_offer_refreshes_explicitly_reconfirmed_country_and_preserves_hidden(self):
         verified_at = timezone.now() - timedelta(days=2)
         legacy = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
@@ -108,12 +139,13 @@ class CandidateApprovalTests(TestCase):
             approved_offer=legacy,
             product_url="https://example.com/legacy",
         )
-        result = self.approve(candidate)
+        now = timezone.now()
+        result = self.approve(candidate, now=now, ship_from_country="ES")
         result.offer.refresh_from_db()
         self.assertEqual(result.offer.pk, legacy.pk)
         self.assertTrue(result.offer.owner_hidden)
-        self.assertEqual(result.offer.ship_from_country, "PL")
-        self.assertEqual(result.offer.ship_from_verified_at, verified_at)
+        self.assertEqual(result.offer.ship_from_country, "ES")
+        self.assertEqual(result.offer.ship_from_verified_at, now)
 
     def test_existing_offer_always_replaces_old_affiliate_link(self):
         old_url = "https://affiliate.example/old"
@@ -196,7 +228,13 @@ class CandidateApprovalTests(TestCase):
                 api.generate_affiliate_link.return_value = fresh
                 now = timezone.now()
 
-                approve_candidate(candidate, user=self.user, client=api, now=now)
+                approve_candidate(
+                    candidate,
+                    user=self.user,
+                    ship_from_country="PL",
+                    client=api,
+                    now=now,
+                )
 
                 offer.refresh_from_db()
                 api.generate_affiliate_link.assert_called_once_with(candidate.product_url)
@@ -237,7 +275,7 @@ class CandidateApprovalTests(TestCase):
         api.generate_affiliate_link.side_effect = AliExpressTransportError("temporary")
 
         with self.assertRaises(AliExpressTransportError):
-            approve_candidate(candidate, user=self.user, client=api)
+            approve_candidate(candidate, user=self.user, ship_from_country="PL", client=api)
 
         candidate.refresh_from_db()
         offer.refresh_from_db()
@@ -273,7 +311,7 @@ class CandidateApprovalTests(TestCase):
         )
 
         with self.assertRaises(AliExpressAPIError):
-            approve_candidate(candidate, user=self.user, client=api)
+            approve_candidate(candidate, user=self.user, ship_from_country="PL", client=api)
 
         candidate.refresh_from_db()
         offer.refresh_from_db()
@@ -299,7 +337,7 @@ class CandidateApprovalTests(TestCase):
                 api = Mock()
 
                 with self.assertRaises(CandidateApprovalError):
-                    approve_candidate(candidate, user=self.user, client=api)
+                    approve_candidate(candidate, user=self.user, ship_from_country="PL", client=api)
 
                 api.generate_affiliate_link.assert_not_called()
 

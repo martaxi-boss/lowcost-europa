@@ -37,7 +37,8 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import (
-    is_protocol_verification_fresh,
+    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
+    is_protocol_verified,
     public_eligibility_q,
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
@@ -93,7 +94,7 @@ def _decorate_offer(offer):
         .first()
     )
     offer.observation_display = build_observation_display(offer.observation_history)
-    offer.protocol_fresh = is_protocol_verification_fresh(offer)
+    offer.protocol_fresh = is_protocol_verified(offer)
     offer.was_editorially_hidden = offer.editorial_events.filter(action="HIDE").exists()
     if not offer.is_active:
         offer.owner_state_label = "Indisponível"
@@ -117,7 +118,7 @@ def _decorate_candidate(candidate):
     candidate.review_required = bool(
         candidate.status == OfferCandidate.Status.APPROVED
         and offer
-        and not is_protocol_verification_fresh(offer)
+        and not is_protocol_verified(offer)
     )
     candidate.status_label = {
         OfferCandidate.Status.PENDING: "A rever",
@@ -140,7 +141,7 @@ def _family_counts(family):
         "review_required": sum(
             c.status == OfferCandidate.Status.APPROVED
             and c.approved_offer_id
-            and not is_protocol_verification_fresh(c.approved_offer)
+            and not is_protocol_verified(c.approved_offer)
             for c in candidates
         ),
         "storefront": OfferFamilyPlacement.objects.filter(
@@ -321,6 +322,7 @@ def family_manage(request, family_slug):
                 .order_by("display_order", "name", "pk"),
                 "review_signals": CandidateDecision.ReviewSignal.choices,
                 "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
+                "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
                 "owner_error": error,
                 "owner_notice": notice,
             },
@@ -395,7 +397,7 @@ def _moved_candidate_view(candidate):
     offer = candidate.approved_offer
     if not offer.is_active:
         return "retirados"
-    if not is_protocol_verification_fresh(offer):
+    if not is_protocol_verified(offer):
         return "revalidar"
     return "aprovados" if offer.owner_hidden else "montra"
 
@@ -406,7 +408,11 @@ def candidate_approve(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        approve_candidate(candidate, user=request.user)
+        approve_candidate(
+            candidate,
+            user=request.user,
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
     except AliExpressRateLimitError:
         request.session["owner_panel_error"] = (
             "A AliExpress está temporariamente indisponível. "

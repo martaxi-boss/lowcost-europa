@@ -26,6 +26,7 @@ class DeepDiscoveryResult:
     search_operations: int = 0
     detail_attempts: int = 0
     created: int = 0
+    skipped_ship_from_not_confirmed: int = 0
     stop_reason: str = ""
     last_keyword: str = ""
     last_page: int = 0
@@ -92,6 +93,9 @@ def discover_family_deep(
             aggregate.search_operations += 1
             aggregate.detail_attempts += result.detail_attempts
             aggregate.created += result.created
+            aggregate.skipped_ship_from_not_confirmed += (
+                result.skipped_ship_from_not_confirmed
+            )
             aggregate.last_keyword = keyword
             aggregate.last_page = page
 

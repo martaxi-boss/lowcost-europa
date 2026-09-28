@@ -92,9 +92,12 @@ class OffsiteBackupPolicyTests(SimpleTestCase):
         self.assertIn('"$RESTIC_BIN" check --no-cache', self.health)
         self.assertIn("REPOSITORY_WARNING_THRESHOLD_BYTES=8000000000", self.health)
         self.assertIn("--mode raw-data", self.health)
+        snapshot_backup = self.backup.split("snapshot_json=", 1)[1].split("snapshot_id=", 1)[0]
         snapshot_health = self.health.split("snapshot_json=", 1)[1].split("printf", 1)[0]
         self.assertIn("--tag lowcost-europa,offsite", snapshot_health)
-        self.assertIn("--host lowcost-europa-droplet", snapshot_health)
+        for selection in (snapshot_backup, snapshot_health):
+            self.assertIn("--host lowcost-europa-ovh", selection)
+            self.assertNotIn("--host lowcost-europa-droplet", selection)
         stats_call = self.health.split("stats_json=", 1)[1].split("repository_size=", 1)[0]
         self.assertNotIn("--tag", stats_call)
         self.assertNotIn("--host", stats_call)

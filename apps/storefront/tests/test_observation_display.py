@@ -26,6 +26,8 @@ class ObservationFallbackDisplayTests(TestCase):
             "affiliate_url": f"https://affiliate.example/{external_id}",
             "affiliate_promotion_status": Offer.AffiliatePromotionStatus.ELIGIBLE,
             "affiliate_promotion_verified_at": now,
+            "ship_from_country": "PL",
+            "ship_from_verified_at": now,
             "protocol_verified_at": now,
             "is_active": True,
             "owner_hidden": False,

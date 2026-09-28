@@ -70,7 +70,7 @@ class DeepDiscoveryTests(TestCase):
             patch("apps.catalog.management.commands.discover_family_candidates.AliExpressClient"),
             patch(
                 "apps.catalog.management.commands.discover_family_candidates.discover_family_candidates",
-                return_value=CandidateDiscoveryResult(),
+                return_value=CandidateDiscoveryResult(skipped_ship_from_not_confirmed=2),
             ) as mocked,
         ):
             call_command(
@@ -82,12 +82,13 @@ class DeepDiscoveryTests(TestCase):
             )
         self.assertEqual(mocked.call_args.kwargs["page_no"], 2)
         self.assertIn("Page: 2", out.getvalue())
+        self.assertIn("Skipped ship-from not confirmed: 2", out.getvalue())
 
     def test_invalid_page_is_rejected(self):
         with self.assertRaisesMessage(ValueError, "page_no must be at least 1"):
             discover_family_candidates(self.family, "diode laser", page_no=0, client=Mock())
 
-    def test_distinct_pages_create_distinct_candidates_and_repeated_ids_do_not_duplicate(self):
+    def test_distinct_pages_do_not_create_candidates_without_origin_confirmation(self):
         client = Mock()
         one = self.product("p1")
         two = self.product("p2")
@@ -95,13 +96,14 @@ class DeepDiscoveryTests(TestCase):
             AliExpressSearchResult(products=[one]),
             AliExpressSearchResult(products=[two, one]),
         ]
-        client.get_product_detail.side_effect = [one, two]
+        client.get_product_detail.side_effect = [one, two, one]
         first = discover_family_candidates(self.family, "diode laser", page_no=1, client=client)
         second = discover_family_candidates(self.family, "diode laser", page_no=2, client=client)
-        self.assertEqual(first.created, 1)
-        self.assertEqual(second.created, 1)
-        self.assertEqual(second.skipped_existing_candidate, 1)
-        self.assertEqual(OfferCandidate.objects.count(), 2)
+        self.assertEqual(first.created, 0)
+        self.assertEqual(second.created, 0)
+        self.assertEqual(first.skipped_ship_from_not_confirmed, 1)
+        self.assertEqual(second.skipped_ship_from_not_confirmed, 2)
+        self.assertEqual(OfferCandidate.objects.count(), 0)
 
     def test_empty_page_stops_keyword(self):
         client = Mock()
@@ -121,7 +123,8 @@ class DeepDiscoveryTests(TestCase):
         result = discover_family_deep(self.family, ["diode laser"], max_details=1, client=client)
         self.assertEqual(result.search_operations, 2)
         self.assertEqual(result.pages[-1].stop_reason, "NO_NEW_IDS")
-        self.assertEqual(OfferCandidate.objects.count(), 1)
+        self.assertEqual(OfferCandidate.objects.count(), 0)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 2)
 
     def test_search_abort_preserves_last_checkpoint_and_prior_page_metrics(self):
         client = Mock()
@@ -137,7 +140,8 @@ class DeepDiscoveryTests(TestCase):
             )
         result = caught.exception.deep_discovery_result
         self.assertEqual(result.search_operations, 1)
-        self.assertEqual(result.created, 1)
+        self.assertEqual(result.created, 0)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 1)
         self.assertEqual(result.last_keyword, "diode laser")
         self.assertEqual(result.last_page, 2)
         self.assertEqual(result.stop_reason, "AliExpressResponseError")
@@ -153,9 +157,10 @@ class DeepDiscoveryTests(TestCase):
             self.family, ["diode laser"], max_pages=2, max_details=1, client=client
         )
         self.assertEqual(result.search_operations, 2)
-        self.assertEqual(OfferCandidate.objects.count(), 2)
+        self.assertEqual(OfferCandidate.objects.count(), 0)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 2)
 
-    def test_deep_discovery_can_create_more_than_twenty_pending_candidates(self):
+    def test_deep_discovery_skips_all_unqualified_candidates_without_origin(self):
         client = Mock()
         pages = []
         details = []
@@ -173,9 +178,10 @@ class DeepDiscoveryTests(TestCase):
             max_details=8,
             client=client,
         )
-        self.assertEqual(result.created, 24)
+        self.assertEqual(result.created, 0)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 24)
         self.assertEqual(
-            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 24
+            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 0
         )
 
     def test_global_dedupe_skips_offer_rejected_other_family_and_existing_candidate(self):

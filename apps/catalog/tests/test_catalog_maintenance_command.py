@@ -7,7 +7,10 @@ from django.test import SimpleTestCase, override_settings
 
 from apps.catalog.services.offer_maintenance import MaintenanceResult
 from apps.integrations.aliexpress.client import AliExpressCallMetrics
-from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressRateLimitError,
+    AliExpressRuntimeStateError,
+)
 
 
 class CatalogMaintenanceCommandTests(SimpleTestCase):
@@ -45,6 +48,24 @@ class CatalogMaintenanceCommandTests(SimpleTestCase):
         maintain.assert_called_once_with(batch_size=2, client=client)
         with self.assertRaises(CommandError):
             call_command("maintain_catalog_offers", batch_size=21, stdout=StringIO())
+
+    @patch("apps.catalog.management.commands.maintain_catalog_offers.maintain_catalog_offers")
+    @patch("apps.catalog.management.commands.maintain_catalog_offers.AliExpressClient")
+    def test_runtime_state_failure_aborts_command_with_zero_http_attempts(
+        self, client_cls, maintain
+    ):
+        client = Mock()
+        client.execution_metrics = AliExpressCallMetrics(logical_operations=1, attempts=0)
+        client_cls.return_value = client
+        maintain.side_effect = AliExpressRuntimeStateError("local runtime unavailable")
+        out = StringIO()
+
+        with self.assertRaises(CommandError):
+            call_command("maintain_catalog_offers", stdout=out)
+
+        text = out.getvalue()
+        self.assertIn("Logical operations: 1", text)
+        self.assertIn("HTTP attempts: 0", text)
 
     @patch("apps.catalog.management.commands.maintain_catalog_offers.maintain_catalog_offers")
     @patch("apps.catalog.management.commands.maintain_catalog_offers.AliExpressClient")

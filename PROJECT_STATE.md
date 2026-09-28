@@ -43,7 +43,7 @@ Current pipeline:
 
 `DISCOVERY → FAMILY RELEVANCE → GLOBAL DEDUPE → FAMILY-SPECIFIC RANKING / LEARNING → OFFER CANDIDATE → HUMAN OWNER REVIEW → APPROVE / REJECT / MOVE FAMILY → OFFER → EDITORIAL PUBLISH/HIDE → PUBLIC ELIGIBILITY → MAINTENANCE → REVALIDATION / DEACTIVATION`
 
-Human Owner review remains an explicit lifecycle gate. Discovery and ranking can prepare candidates, but approval, editorial publication and protocol freshness remain controlled human/operational gates.
+Human Owner review remains an explicit lifecycle gate. Discovery and ranking can prepare candidates, but approval, editorial publication and initial protocol verification remain controlled human/operational gates.
 
 ### Global product identity
 
@@ -91,12 +91,14 @@ The sanctioned shipping-origin set remains:
 
 The protocol continues to require human confirmation of delivery to Portugal and the approved commercial/editorial criteria. No unsupported AliExpress search parameter is invented to guarantee shipping origin.
 
-`protocol_verified_at` is the human protocol freshness timestamp.
+`protocol_verified_at` is the human protocol verification timestamp.
 
-- Current freshness window: **7 DAYS**.
-- Automatic maintenance must not renew it.
-- Human revalidation can renew it.
-- A stale Offer becomes non-public-eligible until revalidated.
+- Initial protocol verification is required.
+- Age expiry: **NONE**.
+- Time passing alone does not make an otherwise eligible Offer non-public.
+- Automatic maintenance must not create or renew human protocol verification.
+- Human revalidation remains available as an explicit audit/update action but is not required solely because time passed.
+- Factual unavailability controls deactivation; transient/UNKNOWN states do not.
 
 ### Public eligibility
 
@@ -107,7 +109,6 @@ Current public eligibility is fail-closed and requires all of:
 - non-empty `affiliate_url`;
 - non-null `protocol_verified_at`;
 - protocol verification timestamp not in the future;
-- protocol verification no older than the configured 7-day freshness window.
 
 Current public eligibility does **not** require a non-null price or a non-`UNKNOWN` availability observation. Those remain editorial/launch-quality concerns rather than a silent change to the eligibility constitution.
 
@@ -158,7 +159,7 @@ OfferClick counts are raw outbound click records. They do not by themselves esta
 - Factual unavailability may deactivate an active Offer.
 - Transient external failures are not treated as factual unavailability.
 - Inactive Offers are not automatically reactivated.
-- Automatic maintenance does not renew human protocol freshness.
+- Automatic maintenance does not create or renew human protocol verification.
 
 Latest catalog-maintenance service result: **success**, `ExecMainStatus=0`.
 

@@ -191,12 +191,42 @@ class OwnerEditorialServiceTests(TestCase):
         self.assertTrue(events[1].previous_owner_hidden)
         self.assertFalse(events[1].new_owner_hidden)
 
-    def test_publish_stale_blocked(self):
+    def test_publish_old_verified_offer_succeeds(self):
+        now = timezone.now()
         self.offer.owner_hidden = True
-        self.offer.protocol_verified_at = timezone.now() - timedelta(days=8)
+        self.offer.protocol_verified_at = now - timedelta(days=30)
         self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
+
+        result = publish_offer_to_storefront(
+            self.offer, family=self.family, user=self.user, now=now
+        )
+
+        self.offer.refresh_from_db()
+        self.assertTrue(result.changed)
+        self.assertFalse(self.offer.owner_hidden)
+
+    def test_publish_without_protocol_verification_blocked(self):
+        self.offer.owner_hidden = True
+        self.offer.protocol_verified_at = None
+        self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
+
         with self.assertRaises(OwnerEditorialError):
             publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+
+        self.offer.refresh_from_db()
+        self.assertTrue(self.offer.owner_hidden)
+
+    def test_publish_with_future_protocol_verification_blocked(self):
+        now = timezone.now()
+        self.offer.owner_hidden = True
+        self.offer.protocol_verified_at = now + timedelta(hours=1)
+        self.offer.save(update_fields=["owner_hidden", "protocol_verified_at"])
+
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(
+                self.offer, family=self.family, user=self.user, now=now
+            )
+
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
 
@@ -233,16 +263,44 @@ class OwnerEditorialServiceTests(TestCase):
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
 
-    def test_publish_accepts_fresh_owner_attestation_without_individual_country(self):
+    def test_publish_without_shipping_confirmation_is_blocked(self):
         self.offer.owner_hidden = True
         self.offer.ship_from_country = None
         self.offer.ship_from_verified_at = None
         self.offer.save(
             update_fields=["owner_hidden", "ship_from_country", "ship_from_verified_at"]
         )
-        publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
         self.offer.refresh_from_db()
-        self.assertFalse(self.offer.owner_hidden)
+        self.assertTrue(self.offer.owner_hidden)
+
+    def test_publish_with_future_shipping_verification_is_blocked(self):
+        now = timezone.now()
+        self.offer.owner_hidden = True
+        self.offer.ship_from_verified_at = now + timedelta(hours=1)
+        self.offer.save(update_fields=["owner_hidden", "ship_from_verified_at"])
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(
+                self.offer, family=self.family, user=self.user, now=now
+            )
+
+    def test_publish_old_shipping_confirmation_has_no_age_expiry(self):
+        now = timezone.now()
+        self.offer.owner_hidden = True
+        self.offer.ship_from_verified_at = now - timedelta(days=180)
+        self.offer.protocol_verified_at = now - timedelta(days=180)
+        self.offer.save(
+            update_fields=[
+                "owner_hidden",
+                "ship_from_verified_at",
+                "protocol_verified_at",
+            ]
+        )
+        result = publish_offer_to_storefront(
+            self.offer, family=self.family, user=self.user, now=now
+        )
+        self.assertTrue(result.changed)
 
     def test_publish_cap20_blocked_and_stays_twenty(self):
         self.offer.owner_hidden = True
@@ -339,6 +397,7 @@ class OwnerEditorialServiceTests(TestCase):
         approve_candidate(
             candidate,
             user=self.user,
+            ship_from_country="PL",
             client=client,
         )
         self.offer.refresh_from_db()
@@ -463,6 +522,10 @@ class OwnerPanelCatalogTests(TestCase):
         for label in labels:
             self.assertContains(response, label)
         self.assertContains(response, "Acessório / peça / consumível")
+        self.assertContains(response, "PAÍS DE ENVIO CONFIRMADO")
+        self.assertContains(response, 'name="ship_from_country"', html=False)
+        for country in ("PL", "CZ", "FR", "ES", "DE"):
+            self.assertContains(response, f'value="{country}"', html=False)
         self.assertNotContains(response, "owner_hidden")
         self.assertNotContains(response, "protocol_verified_at")
         self.assertNotContains(response, "is_active")
@@ -545,12 +608,14 @@ class OwnerPanelCatalogTests(TestCase):
         )
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
-            {},
+            {"ship_from_country": "PL"},
         )
         self.assertEqual(response.status_code, 302)
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.status, OfferCandidate.Status.APPROVED)
         self.assertIsNotNone(self.pending.approved_offer_id)
+        self.assertEqual(self.pending.approved_offer.ship_from_country, "PL")
+        self.assertIsNotNone(self.pending.approved_offer.ship_from_verified_at)
 
     @patch("apps.catalog.owner_panel_views.approve_candidate")
     def test_panel_approve_rate_limit_is_safe_and_returns_to_review(self, approve):

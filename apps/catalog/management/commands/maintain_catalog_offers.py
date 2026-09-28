@@ -3,7 +3,10 @@ from django.core.management.base import BaseCommand, CommandError
 
 from apps.catalog.services.offer_maintenance import maintain_catalog_offers
 from apps.integrations.aliexpress.client import AliExpressClient, format_execution_metrics
-from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressRateLimitError,
+    AliExpressRuntimeStateError,
+)
 
 
 class Command(BaseCommand):
@@ -22,6 +25,9 @@ class Command(BaseCommand):
         client = AliExpressClient()
         try:
             result = maintain_catalog_offers(batch_size=batch_size, client=client)
+        except AliExpressRuntimeStateError as exc:
+            self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
+            raise CommandError("AliExpress runtime state failure") from exc
         except AliExpressRateLimitError as exc:
             self.stdout.write("\n".join(format_execution_metrics(client.execution_metrics)))
             raise CommandError("AliExpress rate-limit abort") from exc

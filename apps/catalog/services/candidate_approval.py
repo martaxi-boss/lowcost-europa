@@ -10,6 +10,7 @@ from apps.catalog.models import (
     OfferFamilyPlacement,
     OfferObservation,
 )
+from apps.catalog.services.public_eligibility import ALLOWED_SHIP_FROM_COUNTRIES
 from apps.integrations.aliexpress.client import AliExpressClient
 
 
@@ -31,15 +32,25 @@ def _require_staff(user):
         raise CandidateApprovalError("Staff user required")
 
 
+def _validated_ship_from_country(value):
+    country = (value or "").strip().upper()
+    if not country:
+        raise CandidateApprovalError("Confirme o país de envio antes de aprovar")
+    if country not in ALLOWED_SHIP_FROM_COUNTRIES:
+        raise CandidateApprovalError("País de envio não permitido")
+    return country
+
+
 def _affiliate_url(candidate, client):
     if not candidate.product_url:
         raise CandidateApprovalError("Candidate has no product URL")
     return client.generate_affiliate_link(candidate.product_url)
 
 
-def approve_candidate(candidate, *, user, client=None, now=None):
+def approve_candidate(candidate, *, user, ship_from_country="", client=None, now=None):
     """Persist the Owner's fixed-protocol human attestation as an approval."""
     _require_staff(user)
+    confirmed_ship_from = _validated_ship_from_country(ship_from_country)
     now = now or timezone.now()
 
     with transaction.atomic():
@@ -73,6 +84,8 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             "affiliate_promotion_status": Offer.AffiliatePromotionStatus.ELIGIBLE,
             "affiliate_promotion_verified_at": now,
             "protocol_verified_at": now,
+            "ship_from_country": confirmed_ship_from,
+            "ship_from_verified_at": now,
             "is_active": True,
             "owner_hidden": True,
             "first_seen_at": now,
@@ -94,6 +107,8 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
             offer.affiliate_promotion_verified_at = now
             offer.protocol_verified_at = now
+            offer.ship_from_country = confirmed_ship_from
+            offer.ship_from_verified_at = now
             offer.is_active = True
             offer.last_seen_at = now
             # Approval is not an editorial publish action: preserve owner_hidden exactly.
@@ -106,6 +121,8 @@ def approve_candidate(candidate, *, user, client=None, now=None):
                     "affiliate_promotion_status",
                     "affiliate_promotion_verified_at",
                     "protocol_verified_at",
+                    "ship_from_country",
+                    "ship_from_verified_at",
                     "is_active",
                     "last_seen_at",
                     "updated_at",
@@ -139,7 +156,7 @@ def approve_candidate(candidate, *, user, client=None, now=None):
         decision = CandidateDecision.objects.create(
             candidate=locked,
             decision=CandidateDecision.Decision.APPROVE,
-            ship_from_country="",
+            ship_from_country=confirmed_ship_from,
             review_signals=[CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED],
             decided_by=user,
             decided_at=now,

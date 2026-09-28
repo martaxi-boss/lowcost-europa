@@ -1,4 +1,3 @@
-from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -56,13 +55,12 @@ class CandidateQueueFilteringTests(TestCase):
             status=OfferCandidate.Status.APPROVED,
             approved_offer=fresh_offer,
         )
-        stale_now = timezone.now() - timedelta(days=8)
-        stale_offer = Offer.objects.create(
+        unverified_offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
-            external_product_id="stale-offer",
+            external_product_id="unverified-offer",
             ship_from_country="PL",
-            ship_from_verified_at=stale_now,
-            protocol_verified_at=stale_now,
+            ship_from_verified_at=timezone.now(),
+            protocol_verified_at=None,
         )
         self.review_required = OfferCandidate.objects.create(
             product_family=self.family,
@@ -70,7 +68,7 @@ class CandidateQueueFilteringTests(TestCase):
             external_product_id="review-required",
             title="Review required HIFU",
             status=OfferCandidate.Status.APPROVED,
-            approved_offer=stale_offer,
+            approved_offer=unverified_offer,
         )
 
     def test_default_queue_is_work_only(self):
@@ -82,12 +80,15 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertContains(response, "Rejeitados 1")
         self.assertContains(response, "Revalidação necessária 1")
 
-    def test_approval_ui_is_fixed_attestation_without_shipping_fields(self):
+    def test_approval_ui_requires_explicit_allowed_ship_from_country(self):
         response = self.client.get(self.url)
         self.assertContains(response, ">APROVAR<", html=False)
         self.assertContains(response, ">REVALIDAR<", html=False)
+        self.assertContains(response, "PAÍS DE ENVIO CONFIRMADO")
+        self.assertContains(response, 'name="ship_from_country"', html=False)
+        for country in ("PL", "CZ", "FR", "ES", "DE"):
+            self.assertContains(response, f'value="{country}"', html=False)
         self.assertNotContains(response, 'name="delivers_to_pt_confirmed"', html=False)
-        self.assertNotContains(response, 'name="ship_from_country"', html=False)
 
     def test_rejected_approved_and_all_tabs(self):
         rejected = self.client.get(self.url + "?view=rejected")
@@ -145,13 +146,18 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertNotContains(follow, "429")
         self.assertNotContains(follow, "secret-token")
 
-    def test_approve_post_needs_no_shipping_fields(self):
+    def test_approve_requires_shipping_country_and_stores_it(self):
         api = __import__("unittest.mock").mock.Mock()
         api.generate_affiliate_link.return_value = "https://affiliate.example/pending"
-        result = approve_candidate(self.pending, user=self.staff, client=api)
+        result = approve_candidate(
+            self.pending,
+            user=self.staff,
+            ship_from_country="PL",
+            client=api,
+        )
         result.offer.refresh_from_db()
-        self.assertIsNone(result.offer.ship_from_country)
-        self.assertIsNone(result.offer.ship_from_verified_at)
+        self.assertEqual(result.offer.ship_from_country, "PL")
+        self.assertIsNotNone(result.offer.ship_from_verified_at)
         self.assertIsNotNone(result.offer.protocol_verified_at)
         self.assertTrue(result.offer.owner_hidden)
 

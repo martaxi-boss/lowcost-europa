@@ -21,7 +21,8 @@ from apps.catalog.services.observation_display import (
     observation_history_queryset,
 )
 from apps.catalog.services.public_eligibility import (
-    is_protocol_verification_fresh,
+    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
+    is_protocol_verified,
     public_eligibility_q,
 )
 
@@ -204,7 +205,7 @@ def _owner_family_context(request, family):
     approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
     for candidate in approved:
         offer = candidate.approved_offer
-        candidate.protocol_fresh = bool(offer and is_protocol_verification_fresh(offer))
+        candidate.protocol_fresh = bool(offer and is_protocol_verified(offer))
         if not offer:
             candidate.owner_state_label = "Aprovado"
         elif not offer.is_active:
@@ -249,6 +250,7 @@ def _owner_family_context(request, family):
         "owner_selected_candidates": selected_candidates,
         "owner_review_signals": CandidateDecision.ReviewSignal.choices,
         "semantic_rejection_choices": OWNER_SEMANTIC_REJECTION_CHOICES,
+        "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
         "owner_target_families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
         .exclude(pk=family.pk)
         .order_by("display_order", "name", "pk"),
