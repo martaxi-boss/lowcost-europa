@@ -11,6 +11,7 @@ from apps.catalog.services.candidate_approval import (
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.public_eligibility import (
+    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
     is_protocol_verified,
     public_eligibility_q,
 )
@@ -110,6 +111,7 @@ def candidate_queue(request, family_slug):
             .order_by("display_order", "pk"),
             "review_signals": CandidateDecision.ReviewSignal.choices,
             "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
+            "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
         },
     )
     return _ops_headers(response)
@@ -128,7 +130,11 @@ def _candidate_for_family(candidate_id, family_slug):
 def candidate_approve(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        approve_candidate(candidate, user=request.user)
+        approve_candidate(
+            candidate,
+            user=request.user,
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
     except AliExpressRateLimitError:
         request.session["ops_error"] = (
             "A AliExpress está temporariamente indisponível. "

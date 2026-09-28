@@ -21,6 +21,7 @@ from apps.catalog.services.observation_display import (
     observation_history_queryset,
 )
 from apps.catalog.services.public_eligibility import (
+    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
     is_protocol_verified,
     public_eligibility_q,
 )
@@ -249,6 +250,7 @@ def _owner_family_context(request, family):
         "owner_selected_candidates": selected_candidates,
         "owner_review_signals": CandidateDecision.ReviewSignal.choices,
         "semantic_rejection_choices": OWNER_SEMANTIC_REJECTION_CHOICES,
+        "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
         "owner_target_families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
         .exclude(pk=family.pk)
         .order_by("display_order", "name", "pk"),

@@ -82,6 +82,7 @@ class Command(BaseCommand):
                         f"Skipped rejected: {r.skipped_previously_rejected}",
                         f"Skipped other family: {r.skipped_known_other_family}",
                         f"Skipped not shippable PT: {r.skipped_not_shippable_to_pt}",
+                        f"Skipped ship-from not confirmed: {r.skipped_ship_from_not_confirmed}",
                         f"Failures: {','.join(r.failures) or '-'}",
                         f"Stop: {item.stop_reason or '-'}",
                     ]
@@ -90,6 +91,9 @@ class Command(BaseCommand):
         self.stdout.write(f"Search operations: {result.search_operations}")
         self.stdout.write(f"Detail attempts: {result.detail_attempts}")
         self.stdout.write(f"Candidates created: {result.created}")
+        self.stdout.write(
+            f"Skipped ship-from not confirmed: {result.skipped_ship_from_not_confirmed}"
+        )
         self.stdout.write(f"Unique product IDs: {len(result.unique_product_ids)}")
         self.stdout.write(f"Cross-page duplicates: {result.cross_page_duplicates}")
         self.stdout.write(f"Cross-keyword duplicates: {result.cross_keyword_duplicates}")

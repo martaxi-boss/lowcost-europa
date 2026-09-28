@@ -32,6 +32,8 @@ class AffiliatePromotionGateTests(TestCase):
             affiliate_url="https://affiliate.example/old",
             affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
             affiliate_promotion_verified_at=created_at,
+            ship_from_country="PL",
+            ship_from_verified_at=created_at,
             protocol_verified_at=created_at,
             is_active=True,
             owner_hidden=False,
@@ -174,7 +176,13 @@ class AffiliatePromotionGateTests(TestCase):
         client = Mock()
         client.generate_affiliate_link.return_value = "https://affiliate.example/approval-fresh"
 
-        result = approve_candidate(candidate, user=user, client=client, now=self.now)
+        result = approve_candidate(
+            candidate,
+            user=user,
+            ship_from_country="PL",
+            client=client,
+            now=self.now,
+        )
         client.generate_affiliate_link.assert_called_once_with(candidate.product_url)
         revalidate_candidate(result.candidate, user=user, now=self.now + timedelta(seconds=1))
 
