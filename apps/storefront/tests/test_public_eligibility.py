@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -97,8 +98,19 @@ class PublicEligibilityTests(TestCase):
                 self.assertTrue(is_ship_from_verified(offer))
                 self.assert_public(offer)
 
-    def test_disallowed_ship_from_country_is_not_public(self):
-        self.assert_not_public(self.make("disallowed-origin", country="CN"))
+    def test_disallowed_ship_from_country_is_rejected(self):
+        now = timezone.now()
+        offer = Offer(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="disallowed-origin",
+            ship_from_country="CN",
+            ship_from_verified_at=now,
+            protocol_verified_at=now,
+        )
+        self.assertFalse(is_ship_from_verified(offer))
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                offer.save()
 
     def test_protocol_verified_without_individual_ship_from_is_not_public(self):
         offer = self.make("attested-no-country", country=None)
