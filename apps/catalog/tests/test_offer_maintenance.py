@@ -285,6 +285,29 @@ class OfferMaintenanceTests(TestCase):
                     "UNKNOWN",
                 )
 
+    def test_affiliate_ineligible_remains_distinct_from_unavailable(self):
+        offer = self.make_offer("promo-ineligible", protocol_at=timezone.now())
+        client = Mock()
+        client.generate_affiliate_link.side_effect = AliExpressAPIError(
+            "cannot be sold or promoted in the selected country"
+        )
+        client.get_product_detail.return_value = self.detail("promo-ineligible")
+
+        result = maintain_catalog_offers(batch_size=1, client=client)
+
+        offer.refresh_from_db()
+        self.assertTrue(offer.is_active)
+        self.assertEqual(
+            offer.affiliate_promotion_status,
+            Offer.AffiliatePromotionStatus.INELIGIBLE,
+        )
+        self.assertEqual(result.promotion_ineligible, 1)
+        self.assertEqual(result.unavailable_confirmed, 0)
+        self.assertEqual(
+            offer.observations.latest("observed_at").availability,
+            OfferObservation.Availability.AVAILABLE,
+        )
+
     def test_permission_api_error_is_transient_and_does_not_deactivate(self):
         offer = self.make_offer("permission", protocol_at=timezone.now())
         client = Mock()
