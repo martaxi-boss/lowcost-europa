@@ -397,6 +397,7 @@ class OwnerEditorialServiceTests(TestCase):
         approve_candidate(
             candidate,
             user=self.user,
+            ship_from_country="PL",
             client=client,
         )
         self.offer.refresh_from_db()
