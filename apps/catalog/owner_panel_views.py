@@ -37,6 +37,7 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import (
+    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
     is_protocol_verified,
     public_eligibility_q,
 )
@@ -321,6 +322,7 @@ def family_manage(request, family_slug):
                 .order_by("display_order", "name", "pk"),
                 "review_signals": CandidateDecision.ReviewSignal.choices,
                 "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
+                "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
                 "owner_error": error,
                 "owner_notice": notice,
             },
@@ -406,7 +408,11 @@ def candidate_approve(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        approve_candidate(candidate, user=request.user)
+        approve_candidate(
+            candidate,
+            user=request.user,
+            ship_from_country=request.POST.get("ship_from_country", ""),
+        )
     except AliExpressRateLimitError:
         request.session["owner_panel_error"] = (
             "A AliExpress está temporariamente indisponível. "

@@ -48,6 +48,9 @@ class Command(BaseCommand):
         self.stdout.write(f"Skipped known other family: {result.skipped_known_other_family}")
         self.stdout.write(f"Skipped previously rejected: {result.skipped_previously_rejected}")
         self.stdout.write(f"Skipped not shippable to PT: {result.skipped_not_shippable_to_pt}")
+        self.stdout.write(
+            f"Skipped ship-from not confirmed: {result.skipped_ship_from_not_confirmed}"
+        )
         self.stdout.write(f"Detail attempts: {result.detail_attempts}")
         self.stdout.write(f"Detail failures: {result.detail_failures}")
         self.stdout.write(f"Candidates created: {result.created}")

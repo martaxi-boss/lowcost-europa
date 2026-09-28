@@ -30,6 +30,7 @@ class CandidateDiscoveryResult:
     skipped_previously_rejected: int = 0
     skipped_known_other_family: int = 0
     skipped_not_shippable_to_pt: int = 0
+    skipped_ship_from_not_confirmed: int = 0
     failures: list[str] = field(default_factory=list)
     raw_product_ids: set[str] = field(default_factory=set)
 
@@ -153,6 +154,11 @@ def discover_family_candidates(
         if not relevant:
             _count_irrelevant(result, reason)
             continue
+
+        # The current AliExpressProduct contract has no authoritative individual
+        # ship-from field. Destination PT and delivery speed are not origin evidence.
+        result.skipped_ship_from_not_confirmed += 1
+        continue
 
         now = timezone.now()
         defaults = {

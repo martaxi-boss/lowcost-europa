@@ -7,6 +7,7 @@ from apps.catalog.models import Offer, OfferEditorialEvent, OfferFamilyPlacement
 from apps.catalog.services.public_eligibility import (
     MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY,
     is_protocol_verified,
+    is_ship_from_verified,
     public_eligibility_q,
 )
 
@@ -64,6 +65,8 @@ def publish_offer_to_storefront(offer, *, family, user, now=None):
         raise OwnerEditorialError("A oferta está indisponível")
     if not is_protocol_verified(locked, as_of=now):
         raise OwnerEditorialError("É necessária verificação inicial do protocolo antes de publicar")
+    if not is_ship_from_verified(locked, as_of=now):
+        raise OwnerEditorialError("É necessária confirmação do país de envio antes de publicar")
     if not locked.affiliate_url:
         raise OwnerEditorialError("A oferta não tem link de parceiro disponível")
     if locked.affiliate_promotion_status != Offer.AffiliatePromotionStatus.ELIGIBLE:
