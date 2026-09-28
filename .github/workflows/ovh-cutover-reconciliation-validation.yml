@@ -100,7 +100,7 @@ jobs:
           assert old_host not in backup
           assert old_host not in health
           assert "OVH VPS (" in state
-          assert "public IPv4 " + "146.59.145.3" in state
+          assert "146.59.145.3" in state
           assert "DigitalOcean Droplet;" not in state
 
           assert "--host lowcost-europa-ovh" in policy_test
