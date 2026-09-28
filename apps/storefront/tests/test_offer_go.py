@@ -65,12 +65,12 @@ class OfferGoTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 404)
         self.assertEqual(OfferClick.objects.count(), 0)
 
-    def test_missing_individual_ship_from_still_redirects_when_attestation_is_fresh(self):
+    def test_missing_individual_ship_from_is_404_without_click(self):
         self.offer.ship_from_country = None
         self.offer.ship_from_verified_at = None
         self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
-        self.assertEqual(self.client.get(self.url).status_code, 302)
-        self.assertEqual(OfferClick.objects.count(), 1)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(OfferClick.objects.count(), 0)
 
     def test_owner_hidden_returns_404_without_click(self):
         self.offer.owner_hidden = True
