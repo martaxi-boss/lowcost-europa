@@ -75,7 +75,6 @@ class KeywordQuality:
     @property
     def score(self):
         return (
-            self.approved * 12
             - self.accessory_rejected * 10
             - self.semantic_rejected * 8
             - self.wrong_family * 7
@@ -89,8 +88,8 @@ def interpret_decision(decision):
     title = decision.candidate.title or ""
     kinds = set()
     if decision.decision == CandidateDecision.Decision.APPROVE:
-        kinds.add(POSITIVE_SEMANTIC)
-        return DecisionLearning(frozenset(kinds), title, decision.note or "")
+        # Approval is protocol attestation, not a discovery-learning signal.
+        return DecisionLearning(frozenset(), title, decision.note or "")
 
     reason = decision.reason
     if reason == CandidateDecision.Reason.ACCESSORY_OR_PART:
@@ -103,7 +102,10 @@ def interpret_decision(decision):
         kinds.add(NEGATIVE_SEMANTIC)
     elif reason in _LOGISTICS_REASONS:
         kinds.add(LOGISTICS_NEGATIVE)
-    elif reason == CandidateDecision.Reason.LISTING_UNAVAILABLE:
+    elif reason in {
+        CandidateDecision.Reason.LISTING_UNAVAILABLE,
+        CandidateDecision.Reason.LISTING_CHANGED,
+    }:
         kinds.add(LISTING_FACTUAL_NEGATIVE)
     elif reason:
         kinds.add(NEUTRAL_CONTEXT)
@@ -159,12 +161,8 @@ def family_learning_snapshot(family):
             if kind in learning.kinds and learning.title:
                 buckets[kind].append(learning.title)
 
-    approved_titles = list(
-        OfferCandidate.objects.filter(
-            product_family=family, status=OfferCandidate.Status.APPROVED
-        ).values_list("title", flat=True)
-    )
-    positive_titles = tuple(dict.fromkeys([*approved_titles, *buckets[POSITIVE_SEMANTIC]]))
+    # Owner approval must never create positive discovery/ranking feedback.
+    positive_titles = ()
     move_positive = tuple(
         CandidateFamilyMoveEvent.objects.filter(to_family=family).values_list(
             "title_snapshot", flat=True
@@ -219,7 +217,6 @@ def keyword_quality(family, keyword, snapshot=None):
         )
     )
     groups = (
-        ("approved", snapshot.positive_titles),
         ("semantic_rejected", snapshot.semantic_negative_titles),
         ("accessory_rejected", snapshot.accessory_negative_titles),
         ("wrong_family", snapshot.classification_negative_titles),
@@ -231,6 +228,7 @@ def keyword_quality(family, keyword, snapshot=None):
         name: sum(_keyword_matches_title(keyword, title) for title in titles)
         for name, titles in groups
     }
+    counts["approved"] = 0
     return KeywordQuality(
         keyword=keyword, results_discovered=results_discovered, **counts
     )
