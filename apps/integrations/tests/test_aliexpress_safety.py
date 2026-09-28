@@ -1,6 +1,6 @@
 import fcntl
-import os
 import multiprocessing
+import os
 import tempfile
 import threading
 import time
