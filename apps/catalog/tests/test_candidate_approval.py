@@ -21,7 +21,7 @@ from apps.catalog.services.candidate_approval import (
     reject_candidate,
     revalidate_candidate,
 )
-from apps.catalog.services.public_eligibility import is_protocol_verification_fresh
+from apps.catalog.services.public_eligibility import is_protocol_verified
 from apps.integrations.aliexpress.exceptions import AliExpressAPIError, AliExpressTransportError
 
 
@@ -75,7 +75,7 @@ class CandidateApprovalTests(TestCase):
         self.assertEqual(result.offer.observations.count(), 1)
         self.assertIsNone(result.placement.selection_position)
         self.assertEqual(self.candidate.decisions.count(), 1)
-        self.assertTrue(is_protocol_verification_fresh(result.offer))
+        self.assertTrue(is_protocol_verified(result.offer))
 
     def test_candidate_and_offer_identities_are_global(self):
         other = ProductFamily.objects.create(name="RF", slug="rf")
