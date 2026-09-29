@@ -16,7 +16,6 @@ from apps.catalog.models import (
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
-from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
