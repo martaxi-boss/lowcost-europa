@@ -122,7 +122,7 @@ class WeeklyDiscoveryTests(TestCase):
             root / "deploy/systemd/lowcost-europa-weekly-discovery.service"
         ).read_text()
 
-        self.assertIn("OnCalendar=Sun *-*-* 06:40:00 UTC", timer)
+        self.assertIn("OnCalendar=Mon *-*-* 23:40:00 UTC", timer)
         self.assertIn("Persistent=true", timer)
         self.assertIn("run_weekly_discovery", service)
         self.assertIn("User=le001_1789265592", service)
