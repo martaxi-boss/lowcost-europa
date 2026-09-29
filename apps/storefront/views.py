@@ -9,13 +9,13 @@ from django.urls import reverse
 from django.utils.cache import patch_vary_headers
 
 from apps.catalog.models import (
-    CandidateDecision,
     Offer,
     OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
     ProductFamily,
 )
+from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
 from apps.catalog.services.observation_display import (
     build_observation_display,
