@@ -17,7 +17,7 @@ from apps.integrations.aliexpress.exceptions import (
     AliExpressRuntimeStateError,
 )
 
-MAINTENANCE_LOCK_PATH = "/tmp/lowcost-europa-catalog-maintenance.lock"
+MAINTENANCE_LOCK_PATH = "/run/lowcost-europa/catalog-maintenance.lock"
 
 _UNAVAILABLE_VALUES = frozenset(
     {
