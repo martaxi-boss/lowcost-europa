@@ -18,6 +18,7 @@ from apps.catalog.models import (
 )
 from apps.catalog.services.candidate_approval import (
     CandidateApprovalError,
+    OWNER_REJECTION_REASON_CHOICES,
     approve_candidate,
     reject_candidate,
     revalidate_candidate,
@@ -37,19 +38,10 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import (
-    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
     is_protocol_verified,
     public_eligibility_q,
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
-
-SEMANTIC_REJECTION_CHOICES = (
-    (CandidateDecision.Reason.WRONG_FAMILY, "Produto da família errada"),
-    (CandidateDecision.Reason.ACCESSORY_OR_PART, "Acessório / peça / consumível"),
-    (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
-    (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
-)
-
 
 def _private(response):
     response["X-Robots-Tag"] = "noindex, nofollow"
@@ -320,9 +312,7 @@ def family_manage(request, family_slug):
                 "families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
                 .exclude(pk=family.pk)
                 .order_by("display_order", "name", "pk"),
-                "review_signals": CandidateDecision.ReviewSignal.choices,
-                "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
-                "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
+                "rejection_reason_choices": OWNER_REJECTION_REASON_CHOICES,
                 "owner_error": error,
                 "owner_notice": notice,
             },
@@ -408,11 +398,8 @@ def candidate_approve(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
     candidate = _candidate_or_404(family, candidate_id)
     try:
-        approve_candidate(
-            candidate,
-            user=request.user,
-            ship_from_country=request.POST.get("ship_from_country", ""),
-        )
+        approve_candidate(candidate, user=request.user)
+        request.session["owner_panel_notice"] = "Produto aprovado."
     except AliExpressRateLimitError:
         request.session["owner_panel_error"] = (
             "A AliExpress está temporariamente indisponível. "
@@ -432,7 +419,6 @@ def candidate_reject(request, family_slug, candidate_id):
         reject_candidate(
             candidate,
             user=request.user,
-            review_signals=request.POST.getlist("review_signals"),
             reason=request.POST.get("reason", ""),
             note=request.POST.get("note", ""),
         )
