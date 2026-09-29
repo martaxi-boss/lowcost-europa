@@ -1,0 +1,14 @@
+[Unit]
+Description=Lowcost Europa weekly five-family discovery
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=le001_1789265592
+WorkingDirectory=/srv/lowcost-europa
+EnvironmentFile=/etc/lowcost-europa/lowcost-europa.env
+ExecStart=/srv/lowcost-europa/.venv/bin/python manage.py run_weekly_discovery
+TimeoutStartSec=45min
+PrivateTmp=true
+NoNewPrivileges=true
