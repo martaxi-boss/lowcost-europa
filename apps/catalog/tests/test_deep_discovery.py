@@ -88,7 +88,7 @@ class DeepDiscoveryTests(TestCase):
         with self.assertRaisesMessage(ValueError, "page_no must be at least 1"):
             discover_family_candidates(self.family, "diode laser", page_no=0, client=Mock())
 
-    def test_distinct_pages_do_not_create_candidates_without_origin_confirmation(self):
+    def test_distinct_pages_create_pending_candidates_without_origin_confirmation(self):
         client = Mock()
         one = self.product("p1")
         two = self.product("p2")
@@ -96,14 +96,16 @@ class DeepDiscoveryTests(TestCase):
             AliExpressSearchResult(products=[one]),
             AliExpressSearchResult(products=[two, one]),
         ]
-        client.get_product_detail.side_effect = [one, two, one]
+        client.get_product_detail.side_effect = [one, two]
         first = discover_family_candidates(self.family, "diode laser", page_no=1, client=client)
         second = discover_family_candidates(self.family, "diode laser", page_no=2, client=client)
-        self.assertEqual(first.created, 0)
-        self.assertEqual(second.created, 0)
-        self.assertEqual(first.skipped_ship_from_not_confirmed, 1)
-        self.assertEqual(second.skipped_ship_from_not_confirmed, 2)
-        self.assertEqual(OfferCandidate.objects.count(), 0)
+        self.assertEqual(first.created, 1)
+        self.assertEqual(second.created, 1)
+        self.assertEqual(first.skipped_ship_from_not_confirmed, 0)
+        self.assertEqual(second.skipped_ship_from_not_confirmed, 0)
+        self.assertEqual(
+            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 2
+        )
 
     def test_empty_page_stops_keyword(self):
         client = Mock()
@@ -123,8 +125,9 @@ class DeepDiscoveryTests(TestCase):
         result = discover_family_deep(self.family, ["diode laser"], max_details=1, client=client)
         self.assertEqual(result.search_operations, 2)
         self.assertEqual(result.pages[-1].stop_reason, "NO_NEW_IDS")
-        self.assertEqual(OfferCandidate.objects.count(), 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 2)
+        self.assertEqual(OfferCandidate.objects.count(), 1)
+        self.assertEqual(result.created, 1)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
 
     def test_search_abort_preserves_last_checkpoint_and_prior_page_metrics(self):
         client = Mock()
@@ -140,8 +143,8 @@ class DeepDiscoveryTests(TestCase):
             )
         result = caught.exception.deep_discovery_result
         self.assertEqual(result.search_operations, 1)
-        self.assertEqual(result.created, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 1)
+        self.assertEqual(result.created, 1)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
         self.assertEqual(result.last_keyword, "diode laser")
         self.assertEqual(result.last_page, 2)
         self.assertEqual(result.stop_reason, "AliExpressResponseError")
@@ -157,10 +160,10 @@ class DeepDiscoveryTests(TestCase):
             self.family, ["diode laser"], max_pages=2, max_details=1, client=client
         )
         self.assertEqual(result.search_operations, 2)
-        self.assertEqual(OfferCandidate.objects.count(), 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 2)
+        self.assertEqual(OfferCandidate.objects.count(), 2)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
 
-    def test_deep_discovery_skips_all_unqualified_candidates_without_origin(self):
+    def test_deep_discovery_places_reviewable_unknown_origin_products_in_pending(self):
         client = Mock()
         pages = []
         details = []
@@ -178,10 +181,10 @@ class DeepDiscoveryTests(TestCase):
             max_details=8,
             client=client,
         )
-        self.assertEqual(result.created, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 24)
+        self.assertEqual(result.created, 24)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
         self.assertEqual(
-            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 0
+            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 24
         )
 
     def test_global_dedupe_skips_offer_rejected_other_family_and_existing_candidate(self):
@@ -216,7 +219,7 @@ class DeepDiscoveryTests(TestCase):
         self.assertEqual(result.skipped_existing_candidate, 1)
         client.get_product_detail.assert_not_called()
 
-    def test_laser_learning_labels_and_logistics_rejection_isolation(self):
+    def test_approval_does_not_train_ranking_and_logistics_rejection_stays_isolated(self):
         approved_titles = (
             "Professional picosecond laser tattoo removal machine",
             "Q-switched Nd:YAG tattoo removal machine",
@@ -245,7 +248,6 @@ class DeepDiscoveryTests(TestCase):
             decided_by=self.user,
         )
         _, learned, negatives = _learning_inputs(self.family)
-        for label in ("PICOSECOND", "Q-SWITCH ND:YAG", "TATTOO REMOVAL", "DIODE + PICO"):
-            self.assertIn(label, learned)
+        self.assertEqual(learned, frozenset())
         self.assertNotIn(rejected.title, negatives)
         self.assertGreaterEqual(len(LASER_TATTOO_PROFILE.search_keywords), 7)
