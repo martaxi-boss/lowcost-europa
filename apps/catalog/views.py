@@ -5,25 +5,17 @@ from django.views.decorators.http import require_POST
 from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
 from apps.catalog.services.candidate_approval import (
     CandidateApprovalError,
+    OWNER_REJECTION_REASON_CHOICES,
     approve_candidate,
     reject_candidate,
     revalidate_candidate,
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.public_eligibility import (
-    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
     is_protocol_verified,
     public_eligibility_q,
 )
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
-
-SEMANTIC_REJECTION_CHOICES = (
-    (CandidateDecision.Reason.WRONG_FAMILY, "Produto da família errada"),
-    (CandidateDecision.Reason.ACCESSORY_OR_PART, "Acessório / peça / consumível"),
-    (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
-    (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
-)
-
 
 def _ops_headers(response):
     response["X-Robots-Tag"] = "noindex, nofollow"
@@ -109,9 +101,7 @@ def candidate_queue(request, family_slug):
             "families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
             .exclude(pk=family.pk)
             .order_by("display_order", "pk"),
-            "review_signals": CandidateDecision.ReviewSignal.choices,
-            "semantic_rejection_choices": SEMANTIC_REJECTION_CHOICES,
-            "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
+            "rejection_reason_choices": OWNER_REJECTION_REASON_CHOICES,
         },
     )
     return _ops_headers(response)
@@ -130,11 +120,7 @@ def _candidate_for_family(candidate_id, family_slug):
 def candidate_approve(request, family_slug, candidate_id):
     candidate = _candidate_for_family(candidate_id, family_slug)
     try:
-        approve_candidate(
-            candidate,
-            user=request.user,
-            ship_from_country=request.POST.get("ship_from_country", ""),
-        )
+        approve_candidate(candidate, user=request.user)
     except AliExpressRateLimitError:
         request.session["ops_error"] = (
             "A AliExpress está temporariamente indisponível. "
@@ -153,7 +139,6 @@ def candidate_reject(request, family_slug, candidate_id):
         reject_candidate(
             candidate,
             user=request.user,
-            review_signals=request.POST.getlist("review_signals"),
             reason=request.POST.get("reason", ""),
             note=request.POST.get("note", ""),
         )
