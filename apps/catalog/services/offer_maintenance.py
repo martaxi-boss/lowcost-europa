@@ -5,6 +5,7 @@ import stat
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
+from django.conf import settings
 from django.db.models import F, Max
 from django.utils import timezone
 
@@ -115,7 +116,8 @@ def is_factually_available(product):
 
 
 @contextmanager
-def maintenance_run_lock(path=MAINTENANCE_LOCK_PATH):
+def maintenance_run_lock(path=None):
+    path = path or getattr(settings, "CATALOG_MAINTENANCE_LOCK_PATH", MAINTENANCE_LOCK_PATH)
     flags = os.O_RDWR | os.O_CREAT | os.O_CLOEXEC
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
