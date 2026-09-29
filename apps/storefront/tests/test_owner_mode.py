@@ -114,20 +114,17 @@ class StorefrontOwnerModeTests(TestCase):
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         self.assertIn("Cookie", response.get("Vary", ""))
 
-    def test_rever_tab_shows_only_pending_and_exact_five_signals(self):
+    def test_rever_tab_shows_pending_with_one_click_approve_and_reason_selector(self):
         self.client.force_login(self.staff)
         response = self.client.get(f"{self.url}?gestao=rever")
         self.assertContains(response, "Private pending candidate")
         self.assertNotContains(response, "Private hidden approved offer")
         self.assertNotContains(response, "Rejected candidate")
-        self.assertContains(response, 'name="review_signals"', count=5)
-        for label in dict(CandidateDecision.ReviewSignal.choices).values():
-            self.assertContains(response, label)
+        self.assertContains(response, "APROVAR")
+        self.assertContains(response, "MOTIVO DA REJEIÇÃO")
+        self.assertNotContains(response, 'name="review_signals"')
+        self.assertNotContains(response, 'name="ship_from_country"')
         self.assertContains(response, "Mudar família")
-        self.assertNotContains(response, 'name="delivers_to_pt_confirmed"')
-        self.assertContains(response, 'name="ship_from_country"')
-        for country in ("PL", "CZ", "FR", "ES", "DE"):
-            self.assertContains(response, f'value="{country}"', html=False)
         self.assertContains(response, 'name="note"')
 
     def test_approved_hidden_is_distinct_from_editorially_retired(self):
@@ -216,7 +213,6 @@ class StorefrontOwnerModeTests(TestCase):
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
             {
                 "next": f"{self.url}?gestao=rever#gestao-owner",
-                "ship_from_country": "PL",
             },
         )
         self.assertRedirects(
@@ -233,18 +229,19 @@ class StorefrontOwnerModeTests(TestCase):
             external_product_id="reject-inline",
             title="Reject inline",
         )
-        signals = [
-            CandidateDecision.ReviewSignal.DOES_NOT_SHIP_TO_PT,
-            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
-        ]
         response = self.client.post(
             reverse("owner-panel:candidate-reject", args=[self.family.slug, reject_candidate.pk]),
-            {"review_signals": signals, "next": f"{self.url}?gestao=rever#gestao-owner"},
+            {
+                "reason": CandidateDecision.Reason.ORIGIN_NOT_ALLOWED,
+                "next": f"{self.url}?gestao=rever#gestao-owner",
+            },
         )
         self.assertEqual(response.status_code, 302)
         reject_candidate.refresh_from_db()
         self.assertEqual(reject_candidate.status, OfferCandidate.Status.REJECTED)
-        self.assertEqual(reject_candidate.decisions.get().review_signals, signals)
+        decision = reject_candidate.decisions.get()
+        self.assertEqual(decision.reason, CandidateDecision.Reason.ORIGIN_NOT_ALLOWED)
+        self.assertEqual(decision.review_signals, [])
         move_candidate = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
