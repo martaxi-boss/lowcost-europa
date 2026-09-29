@@ -6,7 +6,7 @@ from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressR
 
 
 class Command(BaseCommand):
-    help = "Import one known AliExpress product into Offer and OfferObservation."
+    help = "Diagnostic-only legacy AliExpress product import; never persists an Offer."
 
     def add_arguments(self, parser):
         parser.add_argument("--product-id", required=True)
@@ -15,6 +15,10 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
+        if not options["dry_run"]:
+            raise CommandError(
+                "Importação direta de Offer desativada; use --dry-run ou a fila A rever."
+            )
         client = AliExpressClient()
         try:
             result = import_aliexpress_product(
