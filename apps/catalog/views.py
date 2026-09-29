@@ -4,8 +4,8 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, ProductFamily
 from apps.catalog.services.candidate_approval import (
-    CandidateApprovalError,
     OWNER_REJECTION_REASON_CHOICES,
+    CandidateApprovalError,
     approve_candidate,
     reject_candidate,
     revalidate_candidate,
