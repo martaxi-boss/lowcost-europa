@@ -44,52 +44,49 @@ class CandidateApprovalTests(TestCase):
         self.client_api = Mock()
         self.client_api.generate_affiliate_link.return_value = "https://affiliate.example/1"
 
-    def approve(self, candidate=None, now=None, ship_from_country="PL"):
+    def approve(self, candidate=None, now=None):
         return approve_candidate(
             candidate or self.candidate,
             user=self.user,
-            ship_from_country=ship_from_country,
             client=self.client_api,
             now=now,
         )
 
-    def test_approval_without_country_is_rejected_before_affiliate_generation(self):
-        with self.assertRaises(CandidateApprovalError):
-            self.approve(ship_from_country="")
+    def test_approval_requires_no_country_and_records_composite_protocol_attestation(self):
+        now = timezone.now()
+        result = self.approve(now=now)
 
         self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
-        self.assertEqual(self.candidate.decisions.count(), 0)
-        self.client_api.generate_affiliate_link.assert_not_called()
+        result.offer.refresh_from_db()
+        self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
+        self.assertEqual(result.offer.protocol_verified_at, now)
+        self.assertIsNone(result.offer.ship_from_country)
+        self.assertIsNone(result.offer.ship_from_verified_at)
+        self.assertEqual(result.decision.ship_from_country, "")
+        self.assertEqual(result.decision.review_signals, [])
+        self.client_api.generate_affiliate_link.assert_called_once_with(
+            self.candidate.product_url
+        )
 
-    def test_approval_invalid_country_is_rejected_before_affiliate_generation(self):
-        for country in ("CN", "US", "XX"):
-            with self.subTest(country=country):
-                with self.assertRaises(CandidateApprovalError):
-                    self.approve(ship_from_country=country)
-        self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
-        self.client_api.generate_affiliate_link.assert_not_called()
-
-    def test_all_allowed_countries_are_stored_on_successful_approval(self):
-        for index, country in enumerate(("PL", "CZ", "FR", "ES", "DE")):
-            candidate = self.candidate
-            if index:
-                candidate = OfferCandidate.objects.create(
-                    product_family=self.family,
-                    source=Offer.Source.ALIEXPRESS,
-                    external_product_id=f"allowed-{country}",
-                    title=f"Allowed {country}",
-                    product_url=f"https://www.aliexpress.com/item/{country}.html",
-                )
-            now = timezone.now()
-            result = self.approve(candidate, now=now, ship_from_country=country)
-            result.offer.refresh_from_db()
-            self.assertEqual(result.offer.ship_from_country, country)
-            self.assertEqual(result.offer.ship_from_verified_at, now)
-            self.assertEqual(result.offer.protocol_verified_at, now)
-            self.assertEqual(result.decision.ship_from_country, country)
-            self.assertTrue(result.offer.owner_hidden)
+    def test_approval_preserves_independently_known_exact_country_metadata(self):
+        historical = timezone.now() - timedelta(days=30)
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="known-country",
+            ship_from_country="ES",
+            ship_from_verified_at=historical,
+            owner_hidden=True,
+        )
+        candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id=offer.external_product_id,
+            product_url="https://www.aliexpress.com/item/known-country.html",
+        )
+        result = self.approve(candidate, now=timezone.now())
+        result.offer.refresh_from_db()
+        self.assertEqual(result.offer.ship_from_country, "ES")
+        self.assertEqual(result.offer.ship_from_verified_at, historical)
 
     def test_approval_creates_hidden_offer_observation_placement_and_history(self):
         result = self.approve()
@@ -122,7 +119,7 @@ class CandidateApprovalTests(TestCase):
             with transaction.atomic():
                 Offer.objects.create(source=Offer.Source.ALIEXPRESS, external_product_id="same")
 
-    def test_existing_offer_refreshes_explicitly_reconfirmed_country_and_preserves_hidden(self):
+    def test_existing_offer_approval_preserves_factual_country_and_hidden_state(self):
         verified_at = timezone.now() - timedelta(days=2)
         legacy = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
@@ -140,12 +137,13 @@ class CandidateApprovalTests(TestCase):
             product_url="https://example.com/legacy",
         )
         now = timezone.now()
-        result = self.approve(candidate, now=now, ship_from_country="ES")
+        result = self.approve(candidate, now=now)
         result.offer.refresh_from_db()
         self.assertEqual(result.offer.pk, legacy.pk)
         self.assertTrue(result.offer.owner_hidden)
-        self.assertEqual(result.offer.ship_from_country, "ES")
-        self.assertEqual(result.offer.ship_from_verified_at, now)
+        self.assertEqual(result.offer.ship_from_country, "PL")
+        self.assertEqual(result.offer.ship_from_verified_at, verified_at)
+        self.assertEqual(result.offer.protocol_verified_at, now)
 
     def test_existing_offer_always_replaces_old_affiliate_link(self):
         old_url = "https://affiliate.example/old"
@@ -231,7 +229,6 @@ class CandidateApprovalTests(TestCase):
                 approve_candidate(
                     candidate,
                     user=self.user,
-                    ship_from_country="PL",
                     client=api,
                     now=now,
                 )
@@ -275,7 +272,7 @@ class CandidateApprovalTests(TestCase):
         api.generate_affiliate_link.side_effect = AliExpressTransportError("temporary")
 
         with self.assertRaises(AliExpressTransportError):
-            approve_candidate(candidate, user=self.user, ship_from_country="PL", client=api)
+            approve_candidate(candidate, user=self.user, client=api)
 
         candidate.refresh_from_db()
         offer.refresh_from_db()
@@ -311,7 +308,7 @@ class CandidateApprovalTests(TestCase):
         )
 
         with self.assertRaises(AliExpressAPIError):
-            approve_candidate(candidate, user=self.user, ship_from_country="PL", client=api)
+            approve_candidate(candidate, user=self.user, client=api)
 
         candidate.refresh_from_db()
         offer.refresh_from_db()
@@ -337,7 +334,7 @@ class CandidateApprovalTests(TestCase):
                 api = Mock()
 
                 with self.assertRaises(CandidateApprovalError):
-                    approve_candidate(candidate, user=self.user, ship_from_country="PL", client=api)
+                    approve_candidate(candidate, user=self.user, client=api)
 
                 api.generate_affiliate_link.assert_not_called()
 
@@ -385,89 +382,71 @@ class CandidateApprovalTests(TestCase):
         self.assertIsNone(result.offer.protocol_verified_at)
 
 
-class CandidateRejectionSignalTests(TestCase):
+class CandidateRejectionReasonTests(TestCase):
     def setUp(self):
         self.family = ProductFamily.objects.create(name="HIFU", slug="hifu-signals")
         self.user = get_user_model().objects.create_user(
-            username="signal-staff", password="x", is_staff=True
+            username="reason-staff", password="x", is_staff=True
         )
         self.candidate = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
-            external_product_id="signal-candidate",
+            external_product_id="reason-candidate",
             title="Professional HIFU machine",
         )
 
-    def reject(self, signals):
-        return reject_candidate(self.candidate, user=self.user, review_signals=signals)
-
-    def test_zero_signals_is_blocked_without_rejecting_candidate(self):
+    def test_rejection_requires_one_primary_reason(self):
         with self.assertRaises(CandidateApprovalError):
-            self.reject([])
+            reject_candidate(self.candidate, user=self.user)
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
         self.assertEqual(self.candidate.decisions.count(), 0)
 
-    def test_each_signal_can_be_persisted_individually(self):
-        for index, signal in enumerate(CandidateDecision.ReviewSignal.values):
+    def test_every_owner_reason_can_be_persisted(self):
+        for index, reason in enumerate(
+            value
+            for value in CandidateDecision.Reason.values
+            if value != CandidateDecision.Reason.IRRELEVANT
+        ):
             candidate = OfferCandidate.objects.create(
                 product_family=self.family,
                 source=Offer.Source.ALIEXPRESS,
-                external_product_id=f"single-{index}",
+                external_product_id=f"reason-{index}",
             )
-            decision = reject_candidate(candidate, user=self.user, review_signals=[signal])
-            self.assertEqual(decision.review_signals, [signal])
-            self.assertEqual(decision.reason, "")
+            note = "Detalhe adicional" if reason == CandidateDecision.Reason.OTHER else ""
+            decision = reject_candidate(
+                candidate,
+                user=self.user,
+                reason=reason,
+                note=note,
+            )
+            self.assertEqual(decision.reason, reason)
+            self.assertEqual(decision.review_signals, [])
 
-    def test_review_signals_preserve_free_text_note(self):
+    def test_other_reason_requires_observation(self):
+        with self.assertRaises(CandidateApprovalError):
+            reject_candidate(
+                self.candidate,
+                user=self.user,
+                reason=CandidateDecision.Reason.OTHER,
+            )
         decision = reject_candidate(
             self.candidate,
             user=self.user,
-            review_signals=[CandidateDecision.ReviewSignal.LISTING_UNAVAILABLE],
-            note="é só a peça da pega",
+            reason=CandidateDecision.Reason.OTHER,
+            note="Motivo comercial específico observado pelo Owner.",
         )
-        self.assertEqual(decision.note, "é só a peça da pega")
+        self.assertEqual(decision.note, "Motivo comercial específico observado pelo Owner.")
 
-    def test_two_signals_are_persisted_in_one_decision(self):
-        signals = [
-            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
-            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
-        ]
-        decision = self.reject(signals)
-        self.assertEqual(decision.review_signals, signals)
-        self.assertEqual(self.candidate.decisions.count(), 1)
-
-    def test_all_five_signals_are_persisted_in_one_decision(self):
-        decision = self.reject(list(CandidateDecision.ReviewSignal.values))
-        self.assertEqual(decision.review_signals, list(CandidateDecision.ReviewSignal.values))
-        self.assertEqual(self.candidate.decisions.count(), 1)
-
-    def test_duplicate_signal_is_stored_once(self):
-        signal = CandidateDecision.ReviewSignal.LISTING_UNAVAILABLE
-        decision = self.reject([signal, signal])
-        self.assertEqual(decision.review_signals, [signal])
-
-    def test_unknown_signal_is_rejected_server_side(self):
-        with self.assertRaises(CandidateApprovalError):
-            self.reject(["UNKNOWN_SIGNAL"])
-        self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
-        self.assertEqual(self.candidate.decisions.count(), 0)
-
-    def test_rejection_sets_candidate_rejected(self):
-        self.reject([CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED])
+    def test_note_is_optional_for_specific_rejection_reason(self):
+        decision = reject_candidate(
+            self.candidate,
+            user=self.user,
+            reason=CandidateDecision.Reason.LISTING_UNAVAILABLE,
+        )
+        self.assertEqual(decision.note, "")
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
-
-    def test_legacy_reason_history_is_preserved(self):
-        decision = reject_candidate(
-            self.candidate,
-            user=self.user,
-            reason=CandidateDecision.Reason.WRONG_FAMILY,
-        )
-        self.assertEqual(decision.reason, CandidateDecision.Reason.WRONG_FAMILY)
-        self.assertEqual(decision.review_signals, [])
-
 
 class CandidateQueueAccessTests(TestCase):
     def setUp(self):
