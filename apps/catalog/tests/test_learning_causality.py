@@ -50,7 +50,7 @@ class LearningCausalityTests(TestCase):
         self.assertIn("Good model wrong origin", learning.logistics_negative_titles)
         self.assertNotIn("Good model wrong origin", learning.semantic_negative_titles)
 
-    def test_move_then_positive_learning_belongs_to_final_family(self):
+    def test_approval_after_move_does_not_create_positive_variant_learning(self):
         candidate = OfferCandidate.objects.create(
             product_family=self.hifu,
             source=Offer.Source.ALIEXPRESS,
@@ -64,7 +64,7 @@ class LearningCausalityTests(TestCase):
         _, hifu_variants, _ = _learning_inputs(self.hifu)
         _, cav_variants, _ = _learning_inputs(self.cav)
         self.assertNotIn("6-IN-1", hifu_variants)
-        self.assertIn("6-IN-1", cav_variants)
+        self.assertNotIn("6-IN-1", cav_variants)
 
     def test_move_is_classification_learning_without_auto_approval(self):
         candidate = OfferCandidate.objects.create(
