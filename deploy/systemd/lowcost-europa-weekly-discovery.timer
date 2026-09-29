@@ -2,7 +2,7 @@
 Description=Run Lowcost Europa five-family discovery weekly
 
 [Timer]
-OnCalendar=Sun *-*-* 06:40:00 UTC
+OnCalendar=Mon *-*-* 23:40:00 UTC
 Persistent=true
 RandomizedDelaySec=0
 Unit=lowcost-europa-weekly-discovery.service
