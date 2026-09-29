@@ -10,15 +10,14 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.catalog.models import (
-    CandidateDecision,
     Offer,
     OfferCandidate,
     OfferFamilyPlacement,
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import (
-    CandidateApprovalError,
     OWNER_REJECTION_REASON_CHOICES,
+    CandidateApprovalError,
     approve_candidate,
     reject_candidate,
     revalidate_candidate,
