@@ -43,6 +43,10 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
+        if not options["dry_run"]:
+            raise CommandError(
+                "Este comando legado é apenas diagnóstico; use --dry-run ou a fila A rever."
+            )
         try:
             validate_limit(options["limit"])
             target_language = validate_target_language(options["target_language"])
