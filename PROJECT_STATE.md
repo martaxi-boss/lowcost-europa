@@ -31,7 +31,7 @@ Updated: 2026-09-19.
 - **Technical controlled pilot baseline:** AUTHORIZED / READY
 - **External real-user pilot:** PENDING FINAL ACTIVATION INPUTS
 - **New product discovery:** AUTOMATIC WEEKLY / FIVE FAMILIES / HUMAN REVIEW ONLY
-- **Weekly discovery schedule:** Sunday 06:40 UTC (`lowcost-europa-weekly-discovery.timer`, `Persistent=true`)
+- **Weekly discovery schedule:** Monday 23:40 UTC (`lowcost-europa-weekly-discovery.timer`, `Persistent=true`)
 - **HIFU logistics recovery:** PAUSED (separate from bounded weekly candidate discovery)
 
 `PROJECT_STATE.md` is documentation. A documentation-only merge may advance `main` without changing the deployed application/runtime code. Runtime synchronization, when required by governance, is a separate operation and does not by itself imply an application restart.
@@ -166,7 +166,7 @@ Latest catalog-maintenance service result: **success**, `ExecMainStatus=0`.
 
 ## Discovery / Learning Authorization State
 
-Current Owner authorization permits **one bounded automatic weekly discovery campaign across all five operational families**. The production schedule is **Sunday 06:40 UTC**, implemented by `lowcost-europa-weekly-discovery.service` + `lowcost-europa-weekly-discovery.timer` with `Persistent=true`.
+Current Owner authorization permits **one bounded automatic weekly discovery campaign across all five operational families**. The production schedule is **Monday 23:40 UTC**, implemented by `lowcost-europa-weekly-discovery.service` + `lowcost-europa-weekly-discovery.timer` with `Persistent=true`.
 
 The five families are processed **sequentially**, using the existing shared AliExpress lock/cadence/retry/rate-limit controls. The default pending-queue cap is **20 per family**; a family already at or above the cap is reported but receives no new detail budget. Zero new candidates is an acceptable outcome.
 
