@@ -30,8 +30,9 @@ Updated: 2026-09-19.
 - **Next human action:** Owner decides when to provide final domain and operator/business information and initiate the final activation sequence.
 - **Technical controlled pilot baseline:** AUTHORIZED / READY
 - **External real-user pilot:** PENDING FINAL ACTIVATION INPUTS
-- **New product discovery:** NO
-- **HIFU logistics recovery:** PAUSED
+- **New product discovery:** AUTOMATIC WEEKLY / FIVE FAMILIES / HUMAN REVIEW ONLY
+- **Weekly discovery schedule:** Monday 23:40 UTC (`lowcost-europa-weekly-discovery.timer`, `Persistent=true`)
+- **HIFU logistics recovery:** PAUSED (separate from bounded weekly candidate discovery)
 
 `PROJECT_STATE.md` is documentation. A documentation-only merge may advance `main` without changing the deployed application/runtime code. Runtime synchronization, when required by governance, is a separate operation and does not by itself imply an application restart.
 
@@ -91,7 +92,7 @@ The sanctioned shipping-origin set remains:
 
 The protocol continues to require human confirmation of delivery to Portugal and the approved commercial/editorial criteria. No unsupported AliExpress search parameter is invented to guarantee shipping origin.
 
-`protocol_verified_at` is the human protocol verification timestamp.
+`protocol_verified_at` is the human protocol verification timestamp. Exact `ship_from_country` / `ship_from_verified_at` remain optional factual metadata when independently known; they are not a second manual approval or public-eligibility gate after valid Owner protocol attestation.
 
 - Initial protocol verification is required.
 - Age expiry: **NONE**.
@@ -165,11 +166,13 @@ Latest catalog-maintenance service result: **success**, `ExecMainStatus=0`.
 
 ## Discovery / Learning Authorization State
 
-Current Phase 4 state authorizes **no new product discovery** and **no AliExpress live discovery operations**.
+Current Owner authorization permits **one bounded automatic weekly discovery campaign across all five operational families**. The production schedule is **Monday 23:40 UTC**, implemented by `lowcost-europa-weekly-discovery.service` + `lowcost-europa-weekly-discovery.timer` with `Persistent=true`.
 
-Historic HIFU/Cavitation discovery and family-learning evidence remains in dedicated project/audit documents and in the historical section below. Those historic pilot gates must not be interpreted as authorization to start discovery now.
+The five families are processed **sequentially**, using the existing shared AliExpress lock/cadence/retry/rate-limit controls. The default pending-queue cap is **20 per family**; a family already at or above the cap is reported but receives no new detail budget. Zero new candidates is an acceptable outcome.
 
-Learning remains deterministic and family-isolated where invoked by an authorized workflow. Country/logistics signals are not to be misused as semantic product-type penalties.
+Discovery may create only `OfferCandidate(status=PENDING)` records shown to the Owner as **A rever**. It must not auto-approve, auto-publish, generate final affiliate links, create `protocol_verified_at`, or mutate existing Offer editorial state. Unknown exact ship-from origin alone does not discard an otherwise reviewable candidate; the Owner inspects the listing and makes the protocol decision.
+
+Approval is a human protocol attestation and is **not** a positive discovery-learning signal. Rejections remain the learning signal, with family-isolated negative learning and exact historical rejection dedupe.
 
 ## Backups and Disaster Recovery
 
@@ -372,7 +375,7 @@ The following chronology is retained as project history. It is **not** the curre
 - CATALOG STRUCTURE 001, EIGHT-FAMILY TAXONOMY 001, STOREFRONT PLACEMENT MIGRATION 001 and STOREFRONT VISUAL & COMMERCIAL ENHANCEMENT 001 were approved, merged, deployed and closed.
 - The public catalog moved to `OfferFamilyPlacement` as source of truth.
 - Candidate discovery, global dedupe, family-specific deterministic learning, human review, public eligibility, maintenance and revalidation/deactivation were subsequently added and hardened.
-- HIFU broad discovery was formally closed after the authorized final push; no further HIFU SEARCH calls are authorized in this phase.
+- At that historical milestone, HIFU broad discovery was formally closed after the then-authorized final push. This restriction was later superseded by the current bounded weekly five-family discovery authorization documented above.
 - Automatic maintenance reactivation was prohibited and merged before the current baseline.
 - The final five-option multi-signal rejection UI was merged and deployed in PR #80, leading to the then-current baseline `4abc19b636e2bf0b2f6068ee7b1065beb2a39b16`.
 - PR #108 completed and merged the Phase 4 ChangeSet 2 documentation closeout at merge commit `74b94ba59cae71701a933637c91809dd2ab9d313`.
@@ -395,7 +398,8 @@ Historical detailed evidence remains in repository audit and phase documents. Th
 - **LEGAL / PRIVACY AUDIT:** COMPLETED.
 - **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.
 - **FINAL COMMERCIAL DOMAIN:** PENDING.
-- **HIFU RECOVERY:** PAUSED.
+- **HIFU RECOVERY:** PAUSED (separate logistics-recovery workstream).
+- **WEEKLY FIVE-FAMILY DISCOVERY:** AUTHORIZED / AUTOMATIC / PENDING-ONLY.
 - **NEW MASS DISCOVERY:** NO.
 - **ARCHITECTURE REBUILD:** NO.
 - **PRIVATE LOGIN PROTECTION 001:** CLOSED / PASS.

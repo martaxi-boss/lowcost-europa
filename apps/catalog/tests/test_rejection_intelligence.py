@@ -11,7 +11,6 @@ from apps.catalog.services.candidate_learning import (
     NEGATIVE_CLASSIFICATION,
     NEGATIVE_SEMANTIC,
     NEUTRAL_CONTEXT,
-    POSITIVE_SEMANTIC,
     QUALITY_NEGATIVE,
     family_learning_snapshot,
     interpret_decision,
@@ -63,7 +62,7 @@ class RejectionIntelligenceTests(TestCase):
             commission_rate=Decimal("5"),
         )
 
-    def test_approval_is_positive_semantic_and_learns_variants(self):
+    def test_approval_is_neutral_and_does_not_learn_variants_or_ranking(self):
         approved = self.candidate(
             "approved",
             "Professional picosecond tattoo removal machine",
@@ -74,9 +73,9 @@ class RejectionIntelligenceTests(TestCase):
             decision=CandidateDecision.Decision.APPROVE,
             decided_by=self.user,
         )
-        self.assertIn(POSITIVE_SEMANTIC, interpret_decision(decision).kinds)
+        self.assertEqual(interpret_decision(decision).kinds, frozenset())
         snapshot = family_learning_snapshot(self.family)
-        self.assertIn("PICOSECOND", snapshot.learned_variants)
+        self.assertNotIn("PICOSECOND", snapshot.learned_variants)
         learned = priority_for_family(
             self.product("Professional picosecond tattoo removal machine"),
             self.family.slug,
@@ -86,7 +85,7 @@ class RejectionIntelligenceTests(TestCase):
             self.product("Professional picosecond tattoo removal machine"),
             self.family.slug,
         )[0]
-        self.assertGreater(learned, baseline)
+        self.assertEqual(learned, baseline)
 
     def test_accessory_rejection_is_semantic_and_strongly_downranks_pattern(self):
         title = "Replacement diode laser handle accessory"

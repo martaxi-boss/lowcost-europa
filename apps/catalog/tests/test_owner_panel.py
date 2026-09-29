@@ -263,27 +263,27 @@ class OwnerEditorialServiceTests(TestCase):
         self.offer.refresh_from_db()
         self.assertTrue(self.offer.owner_hidden)
 
-    def test_publish_without_shipping_confirmation_is_blocked(self):
+    def test_publish_without_exact_shipping_metadata_uses_owner_protocol_attestation(self):
         self.offer.owner_hidden = True
         self.offer.ship_from_country = None
         self.offer.ship_from_verified_at = None
         self.offer.save(
             update_fields=["owner_hidden", "ship_from_country", "ship_from_verified_at"]
         )
-        with self.assertRaises(OwnerEditorialError):
-            publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
+        result = publish_offer_to_storefront(self.offer, family=self.family, user=self.user)
         self.offer.refresh_from_db()
-        self.assertTrue(self.offer.owner_hidden)
+        self.assertTrue(result.changed)
+        self.assertFalse(self.offer.owner_hidden)
 
-    def test_publish_with_future_shipping_verification_is_blocked(self):
+    def test_future_optional_shipping_metadata_does_not_block_owner_protocol(self):
         now = timezone.now()
         self.offer.owner_hidden = True
         self.offer.ship_from_verified_at = now + timedelta(hours=1)
         self.offer.save(update_fields=["owner_hidden", "ship_from_verified_at"])
-        with self.assertRaises(OwnerEditorialError):
-            publish_offer_to_storefront(
-                self.offer, family=self.family, user=self.user, now=now
-            )
+        result = publish_offer_to_storefront(
+            self.offer, family=self.family, user=self.user, now=now
+        )
+        self.assertTrue(result.changed)
 
     def test_publish_old_shipping_confirmation_has_no_age_expiry(self):
         now = timezone.now()
@@ -397,7 +397,6 @@ class OwnerEditorialServiceTests(TestCase):
         approve_candidate(
             candidate,
             user=self.user,
-            ship_from_country="PL",
             client=client,
         )
         self.offer.refresh_from_db()
@@ -514,18 +513,30 @@ class OwnerPanelCatalogTests(TestCase):
             },
         )
 
-    def test_family_page_is_portuguese_and_preserves_five_signal_model(self):
+    def test_family_page_is_portuguese_with_one_click_approve_and_primary_rejection_reason(self):
         response = self.client.get(reverse("owner-panel:family", args=[self.family.slug]))
         self.assertEqual(response.status_code, 200)
-        labels = [label for _, label in CandidateDecision.ReviewSignal.choices]
-        self.assertEqual(len(labels), 5)
-        for label in labels:
+        self.assertContains(response, "APROVAR")
+        self.assertContains(response, "REJEITAR")
+        self.assertContains(response, "MOTIVO DA REJEIÇÃO")
+        expected_reasons = (
+            "Não envia para Portugal",
+            "Não consigo confirmar entrega em Portugal",
+            "País de envio não aparece / não consigo confirmar",
+            "País de envio fora dos cinco países permitidos",
+            "Produto pertence a outra família",
+            "Acessório, peça, cartucho ou consumível",
+            "Produto duplicado",
+            "Anúncio indisponível",
+            "Anúncio ou variante mudou",
+            "Oferta/listagem sem qualidade suficiente",
+            "Outro motivo",
+        )
+        for label in expected_reasons:
             self.assertContains(response, label)
-        self.assertContains(response, "Acessório / peça / consumível")
-        self.assertContains(response, "PAÍS DE ENVIO CONFIRMADO")
-        self.assertContains(response, 'name="ship_from_country"', html=False)
-        for country in ("PL", "CZ", "FR", "ES", "DE"):
-            self.assertContains(response, f'value="{country}"', html=False)
+        self.assertNotContains(response, "PAÍS DE ENVIO CONFIRMADO")
+        self.assertNotContains(response, 'name="ship_from_country"', html=False)
+        self.assertNotContains(response, 'name="review_signals"', html=False)
         self.assertNotContains(response, "owner_hidden")
         self.assertNotContains(response, "protocol_verified_at")
         self.assertNotContains(response, "is_active")
@@ -608,14 +619,15 @@ class OwnerPanelCatalogTests(TestCase):
         )
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
-            {"ship_from_country": "PL"},
+            {},
         )
         self.assertEqual(response.status_code, 302)
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.status, OfferCandidate.Status.APPROVED)
         self.assertIsNotNone(self.pending.approved_offer_id)
-        self.assertEqual(self.pending.approved_offer.ship_from_country, "PL")
-        self.assertIsNotNone(self.pending.approved_offer.ship_from_verified_at)
+        self.assertIsNone(self.pending.approved_offer.ship_from_country)
+        self.assertIsNone(self.pending.approved_offer.ship_from_verified_at)
+        self.assertIsNotNone(self.pending.approved_offer.protocol_verified_at)
 
     @patch("apps.catalog.owner_panel_views.approve_candidate")
     def test_panel_approve_rate_limit_is_safe_and_returns_to_review(self, approve):
@@ -643,21 +655,24 @@ class OwnerPanelCatalogTests(TestCase):
         self.assertNotContains(follow, "429")
         self.assertNotContains(follow, "secret-token")
 
-    def test_panel_reject_preserves_five_signal_multiselect(self):
-        signals = [
-            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
-            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
-        ]
+    def test_panel_reject_requires_and_persists_one_primary_reason(self):
+        url = reverse("owner-panel:candidate-reject", args=[self.family.slug, self.pending.pk])
+        response = self.client.post(url, {})
+        self.assertEqual(response.status_code, 302)
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(self.pending.decisions.count(), 0)
+
         response = self.client.post(
-            reverse("owner-panel:candidate-reject", args=[self.family.slug, self.pending.pk]),
-            {"review_signals": signals},
+            url,
+            {"reason": CandidateDecision.Reason.ORIGIN_NOT_ALLOWED},
         )
         self.assertEqual(response.status_code, 302)
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.status, OfferCandidate.Status.REJECTED)
         decision = self.pending.decisions.get()
-        self.assertEqual(decision.review_signals, signals)
-        self.assertEqual(decision.reason, "")
+        self.assertEqual(decision.reason, CandidateDecision.Reason.ORIGIN_NOT_ALLOWED)
+        self.assertEqual(decision.review_signals, [])
 
     def test_panel_move_reuses_existing_service_without_duplication(self):
         target = ProductFamily.objects.create(name="Outra família", slug="outra")

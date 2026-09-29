@@ -40,8 +40,5 @@ def public_eligibility_q(as_of=None, prefix=""):
             f"{prefix}affiliate_promotion_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__lte": as_of,
-            f"{prefix}ship_from_country__in": ALLOWED_SHIP_FROM_COUNTRIES,
-            f"{prefix}ship_from_verified_at__isnull": False,
-            f"{prefix}ship_from_verified_at__lte": as_of,
         }
     )

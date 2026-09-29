@@ -211,6 +211,10 @@ def discover_aliexpress(
     dry_run: bool = False,
 ) -> DiscoveryResult:
     validate_limit(limit)
+    if not dry_run:
+        raise ValueError(
+            "Legacy generic discovery is diagnostic-only; use the candidate discovery workflow."
+        )
     target_language = validate_target_language(target_language)
     delivery_days = validate_delivery_days(delivery_days)
     keyword = keyword.strip()

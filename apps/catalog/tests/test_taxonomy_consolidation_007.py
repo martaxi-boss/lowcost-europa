@@ -128,9 +128,9 @@ class TaxonomyConsolidation007Tests(TestCase):
         with self.assertRaisesMessage(ValueError, "Retired family cannot receive discovery"):
             discover_family_candidates(retired, "laser", client=object())
         with self.assertRaisesMessage(
-            CandidateApprovalError, "Retired family cannot receive approvals"
+            CandidateApprovalError, "Não é possível aprovar numa família retirada."
         ):
-            approve_candidate(candidate, user=self.user, ship_from_country="PL")
+            approve_candidate(candidate, user=self.user)
         movable = OfferCandidate.objects.create(
             product_family=active,
             source=Offer.Source.ALIEXPRESS,

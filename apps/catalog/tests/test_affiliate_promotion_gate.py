@@ -32,7 +32,6 @@ class AffiliatePromotionGateTests(TestCase):
             affiliate_url="https://affiliate.example/old",
             affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
             affiliate_promotion_verified_at=created_at,
-            ship_from_country="PL",
             ship_from_verified_at=created_at,
             protocol_verified_at=created_at,
             is_active=True,
@@ -179,7 +178,6 @@ class AffiliatePromotionGateTests(TestCase):
         result = approve_candidate(
             candidate,
             user=user,
-            ship_from_country="PL",
             client=client,
             now=self.now,
         )

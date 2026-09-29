@@ -11,7 +11,13 @@ from apps.catalog.services.candidate_relevance import family_candidate_relevance
 from apps.catalog.services.family_profiles import get_family_profile
 from apps.catalog.services.shipping_qualification import is_factually_not_shippable_to_pt
 from apps.integrations.aliexpress.client import AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressAuthenticationError,
+    AliExpressConfigurationError,
+    AliExpressError,
+    AliExpressRateLimitError,
+    AliExpressRuntimeStateError,
+)
 
 
 @dataclass
@@ -25,6 +31,7 @@ class CandidateDiscoveryResult:
     updated: int = 0
     skipped_irrelevant_family: int = 0
     skipped_accessory_part: int = 0
+    skipped_duplicate_in_batch: int = 0
     skipped_existing_offer: int = 0
     skipped_existing_candidate: int = 0
     skipped_previously_rejected: int = 0
@@ -82,7 +89,10 @@ def discover_family_candidates(
     shortlist = []
     for product in products:
         pid = product.product_id
-        if not pid or pid in seen:
+        if not pid:
+            continue
+        if pid in seen:
+            result.skipped_duplicate_in_batch += 1
             continue
         seen.add(pid)
         relevant, reason = family_candidate_relevance(family.slug, product.title)
@@ -138,6 +148,12 @@ def discover_family_candidates(
             detail = client.get_product_detail(search_product.product_id, "PT", "EUR")
         except AliExpressRateLimitError:
             raise
+        except (
+            AliExpressAuthenticationError,
+            AliExpressConfigurationError,
+            AliExpressRuntimeStateError,
+        ):
+            raise
         except AliExpressError as exc:
             result.detail_failures += 1
             result.failures.append(f"{search_product.product_id}:{exc.__class__.__name__}")
@@ -155,14 +171,12 @@ def discover_family_candidates(
             _count_irrelevant(result, reason)
             continue
 
-        # The current AliExpressProduct contract has no authoritative individual
-        # ship-from field. Destination PT and delivery speed are not origin evidence.
-        result.skipped_ship_from_not_confirmed += 1
-        continue
-
+        # Unknown ship-from origin is a human-review concern, not a reason
+        # to discard an otherwise reviewable candidate.
         now = timezone.now()
         defaults = {
             "product_family": family,
+            "status": OfferCandidate.Status.PENDING,
             "title": detail.title or search_product.title or "",
             "image_url": detail.image_url or search_product.image_url or "",
             "product_url": detail.product_url or search_product.product_url or "",

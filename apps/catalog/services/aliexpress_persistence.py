@@ -37,8 +37,8 @@ def import_aliexpress_product(
         raise AliExpressResponseError(
             "detail product_id does not match requested product_id"
         )
-    affiliate_url = product.affiliate_url
-    if product.product_url:
+    affiliate_url = ""
+    if not dry_run and product.product_url:
         affiliate_url = client.generate_affiliate_link(product.product_url)
 
     observed_at = timezone.now()

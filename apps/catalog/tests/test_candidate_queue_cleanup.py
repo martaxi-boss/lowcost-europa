@@ -80,15 +80,13 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertContains(response, "Rejeitados 1")
         self.assertContains(response, "Revalidação necessária 1")
 
-    def test_approval_ui_requires_explicit_allowed_ship_from_country(self):
+    def test_approval_ui_is_one_click_without_country_selector(self):
         response = self.client.get(self.url)
         self.assertContains(response, ">APROVAR<", html=False)
         self.assertContains(response, ">REVALIDAR<", html=False)
-        self.assertContains(response, "PAÍS DE ENVIO CONFIRMADO")
-        self.assertContains(response, 'name="ship_from_country"', html=False)
-        for country in ("PL", "CZ", "FR", "ES", "DE"):
-            self.assertContains(response, f'value="{country}"', html=False)
-        self.assertNotContains(response, 'name="delivers_to_pt_confirmed"', html=False)
+        self.assertNotContains(response, "PAÍS DE ENVIO CONFIRMADO")
+        self.assertNotContains(response, 'name="ship_from_country"', html=False)
+        self.assertContains(response, "MOTIVO DA REJEIÇÃO")
 
     def test_rejected_approved_and_all_tabs(self):
         rejected = self.client.get(self.url + "?view=rejected")
@@ -112,7 +110,7 @@ class CandidateQueueFilteringTests(TestCase):
         )
         response = self.client.post(
             url,
-            {"review_signals": CandidateDecision.ReviewSignal.LISTING_UNAVAILABLE},
+            {"reason": CandidateDecision.Reason.LISTING_UNAVAILABLE},
         )
         self.assertRedirects(response, self.url)
         self.assertNotContains(self.client.get(self.url), "pending-id")
@@ -146,18 +144,17 @@ class CandidateQueueFilteringTests(TestCase):
         self.assertNotContains(follow, "429")
         self.assertNotContains(follow, "secret-token")
 
-    def test_approve_requires_shipping_country_and_stores_it(self):
+    def test_approve_requires_no_country_and_records_protocol_attestation(self):
         api = __import__("unittest.mock").mock.Mock()
         api.generate_affiliate_link.return_value = "https://affiliate.example/pending"
         result = approve_candidate(
             self.pending,
             user=self.staff,
-            ship_from_country="PL",
             client=api,
         )
         result.offer.refresh_from_db()
-        self.assertEqual(result.offer.ship_from_country, "PL")
-        self.assertIsNotNone(result.offer.ship_from_verified_at)
+        self.assertIsNone(result.offer.ship_from_country)
+        self.assertIsNone(result.offer.ship_from_verified_at)
         self.assertIsNotNone(result.offer.protocol_verified_at)
         self.assertTrue(result.offer.owner_hidden)
 
@@ -256,27 +253,36 @@ class CandidateRejectionUITests(TestCase):
             kwargs={"family_slug": self.family.slug, "candidate_id": self.candidate.pk},
         )
 
-    def test_rejection_ui_has_exact_five_portuguese_checkboxes_and_no_legacy_fields(self):
+    def test_rejection_ui_has_one_portuguese_primary_reason_selector(self):
         content = self.client.get(self.queue_url).content.decode()
-        labels = [label for _, label in CandidateDecision.ReviewSignal.choices]
-        self.assertEqual(content.count('name="review_signals"'), 5)
-        reject_panel = content.split('class="panel reject-panel"', 1)[1].split("</form>", 1)[0]
-        self.assertEqual(reject_panel.count('type="checkbox"'), 5)
-        self.assertNotIn('type="radio"', content)
-        for label in labels:
+        panel = content.split('class="panel reject-panel"', 1)[1].split("</form>", 1)[0]
+        self.assertEqual(panel.count('name="reason"'), 1)
+        self.assertEqual(panel.count('type="submit"'), 1)
+        self.assertNotIn('name="review_signals"', panel)
+        self.assertNotIn('type="checkbox"', panel)
+        for label in (
+            "Não envia para Portugal",
+            "Não consigo confirmar entrega em Portugal",
+            "País de envio não aparece / não consigo confirmar",
+            "País de envio fora dos cinco países permitidos",
+            "Produto pertence a outra família",
+            "Acessório, peça, cartucho ou consumível",
+            "Produto duplicado",
+            "Anúncio indisponível",
+            "Anúncio ou variante mudou",
+            "Oferta/listagem sem qualidade suficiente",
+            "Outro motivo",
+        ):
             self.assertIn(label, content)
-        self.assertIn('name="note"', content)
-        self.assertIn('name="reason"', content)
-        self.assertNotIn('name="evidence_url"', content)
+        self.assertIn('name="note"', panel)
+        self.assertNotIn('name="evidence_url"', panel)
 
-    def test_reject_panel_has_one_submit_button_and_mobile_checkbox_css(self):
+    def test_reject_panel_remains_mobile_friendly(self):
         content = self.client.get(self.queue_url).content.decode()
         panel = content.split('class="panel reject-panel"', 1)[1].split("</form>", 1)[0]
         self.assertEqual(panel.count('type="submit"'), 1)
-        self.assertIn('reject-choice input[type="checkbox"]', content)
-        self.assertIn('width:22px', content)
-        self.assertIn('min-height:52px', content)
-        self.assertIn(':has(input:checked)', content)
+        self.assertIn('.actions select', content)
+        self.assertIn('min-height:46px', content)
         self.assertIn('overflow-x:hidden', content)
 
     def test_ops_status_text_is_portuguese(self):
@@ -286,21 +292,20 @@ class CandidateRejectionUITests(TestCase):
         for english in ("Pending ", "Review required", "Approved/fresh", "Rejected "):
             self.assertNotIn(english, content)
 
-    def test_multi_select_http_submission_persists_one_decision(self):
-        signals = [
-            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
-            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
-        ]
+    def test_primary_reason_http_submission_persists_one_decision(self):
         response = self.client.post(
             self.reject_url,
-            {"review_signals": signals, "note": "não encontro envio europeu"},
+            {
+                "reason": CandidateDecision.Reason.ORIGIN_NOT_ALLOWED,
+                "note": "não encontro envio europeu",
+            },
         )
         self.assertRedirects(response, self.queue_url)
         self.candidate.refresh_from_db()
         decision = self.candidate.decisions.get()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.REJECTED)
-        self.assertEqual(decision.review_signals, signals)
-        self.assertEqual(decision.reason, "")
+        self.assertEqual(decision.review_signals, [])
+        self.assertEqual(decision.reason, CandidateDecision.Reason.ORIGIN_NOT_ALLOWED)
         self.assertEqual(decision.note, "não encontro envio europeu")
 
     def test_semantic_reason_and_note_are_persisted_without_logistics_signal(self):
@@ -317,24 +322,21 @@ class CandidateRejectionUITests(TestCase):
         self.assertEqual(decision.note, "é só a peça da pega")
         self.assertEqual(decision.review_signals, [])
 
-    def test_zero_http_signals_shows_simple_error_and_does_not_reject(self):
+    def test_missing_rejection_reason_shows_simple_error_and_does_not_reject(self):
         response = self.client.post(self.reject_url, {})
         self.assertRedirects(response, self.queue_url, fetch_redirect_response=False)
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, OfferCandidate.Status.PENDING)
         page = self.client.get(self.queue_url)
-        self.assertContains(page, "Selecione pelo menos um sinal ou motivo para rejeitar")
+        self.assertContains(page, "Selecione o motivo da rejeição.")
 
-    def test_new_signal_history_is_rendered_in_portuguese_not_codes(self):
-        signals = [
-            CandidateDecision.ReviewSignal.DELIVERS_TO_PT_CONFIRMED,
-            CandidateDecision.ReviewSignal.ORIGIN_NOT_ALLOWED,
-        ]
-        self.client.post(self.reject_url, {"review_signals": signals})
+    def test_new_rejection_reason_history_is_rendered_in_portuguese_not_code(self):
+        self.client.post(
+            self.reject_url,
+            {"reason": CandidateDecision.Reason.ORIGIN_NOT_ALLOWED},
+        )
         page = self.client.get(self.queue_url + "?view=rejected")
-        self.assertContains(page, "Rejeitado · Sim, entrega em Portugal")
-        self.assertContains(page, "País de envio fora dos cinco permitidos")
-        self.assertNotContains(page, "DELIVERS_TO_PT_CONFIRMED")
+        self.assertContains(page, "Rejeitado · País de envio fora dos cinco países permitidos")
         self.assertNotContains(page, "ORIGIN_NOT_ALLOWED")
 
     def test_legacy_reason_history_remains_human_readable(self):

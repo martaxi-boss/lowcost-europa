@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Lowcost Europa five-family discovery weekly
+
+[Timer]
+OnCalendar=Mon *-*-* 23:40:00 UTC
+Persistent=true
+RandomizedDelaySec=0
+Unit=lowcost-europa-weekly-discovery.service
+
+[Install]
+WantedBy=timers.target

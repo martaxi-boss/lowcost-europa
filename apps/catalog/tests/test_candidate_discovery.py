@@ -26,7 +26,7 @@ class CandidateDiscoveryTests(TestCase):
             destination_country="PT",
         )
 
-    def test_discovery_without_authoritative_origin_skips_candidate_creation(self):
+    def test_discovery_without_authoritative_origin_creates_pending_review_candidate(self):
         client = Mock()
         search = self.product("100")
         detail = self.product("100")
@@ -35,9 +35,10 @@ class CandidateDiscoveryTests(TestCase):
         result = discover_family_candidates(
             self.family, "HIFU machine", limit=10, max_details=5, client=client
         )
-        self.assertEqual(result.created, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 1)
-        self.assertEqual(OfferCandidate.objects.count(), 0)
+        self.assertEqual(result.created, 1)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
+        candidate = OfferCandidate.objects.get()
+        self.assertEqual(candidate.status, OfferCandidate.Status.PENDING)
         self.assertEqual(Offer.objects.count(), 0)
         client.generate_affiliate_link.assert_not_called()
 
@@ -57,7 +58,7 @@ class CandidateDiscoveryTests(TestCase):
             target_language="EN",
         )
 
-    def test_destination_and_delivery_days_do_not_qualify_ship_from_origin(self):
+    def test_destination_and_delivery_days_are_review_data_not_origin_attestation(self):
         client = Mock()
         base = self.product("provenance")
         search = type(base)(
@@ -69,11 +70,12 @@ class CandidateDiscoveryTests(TestCase):
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[search])
         client.get_product_detail.return_value = detail
         result = discover_family_candidates(self.family, "HIFU", client=client)
-        self.assertEqual(result.created, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 1)
-        self.assertEqual(OfferCandidate.objects.count(), 0)
-        self.assertEqual(detail.destination_country, "PT")
-        self.assertEqual(detail.delivery_days, 4)
+        self.assertEqual(result.created, 1)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
+        candidate = OfferCandidate.objects.get()
+        self.assertEqual(candidate.status, OfferCandidate.Status.PENDING)
+        self.assertEqual(candidate.search_delivery_days, 3)
+        self.assertEqual(candidate.detail_delivery_days, 4)
 
     def test_existing_rejected_candidate_is_skipped_before_detail(self):
         candidate = OfferCandidate.objects.create(
@@ -121,9 +123,10 @@ class CandidateDiscoveryTests(TestCase):
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[product])
         client.get_product_detail.return_value = product
         result = discover_family_candidates(self.family, "HIFU", client=client)
-        self.assertEqual(result.created, 0)
+        self.assertEqual(result.created, 1)
         self.assertEqual(result.skipped_not_shippable_to_pt, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 1)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
+        self.assertEqual(OfferCandidate.objects.get().status, OfferCandidate.Status.PENDING)
 
     def test_factual_not_shippable_to_pt_is_skipped_before_detail(self):
         client = Mock()
@@ -158,7 +161,7 @@ class CandidateDiscoveryTests(TestCase):
         self.assertEqual(result.skipped_previously_rejected, 1)
         client.get_product_detail.assert_not_called()
 
-    def test_approved_like_professional_hifu_is_prioritized_over_generic_hifu(self):
+    def test_approval_history_does_not_create_discovery_ranking_signal(self):
         OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
@@ -167,15 +170,14 @@ class CandidateDiscoveryTests(TestCase):
             title="Approved 22D MAX HIFU machine",
         )
         client = Mock()
-        generic = self.product("generic", "HIFU device")
-        strong = self.product("strong", "Professional 22D MAX HIFU Beauty Salon Machine")
+        generic = self.product("generic", "HIFU professional machine")
+        approved_like = self.product("approved-like", "22D MAX HIFU device")
         client.search_products_diagnostic.return_value = AliExpressSearchResult(
-            products=[generic, strong]
+            products=[generic, approved_like]
         )
-        client.get_product_detail.return_value = strong
-        result = discover_family_candidates(self.family, "HIFU", max_details=1, client=client)
-        self.assertEqual(result.detail_attempts, 1)
-        client.get_product_detail.assert_called_once_with("strong", "PT", "EUR")
+        client.get_product_detail.return_value = generic
+        discover_family_candidates(self.family, "HIFU", max_details=1, client=client)
+        client.get_product_detail.assert_called_once_with("generic", "PT", "EUR")
 
     def test_accessory_never_ranks_even_with_strong_metadata(self):
         client = Mock()
@@ -206,18 +208,20 @@ class CandidateDiscoveryTests(TestCase):
         self.assertEqual(result.skipped_known_other_family, 1)
         client.get_product_detail.assert_not_called()
 
-    def test_same_title_with_different_ids_are_both_skipped_without_origin(self):
+    def test_same_title_with_different_ids_are_distinct_pending_candidates(self):
         client = Mock()
         one = self.product("same-title-1", "Professional 22D MAX HIFU machine")
         two = self.product("same-title-2", "Professional 22D MAX HIFU machine")
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[one, two])
         client.get_product_detail.side_effect = [one, two]
         result = discover_family_candidates(self.family, "HIFU", client=client)
-        self.assertEqual(result.created, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 2)
-        self.assertEqual(OfferCandidate.objects.count(), 0)
+        self.assertEqual(result.created, 2)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
+        self.assertEqual(
+            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 2
+        )
 
-    def test_missing_sales_rating_still_does_not_supply_origin(self):
+    def test_missing_sales_rating_can_still_enter_human_review(self):
         client = Mock()
         product = self.product("missing-meta", "Professional HIFU machine")
         product = type(product)(
@@ -226,5 +230,6 @@ class CandidateDiscoveryTests(TestCase):
         client.search_products_diagnostic.return_value = AliExpressSearchResult(products=[product])
         client.get_product_detail.return_value = product
         result = discover_family_candidates(self.family, "HIFU", client=client)
-        self.assertEqual(result.created, 0)
-        self.assertEqual(result.skipped_ship_from_not_confirmed, 1)
+        self.assertEqual(result.created, 1)
+        self.assertEqual(result.skipped_ship_from_not_confirmed, 0)
+        self.assertEqual(OfferCandidate.objects.get().status, OfferCandidate.Status.PENDING)
