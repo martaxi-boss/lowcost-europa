@@ -291,19 +291,13 @@ class DiscoveryTests(TransactionTestCase):
         self.assertEqual(result.successful, 2)
         self.assertEqual([call.args[0] for call in persist.call_args_list], ["42", "84"])
 
-    def test_new_existing_offer_and_product_family(self):
-        family = ProductFamily.objects.create(name="HIFU", slug="hifu")
-        Offer.objects.create(
-            source=Offer.Source.ALIEXPRESS, external_product_id="42", product_family=family
-        )
-        result = discover_aliexpress(
-            "HIFU", 2, client=FakeDiscoveryClient([product("42"), product("84")])
-        )
-        self.assertEqual(
-            (result.offers_created, result.offers_reused, result.observations_created), (1, 1, 2)
-        )
-        self.assertEqual(Offer.objects.get(external_product_id="42").product_family, family)
-        self.assertIsNone(Offer.objects.get(external_product_id="84").product_family)
+    def test_legacy_generic_discovery_commit_mode_is_disabled(self):
+        client = FakeDiscoveryClient([product("42")])
+        with self.assertRaisesRegex(ValueError, "diagnostic-only"):
+            discover_aliexpress("HIFU", 1, client=client)
+        self.assertEqual(client.search_calls, [])
+        self.assertEqual(Offer.objects.count(), 0)
+        self.assertEqual(OfferObservation.objects.count(), 0)
 
     def test_metrics_preserve_none_and_zero_semantics(self):
         rich = product("42")
@@ -330,14 +324,14 @@ class DiscoveryTests(TransactionTestCase):
         self.assertEqual((c.delivery_days_present, c.delivery_days_missing), (2, 1))
         self.assertEqual((c.delivery_within_5_days, c.delivery_over_5_days), (1, 1))
 
-    def test_product_failure_is_counted_and_batch_continues(self):
+    def test_diagnostic_product_failure_is_counted_and_batch_continues_without_persistence(self):
         client = FakeDiscoveryClient(
             [product("42"), product("84"), product("126")], failing_ids={"84"}
         )
-        result = discover_aliexpress("HIFU", 3, client=client)
+        result = discover_aliexpress("HIFU", 3, client=client, dry_run=True)
         self.assertEqual((result.attempted, result.successful, result.failed), (3, 2, 1))
         self.assertEqual((result.external_errors, result.persistence_errors), (1, 0))
-        self.assertEqual((Offer.objects.count(), OfferObservation.objects.count()), (2, 2))
+        self.assertEqual((Offer.objects.count(), OfferObservation.objects.count()), (0, 0))
 
     def test_dry_run_preserves_database_state(self):
         family = ProductFamily.objects.create(name="HIFU", slug="hifu")
