@@ -16,12 +16,12 @@ from apps.catalog.models import (
     OfferFamilyPlacement,
     ProductFamily,
 )
+from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
 )
 from apps.catalog.services.public_eligibility import (
-    ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
     is_protocol_verified,
     public_eligibility_q,
 )
@@ -132,13 +132,6 @@ def _public_indexing_active():
     return settings.PUBLIC_INDEXING_ENABLED and bool(settings.PUBLIC_SITE_URL)
 
 
-OWNER_SEMANTIC_REJECTION_CHOICES = (
-    (CandidateDecision.Reason.WRONG_FAMILY, "Produto da família errada"),
-    (CandidateDecision.Reason.ACCESSORY_OR_PART, "Acessório / peça / consumível"),
-    (CandidateDecision.Reason.POOR_LISTING, "Produto/listagem sem qualidade suficiente"),
-    (CandidateDecision.Reason.OTHER, "Outro motivo semântico/comercial"),
-)
-
 
 def _seo_context(path, page_title, meta_description):
     indexing_active = _public_indexing_active()
@@ -248,9 +241,7 @@ def _owner_family_context(request, family):
         "owner_mode": True,
         "owner_active_tab": active_tab,
         "owner_selected_candidates": selected_candidates,
-        "owner_review_signals": CandidateDecision.ReviewSignal.choices,
-        "semantic_rejection_choices": OWNER_SEMANTIC_REJECTION_CHOICES,
-        "ship_from_country_choices": ALLOWED_SHIP_FROM_COUNTRY_CHOICES,
+        "owner_rejection_reason_choices": OWNER_REJECTION_REASON_CHOICES,
         "owner_target_families": ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
         .exclude(pk=family.pk)
         .order_by("display_order", "name", "pk"),
