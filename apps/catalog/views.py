@@ -44,6 +44,7 @@ def _decorate_candidate(candidate):
     )
     candidate.history = list(candidate.decisions.all()[:5])
     signal_labels = dict(CandidateDecision.ReviewSignal.choices)
+    reason_labels = dict(OWNER_REJECTION_REASON_CHOICES)
     for decision in candidate.history:
         decision.decision_label = (
             "Aprovado" if decision.decision == CandidateDecision.Decision.APPROVE else "Rejeitado"
@@ -51,6 +52,7 @@ def _decorate_candidate(candidate):
         decision.review_signal_labels = [
             signal_labels[signal] for signal in decision.review_signals if signal in signal_labels
         ]
+        decision.reason_label = reason_labels.get(decision.reason, decision.get_reason_display())
     return candidate
 
 
