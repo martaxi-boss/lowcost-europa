@@ -63,28 +63,28 @@ class PublicEligibilityTests(TestCase):
             with self.subTest(country=country):
                 self.assert_public(self.make(f"allowed-{country}", country=country))
 
-    def test_missing_ship_from_country_is_not_public_and_go_creates_no_click(self):
+    def test_missing_ship_from_country_does_not_duplicate_owner_protocol_gate(self):
         offer = self.make("missing-country", country=None)
         clicks_before = OfferClick.objects.filter(offer=offer).count()
 
-        self.assert_not_public(offer)
+        self.assert_public(offer)
 
-        self.assertEqual(OfferClick.objects.filter(offer=offer).count(), clicks_before)
+        self.assertEqual(OfferClick.objects.filter(offer=offer).count(), clicks_before + 1)
         offer.refresh_from_db()
         self.assertTrue(offer.is_active)
 
-    def test_missing_ship_from_verification_is_not_public(self):
+    def test_missing_ship_from_verification_does_not_block_valid_owner_attestation(self):
         offer = self.make("missing-ship-verified")
         offer.ship_from_verified_at = None
         offer.save(update_fields=["ship_from_verified_at"])
-        self.assert_not_public(offer)
+        self.assert_public(offer)
 
-    def test_future_ship_from_verification_is_not_public(self):
+    def test_future_optional_ship_from_metadata_does_not_block_protocol_attestation(self):
         offer = self.make(
             "future-ship",
             ship_from_when=timezone.now() + timedelta(hours=1),
         )
-        self.assert_not_public(offer)
+        self.assert_public(offer)
 
     def test_old_ship_from_verification_has_no_age_expiry(self):
         for days in (30, 180):
@@ -112,11 +112,11 @@ class PublicEligibilityTests(TestCase):
             with transaction.atomic():
                 offer.save()
 
-    def test_protocol_verified_without_individual_ship_from_is_not_public(self):
+    def test_protocol_verified_without_individual_ship_from_is_public(self):
         offer = self.make("attested-no-country", country=None)
         offer.ship_from_verified_at = None
         offer.save(update_fields=["ship_from_verified_at"])
-        self.assert_not_public(offer)
+        self.assert_public(offer)
 
     def test_protocol_age_has_no_expiry_when_shipping_is_valid(self):
         for days in (8, 30, 180):
