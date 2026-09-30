@@ -32,6 +32,12 @@ LEGACY_FAMILY_REDIRECTS = {
 
 logger = logging.getLogger(__name__)
 
+WHATSAPP_DESTINATION = (
+    "https://wa.me/351965471236"
+    "?text=Ol%C3%A1%2C%20vi%20um%20equipamento%20no%20Lowcost%20Europa%20"
+    "e%20gostava%20de%20esclarecer%20uma%20d%C3%BAvida."
+)
+
 PUBLIC_STATUS_LABELS = {
     ProductFamily.Status.NEW: "Em preparação",
     ProductFamily.Status.TESTING: "Em avaliação",
@@ -282,6 +288,10 @@ def institutional_page(request, page):
         **_seo_context(request.path, page_title, meta_description),
     }
     return _render_storefront(request, f"storefront/{page}.html", context)
+
+
+def whatsapp_contact(request):
+    return HttpResponseRedirect(WHATSAPP_DESTINATION)
 
 
 def robots_txt(request):
