@@ -264,7 +264,7 @@ class StorefrontVisualCommercialTests(TestCase):
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
-        self.assertContains(response, "Ver oferta no parceiro")
+        self.assertContains(response, "VER PREÇO E COMPRAR NO ALIEXPRESS")
         self.assertContains(response, "Compra externa")
         self.assertContains(response, reverse("storefront:offer-go", args=[offer.pk]))
         self.assertNotContains(response, offer.affiliate_url)
