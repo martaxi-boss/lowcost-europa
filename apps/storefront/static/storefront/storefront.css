@@ -57,6 +57,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .hero-lead { margin-top: 22px; max-width: 770px; color: var(--muted); font-size: clamp(1.04rem, 2.4vw, 1.22rem); }
 .hero-lead p { margin: 0; }
 .hero-lead p + p { margin-top: 1em; }
+.hero-primary-action { margin-top: 26px; }
+.hero-primary-cta { min-height: 52px; padding-inline: 22px; }
 
 .section { padding: 64px 0; }
 .section--compact { padding: 18px 0 54px; }
@@ -271,6 +273,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 @media (max-width: 619px) {
   .hero { padding-bottom: 20px; }
   .hero h1, .detail-hero h1, .prose h1 { font-size: clamp(2.15rem, 12vw, 3.25rem); }
+  .hero-primary-cta { width: 100%; }
   .detail-hero h1 { overflow-wrap: anywhere; }
   .detail-title-row > * { min-width: 0; }
   .section { padding: 54px 0; }
