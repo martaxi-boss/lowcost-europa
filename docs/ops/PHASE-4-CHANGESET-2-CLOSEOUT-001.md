@@ -1,5 +1,7 @@
 # PHASE 4 — CHANGESET 2 CLOSEOUT 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Authority / Scope
 
 Authority: Supervisor / Engineering Authority. Consultant / Owner approval confirmed.

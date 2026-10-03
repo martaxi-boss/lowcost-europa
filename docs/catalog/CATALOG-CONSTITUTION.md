@@ -19,17 +19,17 @@ Discovery pode criar Candidates PENDING com shipping desconhecido e a fila priva
 
 ## Decisão humana e editorial
 
-APPROVE significa que o Owner abriu o anúncio e confirmou disponibilidade, equipamento, família, entrega em Portugal e origem dentro do conjunto permitido. O botão APROVAR é a própria atestação; não é necessário preencher país individual. Approval é sinal positivo de aprendizagem da família, mas **APPROVE != PUBLISH**. Uma nova Offer aprovada nasce com `owner_hidden=True`. Approval nunca limpa `owner_hidden` de uma Offer existente. Campos históricos `ship_from_country` e `ship_from_verified_at` são preservados quando já existem, mas nunca são inventados.
+APPROVE significa que o Owner abriu o anúncio e confirmou disponibilidade, equipamento, família, entrega em Portugal e origem dentro do conjunto permitido. O botão APROVAR é a própria atestação; não é necessário preencher país individual. Approval não é sinal positivo de aprendizagem da família; **APPROVE != PUBLISH**. Uma nova Offer aprovada nasce com `owner_hidden=True`. Approval nunca limpa `owner_hidden` de uma Offer existente. Campos históricos `ship_from_country` e `ship_from_verified_at` são preservados quando já existem, mas nunca são inventados.
 
-Só a ação editorial humana de publicar/voltar a publicar pode tornar `owner_hidden=False`. Publicação exige Offer ativa, família operacional, placement e affiliate URL válidos, atestação humana de protocolo fresca e vaga na montra. O protocolo fixo atesta Portugal + origem dentro de PL/CZ/FR/ES/DE sem exigir persistência do país individual.
+Só a ação editorial humana de publicar/voltar a publicar pode tornar `owner_hidden=False`. Publicação exige Offer ativa, família operacional, placement e affiliate URL válidos, atestação humana de protocolo válida e promoção afiliada verificada e vaga na montra. O protocolo fixo atesta Portugal + origem dentro de PL/CZ/FR/ES/DE sem exigir persistência do país individual.
 
 ## Cap20
 
-O limite de 20 aplica-se exclusivamente à **montra por família**. Não limita discovery, Candidates, PENDING, A REVER, APPROVED, histórico ou aprendizagem. Pode haver mais de 20 approvals; a 21.ª publicação é bloqueada se já existirem 20 na montra.
+O cap de publicação de 20 aplica-se à **montra por família**, não ao histórico de Candidates ou approvals. A campanha semanal tem um guard independente: suspende nova entrada numa família com 20 Candidates PENDING. Não apaga Candidates existentes. Pode haver mais de 20 approvals; a 21.ª publicação é bloqueada se já existirem 20 na montra.
 
 ## Public eligibility e /go/
 
-Elegibilidade pública central exige `is_active=True`, `owner_hidden=False`, affiliate URL não vazia e `protocol_verified_at` fresco. Essa freshness representa a atestação humana do protocolo fixo Portugal + origem dentro de PL/CZ/FR/ES/DE. `ship_from_country` e `ship_from_verified_at` permanecem como histórico opcional quando factual e conhecido, mas não são necessários para novas approvals. Storefront e `/go/` usam o mesmo gate; oferta inelegível não redireciona nem cria click válido.
+Elegibilidade pública central exige `is_active=True`, `owner_hidden=False`, affiliate URL não vazia, `affiliate_promotion_status=ELIGIBLE`, `affiliate_promotion_verified_at` não nulo e `protocol_verified_at` não nulo/não futuro. Não existe expiração por idade: o passar do tempo não retira uma Offer elegível. A verificação do protocolo representa a atestação humana do protocolo fixo Portugal + origem dentro de PL/CZ/FR/ES/DE. `ship_from_country` e `ship_from_verified_at` permanecem como histórico opcional quando factual e conhecido, mas não são necessários para novas approvals. Storefront e `/go/` usam o mesmo gate; oferta inelegível não redireciona nem cria click válido.
 
 ## Revalidação
 
@@ -45,7 +45,7 @@ A rejeição pode guardar sinais factuais/logísticos, um motivo semântico apro
 
 ## Aprendizagem isolada por família
 
-Approval é sinal comercial positivo apenas da família correspondente. Rejeições semânticas apropriadas podem ser sinais negativos; rejeições logísticas/factuais, Owner hide e seller unavailable não são negativos semânticos. O protocolo global (shipping, Portugal, whitelist, availability, dedupe, freshness, API safety e lifecycle) não é reaprendido por família.
+Approval não produz feedback positivo de discovery ou ranking. A aprendizagem semântica usa as rejeições apropriadas e os movimentos de classificação isolados por família. Rejeições semânticas apropriadas podem ser sinais negativos; rejeições logísticas/factuais, Owner hide e seller unavailable não são negativos semânticos. O protocolo global (shipping, Portugal, whitelist, availability, dedupe, validade factual do protocolo, API safety e lifecycle) não é reaprendido por família.
 
 ## Mudar família
 

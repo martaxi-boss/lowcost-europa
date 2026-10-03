@@ -1,5 +1,7 @@
 # MVP LIVE CATALOG 004 — fresh Diode and Hydro curation
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Operation time (UTC): `2026-09-15T07:25:58Z`
 
 Main SHA: `ae0e564eecc3bbe7955683ba75a6ced6377c7139`

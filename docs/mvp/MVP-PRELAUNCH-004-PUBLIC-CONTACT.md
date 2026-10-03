@@ -1,5 +1,7 @@
 # MVP PRELAUNCH 004 — AUTHORIZED PUBLIC CONTACT CHANNELS
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Authorized public contacts
 
 The only public contact channels authorized for this task are:

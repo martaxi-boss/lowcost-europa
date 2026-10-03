@@ -1,5 +1,7 @@
 # Lowcost Europa — Auditoria Profunda até ao Gate 4
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 **Data do checkpoint:** 2026-09-13  
 **Estado:** registo histórico aprovado pelo Supervisor  
 **Âmbito:** Foundation até LE-004, inclusive  

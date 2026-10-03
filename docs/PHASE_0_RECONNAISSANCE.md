@@ -1,5 +1,7 @@
 # PHASE_0_RECONNAISSANCE
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## 1. Resumo executivo
 Na Fase 0 o projeto era documental, sem aplicação. Recomendação: Python 3.12, Django 5.2 LTS, PostgreSQL 16, monólito modular e templates server-side. Nenhum secret foi encontrado e nenhum custo novo era necessário.
 ## 2. Estado atual do repositório

@@ -1,5 +1,7 @@
 # MVP STAGING 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Date: 2026-09-14
 Deployed main SHA: `f4533a21628b0ae5f328fd980b7d5c8141206598`
 Host: `lowcost-europa.165-22-114-67.sslip.io`

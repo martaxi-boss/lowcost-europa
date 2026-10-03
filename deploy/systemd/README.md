@@ -1,5 +1,7 @@
 # Catalog maintenance systemd policy
 
+Implementation reference, not a live host-health certificate. Current infrastructure/authorization is recorded in PROJECT_STATE.md. Historical backup units/scripts below do not authorize reinstalling or enabling an old backup policy.
+
 `lowcost-europa-catalog-maintenance.timer` runs catalog availability maintenance hourly after an initial 15 minute boot delay. The timer is persistent.
 
 `lowcost-europa-catalog-maintenance.service` runs:

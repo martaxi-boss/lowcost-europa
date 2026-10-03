@@ -1,6 +1,6 @@
 # Lowcost Europa
 
-Lowcost Europa is a private affiliate-platform project focused initially on Portugal. This repository contains the project governance documents and the Django foundation.
+Lowcost Europa is a private affiliate-platform project focused initially on Portugal. The accepted application scope is completed. This repository contains the operational Django application and its governance documents; see [PROJECT_STATE.md](PROJECT_STATE.md) for the reconciled baseline.
 
 ## Foundation stack
 
@@ -60,7 +60,7 @@ Health endpoints:
 - `GET /health/live/` — liveness only; does not query PostgreSQL.
 - `GET /health/ready/` — readiness; returns 200 only when PostgreSQL is reachable, otherwise 503.
 
-Django Admin remains available at `/admin/` and is not customized in LE-001.
+The staff-only Owner panel is available at `/painel/`; Django Admin remains at `/admin/`.
 
 ## Tests and lint
 
@@ -75,7 +75,7 @@ The GitHub Actions workflow performs `check`, migration drift validation, migrat
 
 ## Environments
 
-Settings live under `config/settings/`: `base.py`, `development.py`, `test.py`, `staging.py` and `production.py`. Staging and production force `DEBUG=False`; deployment of either environment is outside LE-001.
+Settings live under `config/settings/`: `base.py`, `development.py`, `test.py`, `staging.py` and `production.py`. Staging and production force `DEBUG=False`. The accepted runtime uses production settings on OVH; deployment is separate from repository cleanup.
 
 ## AliExpress integration
 
@@ -84,3 +84,7 @@ Technical integration documentation: `docs/integrations/aliexpress.md`.
 ## Project governance
 
 Read `PROJECT_CONSTITUTION.md`, `PROJECT_STATE.md`, `AGENTS.md` and `SUPERVISOR_PROMPT.md` before making structural changes. Development is task → branch → tests → Pull Request → Supervisor review → approval → merge.
+
+## Documentation
+
+[docs/README.md](docs/README.md) separates current operating references from historical phase evidence. Old phase instructions do not authorize new execution or override the current state.

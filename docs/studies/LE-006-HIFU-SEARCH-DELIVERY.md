@@ -1,5 +1,7 @@
 # LE-006 study — HIFU search precision and delivery filter
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Date: 2026-09-13. Market: PT. Currency: EUR. Target language: EN. Search delivery filter: 5 days. Requested limit: 10 per manual run. Mode: dry-run.
 
 This study records source observations only. `delivery_days=5` is a search filter sent to AliExpress and is not a delivery guarantee. Search and detail values are kept separate and no data fusion is performed.

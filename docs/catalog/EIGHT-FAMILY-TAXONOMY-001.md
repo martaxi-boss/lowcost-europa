@@ -1,5 +1,7 @@
 # EIGHT-FAMILY TAXONOMY 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 
 This phase establishes the approved eight-family commercial taxonomy without redesigning the storefront or changing AliExpress integration behavior.

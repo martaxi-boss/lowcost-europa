@@ -1,5 +1,7 @@
 # LAUNCH READINESS 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 
 Phase 2 prepares DuckDNS as the public service hostname for real commercial validation while search indexing remains disabled. It does not authorize the final commercial domain, Google indexing, Search Console activation or final public GO LIVE.
@@ -91,7 +93,7 @@ Across all measured pages:
 - raw AliExpress affiliate href exposure in rendered links: ZERO;
 - footer present.
 
-Final evidence is stored in `docs/qa/launch-readiness-001/`, including eight screenshots and `qa-results.json`. A final independent revalidation against the live DuckDNS HTTPS hostname reproduced zero horizontal overflow, zero JavaScript errors, visible desktop navigation, 48 px mobile targets, zero raw affiliate href exposure and zero browser requests to `/go/`.
+Final historical evidence consists of `docs/qa/launch-readiness-001/qa-results.json`, four screenshots in that directory and four byte-identical screenshots retained in `docs/qa/visual-commercial-001/`. See the mapping in `docs/README.md`. A final independent revalidation against the live DuckDNS HTTPS hostname reproduced zero horizontal overflow, zero JavaScript errors, visible desktop navigation, 48 px mobile targets, zero raw affiliate href exposure and zero browser requests to `/go/`.
 
 The factual second HIFU 7D source image remains 123x123. Status: **OPEN / NON-BLOCKING**. It was not replaced or masked.
 ## OfferClick audit during staging QA

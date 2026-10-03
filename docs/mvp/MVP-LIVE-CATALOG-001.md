@@ -1,5 +1,7 @@
 # MVP LIVE CATALOG 001 — First live ProductFamily curation
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Timestamp: 2026-09-14T21:59:40+01:00 (Europe/Lisbon)
 
 Main SHA used: `781654bbc79addde302e93f10e2ddab6cb64ca17`
