@@ -40,7 +40,7 @@ async function photoChecks(page, scope) {
   const images = page.locator('img[data-product-image]');
   const count = await images.count();
   const samples = [];
-  for (let i = 0; i < Math.min(count, 5); i++) {
+  for (let i = 0; i < Math.min(count, scope.endsWith(':hifu') ? 10 : 5); i++) {
     const img = images.nth(i);
     await img.scrollIntoViewIfNeeded({ timeout: 10000 });
     await img.evaluate((el) => new Promise((done) => {
@@ -95,7 +95,13 @@ async function publicPage(page, item, device) {
   assert.ok(links.every((href) => /^\/go\/\d+\/$/.test(href)),
     'unexpected affiliate URL in ' + scope);
   const photos = await photoChecks(page, scope);
-  await page.evaluate(() => scrollTo(0, 0));
+  // html uses smooth scrolling: force the real initial viewport before capturing.
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  });
+  await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 5000 });
   await page.screenshot({ path: path.join(out, item.name + '-' + device.name + '.png'),
     fullPage: true, animations: 'disabled' });
   if (device.mobile && item.name === 'home') {
