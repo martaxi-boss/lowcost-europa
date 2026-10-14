@@ -10,7 +10,7 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 - Integration branch: `builder/pilot-integration-preflight-20261014`.
 - No code, data, services, application restart or DNS changes applied to the VPS by this branch.
 - Operational runtime is **NOT VERIFIED** by this work; the dated runtime snapshot in `PROJECT_STATE.md` must not be reinterpreted as current live evidence.
-- PR #147 concerns historical documentation hygiene and remains a **separate** work item; its GitHub state is tracked in issue #151.
+- PR #147 was **MERGED as documentation-only hygiene** at `4b2a96cbcd3a101e1f65ceea11072d58328195e9`; the pilot code remains in PR #152 pending deployment validation.
 - No launch-domain, legal operator, production HSTS, public indexing, Search Console or commercial launch changes are made.
 
 ## Technical pilot corrections prepared
@@ -27,6 +27,7 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 - Combined the image, click and redirect-safety changes while preserving existing lifecycle behavior.
 - Removed a duplicated `@require_safe` decorator caused by the first integration overlay.
 - Replaced three overlapping CI workflows with one existing `.github/workflows/ci.yml` workflow; no additional image runner or dedicated pilot runner is retained.
+- A temporary **read-only** HTTP probe was added, executed, and deleted from CI. Its observations are preserved in GitHub Actions run `38582509781`, not as permanent workflow complexity.
 - CI triggers only for pull requests to `main`, pushes to `main` and explicitly requested manual runs. Branch pushes with an open PR no longer cause an unnecessary second job.
 - CI uses read-only repository contents permission, disables checkout credential persistence, and cancels superseded runs.
 - Compared the 16 non-conflicting source/test file blobs from PRs #148/#149/#150 to the integration tree: **16/16 exact SHA matches**. Only the combined storefront view and consolidated CI intentionally differ from individual branches.
@@ -44,7 +45,10 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 | Django full suite on combined branch | **638/638 PASS** | GitHub Actions run `38580359411`, candidate `75af0e77b6e13977cd01a857db2d187076e07a61` |
 | Django checks, Ruff, migration drift and PostgreSQL migrations | **PASS** | Same GitHub CI run, all required steps success |
 | Owner storefront navigation test after factual copy change | **FIXED / PASS** | Updated stale assertion to require the approved factual headline; checked absence of old unsupported claim |
-| Real browser Android/desktop and live pilot services | NOT VERIFIED | No authorized live environment session with repeatable evidence |
+| External HTTPS staging reachability | **PASS (read-only)** | GitHub Actions `38582509781`: homepage, robots, two health URLs and all five category pages HTTP 200; unauthenticated `/painel/` returned HTTP 302 |
+| Staging non-indexing controls | **PASS** | Same run: header `X-Robots-Tag: noindex, nofollow`, HTML meta `noindex`, robots `User-agent: *; Disallow: /` |
+| Runtime of new image JavaScript | **NOT DEPLOYED** | Same run: `product-images.js` reference absent in live homepage HTML; PR #152 is still source-only |
+| Real browser Android/desktop and VPS operations | NOT VERIFIED | HTTP reads do not certify browser rendering, applied commit, PostgreSQL internals, timers, backup or restore state |
 | GitHub Actions | **PASS** | Re-running after public repository visibility enabled real job steps, then 638 Django tests passed. Earlier zero-step failures remain historical evidence only |
 | User feedback, commercial conversion or revenue | NOT COLLECTED | Separate real pilot required |
 
@@ -56,7 +60,7 @@ Earlier GitHub runs with no executed steps were not evidence of application fail
 2. **Completed:** candidate application commit `75af0e77b6e13977cd01a857db2d187076e07a61` passed Django check/deploy check, migration drift, Ruff, PostgreSQL migrations, **638/638 Django tests** and **6/6 Node image cases** in run `38580359411`.
 3. Review the consolidated draft PR and preserve separate Owner editorial gates. Do not merge merely because the code is present.
 4. Integrate once, following a reversible, documented change. Verify deployed commit independently.
-5. Check `/`, five current non-retired product families, a known real image, broken image, 123x123 photo handling, affiliate `/go/`, WhatsApp/contact and owner workflows on Android and desktop.
+5. **HTTP staging reachability, five family URLs and nonindex rules passed** as of 2026-10-14. After a separately authorized deployment of this code, verify actual 123x123 image behavior, broken-image fallback, affiliate `/go/`, WhatsApp/contact and Owner workflows in real Android and desktop browsers.
 6. Check system health, scheduled maintenance, backups, alerting and `robots.txt`/noindex without deleting or mutating production data.
 7. Gather human feedback on trust, pricing clarity, logistics uncertainty, navigation and external purchase disclosure. Record evidence in issue #151.
 8. Decide whether the pilot concept merits subsequent commercial work. Commercial launch stays a separate Owner decision.
