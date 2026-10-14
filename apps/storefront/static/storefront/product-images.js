@@ -34,6 +34,12 @@
 
     image.addEventListener("error", showFallback);
     image.addEventListener("load", assessResolution);
-    if (image.complete) assessResolution();
+    // Lazy images can report complete before the browser has requested them.
+    // Do not show a false "unavailable" warning while they are still pending.
+    if (image.complete && image.naturalWidth > 0) {
+      assessResolution();
+    } else if (image.complete && image.loading !== "lazy") {
+      showFallback();
+    }
   }
 })();
