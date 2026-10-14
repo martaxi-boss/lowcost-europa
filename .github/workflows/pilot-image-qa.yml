@@ -1,0 +1,31 @@
+name: Pilot image QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/storefront/static/storefront/product-images.js'
+      - 'tests/js/product-images.test.cjs'
+      - '.github/workflows/pilot-image-qa.yml'
+  push:
+    branches:
+      - 'builder/storefront-image-trust-20261014'
+
+permissions:
+  contents: read
+
+jobs:
+  image-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax check
+        run: node --check apps/storefront/static/storefront/product-images.js
+      - name: Fallback and resolution regressions
+        run: node --test tests/js/product-images.test.cjs
