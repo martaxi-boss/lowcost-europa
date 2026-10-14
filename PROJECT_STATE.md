@@ -1,11 +1,19 @@
 # Lowcost Europa — Project State
 
-Reconciled: 2026-10-03. Scope: repository hygiene; no application/runtime changes.
+Historical reconciliation baseline: 2026-10-03. Current operational evidence: 2026-10-14.
+
+## Current status — technical phase completed, pilot acceptance pending
+
+- Application development, cleanup, staging deployment, automated tests and public browser validation are **COMPLETED**. Main implementation + QA branch state: `9b11d8eb73e13ebca0c3b01b5ef050c8392ab21e` before this closeout update. Final version deployed at VPS staging: `f0d520d31ef6a3aa06ee11f2793be50f75d58a2c`; newer main commits do not require restarts unless application/static code changes.
+- GitHub CI [38596061480](https://github.com/martaxi-boss/lowcost-europa/actions/runs/38596061480) **PASS**: 638 Django + 6 Node tests. Chromium public staging run [38595391116](https://github.com/martaxi-boss/lowcost-europa/actions/runs/38595391116) **PASS**: home + all 5 families at desktop and mobile-emulated sizes, total 12/12, zero detected failures; 7/7 visible HIFU images loaded.
+- No open pull requests at this audit. Issue #151 remains **OPEN** specifically for genuine physical-device, authenticated Owner workflow, independent restore/backup, feedback and security/governance follow-ups.
+- Public GitHub repository is not authorization for search indexing, DNS changes or commercial GO-LIVE. Preserve `noindex, nofollow`, human publication controls and sandbox scope.
+- Historical headings, counts and infrastructure notes below describe prior snapshots, not a claim that today's runtime equals 2026-09/10 values.
 
 ## Addendum — technical pilot revalidation (2026-10-14)
 
 - GitHub repository visibility is **PUBLIC**. This is a repository-access change, **not** permission for commercial GO-LIVE or website indexing.
-- **Current integrated application baseline:** `main` commit `ed067409c997daacee7c19d6a8ca36fa98494e82` (PR #152). Older baseline `82ff2d68835bf083de3b4da6ce674ae24631b3c5` below is historical; a later docs-only commit can change the HEAD without changing application code. No live VPS SHA is certified.
+- **Current integrated application baseline:** `main` commit `ed067409c997daacee7c19d6a8ca36fa98494e82` (PR #152). Older baseline `82ff2d68835bf083de3b4da6ce674ae24631b3c5` below is historical; later documentation-only commits can change the HEAD without changing application code. The live staging revision was independently certified in VPS run `38591194575`.
 - Technical pilot improvements are **MERGED and DEPLOYED TO EXISTING STAGING**: verified application Git HEAD `f0d520d31ef6a3aa06ee11f2793be50f75d58a2c` on 2026-10-14 via pinned-SSH VPS run `38591194575`. Earlier `82ff2d68835bf083de3b4da6ce674ae24631b3c5` remains the documented rollback version; later `main` documentation/control descendants do not need a staging restart.
 - On merged `main` application commit `ed067409c997daacee7c19d6a8ca36fa98494e82`, GitHub Actions run `38583874116` completed **SUCCESS**: 638/638 Django tests, 6/6 Node image tests, Ruff, Django checks and PostgreSQL migrations.
 - Repository/CI tests are green. **The staging rollout has since passed**: actual VPS Git SHA independently verified, Django checks/migration plan/collectstatic/readiness PASS, all five family endpoints HTTP 200, new `/static/storefront/product-images.js` served over HTTPS, homepage meta and Nginx headers `noindex, nofollow`, robots `Disallow: /` (VPS Actions `38591194575`). Previous HTTP probe `38582509781` predates this deployment. Local backup SHA256 and `pg_restore --list` PASS; recent offsite success marker observed but an independent full restore was not performed in this rollout. Real Android/desktop browser assessment, authenticated Owner workflows and human feedback remain pending.
