@@ -1,0 +1,111 @@
+name: Closed PR branch hygiene
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/closed-pr-branch-hygiene.yml'
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: closed-pr-branch-hygiene
+  cancel-in-progress: false
+
+jobs:
+  tidy:
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Delete only exact heads of already-merged same-repo PRs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            if (owner !== 'martaxi-boss' || repo !== 'lowcost-europa') {
+              throw new Error('Refusing branch cleanup outside Lowcost Europa');
+            }
+            const fullName = owner + '/' + repo;
+            const branches = await github.paginate(
+              github.rest.repos.listBranches, { owner, repo, per_page: 100 });
+            const closedPulls = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: 'closed', per_page: 100 });
+            const openPulls = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: 'open', per_page: 100 });
+            const openHeads = new Set(
+              openPulls.filter(p => p.head?.repo?.full_name === fullName)
+                .map(p => p.head.ref));
+            const merged = new Map();
+            for (const p of closedPulls) {
+              if (p.merged_at && p.head?.repo?.full_name === fullName
+                  && p.head.ref !== 'main') {
+                const heads = merged.get(p.head.ref) || new Set();
+                heads.add(p.head.sha);
+                merged.set(p.head.ref, heads);
+              }
+            }
+            let removed = 0, preserved = 0, changed = 0;
+            const readLive = async (name) => {
+              try {
+                return (await github.rest.git.getRef({
+                  owner, repo, ref: 'heads/' + name
+                })).data.object.sha;
+              } catch (e) {
+                if (e.status === 404) return null;
+                throw e;
+              }
+            };
+            for (const b of branches) {
+              const name = b.name;
+              const sha = b.commit.sha;
+              if (name === 'main' || !/^(builder|ops|hygiene)\//.test(name)
+                  || openHeads.has(name) || !merged.get(name)?.has(sha)) {
+                preserved++;
+                continue;
+              }
+              if (await readLive(name) !== sha) {
+                changed++;
+                continue;
+              }
+              const result = await exec.getExecOutput('git', [
+                'push',
+                '--force-with-lease=refs/heads/' + name + ':' + sha,
+                'origin',
+                ':refs/heads/' + name
+              ], { ignoreReturnCode: true, silent: true });
+              if (result.exitCode !== 0) {
+                const live = await readLive(name);
+                if (live === null) {
+                  removed++;
+                  continue;
+                }
+                if (live !== sha) {
+                  changed++;
+                  continue;
+                }
+                throw new Error('Exact-lease deletion failed for ' + name
+                  + ': ' + (result.stderr || result.stdout).slice(0, 500));
+              }
+              removed++;
+              core.info('Cleaned merged PR ref: ' + name);
+            }
+            core.info('HYGIENE_BRANCH_SUMMARY removed=' + removed
+              + ' preserved=' + preserved + ' advanced=' + changed);
+            await core.summary.addHeading('Lowcost Europa branch hygiene')
+              .addRaw('Merged PR branches removed: ' + removed + '\n\n')
+              .addRaw('Preserved refs (main, closed unmerged, other): '
+                + preserved + '\n\n')
+              .addRaw('Advanced or changed refs preserved: ' + changed)
+              .write();
