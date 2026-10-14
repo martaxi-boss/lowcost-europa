@@ -1,5 +1,7 @@
 # MVP LIVE PRIMARY 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Date: 2026-09-14 Europe/Lisbon
 Main SHA: `bf653099b61fcee647796665292f275a2d8d24b6`
 

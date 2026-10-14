@@ -1,5 +1,7 @@
 # MVP DISCOVERY 001 — Controlled Commercial Candidate Scan
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Timestamp: 2026-09-15T00:17:58Z
 Main SHA: `be6fb1bf497c73a2a8d0e153af7ec3e1206a8a21`
 Mode: READ-ONLY DISCOVERY

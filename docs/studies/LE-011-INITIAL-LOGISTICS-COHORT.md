@@ -1,5 +1,7 @@
 # LE-011 — Initial logistics cohort
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Purpose
 
 This is a small internal technical sample for longitudinal observation of professional HIFU offers for Portugal. It is not a public catalog, ranking, winner selection, recommendation, delivery guarantee or commercial stability decision.

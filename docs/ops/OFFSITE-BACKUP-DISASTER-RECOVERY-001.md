@@ -1,5 +1,7 @@
 # OFFSITE BACKUP DISASTER RECOVERY 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 
 This runbook covers recovery after total loss of the Lowcost Europa Droplet using the private Restic repository stored in Cloudflare R2.

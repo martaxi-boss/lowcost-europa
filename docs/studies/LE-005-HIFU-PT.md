@@ -1,5 +1,7 @@
 # LE-005 first study — HIFU / Portugal
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Date: 2026-09-13. Market: PT. Currency: EUR. Requested limit: 10. Mode: dry-run.
 
 ## Result

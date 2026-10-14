@@ -1,5 +1,7 @@
 # STOREFRONT VISUAL & COMMERCIAL ENHANCEMENT 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Status: READY FOR SUPERVISOR AUDIT
 
 ## Objective

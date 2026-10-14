@@ -1,5 +1,7 @@
 # MVP PRELAUNCH 002 — STAGING DEPLOY VALIDATION
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Deployment
 
 - Target main SHA: `a3b8e5400c48ed70c3b83e1ca69c924226fb6dfb`

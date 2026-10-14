@@ -1,0 +1,57 @@
+name: Final audit evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: final-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive tracked source only
+        run: |
+          mkdir -p /tmp/lowcost-audit
+          git archive --format=tar HEAD -o /tmp/lowcost-audit/source.tar
+          git rev-parse HEAD > /tmp/lowcost-audit/commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lowcost-audit-source
+          path: /tmp/lowcost-audit/
+          retention-days: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect offline development dependencies
+        run: |
+          mkdir -p /tmp/lowcost-wheels
+          python -m pip download --only-binary=:all: -r requirements/development.txt -d /tmp/lowcost-wheels
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lowcost-audit-wheels
+          path: /tmp/lowcost-wheels/
+          retention-days: 1
+      - name: Install audit tools in isolated runner
+        run: python -m pip install pip-audit bandit
+      - name: Audit runtime dependencies
+        run: pip-audit -r requirements/base.txt -f json -o /tmp/dependency-audit.json
+      - name: Static security analysis
+        if: always()
+        run: bandit -r apps config -f json -o /tmp/static-security.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lowcost-audit-security
+          path: |
+            /tmp/dependency-audit.json
+            /tmp/static-security.json
+          retention-days: 7

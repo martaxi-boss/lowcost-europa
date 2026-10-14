@@ -1,5 +1,7 @@
 # MVP OPERATIONAL CLOSEOUT 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 
 Operational closeout only. No new product features, catalog data, tracking, analytics, Docker, public launch or indexing enablement are part of this task.

@@ -1,5 +1,7 @@
 # MVP LIVE CATALOG 002 — SECOND REAL PRODUCTFAMILY
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Main base SHA: `2add105e2fdfaa671b1ee10baddf270cf117f994`
 
 ## DB before

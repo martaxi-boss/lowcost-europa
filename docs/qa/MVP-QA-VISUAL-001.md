@@ -1,5 +1,7 @@
 # MVP QA VISUAL 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 
 This QA validates the merged product-imagery storefront on the existing noindex staging host. It does not authorize a public MVP launch and did not call `/go/` or click any commercial CTA.

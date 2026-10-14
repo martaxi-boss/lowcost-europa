@@ -1,5 +1,7 @@
 # COMMERCIAL VALIDATION 001 — HIFU + CAVITATION
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 
 Base main SHA: `04dc3005ee046f453c8d525780927d7e26c17955`.

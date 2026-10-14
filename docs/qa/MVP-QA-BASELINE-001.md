@@ -1,5 +1,7 @@
 # MVP QA BASELINE 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Scope
 Technical staging QA only. No `/go/` request and no CTA click were performed in this task.
 Host: `lowcost-europa.165-22-114-67.sslip.io`.

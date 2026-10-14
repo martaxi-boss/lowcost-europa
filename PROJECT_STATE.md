@@ -1,140 +1,37 @@
 # Lowcost Europa — Project State
 
-Updated: 2026-09-19.
+Reconciled: 2026-10-03. Scope: repository hygiene; no application/runtime changes.
 
-## Current State
+## Addendum — technical pilot revalidation (2026-10-14)
 
-- **APPLICATION:** HEALTHY
-- **PRE-CLOSEOUT APPLICATION / RUNTIME BASELINE:** `211c2047b408ee85b5b1d139a40a80d510305d2d`
-- **CURRENT BRANCH:** `main`
-- **RUNTIME APPLICATION BASELINE:** `211c2047b408ee85b5b1d139a40a80d510305d2d`
-- **DEPLOYED APPLICATION CODE ALIGNED WITH LAST APPLICATION BASELINE:** YES
-- **WORKTREE:** CLEAN
-- **Kernel:** `6.8.0-139-generic`
-- **Reboot required:** NO
-- **Django service:** ACTIVE
-- **Nginx:** ACTIVE
-- **PostgreSQL:** ACTIVE
-- **Remote Desktop Commander:** ACTIVE / ENABLED, version `0.2.51`
-- **Catalog maintenance:** ACTIVE; hourly timer scheduled; latest service PASS
-- **Local backup:** ACTIVE / ENABLED; latest service PASS
-- **Offsite backup:** ACTIVE / ENABLED; latest service PASS
-- **Offsite health:** ACTIVE / ENABLED; latest service PASS
-- **PHASE 3:** CLOSED / APPROVED
-- **PUBLIC LAUNCH:** NO
-- **PUBLIC INDEXING:** OFF
-- **NOINDEX:** ACTIVE
-- **PUBLIC VALIDATION HOSTNAME:** `https://lowcost-europa.duckdns.org`
-- **Architecture:** FROZEN / NO REBUILD AUTHORIZED
-- **Current action:** Clean technical pilot baseline established and frozen. Platform is technically ready. Final domain, operator/business information and final legal/privacy content remain pending for future activation.
-- **Next human action:** Owner decides when to provide final domain and operator/business information and initiate the final activation sequence.
-- **Technical controlled pilot baseline:** AUTHORIZED / READY
-- **External real-user pilot:** PENDING FINAL ACTIVATION INPUTS
-- **New product discovery:** AUTOMATIC WEEKLY / FIVE FAMILIES / HUMAN REVIEW ONLY
-- **Weekly discovery schedule:** Monday 23:40 UTC (`lowcost-europa-weekly-discovery.timer`, `Persistent=true`)
-- **HIFU logistics recovery:** PAUSED (separate from bounded weekly candidate discovery)
+- GitHub repository visibility is **PUBLIC**. This is a repository-access change, **not** permission for commercial GO-LIVE or website indexing.
+- Existing application baseline of `main`: `82ff2d68835bf083de3b4da6ce674ae24631b3c5`. The dated baseline below documents prior accepted work; it does not certify today's VPS.
+- Current technical pilot improvements are held in **draft PR #152**, not merged or deployed: photographs, factual price/logistics display, click quality, manual AliExpress link safety and consolidated CI.
+- On PR #152's integration candidate `75af0e77b6e13977cd01a857db2d187076e07a61`, GitHub Actions run `38580359411` completed **SUCCESS** with 638/638 Django tests, 6/6 Node image tests, Ruff, Django checks and PostgreSQL migrations.
+- This is **repository/CI evidence only**. Independent VPS deployed SHA, external pilot users, real-browser image quality, production backups and public `robots.txt`/noindex still need new verification.
+- Pilot work items/feedback: issue #151. The retained separate documentation-hygiene PR #147 does not alter the VPS or make a commercial authorization.
+- Commercial deployment, final domain, public indexing, changes to Owner approval/publication gates and a marketing launch all remain **unauthorized**.
 
-`PROJECT_STATE.md` is documentation. A documentation-only merge may advance `main` without changing the deployed application/runtime code. Runtime synchronization, when required by governance, is a separate operation and does not by itself imply an application restart.
 
-The current system is a controlled human-in-the-loop catalog workflow. It is **not** a fully automatic learning system and does not authorize autonomous product publication. Current ranking/learning logic remains deterministic and isolated by product family.
+## Completed baseline
 
-## Current Operational Architecture
+- Owner status: completed / fully operational within the accepted project scope.
+- Verified GitHub application baseline: `82ff2d68835bf083de3b4da6ce674ae24631b3c5`.
+- PR #146 merged on 2026-09-30. PR-head CI runs `36763343523` and `36763348828`: success; accepted closeout: 623 tests.
+- Runtime equality was accepted in the prior closeout; this task does not renew live VPS evidence.
+- Architecture frozen: Python 3.12, Django 5.2 LTS, PostgreSQL, Gunicorn, Nginx, systemd, OVH.
+- Administration: GitHub workflows. Desktop Commander/self-hosted runners are not the current operating path.
+- Documentation-only commits advance main without changing/restarting the runtime.
 
-Current pipeline:
+The accepted technical scope stays closed. No new construction, architecture rebuild, public launch or indexing activation follows from this document. Final commercial domain, operator/legal inputs and commercial activation remain separate Owner decisions.
 
-`DISCOVERY → FAMILY RELEVANCE → GLOBAL DEDUPE → FAMILY-SPECIFIC RANKING / LEARNING → OFFER CANDIDATE → HUMAN OWNER REVIEW → APPROVE / REJECT / MOVE FAMILY → OFFER → EDITORIAL PUBLISH/HIDE → PUBLIC ELIGIBILITY → MAINTENANCE → REVALIDATION / DEACTIVATION`
+## Catalog and human workflow
 
-Human Owner review remains an explicit lifecycle gate. Discovery and ranking can prepare candidates, but approval, editorial publication and initial protocol verification remain controlled human/operational gates.
+`DISCOVERY → FAMILY RELEVANCE → GLOBAL DEDUPE → FAMILY RANKING → PENDING / A REVER → HUMAN APPROVAL → HIDDEN OFFER → HUMAN PUBLICATION → PUBLIC ELIGIBILITY → FACTUAL MAINTENANCE`
 
-### Global product identity
+Product identity: `(source, external_product_id)`. ProductFamily is durable; OfferFamilyPlacement supplies public family membership. Retired taxonomy and decision/observation/click/move history remain preserved.
 
-Global product identity remains:
-
-`(source, external_product_id)`
-
-- `OfferCandidate` and `Offer` preserve global source/external-product identity.
-- Candidate and Offer may coexist as lifecycle phases of the same product.
-- Products must not be silently cloned into new identities when moved between families.
-- Seller/store uniqueness is **not** assumed because current evidence is insufficient to impose it.
-
-## Owner Panel and Human Approval
-
-The private Owner panel exists under `/painel/` and is restricted to authenticated staff users.
-
-Current capabilities include:
-
-- private login/logout and dashboard;
-- family review views;
-- approve and reject;
-- revalidate protocol;
-- hide an Offer from the storefront;
-- publish an approved hidden Offer to the storefront;
-- move a candidate to another non-retired family;
-- move an approved candidate/Offer to another non-retired family while preserving lifecycle history;
-- storefront management mode for staff.
-
-Approval remains human protocol attestation. The current approval service:
-
-- requires a staff user;
-- creates/updates the Offer;
-- generates/preserves the affiliate URL through the existing AliExpress client path;
-- records `protocol_verified_at`;
-- records a factual observation;
-- creates/maintains family placement;
-- records a CandidateDecision;
-- does **not** automatically publish a newly approved Offer: editorial visibility remains controlled by `owner_hidden`.
-
-## Current Shipping / Commercial Protocol
-
-The sanctioned shipping-origin set remains:
-
-`PL / CZ / FR / ES / DE`
-
-The protocol continues to require human confirmation of delivery to Portugal and the approved commercial/editorial criteria. No unsupported AliExpress search parameter is invented to guarantee shipping origin.
-
-`protocol_verified_at` is the human protocol verification timestamp. Exact `ship_from_country` / `ship_from_verified_at` remain optional factual metadata when independently known; they are not a second manual approval or public-eligibility gate after valid Owner protocol attestation.
-
-- Initial protocol verification is required.
-- Age expiry: **NONE**.
-- Time passing alone does not make an otherwise eligible Offer non-public.
-- Automatic maintenance must not create or renew human protocol verification.
-- Human revalidation remains available as an explicit audit/update action but is not required solely because time passed.
-- Factual unavailability controls deactivation; transient/UNKNOWN states do not.
-
-### Public eligibility
-
-Current public eligibility is fail-closed and requires all of:
-
-- `is_active=True`;
-- `owner_hidden=False`;
-- non-empty `affiliate_url`;
-- non-null `protocol_verified_at`;
-- protocol verification timestamp not in the future;
-
-Current public eligibility does **not** require a non-null price or a non-`UNKNOWN` availability observation. Those remain editorial/launch-quality concerns rather than a silent change to the eligibility constitution.
-
-Maximum public-eligible Offers per family remains **20** as a cap, not a volume target.
-
-`/go/<offer>/` remains fail-closed through public eligibility.
-
-## Current Taxonomy and Catalog Snapshot
-
-Audited read-only runtime/database snapshot at **2026-09-19T17:44:41Z**:
-
-- ProductFamilies total: **9**
-- Non-retired/public-operational families: **5**
-- Retired families retained historically: **4**
-- Offers: **96**
-- Public-eligible Offers: **51**
-- Candidates: **359**
-- CandidateDecisions: **227**
-- OfferObservations: **427**
-- OfferFamilyPlacements: **96**
-- OfferClicks: **144**
-
-`Public-eligible` is a technical eligibility state, not a declaration that an Offer is commercially launch-ready. A prior launch-readiness audit found incomplete price, availability and logistics evidence across a material part of the technically eligible set. No public-eligibility rule or catalog record is changed by this documentation reconciliation. Commercial launch selection belongs to `PUBLIC CATALOG LAUNCH QUALITY GATE 001`.
-
-Current non-retired family slugs:
+Operational family order/public names come from the database. Five operational slugs:
 
 1. `cavitacao-rf-vacuum-corpo`
 2. `hydrodermoabrasao-aqua-facial-multifuncoes`
@@ -142,268 +39,55 @@ Current non-retired family slugs:
 4. `hifu`
 5. `diodo-laser-remocao-tatuagens-pigmentacao`
 
-The four retired ProductFamily records remain preserved as historical taxonomy records.
+Owner panel: `/painel/`, authenticated staff only. Approval, rejection, revalidation, publication, hiding and family moves remain human actions.
 
-OfferClick counts are raw outbound click records. They do not by themselves establish unique users, purchases, commissions or conversions.
+Approval attests delivery to Portugal and ship-from within PL/CZ/FR/ES/DE, verified on the actual listing. Individual country metadata is optional and never fabricated. Approval uses the official AliExpress affiliate path, persists verified promotion, hides newly approved Offers and preserves existing editorial visibility.
 
-## Catalog Maintenance
+Approval is not a positive discovery-learning signal. Semantic rejections and classification moves remain family-isolated; factual/logistics failures do not become semantic rejection signals.
 
-- Management command: `maintain_catalog_offers`
-- Settings/env default/fallback batch size: **5**
-- Scheduled systemd maintenance batch: **10** (`--batch-size 10`)
-- Command-enforced batch range: **1–20**
-- Scheduled cadence: **hourly**
-- Concurrency remains single-operation through the existing global AliExpress lock/cadence controls.
-- AliExpress safety behavior remains: operation locking, cadence control, retries, exponential backoff, jitter, `Retry-After`, HTTP 429 accounting/breaker, HTTP 5xx handling and transport-error handling.
-- Runtime coordination remains under `/run/lowcost-europa/`.
-- `PrivateTmp=true` remains compatible with the global `/run` coordination path.
-- Factual unavailability may deactivate an active Offer.
-- Transient external failures are not treated as factual unavailability.
-- Inactive Offers are not automatically reactivated.
-- Automatic maintenance does not create or renew human protocol verification.
+## Public eligibility and lifecycle
 
-Latest catalog-maintenance service result: **success**, `ExecMainStatus=0`.
+Central gate: `apps/catalog/services/public_eligibility.py`.
 
-## Discovery / Learning Authorization State
+- `is_active=True`, `owner_hidden=False`, non-empty affiliate URL;
+- `affiliate_promotion_status=ELIGIBLE` and non-null `affiliate_promotion_verified_at`;
+- non-null `protocol_verified_at`, not in the future.
 
-Current Owner authorization permits **one bounded automatic weekly discovery campaign across all five operational families**. The production schedule is **Monday 23:40 UTC**, implemented by `lowcost-europa-weekly-discovery.service` + `lowcost-europa-weekly-discovery.timer` with `Persistent=true`.
+Protocol age expiry: **NONE**. Time alone never hides an eligible Offer. Ship-from metadata is optional; human attestation remains mandatory. Price/observation availability are separate editorial concerns.
 
-The five families are processed **sequentially**, using the existing shared AliExpress lock/cadence/retry/rate-limit controls. The default pending-queue cap is **20 per family**; a family already at or above the cap is reported but receives no new detail budget. Zero new candidates is an acceptable outcome.
+Public placement/publication respects operational families and cap 20 per family. Storefront and `/go/<offer_id>/` share the central gate; ineligible Offers do not redirect or create valid clicks.
 
-Discovery may create only `OfferCandidate(status=PENDING)` records shown to the Owner as **A rever**. It must not auto-approve, auto-publish, generate final affiliate links, create `protocol_verified_at`, or mutate existing Offer editorial state. Unknown exact ship-from origin alone does not discard an otherwise reviewable candidate; the Owner inspects the listing and makes the protocol decision.
+Only factual unavailability deactivates Offers. Transient errors/rate limits/insufficient detail do not establish unavailability. Maintenance never renews human protocol, auto-publishes, clears Owner hiding or auto-reactivates inactive Offers.
 
-Approval is a human protocol attestation and is **not** a positive discovery-learning signal. Rejections remain the learning signal, with family-isolated negative learning and exact historical rejection dedupe.
+## Discovery and maintenance
 
-## Backups and Disaster Recovery
+- Weekly discovery: Monday 23:40 UTC, five families sequentially, Persistent=true.
+- Creates PENDING candidates only; no auto-approval/publication, final affiliate generation or Offer editorial mutation.
+- Weekly intake pauses at 20 pending candidates per family. This is a campaign budget guard, distinct from public cap 20; existing candidates are not deleted.
+- Hourly maintenance: scheduled batch 10; command range 1–20; settings fallback 5.
+- Shared AliExpress locking/cadence/retries/backoff/jitter/Retry-After/rate-limit breaker remain unchanged.
+- Shared state: `/run/lowcost-europa/`; preserve tmpfiles provisioning and PrivateTmp=true.
+- HIFU logistics recovery remains paused independently of weekly discovery.
 
-Phase 3 is **CLOSED / APPROVED**.
+## Accepted storefront
 
-Current architecture remains:
+- `VER EQUIPAMENTOS E PREÇOS` → `#familias`.
+- Existing five public family names/order preserved.
+- `VER PREÇO E COMPRAR NO ALIEXPRESS` → `/go/<offer_id>/` only.
+- WhatsApp: `/contactar/whatsapp/` → `351965471236`.
+- Public reads use PostgreSQL, not AliExpress. Purchase/payment/order support belongs to the partner.
+- OfferClicks are outbound clicks, not sales/commission evidence.
 
-`LOCAL POSTGRESQL BACKUP + ENCRYPTED OFF-SERVER RESTIC/R2`
+## Infrastructure and evidence boundaries
 
-Current audited operational state:
+Owner policy: one OVH VPS, GitHub-hosted workflows, credentials outside source control in the VPS cofre. Historical documents do not authorize paid provider backups or old administration tooling.
 
-- local daily PostgreSQL timer: ACTIVE / ENABLED;
-- offsite Restic backup timer: ACTIVE / ENABLED;
-- offsite health timer: ACTIVE / ENABLED;
-- latest local backup service: success;
-- latest offsite backup service: success;
-- latest offsite health service: success;
-- offsite health `ExecMainStatus=0`;
-- retention policy remains 7 daily / 4 weekly / 3 monthly;
-- repository health and restore drill were validated during Phase 3;
-- off-Droplet Restic recovery-password gate was confirmed by the Owner;
-- the historical exposed Cloudflare `cfat_` token gate was confirmed revoked, with no current automation depending on the old token.
+Versioned PostgreSQL/Restic scripts, systemd units and regression tests remain recovery implementations. Their presence does not prove active timers or authorize reinstating old backup policy. Current backup health, packages/kernel, systemd state and runtime SHA require live host verification; September snapshots are historical.
 
-The bootstrap credentials required to reach/open Restic are intentionally not backed up into their own repository. Historical Phase 3 runbooks may retain their original gate wording as chronology; this Current State records the subsequently confirmed closeout.
+Technical closeout did not authorize public launch/indexing. Fail-closed indexing controls remain. No legal/commercial activation is certified by this cleanup.
 
-## DuckDNS / Public Service Readiness
+## Document authority
 
-DuckDNS is the current **PUBLIC SERVICE HOSTNAME FOR NON-INDEXED VALIDATION**:
+Read PROJECT_CONSTITUTION.md, PROJECT_STATE.md and AGENTS.md in order. Catalog rules: docs/catalog/CATALOG-CONSTITUTION.md. Architecture: docs/ARQUITETURA-DO-SITE.md.
 
-`https://lowcost-europa.duckdns.org`
-
-Current audited responses:
-
-- `/`: 200
-- `/robots.txt`: 200
-- `/health/live/`: 200
-- `/health/ready/`: 200
-
-DuckDNS is not an authorization for final public launch, Search Console or indexing.
-
-## Phase 4 Security / Hardening Status
-
-Completed Phase 4 milestones relevant to the current state:
-
-- **PR #108 — Phase 4 ChangeSet 2 Documentation Closeout:** CLOSED / MERGED / COMPLETED. Merge commit: `74b94ba59cae71701a933637c91809dd2ab9d313`.
-- **PR #109 — Private Login Protection 001:** CLOSED / MERGED / DEPLOYED / PASS. Merge commit: `aea78ebfb5dfebc142a085717d7a4eef69585844`.
-  - Protects authentication POSTs on `/painel/entrar/` and `/admin/login/`.
-  - Policy: 5 failed authentication POSTs per normalized source within 5 minutes, followed by temporary HTTP 429 throttling with `Retry-After`.
-  - No permanent account lockout; username/account identity is not the limiter key.
-  - No passwords or credentials are stored/logged by the limiter.
-  - No Redis, new database table, migration or new dependency was introduced.
-- **PRIVATE LOGIN RATE LIMITING 001:** DUPLICATE / ALREADY IMPLEMENTED / CLOSED through Private Login Protection 001; no second mechanism is authorized or required.
-- **PR #110 — Nginx Server Tokens Hardening 001:** CLOSED / MERGED / DEPLOYED / PASS. Merge commit: `ffd4c9563927da3bcd60522a4b2286d130457456`.
-  - Public Nginx header before: `Server: nginx/1.24.0 (Ubuntu)`.
-  - Current public Nginx header: `Server: nginx`.
-
-These closed controls must not be reimplemented as new Phase 4 work without a separate audited reason.
-
-## Pre-Launch Gates
-
-- **HSTS:** DEFERRED UNTIL FINAL COMMERCIAL DOMAIN.
-- **CSP:** PENDING DEDICATED AUDIT.
-- **FUTURE CHANGESET:** `CONTENT SECURITY POLICY AUDIT 001`.
-- **FINAL COMMERCIAL DOMAIN:** PENDING OWNER DECISION.
-- **LEGAL OPERATOR INFORMATION:** PENDING OWNER INPUT.
-- **FINAL LEGAL / PRIVACY CONTENT:** PENDING FINAL INPUT / VALIDATION.
-- **SEARCH CONSOLE:** NOT YET.
-- **LEGAL / PRIVACY FINAL CONTENT:** PENDING FINAL INPUT / VALIDATION for future activation; commercial GO-LIVE remains NO.
-- **PUBLIC CATALOG LAUNCH QUALITY GATE 001:** AUDITED / CLOSED FOR CURRENT EVIDENCE.
-- **Current launch-evidence-complete Offers:** `#51`, `#59`, `#60`, `#61`, `#62` (5 total, audit evidence as of 2026-09-19).
-- **Further HIFU logistics recovery:** PAUSED.
-- **LEGAL / PRIVACY AUDIT:** COMPLETED.
-- **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.
-- **GO-LIVE:** NO.
-- **PUBLIC INDEXING:** OFF.
-
-Technical catalog evidence recovery does not authorize publication, external pilot traffic or commercial GO-LIVE. Search-based `<=5 days` evidence remains provenance-aware evidence, not a delivery guarantee.
-
-## Public Launch / Indexing State
-
-Current launch controls:
-
-- `DJANGO_PUBLIC_INDEXING_ENABLED=false`
-- `DJANGO_PUBLIC_SITE_URL=https://lowcost-europa.duckdns.org`
-- `X-Robots-Tag: noindex, nofollow`
-- `robots.txt`:
-
-```text
-User-agent: *
-Disallow: /
-```
-
-**PUBLIC LAUNCH: NO**
-
-**PUBLIC INDEXING: OFF**
-
-No canonical/indexing activation is currently authorized.
-
-## Current Software / OS Baseline
-
-- Ubuntu 24.04 LTS
-- Running kernel: `6.8.0-139-generic`
-- Reboot required: NO
-- Normal `dist-upgrade`: 0 upgraded / 0 new / 0 removed / 0 not upgraded
-- `dpkg --audit`: CLEAN
-- `apt-get check`: PASS
-- `fwupd`: `2.0.20-1ubuntu2~24.04.2`
-- `libfwupd3`: `2.0.20-1ubuntu2~24.04.2`
-- legacy `libfwupd2`: `1.9.34-0ubuntu1~24.04.1`, retained only as an autoremove candidate
-- `fwupd-refresh.service`: latest result success, `ExecMainStatus=0`
-- failed systemd units: **0**
-- Ubuntu Pro: **NOT ATTACHED**
-- ESM Apps updates still reportable: **21**, not applied by this phase
-- Remote Desktop Commander: `0.2.51`, ACTIVE / ENABLED under systemd persistence
-- No separate stale/manual persistent `npx ... remote` process is expected or required.
-
-## Tests and Regression Baseline
-
-Most recent final controlled-pilot technical regression evidence:
-
-- Django system check: **PASS**
-- production deploy check: **PASS** with only the separately deferred HSTS warning
-- `makemigrations --check --dry-run`: **NO CHANGES**
-- `migrate --plan`: **NO PLANNED MIGRATIONS**
-- `pip check`: **PASS**
-- Ruff: **PASS**
-- Full automated suite: **532 / 532 PASS**
-- `nginx -t`: **PASS**
-- `sshd -t`: **PASS**
-- homepage / liveness / readiness: **200 / 200 / 200**
-- local backup / offsite backup / offsite health: **PASS**
-- failed systemd units: **0**
-
-Current deployed application/runtime baseline:
-
-`211c2047b408ee85b5b1d139a40a80d510305d2d`
-
-## Current Open Items
-
-Factual open/deferred items at this reconciliation:
-
-- `libfwupd2` and `libgusb2` remain autoremove candidates; no autoremove is authorized here.
-- 21 ESM Apps updates remain available only through Ubuntu Pro/ESM; Ubuntu Pro remains not attached.
-- HSTS is **DEFERRED UNTIL FINAL COMMERCIAL DOMAIN**.
-- CSP is **PENDING DEDICATED AUDIT**; the future isolated work item is `CONTENT SECURITY POLICY AUDIT 001`.
-- final commercial domain: **PENDING**.
-- legal/privacy audit: **COMPLETED**; operator identity/final approved legal content remain **PENDING OWNER INPUT / FINAL VALIDATION** for future activation.
-- public catalog launch quality audit: **COMPLETED**; 5 Offers currently have complete launch evidence under the approved audit criteria.
-- HIFU logistics recovery: **PAUSED**.
-- external real-user pilot is **PENDING FINAL ACTIVATION INPUTS**; no technical lock or unblock operation is required.
-- technical controlled-pilot baseline is **AUTHORIZED / READY**.
-- public launch remains unauthorized.
-- public indexing remains disabled.
-
-## Infrastructure
-
-Current core infrastructure remains:
-
-- OVH VPS (`vps-32bea5b6`, public IPv4 `146.59.145.3`);
-- Django;
-- PostgreSQL;
-- Gunicorn;
-- Nginx;
-- systemd;
-- Remote Desktop Commander systemd-managed remote administration;
-- local PostgreSQL backups;
-- Restic/R2 encrypted off-server backup.
-
-No architecture rebuild is authorized.
-
-## Security and Honesty Invariants
-
-- Never promise guaranteed delivery without supporting proof.
-- ProductFamily remains durable while Offers are lifecycle records.
-- Observation history remains factual and append-oriented.
-- Affiliate nature must be disclosed.
-- No fake reviews, cloaking or invasive fingerprinting.
-- Do not infer seller/store identity when API evidence is insufficient.
-- Do not fabricate protocol confirmation, country, availability, decision or conversion evidence.
-- Do not reinterpret raw OfferClick records as sales/conversions.
-- Do not activate public indexing without a separate explicit authorization.
-
-## Historical Milestones
-
-The following chronology is retained as project history. It is **not** the current operational state.
-
-- Phase 0 reconnaissance completed and ADR-001/ADR-002 were accepted.
-- LE-001 through LE-004 established the foundation, AliExpress integration, catalog model and controlled persistence.
-- LE-005 through LE-009 established controlled Portugal discovery, search precision, provenance-aware logistics evidence, conservative evidence assessment and temporal diagnostics.
-- LE-010 introduced read-only longitudinal logistics history diagnostics.
-- LE-011 created the first controlled live longitudinal HIFU cohort.
-- LE-012 completed the authorized second observation round; Gate 12 closed and MVP transition was authorized. LE-013 longitudinal work was not authorized by default.
-- Manual catalog curation Admin, storefront shell and production settings hardening were integrated.
-- MVP LIVE CATALOG phases created the first real ProductFamilies and associated real Offers under human editorial control.
-- `/go/<offer>/` and privacy-minimal raw outbound `OfferClick` tracking were introduced; raw staging clicks were explicitly not treated as users, sales or conversions.
-- Real HTTPS staging was established through Nginx → Gunicorn → Django → PostgreSQL with systemd and fail-closed noindex controls.
-- Local daily PostgreSQL backups and a restore drill were completed; off-server recovery remained pending authorization.
-- Product imagery and desktop/mobile staging QA were performed; a known low-resolution HIFU source image remained an open non-blocking quality finding.
-- VISUAL + COMMERCIAL READINESS, LAUNCH READINESS, CATALOG + COMMERCIAL READINESS, ALIEXPRESS API SAFETY and AUDIT + OPERATIONAL HYGIENE phases were completed and retained in their dedicated audit/project documents.
-- CATALOG STRUCTURE 001, EIGHT-FAMILY TAXONOMY 001, STOREFRONT PLACEMENT MIGRATION 001 and STOREFRONT VISUAL & COMMERCIAL ENHANCEMENT 001 were approved, merged, deployed and closed.
-- The public catalog moved to `OfferFamilyPlacement` as source of truth.
-- Candidate discovery, global dedupe, family-specific deterministic learning, human review, public eligibility, maintenance and revalidation/deactivation were subsequently added and hardened.
-- At that historical milestone, HIFU broad discovery was formally closed after the then-authorized final push. This restriction was later superseded by the current bounded weekly five-family discovery authorization documented above.
-- Automatic maintenance reactivation was prohibited and merged before the current baseline.
-- The final five-option multi-signal rejection UI was merged and deployed in PR #80, leading to the then-current baseline `4abc19b636e2bf0b2f6068ee7b1065beb2a39b16`.
-- PR #108 completed and merged the Phase 4 ChangeSet 2 documentation closeout at merge commit `74b94ba59cae71701a933637c91809dd2ab9d313`.
-- PR #109 implemented, merged and deployed Private Login Protection 001 at merge commit `aea78ebfb5dfebc142a085717d7a4eef69585844`; runtime validation passed.
-- PR #110 implemented, merged and deployed Nginx Server Tokens Hardening 001 at merge commit `ffd4c9563927da3bcd60522a4b2286d130457456`; public version disclosure was reduced from `Server: nginx/1.24.0 (Ubuntu)` to `Server: nginx`.
-- PR #112 implemented, merged and deployed the existing-offer search/detail logistics observation capability at merge commit `211c2047b408ee85b5b1d139a40a80d510305d2d`; live use remained separately gated.
-- Controlled live logistics evidence recovery established current launch-evidence-complete status for Offers `#51`, `#59`, `#60`, `#61`, `#62`; further HIFU recovery is paused.
-- OWNER / LEGAL LAUNCH INFORMATION 001 completed read-only; legal operator identity and final legal/privacy content remain pending Owner/counsel input.
-
-Historical detailed evidence remains in repository audit and phase documents. This file now distinguishes those milestones from the live operating state above.
-
-## Current Gate
-
-- **PHASE 4:** PRE-GO-LIVE READINESS.
-- **CONTROLLED PILOT READINESS 001:** CLOSED / PASS (technical baseline).
-- **REPOSITORY & RUNTIME HYGIENE AUDIT 001:** CLOSED / PASS.
-- **HYGIENE CLEANUP 001:** CLOSED / PASS (safe temporary/cache residue only).
-- **TECHNICAL CONTROLLED PILOT BASELINE:** AUTHORIZED / READY.
-- **EXTERNAL REAL-USER PILOT:** PENDING FINAL ACTIVATION INPUTS.
-- **LEGAL / PRIVACY AUDIT:** COMPLETED.
-- **LEGAL OPERATOR IDENTITY:** PENDING OWNER INPUT / LEGAL VALIDATION.
-- **FINAL COMMERCIAL DOMAIN:** PENDING.
-- **HIFU RECOVERY:** PAUSED (separate logistics-recovery workstream).
-- **WEEKLY FIVE-FAMILY DISCOVERY:** AUTHORIZED / AUTOMATIC / PENDING-ONLY.
-- **NEW MASS DISCOVERY:** NO.
-- **ARCHITECTURE REBUILD:** NO.
-- **PRIVATE LOGIN PROTECTION 001:** CLOSED / PASS.
-- **NGINX SERVER TOKENS HARDENING 001:** CLOSED / PASS.
-- **PUBLIC LAUNCH / COMMERCIAL GO-LIVE:** NO.
-- **PUBLIC INDEXING:** OFF.
-- **NEXT HUMAN ACTION:** Owner/legal counsel supplies and validates the remaining operator/legal information; Supervisor then decides whether an external real-user pilot can be authorized.
+Phase reports, initial ADRs, old runbooks and QA captures are checkpoint evidence only. They cannot reopen completed tasks, supersede current authorization or restore old rules/infrastructure. See docs/README.md. Git history retains superseded versions.

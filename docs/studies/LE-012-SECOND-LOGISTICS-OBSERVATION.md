@@ -1,5 +1,7 @@
 # LE-012 — Second longitudinal logistics observation
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 ## Status
 
 Executed on 2026-09-14 after the authorized live window opened.

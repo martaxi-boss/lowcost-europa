@@ -1,5 +1,7 @@
 # STOREFRONT PLACEMENT MIGRATION 001
 
+> HISTORICAL CHECKPOINT — Evidence and instructions below apply only to the recorded phase. Current rules and authorization: PROJECT_STATE.md and docs/README.md. This report does not certify today's runtime or authorize repeating old operations.
+
 Status: READY FOR SUPERVISOR AUDIT
 
 Base: `f23e2866f2c412095373c057a92dbb27ea5a1a58`
