@@ -18,8 +18,8 @@
     {% if family.display_offer %}
       <p class="category-orientation">Veja a seleção desta categoria e compare os dados observados disponíveis.</p>
       <div class="family-card__facts">
-        <div><span>Preço observado</span><strong>{% with obs=family.display_offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}{% endwith %}</strong></div>
-        <div><span>Logística</span><strong>{{ family.display_offer.logistics_text|default:"Prazo não confirmado" }}</strong></div>
+        <div><span>Preço observado</span><strong>{% with obs=family.display_offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}{% endwith %}</strong>{% with obs=family.display_offer.observation_display.price_observation %}{% if obs %}<small class="fact-date">Observado em {{ obs.observed_at|date:"d/m/Y" }}</small>{% endif %}{% endwith %}{% if family.display_offer.price_observation_old %}<small class="fact-freshness-warning">Preço histórico; confirme no parceiro.</small>{% endif %}</div>
+        <div><span>Logística</span><strong>{{ family.display_offer.logistics_text|default:"Prazo não confirmado" }}</strong>{% with obs=family.display_offer.observation_display.logistics_observation %}{% if obs %}<small class="fact-date">Observado em {{ obs.observed_at|date:"d/m/Y" }}</small>{% endif %}{% endwith %}{% if family.display_offer.logistics_observation_old %}<small class="fact-freshness-warning">Prazo histórico; confirme no parceiro.</small>{% endif %}</div>
       </div>
     {% else %}
       <p class="category-orientation"><strong>Seleção em preparação.</strong> Ainda estamos a validar opções para esta categoria.</p>

@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import IntegrityError, OperationalError
@@ -6,6 +7,7 @@ from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 
 from apps.catalog.models import (
@@ -103,6 +105,12 @@ def _family_queryset():
 
 def _prepare_offer(offer, family):
     offer.observation_display = build_observation_display(offer.observation_history)
+    # A presentation notice only, never an expiry or a publication gate.
+    cutoff = timezone.now() - timedelta(days=7)
+    price = offer.observation_display.price_observation
+    logistics = offer.observation_display.logistics_observation
+    offer.price_observation_old = bool(price and price.observed_at < cutoff)
+    offer.logistics_observation_old = bool(logistics and logistics.observed_at < cutoff)
     offer.logistics_text = offer.observation_display.logistics_text
     offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
     offer.approved_candidate = (

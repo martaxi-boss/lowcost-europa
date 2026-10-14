@@ -244,6 +244,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .family-card__facts div { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; background: #f5f7f7; }
 .family-card__facts span { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .055em; font-weight: 750; }
 .family-card__facts strong { font-size: .9rem; line-height: 1.35; }
+.fact-date { display: block; color: var(--muted); font-size: .75rem; font-weight: 500; margin-top: 4px; }
+.fact-freshness-warning { display: block; color: #885024; font-size: .77rem; font-weight: 700; line-height: 1.4; margin-top: 6px; }
 .button--full { width: 100%; }
 .catalog-detail .offer-group + .offer-group { margin-top: 58px; padding-top: 52px; border-top: 1px solid var(--border); }
 .offer-group--featured { padding: 22px; margin-inline: -10px; border: 1px solid #bfd5cf; border-radius: var(--radius-lg); background: linear-gradient(180deg, #f1f7f5 0%, #fff 55%); }
