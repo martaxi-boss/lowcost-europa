@@ -2,6 +2,17 @@
 
 Reconciled: 2026-10-03. Scope: repository hygiene; no application/runtime changes.
 
+## Addendum — technical pilot revalidation (2026-10-14)
+
+- GitHub repository visibility is **PUBLIC**. This is a repository-access change, **not** permission for commercial GO-LIVE or website indexing.
+- Existing application baseline of `main`: `82ff2d68835bf083de3b4da6ce674ae24631b3c5`. The dated baseline below documents prior accepted work; it does not certify today's VPS.
+- Current technical pilot improvements are held in **draft PR #152**, not merged or deployed: photographs, factual price/logistics display, click quality, manual AliExpress link safety and consolidated CI.
+- On PR #152's integration candidate `75af0e77b6e13977cd01a857db2d187076e07a61`, GitHub Actions run `38580359411` completed **SUCCESS** with 638/638 Django tests, 6/6 Node image tests, Ruff, Django checks and PostgreSQL migrations.
+- This is **repository/CI evidence only**. Independent VPS deployed SHA, external pilot users, real-browser image quality, production backups and public `robots.txt`/noindex still need new verification.
+- Pilot work items/feedback: issue #151. The retained separate documentation-hygiene PR #147 does not alter the VPS or make a commercial authorization.
+- Commercial deployment, final domain, public indexing, changes to Owner approval/publication gates and a marketing launch all remain **unauthorized**.
+
+
 ## Completed baseline
 
 - Owner status: completed / fully operational within the accepted project scope.
