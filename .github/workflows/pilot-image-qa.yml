@@ -8,8 +8,11 @@ on:
       - 'tests/js/product-images.test.cjs'
       - '.github/workflows/pilot-image-qa.yml'
   push:
-    branches:
-      - 'builder/storefront-image-trust-20261014'
+    branches: [main]
+    paths:
+      - 'apps/storefront/static/storefront/product-images.js'
+      - 'tests/js/product-images.test.cjs'
+      - '.github/workflows/pilot-image-qa.yml'
 
 permissions:
   contents: read
