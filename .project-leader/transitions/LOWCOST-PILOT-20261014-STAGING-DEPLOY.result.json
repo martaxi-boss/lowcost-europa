@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-20261014-STAGING-DEPLOY",
+  "task_id": "LOWCOST-PILOT-20261014-STAGING",
+  "repository": "martaxi-boss/lowcost-europa",
+  "terminal_status": "SUCCESS",
+  "authorization_record": ".project-leader/transitions/LOWCOST-PILOT-20261014-STAGING-DEPLOY.authorization.json",
+  "action": "deploy_verified_pilot_commit_to_existing_staging_vps",
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "f0d520d31ef6a3aa06ee11f2793be50f75d58a2c",
+    "base_revision": "82ff2d68835bf083de3b4da6ce674ae24631b3c5",
+    "environment": "existing Lowcost Europa pilot staging; noindex; no commercial launch"
+  },
+  "observed_at": "2026-10-14T15:42:56.969Z",
+  "final_state": {
+    "status": "PILOT_STAGING_DEPLOYED_AND_NOINDEX_VERIFIED",
+    "revision": "f0d520d31ef6a3aa06ee11f2793be50f75d58a2c"
+  },
+  "evidence": [
+    "Staging host SSH ED25519 pin revalidated, private existing SSH channel and read-only preflights: martaxi-boss/VPS Actions 38588262630, 38588855170.",
+    "Before transition: git checkout 82ff2d68835bf083de3b4da6ce674ae24631b3c5, worktree clean, Nginx, PostgreSQL and Lowcost service active; local PostgreSQL backup 281827 bytes, age 12h, SHA256 PASS and pg_restore --list PASS; offsite success marker age 11h; 42712 MiB disk free.",
+    "First attempt VPS Actions 38590194547 failed after fetching exact Git source and rolled back to previous SHA; ROLLBACK_STATUS=pass. Follow-up tests 38590589156 and 38590815096 established existing staging PUBLIC_SITE_URL, with PUBLIC_INDEXING_ENABLED=False and DEBUG=False. Corrected the over-restrictive deployment assertion without changing application or security configuration.",
+    "Successful pilot staging rollout via VPS Actions 38591194575: target Git HEAD exactly f0d520d31ef6a3aa06ee11f2793be50f75d58a2c, Django check/deploy check/migration drift/plan success, collectstatic asset verified, restarted lowcost-europa.service only, local readiness plus all five family routes PASS, HTML meta/robots noindex, external HTTPS+JS static PASS, temporary SSH task branch deleted.",
+    "GitHub Lowcost main application CI Actions 38584697679: 638 Django tests and 6 Node image tests PASS. Post-authorization docs-only CI 38589539211 SUCCESS."
+  ],
+  "residual_blockers": []
+}
