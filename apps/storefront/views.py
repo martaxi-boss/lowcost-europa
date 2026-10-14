@@ -348,7 +348,6 @@ def _should_record_offer_click(request):
 
 
 @require_safe
-@require_safe
 def offer_go(request, offer_id):
     eligible = Offer.objects.filter(
         public_eligibility_q(),
