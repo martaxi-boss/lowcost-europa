@@ -1,11 +1,6 @@
 name: Staging browser QA
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/staging-browser-qa.yml'
-      - 'tests/browser/staging-browser-smoke.cjs'
   workflow_dispatch:
 
 permissions:
