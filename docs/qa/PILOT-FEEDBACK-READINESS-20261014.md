@@ -1,6 +1,6 @@
 # LOWCOST EUROPA — Pilot feedback and quality gates (2026-10-14)
 
-Status: PROPOSED / NOT DEPLOYED / NO COMMERCIAL GO-LIVE.
+Status: MERGED INTO MAIN / NOT DEPLOYED TO VPS / NO COMMERCIAL GO-LIVE.
 
 ## Pilot boundary
 - Keep the current test hostname and `DJANGO_PUBLIC_INDEXING_ENABLED=false`.
@@ -26,4 +26,4 @@ Status: PROPOSED / NOT DEPLOYED / NO COMMERCIAL GO-LIVE.
 - Record known blockers and test evidence before deciding whether the concept merits wider public testing.
 
 ## Release gate
-All automated tests and QA checks must pass on the exact branch intended for integration. CI may remain administratively blocked by GitHub account billing; a queued/failed job without steps is not evidence of test failure or success.
+Automated checks passed on merged `main` application commit `ed067409c997daacee7c19d6a8ca36fa98494e82` (GitHub CI run `38583874116`: 638 Django tests, 6 image tests). This does not replace real-device/Owner acceptance and after-deployment checks. The GitHub runner is functioning; the prior billing/zero-step incident is historical.

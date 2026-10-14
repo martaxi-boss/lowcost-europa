@@ -5,11 +5,11 @@ Reconciled: 2026-10-03. Scope: repository hygiene; no application/runtime change
 ## Addendum — technical pilot revalidation (2026-10-14)
 
 - GitHub repository visibility is **PUBLIC**. This is a repository-access change, **not** permission for commercial GO-LIVE or website indexing.
-- Existing application baseline of `main`: `82ff2d68835bf083de3b4da6ce674ae24631b3c5`. The dated baseline below documents prior accepted work; it does not certify today's VPS.
-- Current technical pilot improvements are held in **draft PR #152**, not merged or deployed: photographs, factual price/logistics display, click quality, manual AliExpress link safety and consolidated CI.
-- On PR #152's integration candidate `75af0e77b6e13977cd01a857db2d187076e07a61`, GitHub Actions run `38580359411` completed **SUCCESS** with 638/638 Django tests, 6/6 Node image tests, Ruff, Django checks and PostgreSQL migrations.
-- This is **repository/CI evidence only**. Independent VPS deployed SHA, external pilot users, real-browser image quality, production backups and public `robots.txt`/noindex still need new verification.
-- Pilot work items/feedback: issue #151. The retained separate documentation-hygiene PR #147 does not alter the VPS or make a commercial authorization.
+- **Current integrated application baseline:** `main` commit `ed067409c997daacee7c19d6a8ca36fa98494e82` (PR #152). Older baseline `82ff2d68835bf083de3b4da6ce674ae24631b3c5` below is historical; a later docs-only commit can change the HEAD without changing application code. No live VPS SHA is certified.
+- Technical pilot improvements are **MERGED in PR #152** on `main`, but **NOT DEPLOYED** to the VPS: photographs, factual price/logistics display, click quality, manual AliExpress link safety and consolidated CI.
+- On merged `main` application commit `ed067409c997daacee7c19d6a8ca36fa98494e82`, GitHub Actions run `38583874116` completed **SUCCESS**: 638/638 Django tests, 6/6 Node image tests, Ruff, Django checks and PostgreSQL migrations.
+- Repository/CI testing is green. A read-only HTTPS probe on 2026-10-14 (run `38582509781`) found all five family routes and health endpoints HTTP 200, `X-Robots-Tag: noindex, nofollow`, homepage HTML meta `noindex` and `robots.txt` with `Disallow: /`. The live homepage **did not include** the new `product-images.js`; new code is **not installed on the VPS**. Independent VPS deployed SHA, Android/desktop imagery and production backups still require verification; no external-user feedback has been collected.
+- Pilot work items/feedback: issue #151. Documentation-hygiene PR #147 was **MERGED** at `4b2a96cbcd3a101e1f65ceea11072d58328195e9` and removed four SHA-identical archived screenshots. Neither PR #147 nor #152 authorizes commercial launch or performs a VPS deploy.
 - Commercial deployment, final domain, public indexing, changes to Owner approval/publication gates and a marketing launch all remain **unauthorized**.
 
 
