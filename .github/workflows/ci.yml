@@ -87,13 +87,34 @@ jobs:
         shell: bash
         run: |
           set -u
+          base="https://lowcost-europa.duckdns.org"
           for path in / /robots.txt /health/live/ /health/ready/; do
-            status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --dump-header "$RUNNER_TEMP/lce-headers" --output "$RUNNER_TEMP/lce-body" --write-out '%{http_code}' "https://lowcost-europa.duckdns.org$path")" || status="000"
+            status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --dump-header "$RUNNER_TEMP/lce-headers" --output "$RUNNER_TEMP/lce-body" --write-out '%{http_code}' "$base$path")" || status="000"
             echo "PILOT_READONLY_HTTP path=$path code=$status"
-            if [ -f "$RUNNER_TEMP/lce-headers" ]; then
-              grep -i '^x-robots-tag:' "$RUNNER_TEMP/lce-headers" | head -1 || true
+            if grep -qi '^x-robots-tag:' "$RUNNER_TEMP/lce-headers" 2>/dev/null; then
+              grep -i '^x-robots-tag:' "$RUNNER_TEMP/lce-headers" | head -1
+            else
+              echo "PILOT_X_ROBOTS_HEADER=missing path=$path"
             fi
-            if [ "$path" = "/robots.txt" ] && [ -f "$RUNNER_TEMP/lce-body" ]; then
+            if [ "$path" = "/" ]; then
+              if grep -Eiq '<meta[^>]+name="robots"[^>]+content="noindex' "$RUNNER_TEMP/lce-body"; then
+                echo "PILOT_META_ROBOTS_NOINDEX=yes"
+              else
+                echo "PILOT_META_ROBOTS_NOINDEX=not_observed"
+              fi
+              if grep -q 'product-images.js' "$RUNNER_TEMP/lce-body"; then
+                echo "PILOT_NEW_IMAGE_SCRIPT_PRESENT=yes"
+              else
+                echo "PILOT_NEW_IMAGE_SCRIPT_PRESENT=no"
+              fi
+            fi
+            if [ "$path" = "/robots.txt" ]; then
               grep -E '^(User-agent:|Disallow:)' "$RUNNER_TEMP/lce-body" | head -5 || true
             fi
           done
+          for family in cavitacao-rf-vacuum-corpo hydrodermoabrasao-aqua-facial-multifuncoes pressoterapia-vacuum-drenagem hifu diodo-laser-remocao-tatuagens-pigmentacao; do
+            status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --output /dev/null --write-out '%{http_code}' "$base/produtos/$family/")" || status="000"
+            echo "PILOT_FAMILY_READONLY slug=$family code=$status"
+          done
+          status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --output /dev/null --write-out '%{http_code}' "$base/painel/")" || status="000"
+          echo "PILOT_PRIVATE_OWNER_ENTRY code=$status"
