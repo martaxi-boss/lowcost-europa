@@ -146,6 +146,19 @@ class ManualCandidateIntakeServiceTests(TestCase):
         handler = builder.call_args.args[0]
         self.assertIsInstance(handler, _AliExpressOnlyRedirectHandler)
 
+    def test_malformed_urls_fail_cleanly_without_network(self):
+        opener = Mock()
+        for bad in (
+            "https://[::1",
+            "https://[www.aliexpress.com/e/_short",
+            "https://s.click.aliexpress.com:invalid/e/_short",
+            "https://s.click.aliexpress.com:0/e/_short",
+        ):
+            with self.subTest(url=bad):
+                with self.assertRaises(ManualCandidateIntakeError):
+                    resolve_aliexpress_product_url(bad, opener=opener)
+        opener.assert_not_called()
+
     def test_creates_pending_candidate_from_official_detail_without_affiliate_generation(self):
         client = self.fake_client()
 
