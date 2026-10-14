@@ -5,12 +5,12 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 
 ## Source of truth and audit boundary
 
-- Repository: `martaxi-boss/lowcost-europa` (private).
+- Repository: `martaxi-boss/lowcost-europa` (**public since 2026-10-14**, without authorizing public site indexing or commercial launch).
 - Frozen integration base: `main` commit `82ff2d68835bf083de3b4da6ce674ae24631b3c5`.
 - Integration branch: `builder/pilot-integration-preflight-20261014`.
 - No code, data, services, application restart or DNS changes applied to the VPS by this branch.
 - Operational runtime is **NOT VERIFIED** by this work; the dated runtime snapshot in `PROJECT_STATE.md` must not be reinterpreted as current live evidence.
-- PR #147 concerns historical documentation hygiene and remains a **separate, unmerged** work item.
+- PR #147 concerns historical documentation hygiene and remains a **separate** work item; its GitHub state is tracked in issue #151.
 - No launch-domain, legal operator, production HSTS, public indexing, Search Console or commercial launch changes are made.
 
 ## Technical pilot corrections prepared
@@ -30,7 +30,8 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 - CI triggers only for pull requests to `main`, pushes to `main` and explicitly requested manual runs. Branch pushes with an open PR no longer cause an unnecessary second job.
 - CI uses read-only repository contents permission, disables checkout credential persistence, and cancels superseded runs.
 - Compared the 16 non-conflicting source/test file blobs from PRs #148/#149/#150 to the integration tree: **16/16 exact SHA matches**. Only the combined storefront view and consolidated CI intentionally differ from individual branches.
-- Historical binary screenshots, backups, operator information, catalog records and migrations are **not deleted or rewritten**; PR #147 handles its own documented duplicate screenshot cleanup.
+- Historical binary screenshots, backups, operator information, catalog records and migrations are **not deleted or rewritten** by this branch; PR #147 handles its own documented duplicate screenshot cleanup.
+- Public-source spot-check of deployment scripts, Django settings, AliExpress configuration, workflow, backup notes and current project documents found **no exact secret-token/private-key pattern matches**. This limited scan does **not** certify the entire Git history or VPS secrets.
 
 ## Evidence — what has and has not passed
 
@@ -40,18 +41,19 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 | Product image regression cases | 6/6 PASS | Local Node.js `node --test`, test file and code SHA verified against GitHub |
 | 16 source/test files from component branches | 16/16 MATCH | Git tree SHA comparison |
 | Integrated storefront code markers and duplicate decorator | CHECKED | Combined source inspection |
-| Django suite, migrations and Ruff on combined branch | NOT RUN | Hosted CI unavailable; no local Django/PostgreSQL baseline |
+| Django full suite on combined branch | **638/638 PASS** | GitHub Actions run `38580359411`, candidate `75af0e77b6e13977cd01a857db2d187076e07a61` |
+| Django checks, Ruff, migration drift and PostgreSQL migrations | **PASS** | Same GitHub CI run, all required steps success |
+| Owner storefront navigation test after factual copy change | **FIXED / PASS** | Updated stale assertion to require the approved factual headline; checked absence of old unsupported claim |
 | Real browser Android/desktop and live pilot services | NOT VERIFIED | No authorized live environment session with repeatable evidence |
-| GitHub Actions | BLOCKED | Latest pilot jobs conclude failure with zero steps executed; GitHub administrative/billing gate remains |
+| GitHub Actions | **PASS** | Re-running after public repository visibility enabled real job steps, then 638 Django tests passed. Earlier zero-step failures remain historical evidence only |
 | User feedback, commercial conversion or revenue | NOT COLLECTED | Separate real pilot required |
 
-A GitHub run with no executed steps is not proof of passing or failing application tests.
-Historical successes in `PROJECT_STATE.md` are not current evidence for the new combined code.
+Earlier GitHub runs with no executed steps were not evidence of application failures. The **successful 2026-10-14 GitHub CI** is the valid current code-test evidence; it is **not a live VPS/runtime test**.
 
 ## Integration and pilot validation sequence
 
-1. Resolve GitHub Actions administrative/billing or spending-limit restrictions. Confirm that real job steps execute.
-2. On the **exact candidate commit**, obtain green Django check, production deploy check, migration drift check, Ruff, PostgreSQL migrations/tests and Node test results.
+1. **Completed:** public repository GitHub-hosted runner executes genuine steps; test workflow now operates.
+2. **Completed:** candidate application commit `75af0e77b6e13977cd01a857db2d187076e07a61` passed Django check/deploy check, migration drift, Ruff, PostgreSQL migrations, **638/638 Django tests** and **6/6 Node image cases** in run `38580359411`.
 3. Review the consolidated draft PR and preserve separate Owner editorial gates. Do not merge merely because the code is present.
 4. Integrate once, following a reversible, documented change. Verify deployed commit independently.
 5. Check `/`, five current non-retired product families, a known real image, broken image, 123x123 photo handling, affiliate `/go/`, WhatsApp/contact and owner workflows on Android and desktop.
@@ -65,4 +67,4 @@ Historical successes in `PROJECT_STATE.md` are not current evidence for the new 
 - Keep older PR history for audit. Close only genuinely superseded proposals after the consolidated replacement is available and cross-referenced.
 - No personal visitor fingerprinting, third-party analytics, API secrets or payment simulation was added.
 - Rollback, if ever deployed after validation, is by reversing the eventual application merge or redeploying the pre-change application commit; take an independently verified backup beforehand.
-- Open blocking status remains explicit: **CI RED/NOT RUN, LIVE PILOT UNVERIFIED, PUBLIC INDEXING OFF, COMMERCIAL GO-LIVE NO**.
+- Open blocking status remains explicit: **CI GREEN (CODE ONLY); LIVE PILOT NOT CERTIFIED; PUBLIC INDEXING OFF; COMMERCIAL GO-LIVE NO**.
