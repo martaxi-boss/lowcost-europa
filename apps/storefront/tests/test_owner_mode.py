@@ -273,8 +273,9 @@ class OwnerStorefrontNavigationTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(
             response,
-            "Equipamentos profissionais, enviados da Europa, a preços mais acessíveis.",
+            "Equipamentos profissionais de estética, selecionados para uma compra informada.",
         )
+        self.assertNotContains(response, "enviados da Europa, a preços mais acessíveis")
         self.assertContains(response, "Gestão ativa")
         self.assertContains(response, "Gerir")
         family_url = reverse("storefront:product-family-detail", args=[self.family.slug])
