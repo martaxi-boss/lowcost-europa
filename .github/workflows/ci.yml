@@ -81,3 +81,19 @@ jobs:
         run: python manage.py migrate --noinput
       - name: Tests
         run: python manage.py test
+      - name: Temporary pilot HTTP read-only check (no deployment)
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 152
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -u
+          for path in / /robots.txt /health/live/ /health/ready/; do
+            status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --dump-header "$RUNNER_TEMP/lce-headers" --output "$RUNNER_TEMP/lce-body" --write-out '%{http_code}' "https://lowcost-europa.duckdns.org$path")" || status="000"
+            echo "PILOT_READONLY_HTTP path=$path code=$status"
+            if [ -f "$RUNNER_TEMP/lce-headers" ]; then
+              grep -i '^x-robots-tag:' "$RUNNER_TEMP/lce-headers" | head -1 || true
+            fi
+            if [ "$path" = "/robots.txt" ] && [ -f "$RUNNER_TEMP/lce-body" ]; then
+              grep -E '^(User-agent:|Disallow:)' "$RUNNER_TEMP/lce-body" | head -5 || true
+            fi
+          done
