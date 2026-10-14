@@ -44,15 +44,16 @@ def _product_id_from_url(url: str) -> str | None:
 
 def _validated_aliexpress_url(url: str, *, allow_http: bool):
     """Validate a URL before any HTTP request or redirect to its destination."""
-    parsed = parse.urlparse(url)
     try:
+        parsed = parse.urlparse(url)
+        hostname = parsed.hostname
         port = parsed.port
     except ValueError as exc:
-        raise ManualCandidateIntakeError("O endereço AliExpress contém uma porta inválida.") from exc
+        raise ManualCandidateIntakeError("O endereço AliExpress é inválido.") from exc
     permitted_schemes = {"https", "http"} if allow_http else {"https"}
     if (
         parsed.scheme not in permitted_schemes
-        or not _is_aliexpress_host(parsed.hostname)
+        or not _is_aliexpress_host(hostname)
         or parsed.username is not None
         or parsed.password is not None
         or port not in {None, 443}
