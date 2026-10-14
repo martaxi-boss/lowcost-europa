@@ -367,7 +367,7 @@ class StorefrontViewTests(TestCase):
             external_product_id="detail-image-two",
             product_family=family,
             title="Second image offer",
-            image_url="http://images.example.test/two.jpg",
+            image_url="https://images.example.test/two.jpg",
         )
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
@@ -394,12 +394,20 @@ class StorefrontViewTests(TestCase):
             title="Invalid image offer",
             image_url="javascript:broken",
         )
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="http-only-image",
+            product_family=family,
+            title="HTTP-only image offer",
+            image_url="http://images.example.test/not-secure.jpg",
+        )
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
         content = response.content.decode()
-        self.assertEqual(content.count("offer-card__media--placeholder"), 2)
+        self.assertEqual(content.count("offer-card__media--placeholder"), 3)
         self.assertNotIn("javascript:broken", content)
+        self.assertNotIn("http://images.example.test/not-secure.jpg", content)
 
     def test_product_images_do_not_expose_affiliate_url(self):
         family = ProductFamily.objects.create(name="Safe Image", slug="safe-image")
@@ -420,7 +428,7 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(
             response,
-            "Equipamentos profissionais, enviados da Europa, a preços mais acessíveis.",
+            "Equipamentos profissionais de estética, selecionados para uma compra informada.",
         )
         self.assertNotContains(response, "Explorar categorias")
         self.assertNotContains(response, "Curadoria editorial")

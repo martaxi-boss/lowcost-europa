@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import IntegrityError, OperationalError
@@ -6,7 +7,9 @@ from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.cache import patch_vary_headers
+from django.views.decorators.http import require_safe
 
 from apps.catalog.models import (
     Offer,
@@ -103,6 +106,12 @@ def _family_queryset():
 
 def _prepare_offer(offer, family):
     offer.observation_display = build_observation_display(offer.observation_history)
+    # A presentation notice only, never an expiry or a publication gate.
+    cutoff = timezone.now() - timedelta(days=7)
+    price = offer.observation_display.price_observation
+    logistics = offer.observation_display.logistics_observation
+    offer.price_observation_old = bool(price and price.observed_at < cutoff)
+    offer.logistics_observation_old = bool(logistics and logistics.observed_at < cutoff)
     offer.logistics_text = offer.observation_display.logistics_text
     offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
     offer.approved_candidate = (
@@ -324,6 +333,21 @@ def sitemap_xml(request):
     return HttpResponse(body, content_type="application/xml")
 
 
+def _should_record_offer_click(request):
+    """Exclude speculative requests, not claim to identify unique human buyers."""
+    if request.method != "GET":
+        return False
+    purpose = " ".join(
+        (
+            request.headers.get("Sec-Purpose", ""),
+            request.headers.get("Purpose", ""),
+            request.headers.get("X-Moz", ""),
+        )
+    ).lower()
+    return "prefetch" not in purpose and "prerender" not in purpose
+
+
+@require_safe
 def offer_go(request, offer_id):
     eligible = Offer.objects.filter(
         public_eligibility_q(),
@@ -342,8 +366,12 @@ def offer_go(request, offer_id):
         raise Http404
 
     destination = offer.affiliate_url
-    try:
-        OfferClick.objects.create(offer=offer)
-    except (IntegrityError, OperationalError):
-        logger.warning("Offer click persistence failed offer_id=%s", offer.pk)
-    return HttpResponseRedirect(destination)
+    if _should_record_offer_click(request):
+        try:
+            OfferClick.objects.create(offer=offer)
+        except (IntegrityError, OperationalError):
+            logger.warning("Offer click persistence failed offer_id=%s", offer.pk)
+    response = HttpResponseRedirect(destination)
+    response["Cache-Control"] = "private, no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response

@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest.mock import Mock, patch
+from urllib import request
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -9,6 +10,7 @@ from apps.catalog.models import CandidateDecision, Offer, OfferCandidate, Produc
 from apps.catalog.services.manual_candidate_intake import (
     ManualCandidateIntakeError,
     ManualCandidateIntakeResult,
+    _AliExpressOnlyRedirectHandler,
     intake_manual_aliexpress_candidate,
     resolve_aliexpress_product_url,
 )
@@ -89,6 +91,72 @@ class ManualCandidateIntakeServiceTests(TestCase):
             resolve_aliexpress_product_url(
                 "https://example.com/item/1005001234567890.html", opener=opener
             )
+        opener.assert_not_called()
+
+    def test_http_short_link_does_not_make_network_request(self):
+        opener = Mock()
+        with self.assertRaises(ManualCandidateIntakeError):
+            resolve_aliexpress_product_url(
+                "http://s.click.aliexpress.com/e/_Example", opener=opener
+            )
+        opener.assert_not_called()
+
+    def test_direct_product_id_is_canonicalized_without_opening_http(self):
+        opener = Mock()
+        result = resolve_aliexpress_product_url(
+            f"http://www.aliexpress.com/item/{self.product_id}.html",
+            opener=opener,
+        )
+        self.assertEqual(result, (self.product_id, self.canonical))
+        opener.assert_not_called()
+
+    def test_redirects_reject_other_hosts_non_https_and_credentials(self):
+        handler = _AliExpressOnlyRedirectHandler()
+        original = request.Request("https://s.click.aliexpress.com/e/_Example")
+        for redirected in (
+            "https://127.0.0.1/admin",
+            "http://www.aliexpress.com/item/123.html",
+            "https://www.aliexpress.com:8080/item/123.html",
+            "https://user:secret@www.aliexpress.com/item/123.html",
+            "https://evil-aliexpress.com/item/123.html",
+        ):
+            with self.subTest(redirected=redirected):
+                with self.assertRaises(ManualCandidateIntakeError):
+                    handler.redirect_request(
+                        original, None, 302, "Found", {}, redirected
+                    )
+
+    def test_redirects_accept_https_aliexpress_product_destinations(self):
+        handler = _AliExpressOnlyRedirectHandler()
+        original = request.Request("https://s.click.aliexpress.com/e/_Example")
+        resolved = handler.redirect_request(
+            original, None, 302, "Found", {}, self.canonical
+        )
+        self.assertEqual(resolved.full_url, self.canonical)
+
+    def test_default_short_link_uses_safe_redirect_handler(self):
+        with patch(
+            "apps.catalog.services.manual_candidate_intake.request.build_opener"
+        ) as builder:
+            builder.return_value.open.return_value = FakeResponse(self.canonical)
+            product_id, canonical = resolve_aliexpress_product_url(
+                "https://s.click.aliexpress.com/e/_Example"
+            )
+        self.assertEqual((product_id, canonical), (self.product_id, self.canonical))
+        handler = builder.call_args.args[0]
+        self.assertIsInstance(handler, _AliExpressOnlyRedirectHandler)
+
+    def test_malformed_urls_fail_cleanly_without_network(self):
+        opener = Mock()
+        for bad in (
+            "https://[::1",
+            "https://[www.aliexpress.com/e/_short",
+            "https://s.click.aliexpress.com:invalid/e/_short",
+            "https://s.click.aliexpress.com:0/e/_short",
+        ):
+            with self.subTest(url=bad):
+                with self.assertRaises(ManualCandidateIntakeError):
+                    resolve_aliexpress_product_url(bad, opener=opener)
         opener.assert_not_called()
 
     def test_creates_pending_candidate_from_official_detail_without_affiliate_generation(self):

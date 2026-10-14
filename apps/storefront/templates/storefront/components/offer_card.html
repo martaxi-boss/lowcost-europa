@@ -1,8 +1,8 @@
 <article class="offer-card{% if selection_card %} offer-card--featured{% endif %}">
   {% if offer.image_url %}
     {% with image_url=offer.image_url %}
-      {% if image_url|slice:":8" == "https://" or image_url|slice:":7" == "http://" %}
-        <div class="offer-card__media"><img class="offer-card__image" src="{{ image_url }}" alt="{{ offer.title|default:'Oferta disponível' }}" width="640" height="480" loading="lazy"></div>
+      {% if image_url|slice:":8" == "https://" %}
+        <div class="offer-card__media"><img class="offer-card__image" src="{{ image_url }}" alt="{{ offer.title|default:'Oferta disponível' }}" width="640" height="480" loading="lazy" data-product-image><span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span><span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span></div>
       {% else %}
         <div class="offer-card__media offer-card__media--placeholder" aria-hidden="true">LE</div>
       {% endif %}
@@ -16,9 +16,9 @@
       <h3 class="offer-title" title="{{ offer.title|default:'Oferta disponível' }}">{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
     {% if placement and placement.selection_reason %}<div class="selection-reason"><strong>Porque está aqui</strong><p>{{ placement.selection_reason }}</p></div>{% endif %}
-    <div class="offer-price-block"><p class="fact-label">Preço observado</p><p class="price">{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}{% endwith %}</p>{% with obs=offer.observation_display.price_observation %}{% if obs %}<p class="meta">Observado em {{ obs.observed_at|date:"d/m/Y H:i" }} · pode mudar no parceiro</p>{% endif %}{% endwith %}</div>
+    <div class="offer-price-block"><p class="fact-label">Preço observado</p><p class="price">{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}Não disponível{% endif %}{% endwith %}</p>{% with obs=offer.observation_display.price_observation %}{% if obs %}<p class="meta">Observado em {{ obs.observed_at|date:"d/m/Y H:i" }} · pode mudar no parceiro</p>{% endif %}{% endwith %}{% if offer.price_observation_old %}<p class="fact-freshness-warning">Observação com mais de 7 dias. Confirme o preço atual no parceiro.</p>{% endif %}</div>
     <dl class="facts">
-      <div><dt>Logística observada</dt><dd>{{ offer.logistics_text|default:"Prazo não confirmado" }}</dd></div>
+      <div><dt>Logística observada</dt><dd>{{ offer.logistics_text|default:"Prazo não confirmado" }}{% with obs=offer.observation_display.logistics_observation %}{% if obs %}<small class="fact-date">Observado em {{ obs.observed_at|date:"d/m/Y H:i" }}</small>{% endif %}{% endwith %}{% if offer.logistics_observation_old %}<small class="fact-freshness-warning">Observação com mais de 7 dias. Confirme o prazo no parceiro.</small>{% endif %}</dd></div>
       <div><dt>Avaliação no parceiro</dt><dd>{% with obs=offer.observation_display.rating_observation %}{% if obs %}{{ obs.evaluation_rate_percent }}%{% else %}Não disponível{% endif %}{% endwith %}</dd></div>
       <div><dt>Vendas indicadas</dt><dd>{% with obs=offer.observation_display.sales_observation %}{% if obs %}{{ obs.sales_count }}{% else %}Não disponível{% endif %}{% endwith %}</dd></div>
     </dl>

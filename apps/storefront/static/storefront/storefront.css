@@ -79,9 +79,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .product-card { display: flex; flex-direction: column; transition: transform .2s ease, box-shadow .2s ease; }
 .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
 .product-card__media-link { display: block; text-decoration: none; }
-.product-card__media, .offer-card__media { aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; background: #f3f6f5; }
+.product-card__media, .offer-card__media { aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; background: #f3f6f5; position: relative; }
 .product-card__media--placeholder, .offer-card__media--placeholder { background: linear-gradient(135deg, #dcebe6, #f6f8f7); color: var(--accent); font-size: 2rem; font-weight: 850; }
 .product-card__image, .offer-card__image { width: 100%; height: 100%; display: block; object-fit: contain; background: #fff; }
+.product-card__media [hidden], .offer-card__media [hidden] { display: none; }
+.image-fallback { color: #326658; font-size: .85rem; font-weight: 700; text-align: center; padding: 16px; }
+.image-quality-note { position: absolute; bottom: 8px; left: 8px; right: 8px; color: #234e40; background: rgba(255,255,255,.95); border-radius: 6px; padding: 5px 8px; text-align: center; font-size: .72rem; font-weight: 700; }
 .product-card__body, .offer-card__body { padding: 21px; }
 .product-card__body { display: flex; flex: 1; flex-direction: column; }
 .card-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -241,6 +244,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .family-card__facts div { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; background: #f5f7f7; }
 .family-card__facts span { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .055em; font-weight: 750; }
 .family-card__facts strong { font-size: .9rem; line-height: 1.35; }
+.fact-date { display: block; color: var(--muted); font-size: .75rem; font-weight: 500; margin-top: 4px; }
+.fact-freshness-warning { display: block; color: #885024; font-size: .77rem; font-weight: 700; line-height: 1.4; margin-top: 6px; }
 .button--full { width: 100%; }
 .catalog-detail .offer-group + .offer-group { margin-top: 58px; padding-top: 52px; border-top: 1px solid var(--border); }
 .offer-group--featured { padding: 22px; margin-inline: -10px; border: 1px solid #bfd5cf; border-radius: var(--radius-lg); background: linear-gradient(180deg, #f1f7f5 0%, #fff 55%); }
