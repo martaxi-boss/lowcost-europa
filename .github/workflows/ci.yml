@@ -4,13 +4,20 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches:
-      - main
-      - 'builder/**'
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -37,6 +44,8 @@ jobs:
       POSTGRES_PORT: '5432'
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -61,6 +70,13 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
       - name: Ruff
         run: ruff check .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check product image script syntax
+        run: node --check apps/storefront/static/storefront/product-images.js
+      - name: Product image regression tests
+        run: node --test tests/js/product-images.test.cjs
       - name: Apply migrations
         run: python manage.py migrate --noinput
       - name: Tests
