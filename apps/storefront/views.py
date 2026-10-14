@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.cache import patch_vary_headers
+from django.views.decorators.http import require_safe
 
 from apps.catalog.models import (
     Offer,
@@ -332,6 +333,22 @@ def sitemap_xml(request):
     return HttpResponse(body, content_type="application/xml")
 
 
+def _should_record_offer_click(request):
+    """Exclude speculative requests, not claim to identify unique human buyers."""
+    if request.method != "GET":
+        return False
+    purpose = " ".join(
+        (
+            request.headers.get("Sec-Purpose", ""),
+            request.headers.get("Purpose", ""),
+            request.headers.get("X-Moz", ""),
+        )
+    ).lower()
+    return "prefetch" not in purpose and "prerender" not in purpose
+
+
+@require_safe
+@require_safe
 def offer_go(request, offer_id):
     eligible = Offer.objects.filter(
         public_eligibility_q(),
@@ -350,8 +367,12 @@ def offer_go(request, offer_id):
         raise Http404
 
     destination = offer.affiliate_url
-    try:
-        OfferClick.objects.create(offer=offer)
-    except (IntegrityError, OperationalError):
-        logger.warning("Offer click persistence failed offer_id=%s", offer.pk)
-    return HttpResponseRedirect(destination)
+    if _should_record_offer_click(request):
+        try:
+            OfferClick.objects.create(offer=offer)
+        except (IntegrityError, OperationalError):
+            logger.warning("Offer click persistence failed offer_id=%s", offer.pk)
+    response = HttpResponseRedirect(destination)
+    response["Cache-Control"] = "private, no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
