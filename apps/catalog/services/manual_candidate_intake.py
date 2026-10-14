@@ -42,29 +42,60 @@ def _product_id_from_url(url: str) -> str | None:
     return None
 
 
-def resolve_aliexpress_product_url(url: str, *, opener=request.urlopen) -> tuple[str, str]:
+def _validated_aliexpress_url(url: str, *, allow_http: bool):
+    """Validate a URL before any HTTP request or redirect to its destination."""
+    parsed = parse.urlparse(url)
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ManualCandidateIntakeError("O endereço AliExpress contém uma porta inválida.") from exc
+    permitted_schemes = {"https", "http"} if allow_http else {"https"}
+    if (
+        parsed.scheme not in permitted_schemes
+        or not _is_aliexpress_host(parsed.hostname)
+        or parsed.username is not None
+        or parsed.password is not None
+        or port not in {None, 443}
+    ):
+        raise ManualCandidateIntakeError("O link tem de ser um URL AliExpress seguro.")
+    return parsed
+
+
+class _AliExpressOnlyRedirectHandler(request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _validated_aliexpress_url(newurl, allow_http=False)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _safe_product_urlopen(req, *, timeout):
+    # urllib's default opener follows arbitrary hosts before a final URL check.
+    # A dedicated redirect handler checks each hop before network access.
+    return request.build_opener(_AliExpressOnlyRedirectHandler()).open(req, timeout=timeout)
+
+
+def resolve_aliexpress_product_url(url: str, *, opener=None) -> tuple[str, str]:
     raw = (url or "").strip()
-    parsed = parse.urlparse(raw)
-    if parsed.scheme not in {"http", "https"} or not _is_aliexpress_host(parsed.hostname):
-        raise ManualCandidateIntakeError("O link tem de ser um URL AliExpress válido.")
+    parsed = _validated_aliexpress_url(raw, allow_http=True)
 
     product_id = _product_id_from_url(raw)
     if product_id is None:
+        if parsed.scheme != "https":
+            raise ManualCandidateIntakeError(
+                "Os links encurtados AliExpress têm de usar HTTPS."
+            )
         req = request.Request(
             raw,
             method="GET",
             headers={"User-Agent": "Mozilla/5.0 LowcostEuropaManualIntake/1.0"},
         )
         try:
-            with opener(req, timeout=15) as response:
+            with (opener or _safe_product_urlopen)(req, timeout=15) as response:
                 resolved_url = response.geturl()
         except Exception as exc:
             raise ManualCandidateIntakeError(
                 "Não foi possível resolver o link AliExpress."
             ) from exc
-        resolved = parse.urlparse(resolved_url)
-        if not _is_aliexpress_host(resolved.hostname):
-            raise ManualCandidateIntakeError("O link não resolveu para um produto AliExpress.")
+        _validated_aliexpress_url(resolved_url, allow_http=False)
         product_id = _product_id_from_url(resolved_url)
 
     if not product_id:
