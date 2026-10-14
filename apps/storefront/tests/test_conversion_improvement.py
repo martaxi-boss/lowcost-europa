@@ -43,7 +43,8 @@ class StorefrontConversionMarkupTests(SimpleTestCase):
         self.assertIn("storefront:whatsapp-contact", combined)
         self.assertNotIn("351961726755", combined)
         self.assertNotIn("+351 961 726 755", combined)
-        self.assertNotIn("<script", combined.lower())
+        self.assertIn("storefront/product-images.js", combined)
+        self.assertNotIn('<script src="https://', combined.lower())
 
 
 class StorefrontConversionBehaviorTests(TestCase):

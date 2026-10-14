@@ -244,6 +244,8 @@ class StorefrontVisualCommercialTests(TestCase):
             "Armazém europeu",
             "Stock europeu",
             "Enviado da Europa",
+            "enviados da Europa",
+            "armazéns europeus",
             "Envio desde Portugal",
             "Sem alfândega",
             "Compra mais barato. Recebe a partir da Europa.",

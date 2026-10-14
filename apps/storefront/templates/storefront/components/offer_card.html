@@ -1,8 +1,8 @@
 <article class="offer-card{% if selection_card %} offer-card--featured{% endif %}">
   {% if offer.image_url %}
     {% with image_url=offer.image_url %}
-      {% if image_url|slice:":8" == "https://" or image_url|slice:":7" == "http://" %}
-        <div class="offer-card__media"><img class="offer-card__image" src="{{ image_url }}" alt="{{ offer.title|default:'Oferta disponível' }}" width="640" height="480" loading="lazy"></div>
+      {% if image_url|slice:":8" == "https://" %}
+        <div class="offer-card__media"><img class="offer-card__image" src="{{ image_url }}" alt="{{ offer.title|default:'Oferta disponível' }}" width="640" height="480" loading="lazy" data-product-image><span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span><span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span></div>
       {% else %}
         <div class="offer-card__media offer-card__media--placeholder" aria-hidden="true">LE</div>
       {% endif %}

@@ -2,8 +2,8 @@
   <a class="product-card__media-link" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Ver seleção de {{ family.name }}">
     {% if family.display_offer and family.display_offer.image_url %}
       {% with image_url=family.display_offer.image_url %}
-        {% if image_url|slice:":8" == "https://" or image_url|slice:":7" == "http://" %}
-          <div class="product-card__media"><img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480" loading="lazy"></div>
+        {% if image_url|slice:":8" == "https://" %}
+          <div class="product-card__media"><img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480" loading="lazy" data-product-image><span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span><span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span></div>
         {% else %}
           <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>Seleção em preparação</small></div>
         {% endif %}
