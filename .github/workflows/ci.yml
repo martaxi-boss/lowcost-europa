@@ -113,7 +113,7 @@ jobs:
             fi
           done
           for family in cavitacao-rf-vacuum-corpo hydrodermoabrasao-aqua-facial-multifuncoes pressoterapia-vacuum-drenagem hifu diodo-laser-remocao-tatuagens-pigmentacao; do
-            status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --output /dev/null --write-out '%{http_code}' "$base/produtos/$family/")" || status="000"
+            status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --output /dev/null --write-out '%{http_code}' "$base/products/$family/")" || status="000"
             echo "PILOT_FAMILY_READONLY slug=$family code=$status"
           done
           status="$(curl --silent --show-error --connect-timeout 8 --max-time 15 --retry 0 --output /dev/null --write-out '%{http_code}' "$base/painel/")" || status="000"
