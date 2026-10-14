@@ -10,7 +10,7 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 - Integration branch: `builder/pilot-integration-preflight-20261014`.
 - No code, data, services, application restart or DNS changes applied to the VPS by this branch.
 - Operational runtime is **NOT VERIFIED** by this work; the dated runtime snapshot in `PROJECT_STATE.md` must not be reinterpreted as current live evidence.
-- PR #147 was **MERGED as documentation-only hygiene** at `4b2a96cbcd3a101e1f65ceea11072d58328195e9`; the pilot code remains in PR #152 pending deployment validation.
+- PR #147 **MERGED** the documentation-only hygiene at `4b2a96cbcd3a101e1f65ceea11072d58328195e9`. PR #152 **MERGED** the tested application code at `ed067409c997daacee7c19d6a8ca36fa98494e82`. Neither commit is a VPS deployment.
 - No launch-domain, legal operator, production HSTS, public indexing, Search Console or commercial launch changes are made.
 
 ## Technical pilot corrections prepared
@@ -42,8 +42,8 @@ Scope: technical controlled pilot only. Commercial activation **NOT authorized**
 | Product image regression cases | 6/6 PASS | Local Node.js `node --test`, test file and code SHA verified against GitHub |
 | 16 source/test files from component branches | 16/16 MATCH | Git tree SHA comparison |
 | Integrated storefront code markers and duplicate decorator | CHECKED | Combined source inspection |
-| Django full suite on combined branch | **638/638 PASS** | GitHub Actions run `38580359411`, candidate `75af0e77b6e13977cd01a857db2d187076e07a61` |
-| Django checks, Ruff, migration drift and PostgreSQL migrations | **PASS** | Same GitHub CI run, all required steps success |
+| Django full suite on merged `main` | **638/638 PASS** | GitHub Actions run `38583874116`, merged commit `ed067409c997daacee7c19d6a8ca36fa98494e82` |
+| Django checks, Ruff, migration drift, PostgreSQL migrations and Node image QA | **PASS** | Same post-merge GitHub CI run `38583874116`, all required steps success |
 | Owner storefront navigation test after factual copy change | **FIXED / PASS** | Updated stale assertion to require the approved factual headline; checked absence of old unsupported claim |
 | External HTTPS staging reachability | **PASS (read-only)** | GitHub Actions `38582509781`: homepage, robots, two health URLs and all five category pages HTTP 200; unauthenticated `/painel/` returned HTTP 302 |
 | Staging non-indexing controls | **PASS** | Same run: header `X-Robots-Tag: noindex, nofollow`, HTML meta `noindex`, robots `User-agent: *; Disallow: /` |
@@ -58,8 +58,8 @@ Earlier GitHub runs with no executed steps were not evidence of application fail
 
 1. **Completed:** public repository GitHub-hosted runner executes genuine steps; test workflow now operates.
 2. **Completed:** candidate application commit `75af0e77b6e13977cd01a857db2d187076e07a61` passed Django check/deploy check, migration drift, Ruff, PostgreSQL migrations, **638/638 Django tests** and **6/6 Node image cases** in run `38580359411`.
-3. Review the consolidated draft PR and preserve separate Owner editorial gates. Do not merge merely because the code is present.
-4. Integrate once, following a reversible, documented change. Verify deployed commit independently.
+3. **Completed:** PR #152 reviewed and squash-merged after CI green; Owner approval and publication gates unchanged.
+4. **Pending:** before any controlled VPS deployment, verify a recoverable backup and an authorized rollout plan. After applying it, confirm the actual deployed SHA, startup/health and rollback path; the repository merge alone did not deploy anything.
 5. **HTTP staging reachability, five family URLs and nonindex rules passed** as of 2026-10-14. After a separately authorized deployment of this code, verify actual 123x123 image behavior, broken-image fallback, affiliate `/go/`, WhatsApp/contact and Owner workflows in real Android and desktop browsers.
 6. Check system health, scheduled maintenance, backups, alerting and `robots.txt`/noindex without deleting or mutating production data.
 7. Gather human feedback on trust, pricing clarity, logistics uncertainty, navigation and external purchase disclosure. Record evidence in issue #151.
@@ -70,5 +70,5 @@ Earlier GitHub runs with no executed steps were not evidence of application fail
 - No force pushes, no database migrations, no deletions of actual product media and no production deploy are required by this hygiene operation.
 - Keep older PR history for audit. Close only genuinely superseded proposals after the consolidated replacement is available and cross-referenced.
 - No personal visitor fingerprinting, third-party analytics, API secrets or payment simulation was added.
-- Rollback, if ever deployed after validation, is by reversing the eventual application merge or redeploying the pre-change application commit; take an independently verified backup beforehand.
+- Rollback of repository integration is by reverting the application squash commit `ed067409c997daacee7c19d6a8ca36fa98494e82`. If a pilot VPS deploy is later authorized, take a verified backup first and retain the ability to redeploy the prior runtime code.
 - Open blocking status remains explicit: **CI GREEN (CODE ONLY); LIVE PILOT NOT CERTIFIED; PUBLIC INDEXING OFF; COMMERCIAL GO-LIVE NO**.

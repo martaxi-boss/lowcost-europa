@@ -8,8 +8,10 @@ Current references:
 - [AliExpress integration](integrations/aliexpress.md)
 - [AliExpress safety](integrations/ALIEXPRESS-API-SAFETY-001.md)
 - [Systemd implementation](../deploy/systemd/README.md)
+- [Current technical pilot integration and hygiene (2026-10-14)](ops/PILOT-TECHNICAL-HYGIENE-CLOSEOUT-20261014.md)
+- [Current pilot feedback and browser QA checklist](qa/PILOT-FEEDBACK-READINESS-20261014.md)
 
-Reports under adr/, audits/, commercial/, launch/, mvp/, ops/, qa/, studies/, storefront/ and ux/, plus PHASE_0_RECONNAISSANCE.md and the initial catalog structure/taxonomy reports, are historical checkpoints.
+Except for the two explicitly linked current pilot documents above, reports under adr/, audits/, commercial/, launch/, mvp/, ops/, qa/, studies/, storefront/ and ux/, plus PHASE_0_RECONNAISSANCE.md and the initial catalog structure/taxonomy reports, are historical checkpoints.
 Their dates, counts, gates, test totals, infrastructure and copy describe that phase only.
 They must not reintroduce seven-day expiry, approval-learning feedback, eight-family expansion,
 DigitalOcean/DC administration or old backup-installation instructions.
