@@ -7,6 +7,7 @@
       <p class="eyebrow">Categoria {{ family.display_order|stringformat:"02d" }}</p>
       <div class="detail-title-row"><h1>{{ family.name }}</h1><span class="badge">{{ family.public_status }}</span></div>
       <p class="lead">Uma seleção organizada para comparar ofertas desta categoria com base na informação factual disponível. A compra acontece sempre no parceiro.</p>
+      {% if owner_mode and not owner_preview_public %}<a class="detail-owner-jump" href="#gestao-owner">Ir para a gestão desta categoria <span aria-hidden="true">↓</span></a>{% endif %}
     </div>
     <aside class="detail-note">
       <strong>Como ler esta página</strong>
