@@ -1,18 +1,57 @@
 {% extends "storefront/base.html" %}
 {% block content %}
-<section class="hero hero--commercial">
+<section class="hero hero--commercial" aria-labelledby="hero-title">
   <div class="container hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow">Equipamentos de estética · seleção editorial</p>
-      <h1>Equipamentos profissionais de estética, selecionados para uma compra informada.</h1>
+      <p class="eyebrow eyebrow--hero">Equipamentos de estética · seleção editorial</p>
+      <h1 id="hero-title">Tecnologia para a estética. <em>Escolhas com critério.</em></h1>
       <div class="hero-lead">
-        <p>Selecionamos equipamentos para profissionais de estética e apresentamos preços observados e informação disponível sobre entregas para Portugal.</p>
-        <p>A compra é feita no parceiro externo, com condições de pagamento e proteção do comprador definidas por essa plataforma.</p>
-        <p>Procura um equipamento específico? Fale connosco.</p>
+        <p>Explore equipamentos profissionais organizados por especialidade, com preços observados e informação disponível sobre entregas para Portugal.</p>
+        <p>Compare com mais contexto e decida diretamente no parceiro, onde se confirmam preço, envio e condições de compra.</p>
       </div>
-      <div class="hero-primary-action">
-        <a class="button button--large hero-primary-cta" href="#familias">VER EQUIPAMENTOS E PREÇOS <span aria-hidden="true">↓</span></a>
+      <div class="hero-primary-action hero-cta-row">
+        <a class="button button--large hero-primary-cta" href="#familias">VER EQUIPAMENTOS E PREÇOS <span aria-hidden="true">↗</span></a>
+        <a class="hero-secondary-cta" href="{% url 'storefront:como-funciona' %}">Como funciona <span aria-hidden="true">→</span></a>
       </div>
+      <div class="hero-essentials" aria-label="Como organizamos a seleção">
+        <span>Organizado por categorias</span>
+        <span>Preços observados</span>
+        <span>Compra externa transparente</span>
+      </div>
+    </div>
+    <div class="hero-showcase" aria-label="Algumas categorias do catálogo">
+      <div class="hero-showcase__heading"><span>Explore por especialidade</span><span aria-hidden="true">✦</span></div>
+      {% if families %}
+        <div class="hero-showcase__grid">
+          {% for family in families|slice:":3" %}
+            <a class="showcase-tile{% if forloop.first %} showcase-tile--primary{% endif %}" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Explorar {{ family.name }}">
+              <div class="showcase-tile__media">
+                {% if family.display_offer and family.display_offer.image_url %}
+                  {% with image_url=family.display_offer.image_url %}
+                    {% if image_url|slice:":8" == "https://" %}
+                      <img src="{{ image_url }}" alt="" width="420" height="320" loading="lazy" data-product-image>
+                      <span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span>
+                      <span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span>
+                    {% else %}
+                      <span class="showcase-tile__monogram" aria-hidden="true">LE</span>
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  <span class="showcase-tile__monogram" aria-hidden="true">LE</span>
+                {% endif %}
+              </div>
+              <div class="showcase-tile__info">
+                <small>Categoria {{ family.display_order|stringformat:"02d" }}</small>
+                <strong>{{ family.name }}</strong>
+                <span aria-hidden="true">↗</span>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="hero-showcase__empty"><span aria-hidden="true">LE</span><p>Estamos a preparar a seleção das categorias.</p></div>
+      {% endif %}
+      <p class="hero-showcase__footnote">As imagens representam anúncios das respetivas categorias. Consulte os detalhes antes de comprar.</p>
     </div>
   </div>
 </section>
