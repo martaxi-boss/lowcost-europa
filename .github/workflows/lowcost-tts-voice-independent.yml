@@ -1,0 +1,72 @@
+name: Voz pt-PT aprovada - reconstruir faixa independente
+on:
+  push:
+    branches:
+      - ad-render-ptpt-20261019
+permissions:
+  contents: read
+jobs:
+  synth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Download da mesma voz Piper portuguesa
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p voice
+          curl -fsSL --retry 4 --retry-delay 2 -o /tmp/piper.tar.gz https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
+          tar -xzf /tmp/piper.tar.gz
+          curl -fsSL --retry 4 --retry-delay 2 -o voice/pt_PT-tugao-medium.onnx 'https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/tug%C3%A3o/medium/pt_PT-tug%C3%A3o-medium.onnx?download=true'
+          curl -fsSL --retry 4 --retry-delay 2 -o voice/pt_PT-tugao-medium.onnx.json 'https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/tug%C3%A3o/medium/pt_PT-tug%C3%A3o-medium.onnx.json'
+          echo '223a7aaca69a155c61897e8ada7c3b13bc306e16c72dbb9c2fed733e2b0927d4  voice/pt_PT-tugao-medium.onnx' | sha256sum -c
+          test -x piper/piper
+      - name: Gerar locucao portuguesa por frases e verificar volume
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > lines.json <<'EOF'
+          [
+            "Equipamentos de estética profissional, sem perder tempo em centenas de anúncios.",
+            "Na Lowcost Europa selecionamos propostas de fornecedores terceiros. Procuramos boas oportunidades a baixo custo, com informação clara para ajudar a decidir.",
+            "Explore as categorias: cavitação e radiofrequência, hidrodermoabrasão, pressoterapia, HIFU e laser díodo.",
+            "Veja as imagens dos produtos, conheça os preços observados e compare características. Nós organizamos; você escolhe.",
+            "O foco está em opções com envio a partir de países europeus para Portugal, quando confirmado pelo fornecedor.",
+            "E a compra é sempre transparente: a Lowcost Europa não vende diretamente. A encomenda, o pagamento e as condições finais são tratados no parceiro.",
+            "Lowcost Europa. Tecnologia para a estética. Escolhas com critério."
+          ]
+          EOF
+          python3 - <<'PY'
+          import os, sys, wave, json, hashlib, subprocess, struct, pathlib, shutil
+          p = pathlib.Path("voice")
+          p.mkdir(exist_ok=True)
+          sentences = json.loads(pathlib.Path("lines.json").read_text(encoding="utf-8"))
+          durations=[]
+          sample_rate=None
+          for i,line in enumerate(sentences):
+              dest = p / f"part_{i}.wav"
+              env={**os.environ,"LD_LIBRARY_PATH":str(pathlib.Path("piper").resolve())}
+              res=subprocess.run(["./piper/piper","--model","voice/pt_PT-tugao-medium.onnx","--config","voice/pt_PT-tugao-medium.onnx.json","--output_file",str(dest)],input=(line+"\n").encode(),stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env,timeout=120)
+              if res.returncode!=0: raise RuntimeError("Piper part "+str(i)+" "+res.stderr.decode("utf-8",errors="ignore")[-1000:])
+              with wave.open(str(dest),"rb") as w:
+                  if sample_rate is None: sample_rate=w.getframerate()
+                  assert w.getframerate()==sample_rate and w.getnchannels()==1 and w.getsampwidth()==2
+                  frames=w.readframes(w.getnframes())
+                  nframes=w.getnframes()
+              rms=(sum(x*x for x in struct.unpack("<"+str(nframes)+"h",frames))/nframes)**0.5
+              assert rms>70, f"voice segment {i} too silent rms={rms}"
+              durations.append(round(nframes/sample_rate,4))
+              print(f"VOICE_SEG {i} {durations[-1]:.2f}s RMS {rms:.1f}: {line[:70]}",flush=True)
+          manifest={"model":"Piper pt_PT tugao medium","transcripts":sentences,"durations":durations,"sample_rate":sample_rate,"voice_source":"new generation same model and approved copy","model_sha256":hashlib.sha256(pathlib.Path("voice/pt_PT-tugao-medium.onnx").read_bytes()).hexdigest()}
+          (p/"voice_timing.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
+          
+          PY
+      - name: Entregar as sete frases separadas, nao apenas musica
+        uses: actions/upload-artifact@v4
+        with:
+          name: lowcost-ptpt-voz-7-frases-e-tempos
+          path: |
+            voice/part_*.wav
+            voice/voice_timing.json
+          if-no-files-found: error
+          retention-days: 7
