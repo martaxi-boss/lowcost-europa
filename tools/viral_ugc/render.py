@@ -191,7 +191,7 @@ def synthesize_voice(data: dict, media: Path, *, supplied: Path | None) -> tuple
             retrieve(CONFIG_URL, config, max_bytes=10*1024*1024)
         if config.stat().st_size < 100:
             raise ValueError("Piper voice config invalid")
-        piper=data.get("voice", {}).get("piper_bin", "piper")
+        piper=data.get("voice", {}).get("piper_bin") or str(Path(sys.executable).parent / "piper")
         for i,sentence in enumerate(voices):
             result=run([piper, "--model", str(model), "--config", str(config), "--output_file", str(voice_dir/f"part_{i}.wav")],input_text=sentence+"\n",timeout=90)
             print(f"Piper part {i+1}/{len(voices)}: {result[:90]}",flush=True)
