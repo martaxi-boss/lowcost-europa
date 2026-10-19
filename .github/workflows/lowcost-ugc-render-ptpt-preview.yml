@@ -1,0 +1,76 @@
+name: Lowcost Europa anuncio 5 fotografias voz aprovada
+on:
+  push:
+    branches:
+      - ad-render-ptpt-20261019
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: FFmpeg available
+        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+      - name: Obter cinco fotografias exatas e voz original
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p media
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/1.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/bdcbe75a-acc8-468d-9780-c6311d8a3637-lowcost_exact_01.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/2.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/64c8b491-fd63-4d6e-bf6a-7e386c05e78b-lowcost_exact_02.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/3.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/b5749611-8bbf-4c0f-a21c-687aa1402461-lowcost_exact_03.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/4.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/82d37b1b-1b71-4f3a-b98c-656b7c75171d-lowcost_exact_04.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/5.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/e3c28eb9-062c-4029-9d95-af55d7119ca9-lowcost_exact_05.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/aprovado.mp4 'https://vcam-studio-pt.floot.app/_cdn/static/lowcost_anuncio_novo_44s.mp4'
+          file media/*.jpg media/aprovado.mp4
+          ffprobe -v error -show_entries stream=index,codec_type,codec_name -of compact media/aprovado.mp4
+      - name: Montagem com sincronizacao e confirmacao do audio
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import subprocess, json, pathlib
+          root=pathlib.Path("media")
+          images=[root / f"{i}.jpg" for i in range(1,6)]
+          source=root / "aprovado.mp4"
+          duration=[12.75,7.00,7.70,7.90,10.70]
+          fade=0.50
+          fps=25
+          probe=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","stream=codec_type,codec_name:format=duration","-of","json",str(source)],text=True))
+          assert any(s.get("codec_type")=="audio" for s in probe.get("streams",[])), "O video aprovado nao contem audio"
+          assert 43.5<float(probe.get("format",{}).get("duration",0))<44.6, "Audio inesperado; nao substituir a voz"
+          for im in images:
+           assert im.stat().st_size>30000, "Imagem nao descarregada: "+str(im)
+          args=["ffmpeg","-hide_banner","-y","-loglevel","error"]
+          for im,dur in zip(images,duration):
+           args += ["-loop","1","-framerate",str(fps),"-t",str(dur),"-i",str(im)]
+          args += ["-i",str(source)]
+          filters=[]
+          for i,dur in enumerate(duration):
+           motion="zoompan=z='min(zoom+0.000035,1.010)':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=864x1536:fps=25"
+           filters.append(f"[{i}:v]scale=864:1536,format=rgb24,{motion},trim=duration={dur},setpts=PTS-STARTPTS,fps=25,settb=AVTB,format=yuv420p[v{i}]")
+          prev="v0"
+          for i in range(1,5):
+           offset=sum(duration[:i])-fade*i
+           name=f"t{i}"
+           filters.append(f"[{prev}][v{i}]xfade=transition=fade:duration={fade}:offset={offset:.3f}[{name}]")
+           prev=name
+          out=root / "lowcost_europa_anuncio_5_imagens_voz_aprovada_44s.mp4"
+          args += ["-filter_complex",";".join(filters),"-map",f"[{prev}]","-map","5:a:0","-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p","-r",str(fps),"-c:a","copy","-t","44.05","-movflags","+faststart",str(out)]
+          print("Voice and image boundaries: 0.00, 12.50, 18.97, 26.20, 33.60, 44.05",flush=True)
+          subprocess.run(args,check=True)
+          report=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","stream=codec_type,codec_name,width,height:format=duration","-of","json",str(out)],text=True))
+          print(json.dumps(report,ensure_ascii=False,indent=2),flush=True)
+          assert any(s.get("codec_type")=="audio" for s in report["streams"])
+          assert any(s.get("codec_type")=="video" and s.get("width")==864 and s.get("height")==1536 for s in report["streams"])
+          assert 43.9<float(report["format"]["duration"])<44.2
+          print("APPROVED_AUDIO_AND_5_PHOTOS_VERIFIED",out.stat().st_size,flush=True)
+          PY
+      - name: Publicar MP4 como artefacto de teste
+        uses: actions/upload-artifact@v4
+        with:
+          name: lowcost-europa-video-5-fotos-voz-original
+          path: media/lowcost_europa_anuncio_5_imagens_voz_aprovada_44s.mp4
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
