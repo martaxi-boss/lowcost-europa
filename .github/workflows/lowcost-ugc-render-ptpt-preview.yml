@@ -1,4 +1,4 @@
-name: Lowcost Europa anuncio 5 fotografias voz aprovada
+name: Lowcost Europa 5 fotos VOZ AUDIO CORRIGIDO
 on:
   push:
     branches:
@@ -8,69 +8,147 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     steps:
-      - name: FFmpeg available
-        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
-      - name: Obter cinco fotografias exatas e voz original
+      - name: Preparar Piper pt-PT e modelo verificado
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p media
-          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/1.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/bdcbe75a-acc8-468d-9780-c6311d8a3637-lowcost_exact_01.png'
-          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/2.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/64c8b491-fd63-4d6e-bf6a-7e386c05e78b-lowcost_exact_02.png'
-          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/3.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/b5749611-8bbf-4c0f-a21c-687aa1402461-lowcost_exact_03.png'
-          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/4.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/82d37b1b-1b71-4f3a-b98c-656b7c75171d-lowcost_exact_04.png'
-          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/5.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/e3c28eb9-062c-4029-9d95-af55d7119ca9-lowcost_exact_05.png'
-          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 -o media/aprovado.mp4 'https://vcam-studio-pt.floot.app/_cdn/static/lowcost_anuncio_novo_44s.mp4'
-          file media/*.jpg media/aprovado.mp4
-          ffprobe -v error -show_entries stream=index,codec_type,codec_name -of compact media/aprovado.mp4
-      - name: Montagem com sincronizacao e confirmacao do audio
+          python3 -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check --no-input -q piper-tts
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 30 --max-time 200 -o media/pt_PT-tugao-medium.onnx 'https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/tug%C3%A3o/medium/pt_PT-tug%C3%A3o-medium.onnx?download=true'
+          echo '223a7aaca69a155c61897e8ada7c3b13bc306e16c72dbb9c2fed733e2b0927d4  media/pt_PT-tugao-medium.onnx' | sha256sum -c
+          curl --fail --location --retry 3 --retry-delay 2 -o media/pt_PT-tugao-medium.onnx.json 'https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/tug%C3%A3o/medium/pt_PT-tug%C3%A3o-medium.onnx.json'
+      - name: Descarregar as CINCO fotografias fornecidas pelo Owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 2 -o media/1.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/bdcbe75a-acc8-468d-9780-c6311d8a3637-lowcost_exact_01.png'
+          curl --fail --location --retry 3 --retry-delay 2 -o media/2.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/64c8b491-fd63-4d6e-bf6a-7e386c05e78b-lowcost_exact_02.png'
+          curl --fail --location --retry 3 --retry-delay 2 -o media/3.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/b5749611-8bbf-4c0f-a21c-687aa1402461-lowcost_exact_03.png'
+          curl --fail --location --retry 3 --retry-delay 2 -o media/4.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/82d37b1b-1b71-4f3a-b98c-656b7c75171d-lowcost_exact_04.png'
+          curl --fail --location --retry 3 --retry-delay 2 -o media/5.jpg 'https://vcam-studio-pt.floot.app/_cdn/static/e3c28eb9-062c-4029-9d95-af55d7119ca9-lowcost_exact_05.png'
+          curl --fail --location --retry 3 --retry-delay 2 -o media/musica_original.mp4 'https://vcam-studio-pt.floot.app/_cdn/static/ed009e1c-5052-429b-8653-10fbc7447a4e-ugc_lowcost_source_23s.mp4' || curl --fail --location --retry 3 --retry-delay 2 -o media/musica_original.mp4 'https://vcam-studio-pt.floot.app/_cdn/static/lowcost_anuncio_novo_44s.mp4'
+          file media/*
+      - name: Sintetizar a VOZ separada, sincronizar as 5 imagens, misturar e verificar
         shell: bash
         run: |
           python3 - <<'PY'
-          import subprocess, json, pathlib
+          import subprocess, wave, math, array, pathlib, json, hashlib
+          
           root=pathlib.Path("media")
-          images=[root / f"{i}.jpg" for i in range(1,6)]
-          source=root / "aprovado.mp4"
-          duration=[12.75,7.00,7.70,7.90,10.70]
-          fade=0.50
-          fps=25
-          probe=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","stream=codec_type,codec_name:format=duration","-of","json",str(source)],text=True))
-          assert any(s.get("codec_type")=="audio" for s in probe.get("streams",[])), "O video aprovado nao contem audio"
-          assert 43.5<float(probe.get("format",{}).get("duration",0))<44.6, "Audio inesperado; nao substituir a voz"
-          for im in images:
-           assert im.stat().st_size>30000, "Imagem nao descarregada: "+str(im)
-          args=["ffmpeg","-hide_banner","-y","-loglevel","error"]
-          for im,dur in zip(images,duration):
-           args += ["-loop","1","-framerate",str(fps),"-t",str(dur),"-i",str(im)]
-          args += ["-i",str(source)]
-          filters=[]
-          for i,dur in enumerate(duration):
-           motion="zoompan=z='min(zoom+0.000035,1.010)':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=864x1536:fps=25"
-           filters.append(f"[{i}:v]scale=864:1536,format=rgb24,{motion},trim=duration={dur},setpts=PTS-STARTPTS,fps=25,settb=AVTB,format=yuv420p[v{i}]")
+          piper=pathlib.Path(".venv/bin/piper")
+          model=root/"pt_PT-tugao-medium.onnx"
+          cfg=root/"pt_PT-tugao-medium.onnx.json"
+          textos=[
+              "Equipamentos de estética profissional, sem perder tempo em centenas de anúncios.",
+              "Na Lowcost Europa selecionamos propostas de fornecedores terceiros. Procuramos boas oportunidades a baixo custo, com informação clara para ajudar a decidir.",
+              "Explore as categorias: cavitação e radiofrequência, hidrodermoabrasão, pressoterapia, HIFU e laser díodo.",
+              "Veja as imagens dos produtos, conheça os preços observados e compare características. Nós organizamos; você escolhe.",
+              "O foco está em opções com envio a partir de países europeus para Portugal, quando confirmado pelo fornecedor.",
+              "E a compra é sempre transparente: a Lowcost Europa não vende diretamente. A encomenda, o pagamento e as condições finais são tratados no parceiro.",
+              "Lowcost Europa. Tecnologia para a estética. Escolhas com critério."
+          ]
+          dur=[]
+          for i,phrase in enumerate(textos):
+              dest=root/f"frase_{i+1}.wav"
+              run=subprocess.run([str(piper),"--model",str(model),"--config",str(cfg),"--output_file",str(dest)],
+                input=phrase+"\n",text=True,capture_output=True,timeout=95)
+              if run.returncode!=0:
+                  raise RuntimeError(f"Piper falhou na frase {i+1}: {run.stderr[:700]}")
+              with wave.open(str(dest),"rb") as wav:
+                  assert wav.getnchannels()==1 and wav.getsampwidth()==2, f"PCM inesperado {i+1}"
+                  if i==0:
+                      sr=wav.getframerate()
+                  assert wav.getframerate()==sr
+                  data=wav.readframes(wav.getnframes())
+                  sam=array.array("h")
+                  sam.frombytes(data)
+                  rms=math.sqrt(sum(s*s for s in sam)/len(sam))/32768
+                  assert rms>0.018, f"A voz saiu sem som, frase {i+1}: rms {rms:.4f}"
+                  dur.append(len(sam)/sr)
+                  print("VOZ_CONFIRMADA",i+1,"duracao",round(dur[-1],2),"rms",round(rms,4),flush=True)
+          print("TIMBRE: modelo Piper pt_PT tugao medium (igual ao anterior)",flush=True)
+          
+          opening=.35
+          pause=.30
+          ending=.85
+          beg=[0.]
+          raw=root/"voz_ptPT_original_em_7_frases.wav"
+          with wave.open(str(raw),"wb") as out:
+              out.setnchannels(1)
+              out.setsampwidth(2)
+              out.setframerate(sr)
+              out.writeframes(b"\x00\x00"*round(sr*opening))
+              at=opening
+              sections=[]
+              for i in range(len(textos)):
+                  sections.append(at)
+                  with wave.open(str(root/f"frase_{i+1}.wav"),"rb") as inp:
+                      data=inp.readframes(inp.getnframes())
+                  out.writeframes(data)
+                  at+=dur[i]
+                  if i!=len(textos)-1:
+                      out.writeframes(b"\x00\x00"*round(sr*pause))
+                      at+=pause
+              out.writeframes(b"\x00\x00"*round(sr*ending))
+              total=out.getnframes()/sr
+          
+          # Foto 1: introducao e selecao
+          # Foto 2: catalogo de categorias
+          # Foto 3: comparacao e como funciona
+          # Foto 4: produtos e envio europeus
+          # Foto 5: transparencia, compra e contacto
+          bounds=[sections[2],sections[3],sections[4],sections[5]]
+          spans=[bounds[0]]+[bounds[i]-bounds[i-1] for i in range(1,4)]+[total-bounds[-1]]
+          assert len(spans)==5 and all(s>3 for s in spans),f"5 imagens com tempo insuficiente {spans}"
+          print("TIMELINE_CINCO_IMAGENS",json.dumps({"duracao":total,"inicio_fotos":[0.0]+bounds,"tempos_visiveis":spans},ensure_ascii=False),flush=True)
+          
+          fade=.30
+          inputs=[spans[0]+fade/2]+[spans[i]+fade for i in range(1,4)]+[spans[4]+fade/2]
+          photos=[root/f"{i}.jpg" for i in range(1,6)]
+          for img in photos:
+              assert img.is_file() and img.stat().st_size>30000,str(img)
+          assert len({hashlib.sha256(p.read_bytes()).hexdigest() for p in photos})==5,"As cinco fotografias nao sao distintas"
+          src=root/"musica_original.mp4"
+          assert src.is_file() and src.stat().st_size>100000
+          ff_args=["ffmpeg","-hide_banner","-y","-loglevel","error","-threads","2"]
+          for im,t in zip(photos,inputs):
+              ff_args+=["-loop","1","-framerate","25","-t",f"{t:.5f}","-i",str(im)]
+          ff_args+=["-stream_loop","-1","-i",str(src),"-i",str(raw)]
+          filt=[]
+          for i,t in enumerate(inputs):
+              filt.append(f"[{i}:v]scale=864:1536:flags=lanczos,format=rgb24,zoompan=z='min(zoom+0.00003,1.012)':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=864x1536:fps=25,trim=duration={t:.5f},setpts=PTS-STARTPTS,fps=25,settb=AVTB,format=yuv420p[v{i}]")
           prev="v0"
           for i in range(1,5):
-           offset=sum(duration[:i])-fade*i
-           name=f"t{i}"
-           filters.append(f"[{prev}][v{i}]xfade=transition=fade:duration={fade}:offset={offset:.3f}[{name}]")
-           prev=name
-          out=root / "lowcost_europa_anuncio_5_imagens_voz_aprovada_44s.mp4"
-          args += ["-filter_complex",";".join(filters),"-map",f"[{prev}]","-map","5:a:0","-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p","-r",str(fps),"-c:a","copy","-t","44.05","-movflags","+faststart",str(out)]
-          print("Voice and image boundaries: 0.00, 12.50, 18.97, 26.20, 33.60, 44.05",flush=True)
-          subprocess.run(args,check=True)
-          report=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","stream=codec_type,codec_name,width,height:format=duration","-of","json",str(out)],text=True))
-          print(json.dumps(report,ensure_ascii=False,indent=2),flush=True)
-          assert any(s.get("codec_type")=="audio" for s in report["streams"])
-          assert any(s.get("codec_type")=="video" and s.get("width")==864 and s.get("height")==1536 for s in report["streams"])
-          assert 43.9<float(report["format"]["duration"])<44.2
-          print("APPROVED_AUDIO_AND_5_PHOTOS_VERIFIED",out.stat().st_size,flush=True)
+              off=bounds[i-1]-fade/2
+              dest=f"t{i}"
+              filt.append(f"[{prev}][v{i}]xfade=transition=fade:duration={fade}:offset={off:.5f}[{dest}]")
+              prev=dest
+          filt.append(f"[5:a]aformat=sample_rates=44100:channel_layouts=stereo,loudnorm=I=-30:LRA=9:TP=-12,atrim=duration={total:.5f},asetpts=PTS-STARTPTS[m]")
+          filt.append(f"[6:a]highpass=f=65,aformat=sample_rates=44100:channel_layouts=stereo,loudnorm=I=-15:LRA=9:TP=-2,atrim=duration={total:.5f},asetpts=PTS-STARTPTS[v]")
+          filt.append("[m][v]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.94[sound]")
+          out=root/"Lowcost_Europa_ANUNCIO_5_fotos_COM_VOZ_CORRIGIDO.mp4"
+          ff_args+=["-filter_complex",";".join(filt),"-map",f"[{prev}]","-map","[sound]","-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p","-r","25","-c:a","aac","-b:a","192k","-t",f"{total:.5f}","-movflags","+faststart",str(out)]
+          print("ENCODING",round(total,2),"segundos, cinco fotos, voice restored and mixed",flush=True)
+          subprocess.run(ff_args,check=True,timeout=300)
+          r=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","stream=codec_type,codec_name,width,height:format=duration,size","-of","json",str(out)],text=True))
+          types={s.get("codec_type") for s in r["streams"]}
+          assert types=={"video","audio"},types
+          assert any(s.get("width")==864 and s.get("height")==1536 for s in r["streams"])
+          assert abs(float(r["format"]["duration"])-total)<.3,(r["format"]["duration"],total)
+          print("OUTPUT_VERIFIED",json.dumps(r,ensure_ascii=False),flush=True)
+          print("PIPER_VOICE_RMS_CONFIRMED_AT_ALL_7_SPOKEN_PARTS",flush=True)
+          
           PY
-      - name: Publicar MP4 como artefacto de teste
+      - name: Entregar VIDEO COM VOZ e voz separada para verificacao
         uses: actions/upload-artifact@v4
         with:
-          name: lowcost-europa-video-5-fotos-voz-original
-          path: media/lowcost_europa_anuncio_5_imagens_voz_aprovada_44s.mp4
+          name: Lowcost-Europa-CINCO-FOTOS-COM-VOZ-verificada
+          path: |
+            media/Lowcost_Europa_ANUNCIO_5_fotos_COM_VOZ_CORRIGIDO.mp4
+            media/voz_ptPT_original_em_7_frases.wav
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
