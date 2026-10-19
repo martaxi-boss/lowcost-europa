@@ -127,7 +127,7 @@ jobs:
               dest=f"t{i}"
               filt.append(f"[{prev}][v{i}]xfade=transition=fade:duration={fade}:offset={off:.5f}[{dest}]")
               prev=dest
-          filt.append(f"[5:a]aformat=sample_rates=44100:channel_layouts=stereo,loudnorm=I=-30:LRA=9:TP=-12,atrim=duration={total:.5f},asetpts=PTS-STARTPTS[m]")
+          filt.append(f"[5:a]aformat=sample_rates=44100:channel_layouts=stereo,loudnorm=I=-30:LRA=9:TP=-9,atrim=duration={total:.5f},asetpts=PTS-STARTPTS[m]")
           filt.append(f"[6:a]highpass=f=65,aformat=sample_rates=44100:channel_layouts=stereo,loudnorm=I=-15:LRA=9:TP=-2,atrim=duration={total:.5f},asetpts=PTS-STARTPTS[v]")
           filt.append("[m][v]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.94[sound]")
           out=root/"Lowcost_Europa_ANUNCIO_5_fotos_COM_VOZ_CORRIGIDO.mp4"
