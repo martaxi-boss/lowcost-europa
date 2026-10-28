@@ -103,7 +103,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             response = self.client.get(self.url)
 
         self.assertContains(response, "<code>lowcost_europa</code>", html=False)
-        self.assertContains(response, "Por integrar no site")
+        self.assertContains(response, "Autorização da VPS necessária")
         self.assertNotContains(response, "googletagmanager.com")
         self.assertNotContains(response, "fbq(")
         self.assertNotContains(response, "gtag(")
