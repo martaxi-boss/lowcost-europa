@@ -3,8 +3,8 @@ import unicodedata
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import IntegrityError, OperationalError
 from django.core.paginator import Paginator
+from django.db import IntegrityError, OperationalError
 from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
