@@ -102,6 +102,41 @@ class ClientTests(SimpleTestCase):
         self.assertIn("ship_to_country=PT", calls[0][2])
         self.assertIn("target_currency=EUR", calls[0][2])
 
+
+    def test_product_detail_uses_official_country_parameter_for_portugal(self):
+        client = AliExpressClient(self.config, opener=lambda *_a, **_k: None, **self.runtime_paths)
+        payload = {
+            "aliexpress_affiliate_productdetail_get_response": {
+                "resp_result": {
+                    "result": {
+                        "products": {
+                            "product": [
+                                {
+                                    "product_id": "42",
+                                    "product_title": "Official PT detail",
+                                    "target_sale_price_currency": "EUR",
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+        with patch.object(client, "_call", return_value=payload) as call:
+            detail = client.get_product_detail("42", country="PT", currency="EUR")
+
+        self.assertEqual(detail.product_id, "42")
+        self.assertEqual(detail.destination_country, "PT")
+        call.assert_called_once_with(
+            client.DETAIL_METHOD,
+            {
+                "product_ids": "42",
+                "country": "PT",
+                "target_currency": "EUR",
+                "tracking_id": "lowcost_europa",
+            },
+        )
+
     def test_generate_affiliate_link_uses_tracking_id_from_config(self):
         config = AliExpressConfig(
             app_key="fake-key",
