@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-AFFILIATE-20261028-MERGE",
+  "task_id": "LOWCOST-AFFILIATE-20261028",
+  "repository": "martaxi-boss/lowcost-europa",
+  "terminal_status": "SUCCESS",
+  "authorization_record": ".project-leader/transitions/LOWCOST-AFFILIATE-20261028-MERGE.authorization.json",
+  "action": "merge_affiliate_generation_on_publication_into_main",
+  "target": {
+    "kind": "github_pull_request",
+    "identifier": "martaxi-boss/lowcost-europa#162",
+    "revision": "0bdb4e0544d48d7e833932f9ee9a1d0f4a77a826",
+    "base_revision": "ec0d7ef16ff9547640d2c31a33b19f9c2be3bb6f",
+    "environment": "main integration only; staging remains pilot noindex"
+  },
+  "observed_at": "2026-10-28T08:46:03.499Z",
+  "final_state": {
+    "status": "MERGED_TO_MAIN",
+    "revision": "bdf27346d7e3b9bb8064c96cc8d5067f5fe4decd"
+  },
+  "evidence": [
+    "https://github.com/martaxi-boss/lowcost-europa/pull/162",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40658555718",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40658726250",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40658869462"
+  ],
+  "residual_blockers": [
+    "No certified deployment of new main to the DuckDNS staging host",
+    "GitHub main branch protection remains disabled",
+    "Independent operational restore, physical-device acceptance and commercial GO-LIVE remain unverified"
+  ]
+}

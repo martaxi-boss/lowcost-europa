@@ -2,6 +2,16 @@
 
 Historical reconciliation baseline: 2026-10-03. Current operational evidence: 2026-10-14.
 
+## Addendum — pilot corrections verified 2026-10-28 (without commercial launch)
+
+- **GitHub main:** `bdf27346d7e3b9bb8064c96cc8d5067f5fe4decd` after PR #161 and #162. CI main run [40658869462](https://github.com/martaxi-boss/lowcost-europa/actions/runs/40658869462) **SUCCESS**; the implementation PR runs [40656957589](https://github.com/martaxi-boss/lowcost-europa/actions/runs/40656957589) and [40658555718](https://github.com/martaxi-boss/lowcost-europa/actions/runs/40658555718) also passed.
+- Owner/admin password login fails closed when rate-limit state cannot be read or durably written. The private dashboard shows raw outbound OfferClicks over the last 7 days and visible offers without a recent observed `last_seen_at`; these figures are **not buyers, orders, commissions or unique users**.
+- Social sharing metadata now includes a factual brand image. This does not enable indexing.
+- Candidate approval does **not** generate the first affiliate link: a newly approved Offer remains hidden with promotion status UNKNOWN. The Owner's explicit publication generates and verifies the official AliExpress HTTPS link; unsuccessful generation does not publish. Previously verified links and current visibility are preserved by approval. Maintenance does not generate initial affiliate links for hidden, unlinked Offers.
+- **Test-only hostname:** `https://lowcost-europa.duckdns.org` remains the intended pilot domain. Nginx `X-Robots-Tag: noindex, nofollow`, app meta noindex and `robots.txt Disallow: /` remain unchanged. **No SEO indexing, new commercial domain, public launch, campaigns or spending are authorized** by these changes.
+- **Runtime boundary:** these CI and GitHub merge results are **not** proof that the VPS runs this new SHA. The last independently documented staging deployment is `f0d520d31ef6a3aa06ee11f2793be50f75d58a2c` from 2026-10-14. Live staging rollout, exact SHA, timers, backups and independent restore still require separate verified operations evidence.
+- **Governance boundary:** GitHub `main` reports `protected=false` on 2026-10-28 and no active repository rulesets. This is an outstanding GitHub administration control, not something remedied by CI or by these PRs. Open issue #151 retains real-device and operational acceptance follow-ups.
+
 ## Current status — technical phase completed, pilot acceptance pending
 
 - Application development, cleanup, staging deployment, automated tests and public browser validation are **COMPLETED**. Main implementation + QA branch state: `9b11d8eb73e13ebca0c3b01b5ef050c8392ab21e` before this closeout update. Final version deployed at VPS staging: `f0d520d31ef6a3aa06ee11f2793be50f75d58a2c`; newer main commits do not require restarts unless application/static code changes.
