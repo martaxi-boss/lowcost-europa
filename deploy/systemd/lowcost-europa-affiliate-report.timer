@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh Lowcost Europa affiliate orders every six hours
+
+[Timer]
+OnBootSec=20min
+OnUnitActiveSec=6h
+RandomizedDelaySec=5min
+Persistent=true
+Unit=lowcost-europa-affiliate-report.service
+
+[Install]
+WantedBy=timers.target
