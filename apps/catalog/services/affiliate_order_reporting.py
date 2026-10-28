@@ -125,6 +125,9 @@ def collect_affiliate_order_report(*, client=None, days=30, now=None):
     for status in ORDER_STATUSES:
         rows = _collect_status(client, status, start_time, end_time)
         for row in rows:
+            observed_status = row.get("order_status")
+            if observed_status and observed_status != status:
+                raise AffiliateOrderReportError("order_status_mismatch")
             identity = _identity(row)
             current = unique.get(identity)
             if current is None or status == ORDER_STATUSES[-1]:
