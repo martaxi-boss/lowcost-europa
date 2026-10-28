@@ -207,23 +207,26 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
 
     with maintenance_run_lock():
         for offer in offers:
-            result.promotion_attempts += 1
-            try:
-                promotion_status = verify_affiliate_promotion(offer, client=client, now=now)
-            except AliExpressRuntimeStateError:
-                raise
-            except AliExpressRateLimitError:
-                raise
-            except (AliExpressError, ValueError) as exc:
-                result.promotion_transient_failures += 1
-                result.failures.append(
-                    f"{offer.external_product_id}:Promotion:{exc.__class__.__name__}"
-                )
-            else:
-                if promotion_status == Offer.AffiliatePromotionStatus.ELIGIBLE:
-                    result.promotion_eligible += 1
-                elif promotion_status == Offer.AffiliatePromotionStatus.INELIGIBLE:
-                    result.promotion_ineligible += 1
+            # Avoid creating a new affiliate URL for an approved-but-unpublished offer.
+            # Already linked offers can still be rechecked without publishing them.
+            if not (offer.owner_hidden and not offer.affiliate_url):
+                result.promotion_attempts += 1
+                try:
+                    promotion_status = verify_affiliate_promotion(offer, client=client, now=now)
+                except AliExpressRuntimeStateError:
+                    raise
+                except AliExpressRateLimitError:
+                    raise
+                except (AliExpressError, ValueError) as exc:
+                    result.promotion_transient_failures += 1
+                    result.failures.append(
+                        f"{offer.external_product_id}:Promotion:{exc.__class__.__name__}"
+                    )
+                else:
+                    if promotion_status == Offer.AffiliatePromotionStatus.ELIGIBLE:
+                        result.promotion_eligible += 1
+                    elif promotion_status == Offer.AffiliatePromotionStatus.INELIGIBLE:
+                        result.promotion_ineligible += 1
 
             result.detail_attempts += 1
             try:

@@ -91,6 +91,30 @@ class OfferMaintenanceTests(TestCase):
         self.assertTrue(active.is_active)
         client.get_product_detail.assert_called_once_with("active", "PT", "EUR")
 
+    def test_hidden_unlinked_offer_is_observed_without_generating_affiliate_link(self):
+        offer = self.make_offer("newly-approved-hidden")
+        offer.owner_hidden = True
+        offer.affiliate_url = ""
+        offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.UNKNOWN
+        offer.affiliate_promotion_verified_at = None
+        offer.save(
+            update_fields=[
+                "owner_hidden",
+                "affiliate_url",
+                "affiliate_promotion_status",
+                "affiliate_promotion_verified_at",
+            ]
+        )
+        client = Mock()
+        client.get_product_detail.return_value = self.detail("newly-approved-hidden")
+        result = maintain_catalog_offers(batch_size=1, client=client)
+        offer.refresh_from_db()
+        client.generate_affiliate_link.assert_not_called()
+        self.assertEqual(result.promotion_attempts, 0)
+        self.assertEqual(result.detail_attempts, 1)
+        self.assertEqual(offer.affiliate_url, "")
+        self.assertTrue(offer.owner_hidden)
+
     def test_available_stays_active_and_old_protocol_timestamp_remains_public(self):
         protocol_at = timezone.now() - timedelta(days=30)
         offer = self.make_offer("available", protocol_at=protocol_at)
