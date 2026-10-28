@@ -1,0 +1,59 @@
+{% extends "storefront/base.html" %}
+{% block content %}
+<section class="search-hero">
+  <div class="container">
+    <a class="back-link" href="{% url 'storefront:home' %}#familias">← Explorar categorias</a>
+    <p class="eyebrow">Catálogo Lowcost Europa</p>
+    <h1>Pesquisar equipamentos</h1>
+    <p class="search-hero__lead">Encontre ofertas selecionadas por equipamento ou especialidade, antes de continuar para o parceiro.</p>
+    <form class="search-form search-form--results" method="get" action="{% url 'storefront:search' %}" role="search">
+      <label for="catalog-global-search">O que procura?</label>
+      <div class="search-form__row">
+        <input id="catalog-global-search" name="q" type="search" value="{{ query }}" placeholder="Ex.: HIFU, laser, pressoterapia" maxlength="100" autocomplete="off" required>
+        <button type="submit">Pesquisar <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+  </div>
+</section>
+<section class="section section--surface" aria-labelledby="search-results-heading">
+  <div class="container">
+    {% if query %}
+      <div class="section-heading">
+        <p class="eyebrow">Pesquisa de produtos validados</p>
+        <h2 id="search-results-heading">{{ result_count }} resultado{{ result_count|pluralize }} para “{{ query }}”</h2>
+        <p class="section-intro">Mostramos apenas ofertas elegíveis já publicadas. Selecione até três para comparar antes de visitar o parceiro.</p>
+      </div>
+      {% if page.object_list %}
+        <div data-catalog-explorer>
+          {% include "storefront/components/catalog_explorer_controls.html" %}
+          <div class="offer-list" data-offer-list>
+            {% for result in page %}
+              {% include "storefront/components/offer_card.html" with family=result.family offer=result.offer placement=result.placement %}
+            {% endfor %}
+          </div>
+        </div>
+        {% if page.has_other_pages %}
+          <nav class="search-pagination" aria-label="Páginas de resultados">
+            {% if page.has_previous %}<a href="?q={{ query|urlencode }}&amp;page={{ page.previous_page_number }}">← Anterior</a>{% endif %}
+            <span>Página {{ page.number }} de {{ page.paginator.num_pages }}</span>
+            {% if page.has_next %}<a href="?q={{ query|urlencode }}&amp;page={{ page.next_page_number }}">Seguinte →</a>{% endif %}
+          </nav>
+          <p class="search-page-note">A pesquisa e os filtros desta página não alteram os resultados das outras páginas.</p>
+        {% endif %}
+      {% else %}
+        <div class="empty-state">
+          <h3>Não encontramos ofertas para esta pesquisa.</h3>
+          <p>Experimente procurar por HIFU, laser, cavitação ou outra especialidade.</p>
+          <a class="text-link" href="{% url 'storefront:home' %}#familias">Ver todas as categorias <span aria-hidden="true">→</span></a>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <h2 id="search-results-heading">Procure um equipamento ou escolha uma especialidade</h2>
+        <p>Escreva um termo acima ou explore as cinco categorias da montra.</p>
+        <a class="text-link" href="{% url 'storefront:home' %}#familias">Explorar categorias <span aria-hidden="true">→</span></a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
