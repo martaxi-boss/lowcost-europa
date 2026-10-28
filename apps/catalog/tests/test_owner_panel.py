@@ -515,7 +515,7 @@ class OwnerPanelCatalogTests(TestCase):
 
     def test_dashboard_reports_raw_clicks_and_outdated_public_offers_without_sales_claims(self):
         old = timezone.now() - timedelta(days=9)
-        Offer.objects.filter(pk=self.offer.pk).update(last_seen_at=old)
+        Offer.objects.filter(pk=self.offer.pk).update(first_seen_at=old, last_seen_at=old)
         OfferClick.objects.create(offer=self.offer)
         old_click = OfferClick.objects.create(offer=self.offer)
         OfferClick.objects.filter(pk=old_click.pk).update(clicked_at=old)
