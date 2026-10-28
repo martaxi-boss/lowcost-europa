@@ -6,6 +6,7 @@ from django.db import IntegrityError, OperationalError
 from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.cache import patch_vary_headers
@@ -160,6 +161,9 @@ def _seo_context(path, page_title, meta_description):
 
 
 def _render_storefront(request, template, context):
+    context["social_image_url"] = request.build_absolute_uri(
+        static("storefront/lowcost-europa-brand-main.webp")
+    )
     response = render(request, template, context)
     if request.user.is_authenticated and request.user.is_staff:
         response["Cache-Control"] = "private, no-store"

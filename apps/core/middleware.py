@@ -16,6 +16,18 @@ PROTECTED_LOGIN_PATHS = {
 class PrivateLoginRateLimitMiddleware(MiddlewareMixin):
     """Rate-limit private authentication POSTs after CSRF has accepted the request."""
 
+    @staticmethod
+    def _limiter_unavailable():
+        response = HttpResponse(
+            "A autenticação está temporariamente indisponível.",
+            status=503,
+            content_type="text/plain; charset=utf-8",
+        )
+        response["Cache-Control"] = "private, no-store"
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        response["Retry-After"] = "60"
+        return response
+
     def process_view(self, request, view_func, view_args, view_kwargs):
         endpoint = PROTECTED_LOGIN_PATHS.get(request.path)
         if request.method != "POST" or endpoint is None:
@@ -30,7 +42,7 @@ class PrivateLoginRateLimitMiddleware(MiddlewareMixin):
         except Exception:
             logger.error("Private login limiter unavailable endpoint=%s", endpoint)
             request._private_login_rate_limit = None
-            return None
+            return self._limiter_unavailable()
 
         if not retry_after:
             return None
@@ -75,5 +87,6 @@ class PrivateLoginRateLimitMiddleware(MiddlewareMixin):
             )
         except Exception:
             logger.error("Private login limiter update failed endpoint=%s", endpoint)
+            return self._limiter_unavailable()
 
         return response

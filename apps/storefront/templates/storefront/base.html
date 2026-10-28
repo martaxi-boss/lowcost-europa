@@ -12,6 +12,9 @@
   <meta property="og:title" content="{{ page_title|default:'Lowcost Europa' }}">
   <meta property="og:description" content="{{ meta_description|default:'Produtos selecionados com informação factual e transparência.' }}">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <meta property="og:image" content="{{ social_image_url }}">
+  <meta name="twitter:card" content="summary">
   {% if canonical_url %}<meta property="og:url" content="{{ canonical_url }}">{% endif %}
   <link rel="stylesheet" href="{% static 'storefront/storefront.css' %}?v=editorial-20261016">
   <script src="{% static 'storefront/product-images.js' %}" defer></script>
