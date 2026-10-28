@@ -150,3 +150,75 @@ class MetaCommandTests(TestCase):
         ):
             with self.assertRaises(CommandError):
                 call_command("sync_external_metrics", stdout=StringIO())
+
+    def test_ali_failure_cannot_block_meta_refresh(self):
+        executed = []
+
+        def provider(name, *args):
+            executed.append(name)
+            if name == "sync_affiliate_orders":
+                raise CommandError("test-only source outage")
+
+        with (
+            patch.dict(
+                os.environ,
+                {"META_ACCESS_TOKEN": "test-only", "META_AD_ACCOUNT_ID": ACCOUNT},
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_external_metrics.call_command",
+                side_effect=provider,
+            ),
+        ):
+            with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=ALIEXPRESS"):
+                call_command("sync_external_metrics", stderr=StringIO())
+
+        self.assertEqual(executed, ["sync_affiliate_orders", "sync_meta_ads"])
+
+    def test_meta_failure_cannot_block_ali_refresh(self):
+        executed = []
+
+        def provider(name, *args):
+            executed.append(name)
+            if name == "sync_meta_ads":
+                raise CommandError("test-only expired token")
+
+        with (
+            patch.dict(
+                os.environ,
+                {"META_ACCESS_TOKEN": "test-only", "META_AD_ACCOUNT_ID": ACCOUNT},
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_external_metrics.call_command",
+                side_effect=provider,
+            ),
+        ):
+            with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=META"):
+                call_command("sync_external_metrics", stderr=StringIO())
+
+        self.assertEqual(executed, ["sync_affiliate_orders", "sync_meta_ads"])
+
+    def test_no_meta_credentials_cannot_block_failed_ali_diagnostic(self):
+        executed = []
+
+        def provider(name, *args):
+            executed.append(name)
+            raise CommandError("test-only source outage")
+
+        with (
+            patch.dict(os.environ, {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": ""}),
+            patch(
+                "apps.catalog.management.commands.sync_external_metrics.call_command",
+                side_effect=provider,
+            ),
+        ):
+            output = StringIO()
+            with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=ALIEXPRESS"):
+                call_command(
+                    "sync_external_metrics",
+                    "--dry-run",
+                    stdout=output,
+                    stderr=StringIO(),
+                )
+
+        self.assertEqual(executed, ["sync_affiliate_orders"])
+        self.assertIn("AWAITING_SERVER_AUTHORIZATION", output.getvalue())
