@@ -1,4 +1,4 @@
-"""Bounded periodic report refresh for existing Lowcost Europa provider accounts."""
+"""Refresh both provider reports independently; keep each last-known-good snapshot."""
 
 import os
 
@@ -13,13 +13,29 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
-        dry_run = options["dry_run"]
-        call_command("sync_affiliate_orders", *([] if not dry_run else ["--dry-run"]))
+        flags = ["--dry-run"] if options["dry_run"] else []
+        failures = []
+        try:
+            call_command("sync_affiliate_orders", *flags)
+        except CommandError:
+            failures.append("ALIEXPRESS")
+            self.stderr.write("ALIEXPRESS_REPORT=UNAVAILABLE")
+
         has_token = bool(os.environ.get("META_ACCESS_TOKEN"))
         has_account = bool(os.environ.get("META_AD_ACCOUNT_ID"))
         if has_token != has_account:
-            raise CommandError("META_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
-        if not has_token:
+            failures.append("META_CONFIG")
+            self.stderr.write("META_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
+        elif not has_token:
             self.stdout.write("META_REPORT=AWAITING_SERVER_AUTHORIZATION")
-            return
-        call_command("sync_meta_ads", *([] if not dry_run else ["--dry-run"]))
+        else:
+            try:
+                call_command("sync_meta_ads", *flags)
+            except CommandError:
+                failures.append("META")
+                self.stderr.write("META_REPORT=UNAVAILABLE")
+
+        # Report partial failure to systemd without blocking successful
+        # independent snapshots or hiding either provider's error.
+        if failures:
+            raise CommandError("EXTERNAL_METRICS_FAILED=" + ",".join(failures))
