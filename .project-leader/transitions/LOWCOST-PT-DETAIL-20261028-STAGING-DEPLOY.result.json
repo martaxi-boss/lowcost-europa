@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PT-DETAIL-20261028-STAGING-DEPLOY",
+  "task_id": "LOWCOST-PT-DETAIL-20261028-STAGING",
+  "authorization_record": ".project-leader/transitions/LOWCOST-PT-DETAIL-20261028-STAGING-DEPLOY.authorization.json",
+  "terminal_status": "SUCCESS",
+  "action": "deploy_official_affiliate_productdetail_pt_parameter_to_existing_staging",
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "b19fe804c05cf81cf340cce4cc27d0816f3dfaa3",
+    "base_revision": "2cf3487c941c77ca489ed543c249192c5ca273e2"
+  },
+  "observed_at": "2026-10-28T10:48:51Z",
+  "evidence": [
+    "https://github.com/martaxi-boss/lowcost-europa/pull/170",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40674274624",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40674744645",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40675018884",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40673496747",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40673904816"
+  ],
+  "verified_postconditions": [
+    "exact-Git-revision",
+    "SSH-host-pin",
+    "recent-backup-preflight",
+    "Django-check/deploy-check",
+    "no-migration-drift",
+    "first-link-guard",
+    "HTTPS-public-smoke",
+    "five-family-pages",
+    "noindex",
+    "one-use-deploy-branch-cleaned"
+  ],
+  "residual_blockers": [
+    "Affiliate detail API does not guarantee individual seller SKU stock; no 100% guaranteed stock claim",
+    "Official affiliate search supports PT destination, not server-verified origin warehouse; 53/59 public origin metadata is unrecorded, notwithstanding Owner protocol attestation",
+    "Weekly discovery paused in 3/5 families by pending-queue cap20; review 40,39,101 pending without auto-rejecting",
+    "Physical Android, owner authenticated acceptance, off-VPS Restic credential custody, and GitHub main protection still pending",
+    "Commercial domain, public SEO indexing, ad campaign and commercial launch require separate Owner permission"
+  ]
+}
