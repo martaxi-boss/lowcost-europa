@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-AFFILIATE-20261028-MERGE",
+  "task_id": "LOWCOST-AFFILIATE-20261028",
+  "repository": "martaxi-boss/lowcost-europa",
+  "created_at": "2026-10-28T08:42:19.166Z",
+  "action": "merge_affiliate_generation_on_publication_into_main",
+  "effect_class": "E2_CONSEQUENTIAL_TRANSITION",
+  "authority": {
+    "source": "CURRENT_OWNER_INSTRUCTION",
+    "summary": "Owner authorized correcting Lowcost Europa while retaining test domain lowcost-europa.duckdns.org, indexing disabled and commercial launch not validated. PR #162 head 0bdb4e05 completed CI 40658555718 with success; no VPS deployment, domain/DNS or commercial activation authorized.",
+    "binding_mode": "EXACT_REVISION_BOUND"
+  },
+  "target": {
+    "kind": "github_pull_request",
+    "identifier": "martaxi-boss/lowcost-europa#162",
+    "revision": "0bdb4e0544d48d7e833932f9ee9a1d0f4a77a826",
+    "base_revision": "ec0d7ef16ff9547640d2c31a33b19f9c2be3bb6f",
+    "environment": "main code integration; no VPS deploy or commercial activation"
+  }
+}
