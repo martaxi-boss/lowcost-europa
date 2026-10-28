@@ -14,6 +14,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.catalog.models import (
+    ExternalMetricsSnapshot,
     Offer,
     OfferCandidate,
     OfferClick,
@@ -295,6 +296,18 @@ def dashboard(request):
         family.recent_raw_clicks = recent_clicks_by_family.get(family.pk, 0)
         family.stale_public_offers = stale_public_by_family.get(family.pk, 0)
 
+    affiliate_report = ExternalMetricsSnapshot.objects.filter(source="ALIEXPRESS").first()
+    affiliate_report_payload = (
+        affiliate_report.payload
+        if affiliate_report and isinstance(affiliate_report.payload, dict)
+        else None
+    )
+    affiliate_report_fresh = bool(
+        affiliate_report_payload
+        and affiliate_report.checked_at <= now
+        and now - affiliate_report.checked_at <= timedelta(hours=12)
+    )
+
     return _private(
         render(
             request,
@@ -311,6 +324,9 @@ def dashboard(request):
                 "visible_blocked_offers": visible_blocked_offers,
                 "affiliate_tracking_id": os.environ.get("ALIEXPRESS_TRACKING_ID", "").strip(),
                 "owner_metrics_checked_at": now,
+                "affiliate_report": affiliate_report,
+                "affiliate_report_payload": affiliate_report_payload,
+                "affiliate_report_fresh": affiliate_report_fresh,
             },
         )
     )
