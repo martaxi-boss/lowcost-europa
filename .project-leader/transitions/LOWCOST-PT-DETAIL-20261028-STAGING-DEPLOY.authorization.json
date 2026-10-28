@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PT-DETAIL-20261028-STAGING-DEPLOY",
+  "task_id": "LOWCOST-PT-DETAIL-20261028-STAGING",
+  "repository": "martaxi-boss/lowcost-europa",
+  "action": "deploy_official_affiliate_productdetail_pt_parameter_to_existing_staging",
+  "effect_class": "E2_CONSEQUENTIAL_TRANSITION",
+  "owner_authority": {
+    "source": "OWNER_CONTINUATION_AND_PREVIOUS_PILOT_CORRECTION_AUTHORIZATION",
+    "summary": "Owner asks REA 6.8.0 to audit and continue fixing availability and five-country sourcing, within existing DuckDNS-only pilot; preserve manual origin attestation and no commercial launch.",
+    "boundary": "Exact tested PR #170; no changes to shipping whitelist, approval, cap20, stock lifecycle, DNS, SEO, advertising or other projects."
+  },
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "b19fe804c05cf81cf340cce4cc27d0816f3dfaa3",
+    "base_revision": "2cf3487c941c77ca489ed543c249192c5ca273e2"
+  },
+  "evidence": {
+    "code_pr": "https://github.com/martaxi-boss/lowcost-europa/pull/170",
+    "ci_run": "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40674274624",
+    "inventory_run": "https://github.com/martaxi-boss/VPS/actions/runs/40673496747",
+    "official_productdetail": "https://developer.alibaba.com/docs/api.htm?apiId=48595",
+    "official_search": "https://developer.alibaba.com/docs/api.htm?apiId=45803"
+  },
+  "required_verification": [
+    "exact-host-key",
+    "readback-code-precise-base-and-target",
+    "backup-recent-verified",
+    "only intended-file-diff",
+    "no-index-and-all-five-family-pages",
+    "Django-deploy-check",
+    "affiliate-import-link-generation-guard",
+    "rollback-on-any-failure",
+    "external-https-smoke"
+  ]
+}
