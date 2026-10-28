@@ -1,8 +1,10 @@
 import logging
+import unicodedata
 from datetime import timedelta
 
 from django.conf import settings
 from django.db import IntegrityError, OperationalError
+from django.core.paginator import Paginator
 from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -187,6 +189,52 @@ def home(request):
         ),
     }
     return _render_storefront(request, "storefront/home.html", context)
+
+
+def _search_key(value):
+    """Accent-insensitive visitor search, without exposing unpublished listings."""
+    return "".join(
+        character
+        for character in unicodedata.normalize("NFKD", value.casefold())
+        if not unicodedata.combining(character)
+    )
+
+
+@require_safe
+def search(request):
+    """Public, read-only search over the same strictly eligible family offers."""
+    phrase = request.GET.get("q", "").strip()[:100]
+    normalized = _search_key(phrase)
+    terms = normalized.split()
+    matches = []
+    if terms:
+        families = _family_queryset().exclude(status=ProductFamily.Status.RETIRED)
+        for family in families:
+            _prepare_family(family)
+            for placement in family.selection_placements + family.other_placements:
+                offer = placement.offer
+                haystack = _search_key(f"{family.name} {offer.title or ''}")
+                if all(term in haystack for term in terms):
+                    matches.append({"family": family, "offer": offer, "placement": placement})
+
+    pages = Paginator(matches, 24)
+    page = pages.get_page(request.GET.get("page"))
+    context = {
+        "query": phrase,
+        "result_count": len(matches),
+        "page": page,
+        **_seo_context(
+            request.path,
+            "Pesquisar equipamentos | Lowcost Europa",
+            "Pesquisa de ofertas editoriais elegíveis no catálogo Lowcost Europa.",
+        ),
+    }
+    # Search-result permutations must never be indexed, even after launch.
+    context["robots_directive"] = "noindex, nofollow"
+    context["canonical_url"] = None
+    response = _render_storefront(request, "storefront/search.html", context)
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 def _owner_family_context(request, family):
