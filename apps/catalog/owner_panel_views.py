@@ -1,9 +1,11 @@
+import os
 from datetime import timedelta
 from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count, Prefetch
+from django.db.models.functions import TruncDate
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -204,29 +206,80 @@ def owner_logout(request):
 
 @_owner_staff_required
 def dashboard(request):
+    """Read-only Owner metrics; external advertising and orders are not inferred."""
+    now = timezone.now()
+    recent_cutoff = now - timedelta(days=7)
+    previous_cutoff = now - timedelta(days=14)
+    last_day_cutoff = now - timedelta(days=1)
+    month_cutoff = now - timedelta(days=30)
+    operational_statuses = [
+        ProductFamily.Status.NEW,
+        ProductFamily.Status.TESTING,
+        ProductFamily.Status.VERIFIED,
+        ProductFamily.Status.PROVEN,
+        ProductFamily.Status.WINNER,
+        ProductFamily.Status.OBSERVATION,
+    ]
     families = list(
         ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED).order_by(
             "display_order", "name", "pk"
         )
     )
-    recent_cutoff = timezone.now() - timedelta(days=7)
-    recent_clicks_total = OfferClick.objects.filter(clicked_at__gte=recent_cutoff).count()
+
+    # Counts are raw /go/ outbound redirects, not people, purchases, or ad clicks.
+    recent_clicks = OfferClick.objects.filter(clicked_at__gte=recent_cutoff)
+    recent_clicks_total = recent_clicks.count()
+    previous_clicks_total = OfferClick.objects.filter(
+        clicked_at__gte=previous_cutoff, clicked_at__lt=recent_cutoff
+    ).count()
+    clicks_24h = OfferClick.objects.filter(clicked_at__gte=last_day_cutoff).count()
+    clicks_30d = OfferClick.objects.filter(clicked_at__gte=month_cutoff).count()
     recent_clicks_by_family = dict(
-        OfferClick.objects.filter(
-            clicked_at__gte=recent_cutoff,
-            offer__family_placements__product_family__status__in=[
-                ProductFamily.Status.NEW,
-                ProductFamily.Status.TESTING,
-                ProductFamily.Status.VERIFIED,
-                ProductFamily.Status.PROVEN,
-                ProductFamily.Status.WINNER,
-                ProductFamily.Status.OBSERVATION,
-            ],
+        recent_clicks.filter(
+            offer__family_placements__product_family__status__in=operational_statuses
         )
         .values("offer__family_placements__product_family_id")
         .annotate(total=Count("id"))
         .values_list("offer__family_placements__product_family_id", "total")
     )
+    top_clicked_offers = list(
+        recent_clicks.values("offer_id", "offer__title")
+        .annotate(total=Count("id"))
+        .order_by("-total", "offer_id")[:5]
+    )
+
+    # The chart groups by local calendar days, while headline periods are
+    # rolling 24-hour windows. Missing dates are real zero-click dates.
+    first_chart_day = timezone.localdate(now) - timedelta(days=13)
+    counts_by_day = dict(
+        OfferClick.objects.filter(clicked_at__date__gte=first_chart_day)
+        .annotate(local_day=TruncDate("clicked_at", tzinfo=timezone.get_current_timezone()))
+        .values("local_day")
+        .annotate(total=Count("id"))
+        .values_list("local_day", "total")
+    )
+    chart_max = max([1, *counts_by_day.values()])
+    daily_clicks = []
+    for day_offset in range(14):
+        day = first_chart_day + timedelta(days=day_offset)
+        count = counts_by_day.get(day, 0)
+        daily_clicks.append(
+            {
+                "date_label": day.strftime("%d/%m/%Y"),
+                "short_label": day.strftime("%d/%m"),
+                "total": count,
+                "height": max(8, round(count * 100 / chart_max)) if count else 0,
+            }
+        )
+
+    # Show only the actual technical gate and never imply a paid conversion.
+    visible_offers = Offer.objects.filter(
+        is_active=True,
+        owner_hidden=False,
+        family_placements__product_family__status__in=operational_statuses,
+    ).distinct()
+    eligible_public_offers = visible_offers.filter(public_eligibility_q(now)).count()
+    visible_blocked_offers = visible_offers.exclude(public_eligibility_q(now)).count()
     stale_public_by_family = dict(
         OfferFamilyPlacement.objects.filter(
             offer__is_active=True,
@@ -241,14 +294,26 @@ def dashboard(request):
         family.owner_counts = _family_counts(family)
         family.recent_raw_clicks = recent_clicks_by_family.get(family.pk, 0)
         family.stale_public_offers = stale_public_by_family.get(family.pk, 0)
+
     return _private(
         render(
             request,
             "catalog/owner_panel/dashboard.html",
-            {"families": families, "recent_raw_clicks_total": recent_clicks_total},
+            {
+                "families": families,
+                "recent_raw_clicks_total": recent_clicks_total,
+                "previous_raw_clicks_total": previous_clicks_total,
+                "raw_clicks_24h": clicks_24h,
+                "raw_clicks_30d": clicks_30d,
+                "daily_raw_clicks": daily_clicks,
+                "top_clicked_offers": top_clicked_offers,
+                "eligible_public_offers": eligible_public_offers,
+                "visible_blocked_offers": visible_blocked_offers,
+                "affiliate_tracking_id": os.environ.get("ALIEXPRESS_TRACKING_ID", "").strip(),
+                "owner_metrics_checked_at": now,
+            },
         )
     )
-
 
 @_owner_staff_required
 def family_manage(request, family_slug):
