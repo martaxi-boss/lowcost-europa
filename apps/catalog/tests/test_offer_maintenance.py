@@ -15,9 +15,9 @@ from apps.catalog.models import (
     ProductFamily,
 )
 from apps.catalog.services.offer_maintenance import (
+    is_factually_available,
     is_factually_unavailable,
     is_factually_unavailable_error,
-    is_factually_available,
     maintain_catalog_offers,
     select_maintenance_batch,
 )
