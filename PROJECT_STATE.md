@@ -1,6 +1,15 @@
 # Lowcost Europa — Project State
 
-Historical reconciliation baseline: 2026-10-03. Current operational evidence: 2026-10-14.
+Historical reconciliation baseline: 2026-10-03. Most recent operational evidence: 2026-10-28.
+
+## Most recent verified staging operations — 2026-10-28
+
+- **Live pilot (existing VPS and DuckDNS test hostname only):** REA static inspection confirmed `/srv/lowcost-europa`; exact live base `eeff80db3d3473a447b79bd5637a70fc4a9b8d7b` was measured by read-only VPS Actions [40663608168](https://github.com/martaxi-boss/VPS/actions/runs/40663608168). The previous rollout [40663295570](https://github.com/martaxi-boss/VPS/actions/runs/40663295570) failed closed before any checkout because an older historical base was assumed, with `ROLLBACK_STATUS=not_needed`. The R2 transition used that independently measured clean base.
+- **Deployed and verified application commit:** `8b350bd0cb92492e9d6f031f3472533336acd00d` on `146.59.145.3:/srv/lowcost-europa` from `eeff80db`, via proven pinned-SSH GitHub Actions [40664260730](https://github.com/martaxi-boss/VPS/actions/runs/40664260730). Backup preflight, exact revision, Django checks, migration drift/plan, noindex settings, private login throttle write, static assets, readiness, all five family pages, external HTTPS/robots and Git worktree readback **PASS**. Only the existing Lowcost service was restarted; no catalog/data, DNS, Nginx or other project changed.
+- **Public browser regression:** [40664538172](https://github.com/martaxi-boss/lowcost-europa/actions/runs/40664538172) **PASS**, 12/12 page/viewport combinations (home and five families; Chromium desktop and mobile-emulated), 13 checks, zero errors, zero horizontal overflow. [Screenshot and JSON artifact 12805341348](https://github.com/martaxi-boss/lowcost-europa/actions/runs/40664538172/artifacts/12805341348). The test does not authenticate, publish, follow `/go/`, purchase or claim revenue.
+- **Independent disaster-recovery drill:** [40664960134](https://github.com/martaxi-boss/VPS/actions/runs/40664960134) **PASS**: Restic offsite snapshot restored into a disposable directory; validated PostgreSQL dump restored into a *temporary* database; Django migration/core catalog tables queried; temporary database dropped and directory removed; `LIVE DATABASE MODIFIED=NO`. Pinned SSH and exact deployed SHA were reverified.
+- **Operational observation:** three baseline services and five maintenance/backup timers active; daily backup checksum and `pg_restore --list` passed with backup approx. 6 hours old at preflight, offsite marker approx. 5 hours old. The one-use GitHub Actions task branches were verified deleted. No permanent VPS workflow was added to main.
+- **Preserved limitations:** `https://lowcost-europa.duckdns.org` remains test-only; Nginx/app `noindex, nofollow` and `robots.txt Disallow: /` verified; no commercial domain, SEO launch, billing, advertising adjustment or public launch was performed. Remaining Owner/manual items: real physical-device and authenticated Owner flow acceptance, GitHub `main` governance protection (`protected=false` last observed), confirmation that Restic bootstrap credentials are recoverable *off the VPS*, legal/operator contact data, final commercial domain, purchase/commission attribution and explicit commercial launch authorization.
 
 ## Addendum — pilot corrections verified 2026-10-28 (without commercial launch)
 
@@ -12,7 +21,7 @@ Historical reconciliation baseline: 2026-10-03. Current operational evidence: 20
 - **Runtime boundary:** these CI and GitHub merge results are **not** proof that the VPS runs this new SHA. The last independently documented staging deployment is `f0d520d31ef6a3aa06ee11f2793be50f75d58a2c` from 2026-10-14. Live staging rollout, exact SHA, timers, backups and independent restore still require separate verified operations evidence.
 - **Governance boundary:** GitHub `main` reports `protected=false` on 2026-10-28 and no active repository rulesets. This is an outstanding GitHub administration control, not something remedied by CI or by these PRs. Open issue #151 retains real-device and operational acceptance follow-ups.
 
-## Current status — technical phase completed, pilot acceptance pending
+## Current status — staging certified, human/commercial acceptance pending
 
 - Application development, cleanup, staging deployment, automated tests and public browser validation are **COMPLETED**. Main implementation + QA branch state: `9b11d8eb73e13ebca0c3b01b5ef050c8392ab21e` before this closeout update. Final version deployed at VPS staging: `f0d520d31ef6a3aa06ee11f2793be50f75d58a2c`; newer main commits do not require restarts unless application/static code changes.
 - GitHub CI [38596061480](https://github.com/martaxi-boss/lowcost-europa/actions/runs/38596061480) **PASS**: 638 Django + 6 Node tests. Chromium public staging run [38595391116](https://github.com/martaxi-boss/lowcost-europa/actions/runs/38595391116) **PASS**: home + all 5 families at desktop and mobile-emulated sizes, total 12/12, zero detected failures; 7/7 visible HIFU images loaded.

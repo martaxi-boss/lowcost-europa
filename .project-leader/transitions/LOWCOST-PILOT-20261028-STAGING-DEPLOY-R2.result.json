@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-20261028-STAGING-DEPLOY-R2",
+  "task_id": "LOWCOST-PILOT-20261028-STAGING-R2",
+  "repository": "martaxi-boss/lowcost-europa",
+  "terminal_status": "SUCCESS",
+  "authorization_record": ".project-leader/transitions/LOWCOST-PILOT-20261028-STAGING-DEPLOY-R2.authorization.json",
+  "action": "deploy_verified_pilot_commit_to_existing_staging_vps",
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "8b350bd0cb92492e9d6f031f3472533336acd00d",
+    "base_revision": "eeff80db3d3473a447b79bd5637a70fc4a9b8d7b",
+    "environment": "existing Lowcost Europa pilot staging, DuckDNS test-only, noindex and commercial OFF"
+  },
+  "observed_at": "2026-10-28T09:33:52.467Z",
+  "final_state": {
+    "status": "STAGING_DEPLOYED_BROWSER_QA_AND_OFFSITE_RESTORE_VERIFIED",
+    "revision": "8b350bd0cb92492e9d6f031f3472533336acd00d"
+  },
+  "evidence": [
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40659389026 : tested code main CI SUCCESS",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40663608168 : independent read-only staging base/backup/timers preflight",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40664260730 : exact staging rollout, noindex and HTTPS; all steps SUCCESS",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40664538172 : 12/12 desktop/mobile-emulated public browser PASS, zero errors; screenshot artifact 12805341348",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40664960134 : independent Restic to disposable database restore PASS; live DB not modified",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40664052344 : authorization main CI SUCCESS"
+  ],
+  "residual_blockers": [
+    "Human/physical-device and authenticated Owner workflow acceptance remain pending",
+    "GitHub main branch protection remains unconfigured according to last observed API state",
+    "Off-VPS custody of R2 Restic recovery bootstrap credentials requires Owner confirmation",
+    "Final commercial domain, legal/operator information, public indexing and commercial launch require explicit separate validation and authorization",
+    "No AliExpress purchase/commission reconciliation or Meta campaign performance measurement was certified by this deployment"
+  ]
+}
