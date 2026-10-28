@@ -21,12 +21,13 @@ class Command(BaseCommand):
             failures.append("ALIEXPRESS")
             self.stderr.write("ALIEXPRESS_REPORT=UNAVAILABLE")
 
-        has_token = bool(os.environ.get("META_ACCESS_TOKEN"))
+        has_graph_token = bool(os.environ.get("META_ACCESS_TOKEN"))
+        has_windsor_key = bool(os.environ.get("WINDSOR_API_KEY"))
         has_account = bool(os.environ.get("META_AD_ACCOUNT_ID"))
-        if has_token != has_account:
+        if has_account != (has_graph_token or has_windsor_key):
             failures.append("META_CONFIG")
             self.stderr.write("META_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
-        elif not has_token:
+        elif not has_account:
             self.stdout.write("META_REPORT=AWAITING_SERVER_AUTHORIZATION")
         else:
             try:

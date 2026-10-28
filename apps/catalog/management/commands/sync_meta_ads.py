@@ -1,5 +1,7 @@
 """Meta Ads metrics sync with read-only permissions; never modifies an ad."""
 
+import os
+
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -8,6 +10,7 @@ from apps.catalog.services.meta_ads_reporting import (
     MetaAdsReportError,
     collect_meta_ads_report,
 )
+from apps.catalog.services.windsor_meta_ads_reporting import collect_windsor_meta_ads_report
 
 
 class Command(BaseCommand):
@@ -18,7 +21,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            report, period_start, period_end = collect_meta_ads_report()
+            if os.environ.get("META_ACCESS_TOKEN"):
+                report, period_start, period_end = collect_meta_ads_report()
+            else:
+                report, period_start, period_end = collect_windsor_meta_ads_report()
         except MetaAdsReportError as exc:
             raise CommandError("Meta Ads reporting unavailable: " + type(exc).__name__) from None
 
