@@ -16,6 +16,26 @@
       <a{% if owner_active_tab == 'rejeitados' %} class="active"{% endif %} href="?gestao=rejeitados#gestao-owner">Rejeitados <span>{{ owner_rejected_count }}</span></a>
     </nav>
 
+    {% if owner_active_tab == 'rever' %}
+      <div class="owner-all-clear" role="status">
+        {% if owner_queue_blocked %}
+          <strong>Pesquisa semanal em pausa nesta categoria.</strong>
+          Há {{ owner_pending_count }} candidatos em revisão (limite {{ owner_pending_cap }}).
+          Para voltar a pesquisar, é preciso rever pelo menos {{ owner_to_review_for_search }}
+          produto{{ owner_to_review_for_search|pluralize:"s" }} com decisões tuas.
+        {% else %}
+          <strong>Pesquisa semanal permitida.</strong>
+          Há {{ owner_pending_count }} candidatos em revisão (limite {{ owner_pending_cap }}).
+        {% endif %}
+        Não há aprovações, rejeições ou remoções automáticas.
+      </div>
+      <nav class="owner-management-tabs" aria-label="Ordenar produtos a rever">
+        <a{% if owner_pending_order == 'antigos' %} class="active"{% endif %} href="?gestao=rever&amp;ordem=antigos#gestao-owner">Mais antigos primeiro</a>
+        <a{% if owner_pending_order == 'recentes' %} class="active"{% endif %} href="?gestao=rever&amp;ordem=recentes#gestao-owner">Mais recentes primeiro</a>
+      </nav>
+      <p class="owner-all-clear">Antes de decidir, confirma no anúncio real a disponibilidade, a entrega em Portugal e a origem PL, CZ, FR, ES ou DE. Um título ou link existente não prova stock.</p>
+    {% endif %}
+
     {% if owner_active_tab == 'montra' %}
       <p class="owner-all-clear">A montra é a seleção pública apresentada acima. Use “Retirar da montra” diretamente nos cards públicos.</p>
     {% elif owner_selected_candidates %}

@@ -37,6 +37,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Offers selected: {result.offers_selected}")
         self.stdout.write(f"Detail attempts: {result.detail_attempts}")
         self.stdout.write(f"Available confirmed: {result.available_confirmed}")
+        self.stdout.write(f"Availability unknown (valid detail): {result.availability_unknown}")
         self.stdout.write(f"Unavailable confirmed: {result.unavailable_confirmed}")
         self.stdout.write(f"Transient failures: {result.transient_failures}")
         self.stdout.write(f"Offers deactivated: {result.offers_deactivated}")
