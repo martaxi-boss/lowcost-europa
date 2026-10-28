@@ -12,7 +12,8 @@ const slugs = ['cavitacao-rf-vacuum-corpo',
   'pressoterapia-vacuum-drenagem', 'hifu',
   'diodo-laser-remocao-tatuagens-pigmentacao'];
 const pages = [{ name: 'home', url: '/' }].concat(
-  slugs.map((name) => ({ name, url: '/products/' + name + '/' })));
+  slugs.map((name) => ({ name, url: '/products/' + name + '/' })),
+  [{ name: 'search', url: '/pesquisar/?q=HIFU' }]);
 const devices = [{ name: 'desktop', width: 1440, height: 900, mobile: false },
   { name: 'mobile-emulated', width: 390, height: 844, mobile: true }];
 const report = { origin, when: new Date().toISOString(), checks: [], errors: [], warnings: [] };
@@ -104,6 +105,41 @@ async function publicPage(page, item, device) {
   await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 5000 });
   await page.screenshot({ path: path.join(out, item.name + '-' + device.name + '.png'),
     fullPage: true, animations: 'disabled' });
+  if (item.name === 'home') {
+    const finder = page.locator('.search-form--hero input[name="q"]');
+    assert.equal(await finder.count(), 1, 'global search present on home');
+    assert.equal(await finder.isVisible(), true, 'home search accessible');
+    const target = await finder.evaluate((el) => el.form.action);
+    assert.equal(new URL(target).pathname, '/pesquisar/');
+  } else {
+    const explorer = page.locator('[data-catalog-explorer]');
+    if (await explorer.count()) {
+      const cardCount = await explorer.locator('[data-offer-card]').count();
+      assert.ok(cardCount > 0, 'explorer has published cards');
+      await explorer.locator('[data-explorer-search]').fill('never-found-ux-test-92874');
+      assert.equal(
+        await explorer.locator('[data-offer-card]:visible').count(), 0,
+        'search hides cards without changing publication state'
+      );
+      assert.equal(await explorer.locator('[data-explorer-empty]').isVisible(), true);
+      await explorer.locator('[data-explorer-reset]').click();
+      assert.equal(
+        await explorer.locator('[data-offer-card]:visible').count(), cardCount,
+        'reset restores every original offer'
+      );
+      const first = explorer.locator('[data-compare-toggle]').first();
+      assert.equal(await first.isVisible(), true);
+      await first.click();
+      assert.equal(await first.getAttribute('aria-pressed'), 'true');
+      assert.equal(await explorer.locator('[data-compare-panel]').isVisible(), true);
+      await explorer.locator('[data-compare-clear]').click();
+      assert.equal(await first.getAttribute('aria-pressed'), 'false');
+      assert.equal(await explorer.locator('[data-compare-panel]').isVisible(), false);
+      await explorer.locator('[data-explorer-sort]').selectOption('price-asc');
+      assert.equal(await explorer.locator('[data-currency-notice]').count(), 1);
+      await explorer.locator('[data-explorer-reset]').click();
+    }
+  }
   if (device.mobile && item.name === 'home') {
     await page.locator('.nav-menu summary').click();
     assert.equal(await page.locator('.nav-menu').evaluate((el) => el.open), true);
