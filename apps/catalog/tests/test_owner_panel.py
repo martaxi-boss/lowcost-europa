@@ -27,7 +27,10 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import public_eligibility_q
-from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError, AliExpressTransportError
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressRateLimitError,
+    AliExpressTransportError,
+)
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 TEST_PASSWORD = "owner-test-password-only"
@@ -693,6 +696,10 @@ class OwnerPanelCatalogTests(TestCase):
             self.pending.approved_offer.affiliate_promotion_status,
             Offer.AffiliatePromotionStatus.UNKNOWN,
         )
+        approved_page = self.client.get(
+            reverse("owner-panel:family", args=[self.family.slug]) + "?vista=aprovados"
+        )
+        self.assertContains(approved_page, "GERAR LINK E PUBLICAR")
 
     @patch("apps.catalog.owner_panel_views.approve_candidate")
     def test_panel_approve_rate_limit_is_safe_and_returns_to_review(self, approve):

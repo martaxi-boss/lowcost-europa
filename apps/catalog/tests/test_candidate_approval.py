@@ -268,7 +268,9 @@ class CandidateApprovalTests(TestCase):
         api.generate_affiliate_link.assert_not_called()
         offer.refresh_from_db()
         self.assertEqual(result.candidate.status, OfferCandidate.Status.APPROVED)
-        self.assertEqual(offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.INELIGIBLE)
+        self.assertEqual(
+            offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.INELIGIBLE
+        )
         self.assertTrue(offer.owner_hidden)
 
     def test_non_pending_candidate_cannot_be_approved_or_generate_link(self):

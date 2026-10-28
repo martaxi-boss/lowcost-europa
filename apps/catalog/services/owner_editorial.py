@@ -4,13 +4,13 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferEditorialEvent, OfferFamilyPlacement, ProductFamily
-from apps.integrations.aliexpress.client import AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError
 from apps.catalog.services.public_eligibility import (
     MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY,
     is_protocol_verified,
     public_eligibility_q,
 )
+from apps.integrations.aliexpress.client import AliExpressClient
+from apps.integrations.aliexpress.exceptions import AliExpressError
 
 
 class OwnerEditorialError(ValueError):

@@ -179,7 +179,9 @@ class AffiliatePromotionGateTests(TestCase):
         revalidate_candidate(result.candidate, user=user, now=self.now + timedelta(seconds=1))
         self.offer.refresh_from_db()
         self.assertEqual(self.offer.affiliate_url, "https://affiliate.example/old")
-        self.assertEqual(self.offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.INELIGIBLE)
+        self.assertEqual(
+            self.offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.INELIGIBLE
+        )
         self.assertEqual(self.offer.affiliate_promotion_verified_at, verified_at)
         self.assertTrue(self.offer.owner_hidden)
 
