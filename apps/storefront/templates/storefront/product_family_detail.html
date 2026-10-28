@@ -16,8 +16,11 @@
   </div>
 </section>
 
-<section class="section section--surface catalog-detail">
+<section class="section section--surface catalog-detail" data-catalog-explorer>
   <div class="container">
+    {% if family.selection_placements or family.other_placements %}
+      {% include "storefront/components/catalog_explorer_controls.html" %}
+    {% endif %}
     {% if family.selection_placements %}
       <section class="offer-group offer-group--featured" aria-labelledby="selecoes-title">
         <div class="section-heading section-heading--split">
