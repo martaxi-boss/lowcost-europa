@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-STOCK-REVIEW-20261028-STAGING",
+  "task_id": "LOWCOST-STOCK-REVIEW-20261028",
+  "repository": "martaxi-boss/lowcost-europa",
+  "created_at": "2026-10-28",
+  "action": "deploy_bounded_safe_stock_status_and_private_owner_triage_to_existing_duckdns_test_vps",
+  "effect_class": "E2_CONSEQUENTIAL_TRANSITION",
+  "authority": {
+    "source": "CURRENT_OWNER_CONTINUATION",
+    "summary": "The owner asked REA 6.8.0 to advance improving detection of unavailable affiliate listings and review of three blocked candidate queues. Reuse only existing Lowcost Europa staging, without automatic candidate decisions, publication, commerce, SEO or DNS changes.",
+    "scope_limits": "Exact tested PR #173, existing Django service only, no schema/config/requirements edits, backups and rollback required."
+  },
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "base_revision": "b19fe804c05cf81cf340cce4cc27d0816f3dfaa3",
+    "revision": "a21ca6d6a09f8d147bc072da7686075b0123d960",
+    "public_indexing_enabled": false
+  },
+  "evidence": {
+    "source_pr": "https://github.com/martaxi-boss/lowcost-europa/pull/173",
+    "source_ci": "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40677845712",
+    "previous_exact_vps": "https://github.com/martaxi-boss/VPS/actions/runs/40675018884"
+  },
+  "required_checks": [
+    "exact_pinned_host",
+    "clean_current_sha",
+    "backup_sha256_pg_restore",
+    "offsite_recent_marker",
+    "no_sensitive_file_diff",
+    "django_check_and_deploy_check",
+    "no_migration_drift",
+    "first_affiliate_link_guard",
+    "five_category_200",
+    "live_noindex",
+    "rollback_on_any_failure",
+    "delete_ephemeral_workflow_branch"
+  ],
+  "rollout_limits": {
+    "catalog_mutations": "none_by_deploy; existing hourly maintenance continues naturally",
+    "pending_candidate_decisions": "none",
+    "owner_five_country_rule": "unchanged",
+    "public_launch": false
+  }
+}
