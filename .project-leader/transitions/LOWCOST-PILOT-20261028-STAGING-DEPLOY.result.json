@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-20261028-STAGING-DEPLOY",
+  "task_id": "LOWCOST-PILOT-20261028-STAGING",
+  "repository": "martaxi-boss/lowcost-europa",
+  "terminal_status": "NOT_EXECUTED",
+  "authorization_record": ".project-leader/transitions/LOWCOST-PILOT-20261028-STAGING-DEPLOY.authorization.json",
+  "action": "deploy_verified_pilot_commit_to_existing_staging_vps",
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "8b350bd0cb92492e9d6f031f3472533336acd00d",
+    "environment": "existing Lowcost Europa pilot staging; test domain only, noindex, commercial launch OFF",
+    "base_revision": "f0d520d31ef6a3aa06ee11f2793be50f75d58a2c"
+  },
+  "observed_at": "2026-10-28T09:22:59.226Z",
+  "final_state": {
+    "status": "PREFLIGHT_BASE_SHA_MISMATCH_NO_CODE_CHECKOUT",
+    "revision": "eeff80db3d3473a447b79bd5637a70fc4a9b8d7b"
+  },
+  "evidence": [
+    "https://github.com/martaxi-boss/VPS/actions/runs/40663295570 : pinned SSH host passed; ROLLOUT_STATUS=failed; ROLLBACK_STATUS=not_needed",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40663608168 : read-only preflight found actual SHA eeff80db, clean worktree, backups, services and timers PASS"
+  ],
+  "residual_blockers": [
+    "The actual staging base was eeff80db, not the older previously documented f0d520d3; deploy requires newly bound authorization"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-20261028-STAGING-DEPLOY-R2",
+  "task_id": "LOWCOST-PILOT-20261028-STAGING-R2",
+  "repository": "martaxi-boss/lowcost-europa",
+  "created_at": "2026-10-28T09:22:59.226Z",
+  "action": "deploy_verified_pilot_commit_to_existing_staging_vps",
+  "effect_class": "E2_CONSEQUENTIAL_TRANSITION",
+  "authority": {
+    "source": "STANDING_OWNER_GRANT",
+    "summary": "Owner authorized completion of Lowcost Europa technical fixes with DuckDNS test-only and commercial launch OFF. Real Oct 28 VPS Actions 40663608168 measured clean staging eeff80db, all three services, five timers, recent verified local backup and recent offsite marker PASS. Previous f0d520d3 base assumption was rejected safely by run 40663295570 without checkout. Source comparison eeff80db..8b350bd0 has no dependency, Django setting, Nginx or schema migration changes. Roll out only on exact base SHA with rollback, SSH pin and noindex verification.",
+    "binding_mode": "EXACT_REVISION_BOUND"
+  },
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "8b350bd0cb92492e9d6f031f3472533336acd00d",
+    "environment": "existing Lowcost Europa pilot staging; test domain only, noindex, commercial launch OFF",
+    "base_revision": "eeff80db3d3473a447b79bd5637a70fc4a9b8d7b"
+  }
+}
