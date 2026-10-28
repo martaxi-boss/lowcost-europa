@@ -20,6 +20,7 @@ from apps.catalog.models import (
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
+from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
@@ -212,6 +213,16 @@ def _owner_family_context(request, family):
         .order_by("status", "-last_observed_at", "pk")
     )
     pending = [c for c in candidates if c.status == OfferCandidate.Status.PENDING]
+    requested_order = request.GET.get("ordem", "")
+    pending_order = (
+        requested_order
+        if requested_order in {"antigos", "recentes"}
+        else ("antigos" if len(pending) >= PENDING_CAP_PER_FAMILY else "recentes")
+    )
+    pending.sort(
+        key=lambda c: (c.last_observed_at, c.pk),
+        reverse=(pending_order == "recentes"),
+    )
     rejected = [c for c in candidates if c.status == OfferCandidate.Status.REJECTED]
     approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
     for candidate in approved:
@@ -255,6 +266,8 @@ def _owner_family_context(request, family):
     }.get(active_tab, [])
 
     current_query = f"?gestao={active_tab}"
+    if active_tab == "rever":
+        current_query += f"&ordem={pending_order}"
     return {
         "owner_mode": True,
         "owner_active_tab": active_tab,
@@ -265,6 +278,10 @@ def _owner_family_context(request, family):
         .order_by("display_order", "name", "pk"),
         "owner_storefront_count": len(family.public_placements),
         "owner_pending_count": len(pending),
+        "owner_pending_order": pending_order,
+        "owner_queue_blocked": len(pending) >= PENDING_CAP_PER_FAMILY,
+        "owner_pending_cap": PENDING_CAP_PER_FAMILY,
+        "owner_to_review_for_search": max(0, len(pending) - PENDING_CAP_PER_FAMILY + 1),
         "owner_approved_count": len(approved_hidden),
         "owner_hidden_count": len(hidden),
         "owner_revalidate_count": len(stale),
