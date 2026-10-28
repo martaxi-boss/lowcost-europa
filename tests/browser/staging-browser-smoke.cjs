@@ -135,6 +135,8 @@ async function publicPage(page, item, device) {
       await explorer.locator('[data-compare-clear]').click();
       assert.equal(await first.getAttribute('aria-pressed'), 'false');
       assert.equal(await explorer.locator('[data-compare-panel]').isVisible(), false);
+      await explorer.locator('[data-explorer-budget]').selectOption('500');
+      assert.match(await explorer.locator('[data-currency-notice]').textContent(), /EUR/);
       await explorer.locator('[data-explorer-sort]').selectOption('price-asc');
       assert.equal(await explorer.locator('[data-currency-notice]').count(), 1);
       await explorer.locator('[data-explorer-reset]').click();
