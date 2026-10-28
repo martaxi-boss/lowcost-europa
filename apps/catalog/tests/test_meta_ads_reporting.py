@@ -132,7 +132,10 @@ class MetaCommandTests(TestCase):
 
     def test_combined_sync_skips_meta_without_vps_credential(self):
         with (
-            patch.dict(os.environ, {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": ""}),
+            patch.dict(
+            os.environ,
+            {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""},
+        ),
             patch(
                 "apps.catalog.management.commands.sync_external_metrics.call_command"
             ) as child_command,
@@ -144,9 +147,73 @@ class MetaCommandTests(TestCase):
     def test_partial_meta_configuration_is_rejected(self):
         with (
             patch.dict(
-                os.environ, {"META_ACCESS_TOKEN": "test-only", "META_AD_ACCOUNT_ID": ""}
+                os.environ,
+                {
+                    "META_ACCESS_TOKEN": "test-only",
+                    "META_AD_ACCOUNT_ID": "",
+                    "WINDSOR_API_KEY": "",
+                }
             ),
             patch("apps.catalog.management.commands.sync_external_metrics.call_command"),
         ):
             with self.assertRaises(CommandError):
                 call_command("sync_external_metrics", stdout=StringIO())
+
+    def test_windsor_key_runs_meta_step_with_no_graph_token(self):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "META_ACCESS_TOKEN": "",
+                    "WINDSOR_API_KEY": "fake-test-only",
+                    "META_AD_ACCOUNT_ID": ACCOUNT,
+                },
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_external_metrics.call_command"
+            ) as child_command,
+        ):
+            call_command("sync_external_metrics", "--dry-run", stdout=StringIO())
+        self.assertEqual(child_command.call_count, 2)
+        self.assertEqual(child_command.call_args_list[0].args[0], "sync_affiliate_orders")
+        self.assertEqual(child_command.call_args_list[1].args[0], "sync_meta_ads")
+
+    def test_sync_meta_uses_windsor_when_no_graph_token(self):
+        summary = {"source": "META", "provider": "WINDSOR", "spend": "0.00"}
+        with (
+            patch.dict(
+                os.environ, {"META_ACCESS_TOKEN": "", "WINDSOR_API_KEY": "fake-test-only"}
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_meta_ads.collect_windsor_meta_ads_report",
+                return_value=(summary, NOW - timedelta(days=30), NOW),
+            ) as windsor,
+            patch(
+                "apps.catalog.management.commands.sync_meta_ads.collect_meta_ads_report"
+            ) as graph,
+        ):
+            call_command("sync_meta_ads", stdout=StringIO())
+        windsor.assert_called_once_with()
+        graph.assert_not_called()
+        self.assertEqual(
+            ExternalMetricsSnapshot.objects.get(source="META").payload["provider"], "WINDSOR"
+        )
+
+    def test_direct_meta_token_is_preferred_over_windsor(self):
+        summary = {"source": "META", "spend": "1.00"}
+        with (
+            patch.dict(
+                os.environ,
+                {"META_ACCESS_TOKEN": "fake-direct-token", "WINDSOR_API_KEY": "fake-windsor"},
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_meta_ads.collect_meta_ads_report",
+                return_value=(summary, NOW - timedelta(days=30), NOW),
+            ) as graph,
+            patch(
+                "apps.catalog.management.commands.sync_meta_ads.collect_windsor_meta_ads_report"
+            ) as windsor,
+        ):
+            call_command("sync_meta_ads", "--dry-run", stdout=StringIO())
+        graph.assert_called_once_with()
+        windsor.assert_not_called()
