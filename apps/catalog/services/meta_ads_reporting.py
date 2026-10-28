@@ -87,7 +87,7 @@ def collect_meta_ads_report(*, now=None, opener=request.urlopen, account_id=None
         "fields": "spend,impressions,clicks,reach,inline_link_clicks",
         "level": "account",
         "time_range": json.dumps(
-            {"since": begin.date().isoformat(), "until": now.date().isoformat()},
+            {"since": begin.date().isoformat(), "until": (now.date() - timedelta(days=1)).isoformat()},
             separators=(",", ":"),
         ),
         "limit": 2,
