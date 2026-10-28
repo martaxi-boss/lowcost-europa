@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-ALILINK-20261028-STAGING-DEPLOY",
+  "task_id": "LOWCOST-ALILINK-20261028-STAGING",
+  "repository": "martaxi-boss/lowcost-europa",
+  "terminal_status": "SUCCESS",
+  "authorization_record": ".project-leader/transitions/LOWCOST-ALILINK-20261028-STAGING-DEPLOY.authorization.json",
+  "action": "deploy_verified_import_link_fix_to_existing_staging_vps",
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "2cf3487c941c77ca489ed543c249192c5ca273e2",
+    "base_revision": "8b350bd0cb92492e9d6f031f3472533336acd00d",
+    "environment": "existing Lowcost Europa test host; noindex and commercial OFF"
+  },
+  "observed_at": "2026-10-28T10:14:54Z",
+  "final_state": {
+    "status": "STAGING_DEPLOYED_IMPORT_LINK_GUARD_AND_HTTPS_NOINDEX_VERIFIED",
+    "revision": "2cf3487c941c77ca489ed543c249192c5ca273e2"
+  },
+  "evidence": [
+    "https://github.com/martaxi-boss/lowcost-europa/pull/167",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40669879905",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40670128591",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40670463539",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40670545125",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40670799560"
+  ],
+  "residual_blockers": [
+    "Physical Android and human authenticated Owner workflow acceptance not performed: REA adb found no device",
+    "GitHub main branch protection and rulesets remain unconfigured; connector lacks branch-protection write action",
+    "Off-VPS custody of Restic recovery bootstrap credentials needs Owner confirmation",
+    "Final legal/operator details, permanent domain, public indexing, commercial launch and purchase/commission attribution remain separate Owner decision/evidence"
+  ]
+}
