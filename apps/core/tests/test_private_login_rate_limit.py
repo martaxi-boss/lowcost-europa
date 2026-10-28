@@ -309,7 +309,9 @@ class RateLimitStateTests(RateLimitTestMixin, TestCase):
             with self.assertLogs("apps.core.middleware", level=logging.ERROR) as captured:
                 check = middleware.process_view(request, None, (), {})
                 self.assertIsNone(check)
-                response = middleware.process_response(request, HttpResponse("Palavra-passe incorreta."))
+                response = middleware.process_response(
+                    request, HttpResponse("Palavra-passe incorreta.")
+                )
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         self.assertNotIn("sensitive-password", response.content.decode())
