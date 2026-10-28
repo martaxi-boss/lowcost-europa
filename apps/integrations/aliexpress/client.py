@@ -461,7 +461,9 @@ class AliExpressClient:
                 self.DETAIL_METHOD,
                 {
                     "product_ids": product_id,
-                    "ship_to_country": country,
+                    # Unlike affiliate search (ship_to_country), the official
+                    # affiliate product-detail endpoint calls this field country.
+                    "country": country,
                     "target_currency": currency,
                     "tracking_id": self.config.tracking_id,
                 },

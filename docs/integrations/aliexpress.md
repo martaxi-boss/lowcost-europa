@@ -24,6 +24,22 @@ Never commit real secrets. `.env.example` contains placeholders only.
 
 The client supports category retrieval, product search, product detail lookup and affiliate-link generation. Search supports destination country, target currency and pagination. Portugal (`PT`) and EUR are the initial defaults.
 
+
+
+### Destination-country argument in official affiliate calls
+
+The AliExpress Open Platform defines different parameter names for the two
+official affiliate methods. `aliexpress.affiliate.product.query` accepts
+`ship_to_country=PT`, while `aliexpress.affiliate.productdetail.get` accepts
+`country=PT`. The client uses each method's documented key, with EUR as
+the target currency. See the provider's product-query API 45803 and
+product-detail API 48595.
+
+Neither endpoint provides an authoritative `ship_from_country` selection
+parameter. The fixed permitted origin countries **PL, CZ, FR, ES, DE** remain
+a separate, manual Owner protocol attestation, not an inferred property of
+the delivery destination, keywords, seller address or delivery estimate.
+
 ## Signing and HTTP
 
 Requests use HMAC-SHA256 over canonicalized sorted parameters, matching the previously validated project behavior for the AliExpress `/sync` gateway. Network calls use the Python standard library, explicit timeouts and bounded retries for transient network failures and HTTP 429/5xx responses.
