@@ -3,7 +3,8 @@
 import json
 import os
 from contextlib import nullcontext
-from datetime import datetime, timedelta, timezone as datetime_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 from io import StringIO
 from types import SimpleNamespace
 from unittest.mock import patch

@@ -1,13 +1,13 @@
 """Provider order summaries are exact, privacy-minimal and fail closed."""
 
-from datetime import datetime, timedelta, timezone as datetime_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 from io import StringIO
 from unittest.mock import Mock, patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
-from django.utils import timezone
 
 from apps.catalog.models import ExternalMetricsSnapshot
 from apps.catalog.services.affiliate_order_reporting import (

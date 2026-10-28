@@ -26,7 +26,9 @@ class Command(BaseCommand):
             report, period_start, period_end = collect_affiliate_order_report(days=days)
         except (AffiliateOrderReportError, AliExpressError) as exc:
             # Do not leak provider responses or credentials into systemd logs.
-            raise CommandError("AliExpress order report unavailable: " + type(exc).__name__) from None
+            raise CommandError(
+                "AliExpress order report unavailable: " + type(exc).__name__
+            ) from None
 
         if not options["dry_run"]:
             with transaction.atomic():

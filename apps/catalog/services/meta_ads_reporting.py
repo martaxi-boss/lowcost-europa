@@ -54,9 +54,9 @@ def _fetch_json(url, access_token, opener):
             if response.status != 200:
                 raise MetaAdsReportError("meta_http_error")
             data = json.loads(response.read().decode("utf-8"))
-    except (error.HTTPError, error.URLError, TimeoutError) as exc:
+    except (error.HTTPError, error.URLError, TimeoutError):
         raise MetaAdsReportError("meta_transport_or_auth_error") from None
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError):
         raise MetaAdsReportError("invalid_meta_json") from None
     if not isinstance(data, dict) or "error" in data:
         raise MetaAdsReportError("meta_error_response")
@@ -87,7 +87,10 @@ def collect_meta_ads_report(*, now=None, opener=request.urlopen, account_id=None
         "fields": "spend,impressions,clicks,reach,inline_link_clicks",
         "level": "account",
         "time_range": json.dumps(
-            {"since": begin.date().isoformat(), "until": (now.date() - timedelta(days=1)).isoformat()},
+            {
+                "since": begin.date().isoformat(),
+                "until": (now.date() - timedelta(days=1)).isoformat(),
+            },
             separators=(",", ":"),
         ),
         "limit": 2,

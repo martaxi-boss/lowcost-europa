@@ -1,7 +1,8 @@
 """Read-only AliExpress order report, aggregated without retaining order identifiers."""
 
 from collections import defaultdict
-from datetime import timedelta, timezone as datetime_timezone
+from datetime import timedelta
+from datetime import timezone as datetime_timezone
 from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
