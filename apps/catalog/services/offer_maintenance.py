@@ -10,6 +10,7 @@ from django.db.models import F, Max
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
+from apps.catalog.services.public_eligibility import public_eligibility_q
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import (
     AliExpressAPIError,
@@ -29,8 +30,14 @@ _UNAVAILABLE_VALUES = frozenset(
         "removed",
         "deleted",
         "invalid",
+        "out of stock",
+        "sold out",
+        "stockout",
     }
 )
+
+# A positive listing flag is not SKU-level inventory confirmation.
+_AVAILABLE_VALUES = frozenset({"available", "in stock", "instock"})
 
 _DEAD_LISTING_ERROR_FRAGMENTS = (
     "product does not exist",
@@ -41,6 +48,10 @@ _DEAD_LISTING_ERROR_FRAGMENTS = (
     "item removed",
     "product unavailable",
     "item unavailable",
+    "product sold out",
+    "item sold out",
+    "product out of stock",
+    "item out of stock",
 )
 
 
@@ -49,6 +60,7 @@ class MaintenanceResult:
     offers_selected: int = 0
     detail_attempts: int = 0
     available_confirmed: int = 0
+    availability_unknown: int = 0
     unavailable_confirmed: int = 0
     transient_failures: int = 0
     offers_deactivated: int = 0
@@ -99,9 +111,13 @@ def verify_affiliate_promotion(offer, *, client, now):
     )
     return Offer.AffiliatePromotionStatus.ELIGIBLE
 
+def _normalised_listing_status(product):
+    raw = str(getattr(product, "availability_raw", "") or "").lower()
+    return " ".join(raw.replace("_", " ").replace("-", " ").split())
+
+
 def is_factually_unavailable(product):
-    raw = " ".join(str(getattr(product, "availability_raw", "") or "").lower().split())
-    return raw in _UNAVAILABLE_VALUES
+    return _normalised_listing_status(product) in _UNAVAILABLE_VALUES
 
 
 def is_factually_unavailable_error(exc):
@@ -110,9 +126,12 @@ def is_factually_unavailable_error(exc):
 
 
 def is_factually_available(product):
-    if is_factually_unavailable(product):
-        return False
-    return bool(product.product_id and (product.product_url or product.title))
+    # Detail identity alone is NOT proof that a seller has this item in stock.
+    return bool(
+        product.product_id
+        and (product.product_url or product.title)
+        and _normalised_listing_status(product) in _AVAILABLE_VALUES
+    )
 
 
 @contextmanager
@@ -148,11 +167,35 @@ def maintenance_run_lock(path=None):
 
 
 def select_maintenance_batch(batch_size):
-    return list(
+    if batch_size <= 0:
+        return []
+    active = (
         Offer.objects.filter(source=Offer.Source.ALIEXPRESS, is_active=True)
         .annotate(last_check=Max("observations__observed_at"))
-        .order_by(F("last_check").asc(nulls_first=True), "pk")[:batch_size]
     )
+    oldest_first = (F("last_check").asc(nulls_first=True), "pk")
+    if batch_size <= 2:
+        return list(active.order_by(*oldest_first)[:batch_size])
+
+    # The hourly batch of 10 reserves 6 checks for published eligible
+    # listings and 4 for private offers; unused slots are redistributed.
+    # Every offer remains in a rotating oldest-first lane.
+    public_quota = max(1, batch_size * 3 // 5)
+    private_quota = batch_size - public_quota
+    public = list(
+        active.filter(public_eligibility_q()).order_by(*oldest_first)[:public_quota]
+    )
+    private = list(
+        active.exclude(public_eligibility_q()).order_by(*oldest_first)[:private_quota]
+    )
+    selected = public + private
+    remaining = batch_size - len(selected)
+    if remaining:
+        selected_ids = [offer.pk for offer in selected]
+        selected.extend(
+            active.exclude(pk__in=selected_ids).order_by(*oldest_first)[:remaining]
+        )
+    return selected
 
 
 def _observation_from_detail(offer, detail, *, now, availability):
@@ -266,10 +309,24 @@ def maintain_catalog_offers(*, batch_size, client=None, now=None):
                 _deactivate_unavailable_offer(offer, result=result)
                 continue
 
-            if not is_factually_available(detail):
+            if not (detail.product_url or detail.title):
                 result.transient_failures += 1
                 result.failures.append(f"{offer.external_product_id}:InsufficientDetail")
                 _unknown_observation(offer, now=now)
+                continue
+
+            if not is_factually_available(detail):
+                # Preserve factual detail without inventing stock certainty
+                # or taking products out of the store on weak evidence.
+                _observation_from_detail(
+                    offer,
+                    detail,
+                    now=now,
+                    availability=OfferObservation.Availability.UNKNOWN,
+                )
+                result.availability_unknown += 1
+                offer.last_seen_at = now
+                offer.save(update_fields=["last_seen_at", "updated_at"])
                 continue
 
             _observation_from_detail(
