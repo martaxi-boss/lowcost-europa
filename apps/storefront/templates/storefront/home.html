@@ -6,9 +6,16 @@
       <p class="eyebrow eyebrow--hero">Equipamentos de estética · seleção editorial</p>
       <h1 id="hero-title">Tecnologia para a estética. <em>Escolhas com critério.</em></h1>
       <div class="hero-lead">
-        <p>Equipamentos profissionais de estética, selecionados para uma compra informada.</p>
-        <p>Explore especialidades com preços observados e informação disponível sobre entregas para Portugal. A compra acontece no parceiro, onde se confirmam preço, envio e condições finais.</p>
+        <p>Procure equipamentos profissionais de estética e compare opções selecionadas para Portugal.</p>
+        <p>Veja preços observados e informações de envio. A compra é feita diretamente no parceiro.</p>
       </div>
+      <form class="search-form search-form--hero" method="get" action="{% url 'storefront:search' %}" role="search">
+        <label for="home-equipment-search">Encontre o seu equipamento</label>
+        <div class="search-form__row">
+          <input id="home-equipment-search" type="search" name="q" placeholder="HIFU, laser, pressoterapia..." autocomplete="off" maxlength="100" required>
+          <button type="submit">Pesquisar <span aria-hidden="true">→</span></button>
+        </div>
+      </form>
       <div class="hero-primary-action hero-cta-row">
         <a class="button button--large hero-primary-cta" href="#familias">VER EQUIPAMENTOS E PREÇOS <span aria-hidden="true">↗</span></a>
         <a class="hero-secondary-cta" href="{% url 'storefront:como-funciona' %}">Como funciona <span aria-hidden="true">→</span></a>
@@ -71,7 +78,7 @@
 <section class="section section--surface">
   <div class="container">
     <div class="section-heading section-heading--split">
-      <div><p class="eyebrow">Catálogo organizado</p><h2>Produtos em destaque por categoria.</h2></div>
+      <div><p class="eyebrow">Catálogo organizado</p><h2>Encontre a sua próxima opção.</h2></div>
       <p class="section-intro">Cada card abre a seleção da categoria. Quando existe uma oferta representativa, mostramos apenas informação observada — sem transformar a escolha editorial num ranking.</p>
     </div>
     {% if families %}
