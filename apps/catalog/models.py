@@ -458,3 +458,16 @@ class CandidateDecision(models.Model):
 
     def __str__(self):
         return f"{self.candidate} {self.decision} {self.decided_at.isoformat()}"
+
+
+class ExternalMetricsSnapshot(models.Model):
+    """One verified and timestamped provider aggregate, never a fabricated conversion."""
+
+    source = models.CharField(max_length=24, primary_key=True)
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    checked_at = models.DateTimeField(default=timezone.now)
+    payload = models.JSONField(default=dict)
+
+    def __str__(self):
+        return f"{self.source} @ {self.checked_at.isoformat()}"
