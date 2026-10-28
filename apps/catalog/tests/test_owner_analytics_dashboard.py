@@ -9,7 +9,13 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.catalog.models import Offer, OfferClick, OfferFamilyPlacement, ProductFamily
+from apps.catalog.models import (
+    ExternalMetricsSnapshot,
+    Offer,
+    OfferClick,
+    OfferFamilyPlacement,
+    ProductFamily,
+)
 
 
 class OwnerAnalyticsDashboardTests(TestCase):
@@ -97,7 +103,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             response = self.client.get(self.url)
 
         self.assertContains(response, "<code>lowcost_europa</code>", html=False)
-        self.assertContains(response, "Por integrar no site")
+        self.assertContains(response, "Autorização da VPS necessária")
         self.assertNotContains(response, "googletagmanager.com")
         self.assertNotContains(response, "fbq(")
         self.assertNotContains(response, "gtag(")
@@ -121,4 +127,61 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["raw_clicks_30d"], 0)
         self.assertEqual(response.context["top_clicked_offers"], [])
         self.assertContains(response, "Sem cliques de saída registados")
-        self.assertContains(response, "API de encomendas por certificar")
+        self.assertContains(response, "A aguardar primeira sincronização")
+
+    def test_verified_order_report_appears_on_private_dashboard(self):
+        now = timezone.now()
+        ExternalMetricsSnapshot.objects.create(
+            source="ALIEXPRESS",
+            period_start=now - timedelta(days=30),
+            period_end=now,
+            checked_at=now,
+            payload={
+                "days": 30,
+                "paid_count": 2,
+                "received_count": 1,
+                "excluded_count": 0,
+                "missing_commission_count": 0,
+                "by_tracking": [
+                    {
+                        "tracking_id": "lowcost_europa",
+                        "paid_count": 2,
+                        "received_count": 1,
+                        "estimated_paid": [{"currency": "USD", "amount": "4.50"}],
+                        "estimated_finished": [],
+                    }
+                ],
+            },
+        )
+        with patch("apps.integrations.aliexpress.client.AliExpressClient._call") as request_api:
+            response = self.client.get(self.url)
+        request_api.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["affiliate_report_fresh"])
+        self.assertContains(response, "Consulta automática ativa")
+        self.assertContains(response, "4.50 USD")
+        self.assertContains(response, "lowcost_europa")
+        self.assertContains(response, "Autorização da VPS necessária")
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+
+    def test_stale_report_is_explicit_not_live(self):
+        now = timezone.now()
+        old = now - timedelta(hours=13)
+        ExternalMetricsSnapshot.objects.create(
+            source="ALIEXPRESS",
+            period_start=old - timedelta(days=30),
+            period_end=old,
+            checked_at=old,
+            payload={
+                "days": 30,
+                "paid_count": 0,
+                "received_count": 0,
+                "excluded_count": 0,
+                "missing_commission_count": 0,
+                "by_tracking": [],
+            },
+        )
+        response = self.client.get(self.url)
+        self.assertFalse(response.context["affiliate_report_fresh"])
+        self.assertContains(response, "Dados desatualizados")
+        self.assertNotContains(response, "Consulta automática ativa")

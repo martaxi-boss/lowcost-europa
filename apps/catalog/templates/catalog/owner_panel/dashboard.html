@@ -23,6 +23,7 @@
 .source-card h3{margin:0 0 8px;font-size:.98rem}
 .source-card p{margin:6px 0 0;font-size:.84rem;color:#4b554d;line-height:1.5}
 .source-status{font-size:.78rem;font-weight:800;color:#76551a;background:#fcf4df;border-radius:999px;padding:4px 8px;display:inline-block}
+.source-status.active{background:#e2f3e8;color:#145b35}.report-details{margin-top:12px}.report-details summary{cursor:pointer;font-weight:700;padding:10px 0}.report-lines{margin:8px 0 4px;padding-left:16px;font-size:.85rem}.report-lines li{margin:5px 0;line-height:1.5}
 .analytics-list{padding-left:20px;margin-bottom:0}
 .analytics-list li{padding:7px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere}
 .analytics-list li:last-child{border-bottom:0}
@@ -91,16 +92,76 @@ code{overflow-wrap:anywhere}
     {% else %}<p class="analytics-note">Sem cliques de saída registados neste período.</p>{% endif %}
   </section>
 
-  <section class="card" aria-label="Integrações para lançamento">
+  <section class="card" aria-label="Integrações de tráfego, publicidade e vendas">
     <h2 class="analytics-section-title">Tráfego, publicidade e vendas</h2>
-    <p class="analytics-section-subtitle">Área preparada para ligar as fontes oficiais depois da configuração do domínio definitivo e das autorizações necessárias. Ainda não apresenta valores externos.</p>
+    <p class="analytics-section-subtitle">Cada fonte é apresentada com o estado real da ligação. A ligação às encomendas não exige lançar já o site nem ativar a indexação.</p>
     <div class="source-grid">
-      <article class="source-card"><h3>Visitas e interações</h3><span class="source-status">A ativar no lançamento</span><p>Google Analytics 4: páginas visitadas, interações e saídas, após configurar a privacidade e o consentimento quando necessário.</p></article>
-      <article class="source-card"><h3>Meta Ads</h3><span class="source-status">Por integrar no site</span><p>Investimento, alcance, impressões e cliques da conta de anúncios autorizada. Um clique Meta não equivale a uma compra.</p></article>
-      <article class="source-card"><h3>AliExpress — vendas</h3><span class="source-status">API de encomendas por certificar</span><p>Encomendas e comissões por estado e Tracking ID, apenas quando o fornecedor devolver dados reais.</p></article>
-      <article class="source-card"><h3>Google Search Console</h3><span class="source-status">Após domínio definitivo</span><p>Registo de propriedade, sitemap, pesquisas, impressões e cliques orgânicos quando o site for lançado.</p></article>
+      <article class="source-card">
+        <h3>Visitas e interações</h3>
+        <span class="source-status">A ativar no lançamento</span>
+        <p>Google Analytics 4: páginas visitadas e interações após o domínio definitivo e as verificações de privacidade.</p>
+      </article>
+      <article class="source-card">
+        <h3>Meta Ads</h3>
+        {% if meta_report_payload %}
+          {% if meta_report_fresh %}
+          <span class="source-status active">Métricas oficiais sincronizadas</span>
+          {% else %}
+          <span class="source-status">Dados Meta desatualizados</span>
+          {% endif %}
+          <p>Conta: <strong>{{ meta_report_payload.account_name }}</strong>. Última leitura: {{ meta_report.checked_at|date:"d/m/Y H:i" }} (Portugal).</p>
+          <div class="counts">
+            <div class="count"><strong>Gasto (30 dias)</strong><br>{{ meta_report_payload.spend }} {{ meta_report_payload.currency }}</div>
+            <div class="count"><strong>Cliques anúncios</strong><br>{{ meta_report_payload.clicks }}</div>
+            <div class="count"><strong>Impressões</strong><br>{{ meta_report_payload.impressions }}</div>
+            <div class="count"><strong>Alcance</strong><br>{{ meta_report_payload.reach }}</div>
+            {% if meta_report_payload.link_clicks is not None %}<div class="count"><strong>Cliques em links</strong><br>{{ meta_report_payload.link_clicks }}</div>{% endif %}
+          </div>
+          <p>Cliques Meta não equivalem a visitas, compras ou comissões.</p>
+        {% else %}
+          <span class="source-status">Autorização da VPS necessária</span>
+          <p>A conta Meta LOW COST está acessível no conector Windsor.ai, mas o painel ainda não tem credenciais de leitura próprias. A ligação oficial pode ativar-se após autorizar uma credencial `ads_read` segura na VPS.</p>
+        {% endif %}
+      </article>
+      <article class="source-card">
+        <h3>AliExpress — encomendas e comissões</h3>
+        {% if affiliate_report_payload %}
+          {% if affiliate_report_fresh %}
+          <span class="source-status active">Consulta automática ativa</span>
+          {% else %}
+          <span class="source-status">Dados desatualizados</span>
+          {% endif %}
+          <p>Última consulta válida: <strong>{{ affiliate_report.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Período consultado: últimos <strong>{{ affiliate_report_payload.days }}</strong> dias.</p>
+          <div class="counts">
+            <div class="count"><strong>Pagamento concluído</strong><br>{{ affiliate_report_payload.paid_count }}</div>
+            <div class="count"><strong>Receção confirmada</strong><br>{{ affiliate_report_payload.received_count }}</div>
+          </div>
+          <details class="report-details">
+            <summary>Ver Tracking IDs e comissões estimadas</summary>
+            <ul class="report-lines">
+            {% for item in affiliate_report_payload.by_tracking %}
+              <li><strong>{{ item.tracking_id }}:</strong> {{ item.paid_count }} pagamentos; {{ item.received_count }} receções.
+                {% for amount in item.estimated_paid %}Estimativa ao pagamento: {{ amount.amount }} {{ amount.currency }}. {% endfor %}
+                {% for amount in item.estimated_finished %}Estimativa após receção: {{ amount.amount }} {{ amount.currency }}. {% endfor %}
+              </li>
+            {% endfor %}
+            </ul>
+          </details>
+          {% if affiliate_report_payload.excluded_count %}<p>Encomendas excluídas da estimativa por reembolso/invalidação: {{ affiliate_report_payload.excluded_count }}.</p>{% endif %}
+          {% if affiliate_report_payload.missing_commission_count %}<p>Encomendas sem valor de comissão fornecido: {{ affiliate_report_payload.missing_commission_count }}.</p>{% endif %}
+          <p>As comissões são estimativas da AliExpress, podem mudar com cancelamentos ou reembolsos e não são dinheiro recebido.</p>
+        {% else %}
+          <span class="source-status">A aguardar primeira sincronização</span>
+          <p>A consulta de encomendas é feita pela API oficial AliExpress, com o Tracking ID preservado. O resultado só aparece aqui depois de uma leitura completa e verificada.</p>
+        {% endif %}
+      </article>
+      <article class="source-card">
+        <h3>Google Search Console</h3>
+        <span class="source-status">Após domínio definitivo</span>
+        <p>Registo do domínio, sitemap, pesquisas e cliques orgânicos apenas quando autorizares o lançamento.</p>
+      </article>
     </div>
-    <p class="analytics-note">Vendas, comissões, visitantes únicos e resultados dos anúncios estão indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero.</p>
+    <p class="analytics-note">Resultados Meta, visitantes únicos e dados orgânicos estão indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Os cliques do site e as encomendas AliExpress são métricas distintas e não comprovam atribuição individual.</p>
   </section>
 
   <section aria-label="Catálogo e filas">
