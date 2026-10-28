@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from datetime import timezone as datetime_timezone
 from types import SimpleNamespace
 from urllib import parse
-from unittest.mock import patch
 
 from django.test import SimpleTestCase
 

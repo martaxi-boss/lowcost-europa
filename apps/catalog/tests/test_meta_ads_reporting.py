@@ -142,7 +142,10 @@ class MetaCommandTests(TestCase):
 
     def test_combined_sync_skips_meta_without_vps_credential(self):
         with (
-            patch.dict(os.environ, {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""}),
+            patch.dict(
+                os.environ,
+                {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""},
+            ),
             patch(
                 "apps.catalog.management.commands.sync_external_metrics.call_command"
             ) as child_command,
@@ -220,7 +223,10 @@ class MetaCommandTests(TestCase):
             raise CommandError("test-only source outage")
 
         with (
-            patch.dict(os.environ, {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""}),
+            patch.dict(
+                os.environ,
+                {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""},
+            ),
             patch(
                 "apps.catalog.management.commands.sync_external_metrics.call_command",
                 side_effect=provider,
