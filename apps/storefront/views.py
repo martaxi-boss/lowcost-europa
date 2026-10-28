@@ -20,7 +20,6 @@ from apps.catalog.models import (
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
-from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
@@ -29,6 +28,7 @@ from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
     public_eligibility_q,
 )
+from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 
 LEGACY_FAMILY_REDIRECTS = {
     "depilacao-laser-triple-wave": "diodo-laser-remocao-tatuagens-pigmentacao",
