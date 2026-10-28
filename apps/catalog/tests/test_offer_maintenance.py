@@ -17,6 +17,7 @@ from apps.catalog.models import (
 from apps.catalog.services.offer_maintenance import (
     is_factually_unavailable,
     is_factually_unavailable_error,
+    is_factually_available,
     maintain_catalog_offers,
     select_maintenance_batch,
 )
@@ -49,7 +50,7 @@ class OfferMaintenanceTests(TestCase):
             OfferObservation.objects.create(offer=offer, observed_at=checked_at)
         return offer
 
-    def detail(self, product_id, *, status=None):
+    def detail(self, product_id, *, status="available"):
         return AliExpressProduct(
             product_id=product_id,
             title=f"Updated {product_id}",
@@ -66,6 +67,44 @@ class OfferMaintenanceTests(TestCase):
         self.make_offer("new", checked_at=now - timedelta(hours=1))
         selected = select_maintenance_batch(2)
         self.assertEqual([offer.pk for offer in selected], [never.pk, old.pk])
+
+    def test_public_and_private_rotation_reserves_capacity_for_each_lane(self):
+        now = timezone.now()
+        public, private = [], []
+        for index in range(12):
+            public.append(
+                self.make_offer(
+                    f"public-{index}",
+                    checked_at=now - timedelta(days=30 - index),
+                    protocol_at=now,
+                )
+            )
+            private_offer = self.make_offer(
+                f"private-{index}",
+                checked_at=now - timedelta(days=30 - index),
+            )
+            private_offer.owner_hidden = True
+            private_offer.save(update_fields=["owner_hidden"])
+            private.append(private_offer)
+
+        chosen = select_maintenance_batch(10)
+        self.assertEqual(len(chosen), 10)
+        self.assertEqual(len({offer.pk for offer in chosen}), 10)
+        self.assertEqual([offer.pk for offer in chosen[:6]], [o.pk for o in public[:6]])
+        self.assertEqual([offer.pk for offer in chosen[6:]], [o.pk for o in private[:4]])
+
+    def test_rotation_uses_spare_capacity_without_repeating_offers(self):
+        now = timezone.now()
+        public = [
+            self.make_offer(
+                f"only-public-{i}",
+                checked_at=now - timedelta(days=10-i),
+                protocol_at=now,
+            )
+            for i in range(10)
+        ]
+        chosen = select_maintenance_batch(10)
+        self.assertEqual([o.pk for o in chosen], [o.pk for o in public])
 
     def test_inactive_offer_is_not_selected_for_normal_maintenance(self):
         inactive = self.make_offer("inactive", is_active=False)
@@ -131,6 +170,34 @@ class OfferMaintenanceTests(TestCase):
             Offer.objects.filter(pk=offer.pk).filter(public_eligibility_q()).exists()
         )
 
+    def test_ambiguous_listing_status_is_not_false_stock_confirmation(self):
+        offer = self.make_offer("no-proof", protocol_at=timezone.now())
+        client = Mock()
+        client.generate_affiliate_link.return_value = offer.affiliate_url
+        client.get_product_detail.return_value = self.detail("no-proof", status=None)
+        result = maintain_catalog_offers(batch_size=1, client=client)
+        offer.refresh_from_db()
+        observation = offer.observations.latest("observed_at")
+        self.assertEqual(observation.availability, OfferObservation.Availability.UNKNOWN)
+        self.assertEqual(observation.destination_country, "PT")
+        self.assertEqual(result.available_confirmed, 0)
+        self.assertEqual(result.availability_unknown, 1)
+        self.assertEqual(result.unavailable_confirmed, 0)
+        self.assertEqual(result.offers_deactivated, 0)
+        self.assertEqual(result.transient_failures, 0)
+        self.assertTrue(offer.is_active)
+        self.assertTrue(
+            Offer.objects.filter(pk=offer.pk).filter(public_eligibility_q()).exists()
+        )
+
+    def test_only_explicit_positive_listing_evidence_is_available(self):
+        for status in ("available", "in stock", "in_stock", "IN-STOCK"):
+            with self.subTest(status=status):
+                self.assertTrue(is_factually_available(self.detail("x", status=status)))
+        for status in (None, "", "active", "unknown", "on sale", "out of stock", "sold_out"):
+            with self.subTest(status=status):
+                self.assertFalse(is_factually_available(self.detail("x", status=status)))
+
     def test_factual_unavailable_deactivates_and_records_unavailable(self):
         offer = self.make_offer("gone", protocol_at=timezone.now())
         client = Mock()
@@ -152,6 +219,10 @@ class OfferMaintenanceTests(TestCase):
             "removed",
             "deleted",
             "invalid",
+            "out of stock",
+            "out_of_stock",
+            "sold out",
+            "sold-out",
         )
         for index, status in enumerate(statuses):
             with self.subTest(status=status):
@@ -200,6 +271,8 @@ class OfferMaintenanceTests(TestCase):
             "AliExpress API error: item removed",
             "AliExpress API error: product not found",
             "AliExpress API error: item not found",
+            "AliExpress API error: product out of stock",
+            "AliExpress API error: item sold out",
         ):
             with self.subTest(message=message):
                 self.assertTrue(is_factually_unavailable_error(AliExpressAPIError(message)))
