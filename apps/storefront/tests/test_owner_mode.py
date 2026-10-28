@@ -1,6 +1,4 @@
 from datetime import timedelta
-from unittest.mock import patch
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -203,11 +201,7 @@ class StorefrontOwnerModeTests(TestCase):
         self.public_offer.refresh_from_db()
         self.assertTrue(self.public_offer.owner_hidden)
 
-    @patch("apps.catalog.services.candidate_approval.AliExpressClient")
-    def test_inline_approve_returns_to_same_family(self, client_class):
-        client_class.return_value.generate_affiliate_link.return_value = (
-            "https://affiliate.example/new"
-        )
+    def test_inline_approve_returns_to_same_family_without_generating_link(self):
         self.client.force_login(self.staff)
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
@@ -220,6 +214,8 @@ class StorefrontOwnerModeTests(TestCase):
         )
         self.pending.refresh_from_db()
         self.assertEqual(self.pending.status, OfferCandidate.Status.APPROVED)
+        self.assertEqual(self.pending.approved_offer.affiliate_url, "")
+        self.assertTrue(self.pending.approved_offer.owner_hidden)
 
     def test_inline_reject_and_move_reuse_services(self):
         self.client.force_login(self.staff)
