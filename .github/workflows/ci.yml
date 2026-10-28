@@ -77,6 +77,10 @@ jobs:
         run: node --check apps/storefront/static/storefront/product-images.js
       - name: Product image regression tests
         run: node --test tests/js/product-images.test.cjs
+      - name: Catalog explorer JavaScript syntax
+        run: node --check apps/storefront/static/storefront/catalog-explorer.js
+      - name: Catalog explorer unit tests
+        run: node --test tests/js/catalog-explorer.test.cjs
       - name: Apply migrations
         run: python manage.py migrate --noinput
       - name: Tests
