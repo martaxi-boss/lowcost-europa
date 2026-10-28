@@ -48,13 +48,14 @@ class FileLoginRateLimiter:
     def retry_after(self, token: str, *, now=None) -> int:
         now = time.time() if now is None else now
         with self._locked_state() as state:
-            changed = self._prune(state, now)
+            self._prune(state, now)
             entry = state["entries"].get(token)
             retry = 0
             if entry and entry["throttle_until"] > now:
                 retry = max(1, math.ceil(entry["throttle_until"] - now))
-            if changed:
-                self._write_state(state)
+            # Verify durable write access before any password is checked.
+            # A read-only state file must not silently disable throttling.
+            self._write_state(state)
             return retry
 
     def record_failure(self, token: str, *, now=None) -> None:

@@ -292,6 +292,27 @@ class RateLimitStateTests(RateLimitTestMixin, TestCase):
         self.assertNotIn("state unavailable", log_text)
 
 
+    def test_limiter_state_write_preflight_fails_closed(self):
+        from django.http import HttpResponse
+
+        from apps.core.middleware import PrivateLoginRateLimitMiddleware
+
+        middleware = PrivateLoginRateLimitMiddleware(lambda request: HttpResponse("normal"))
+        request = RequestFactory().post(
+            "/painel/entrar/",
+            {"password": "not-for-log"},
+            REMOTE_ADDR="192.0.2.47",
+        )
+        with patch(
+            "apps.core.login_rate_limit.FileLoginRateLimiter._write_state",
+            side_effect=OSError("disk readonly"),
+        ):
+            with self.assertLogs("apps.core.middleware", level=logging.ERROR):
+                response = middleware.process_view(request, None, (), {})
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response["Retry-After"], "60")
+        self.assertNotIn("not-for-log", response.content.decode())
+
     def test_limiter_write_failure_returns_503_without_leaking_password(self):
         from django.contrib.auth.models import AnonymousUser
         from django.http import HttpResponse
