@@ -64,14 +64,15 @@ class AliExpressPersistenceTests(TransactionTestCase):
         self.assertEqual(offer.first_seen_at, offer.last_seen_at)
         self.assertTrue(offer.is_active)
         self.assertIsNone(offer.product_family)
-        self.assertEqual(offer.affiliate_url, "https://affiliate.example/item")
+        self.assertEqual(offer.affiliate_url, "")
+        self.assertEqual(client.link_calls, [])
         self.assertEqual(obs.observed_at, offer.first_seen_at)
         self.assertEqual(obs.price, Decimal("99.90"))
         self.assertEqual(obs.evaluation_rate_percent, Decimal("96.50"))
         self.assertEqual(obs.ship_to_days_raw, "Ship to PT in 3 Days")
         self.assertEqual(obs.delivery_days, 3)
         self.assertEqual(obs.availability, OfferObservation.Availability.UNKNOWN)
-        self.assertEqual(client.atomic_states, [False, False])
+        self.assertEqual(client.atomic_states, [False])
 
     def test_reimport_reuses_offer_appends_history_and_preserves_first_seen(self):
         first_time = timezone.now()
@@ -119,7 +120,8 @@ class AliExpressPersistenceTests(TransactionTestCase):
         self.assertEqual(offer.title, "HIFU Device")
         self.assertEqual(offer.image_url, "https://images.example/hifu.jpg")
         self.assertEqual(offer.product_url, "https://source.example/item/42")
-        self.assertEqual(offer.affiliate_url, "https://affiliate.example/item")
+        self.assertEqual(offer.affiliate_url, "")
+        self.assertEqual(client.link_calls, [])
         self.assertIsNone(latest.price)
         self.assertIsNone(latest.currency)
         self.assertIsNone(latest.ship_to_days_raw)
@@ -152,15 +154,33 @@ class AliExpressPersistenceTests(TransactionTestCase):
         self.assertEqual(Offer.objects.count(), 0)
         self.assertEqual(OfferObservation.objects.count(), 0)
 
-    def test_affiliate_failure_leaves_database_unchanged(self):
+    def test_import_does_not_generate_link_even_if_client_supports_it(self):
         class FailingLinkClient(FakeClient):
             def generate_affiliate_link(self, source_url):
-                raise AliExpressAPIError("link failed")
+                raise AssertionError("Affiliate generation is Owner-publication-only")
 
-        with self.assertRaises(AliExpressAPIError):
-            import_aliexpress_product("42", client=FailingLinkClient([product()]))
-        self.assertEqual(Offer.objects.count(), 0)
-        self.assertEqual(OfferObservation.objects.count(), 0)
+        result = import_aliexpress_product("42", client=FailingLinkClient([product()]))
+        self.assertTrue(result.offer_created)
+        self.assertEqual(result.offer.affiliate_url, "")
+        self.assertEqual(Offer.objects.count(), 1)
+        self.assertEqual(OfferObservation.objects.count(), 1)
+
+    def test_reimport_preserves_verified_url_without_affiliate_generator(self):
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="42",
+            affiliate_url="https://affiliate.example/verified-old",
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
+        )
+        client = FakeClient([product()])
+        import_aliexpress_product("42", client=client)
+        offer.refresh_from_db()
+        self.assertEqual(offer.affiliate_url, "https://affiliate.example/verified-old")
+        self.assertEqual(
+            offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.ELIGIBLE
+        )
+        self.assertEqual(client.link_calls, [])
 
     def test_database_error_rolls_back_offer_update(self):
         existing = Offer.objects.create(
