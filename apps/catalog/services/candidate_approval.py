@@ -10,7 +10,6 @@ from apps.catalog.models import (
     OfferFamilyPlacement,
     OfferObservation,
 )
-from apps.integrations.aliexpress.client import AliExpressClient
 
 
 class CandidateApprovalError(ValueError):
@@ -61,14 +60,8 @@ def _require_staff(user):
         raise CandidateApprovalError("Acesso de proprietário necessário")
 
 
-def _affiliate_url(candidate, client):
-    if not candidate.product_url:
-        raise CandidateApprovalError("O produto não tem link do anúncio.")
-    return client.generate_affiliate_link(candidate.product_url)
-
-
 def approve_candidate(candidate, *, user, client=None, now=None):
-    """Persist the Owner's composite fixed-protocol human attestation."""
+    """Approve into a hidden catalog entry; defer first affiliate link to publication."""
     _require_staff(user)
     now = now or timezone.now()
 
@@ -92,16 +85,13 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             )
             .first()
         )
-        client = client or AliExpressClient()
-        affiliate_url = _affiliate_url(locked, client)
-
         defaults = {
             "title": locked.title,
             "product_url": locked.product_url,
             "image_url": locked.image_url,
-            "affiliate_url": affiliate_url,
-            "affiliate_promotion_status": Offer.AffiliatePromotionStatus.ELIGIBLE,
-            "affiliate_promotion_verified_at": now,
+            "affiliate_url": "",
+            "affiliate_promotion_status": Offer.AffiliatePromotionStatus.UNKNOWN,
+            "affiliate_promotion_verified_at": None,
             "protocol_verified_at": now,
             "is_active": True,
             "owner_hidden": True,
@@ -120,9 +110,6 @@ def approve_candidate(candidate, *, user, client=None, now=None):
             offer.title = locked.title or offer.title
             offer.product_url = locked.product_url or offer.product_url
             offer.image_url = locked.image_url or offer.image_url
-            offer.affiliate_url = affiliate_url
-            offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
-            offer.affiliate_promotion_verified_at = now
             offer.protocol_verified_at = now
             offer.is_active = True
             offer.last_seen_at = now
@@ -132,9 +119,6 @@ def approve_candidate(candidate, *, user, client=None, now=None):
                     "title",
                     "product_url",
                     "image_url",
-                    "affiliate_url",
-                    "affiliate_promotion_status",
-                    "affiliate_promotion_verified_at",
                     "protocol_verified_at",
                     "is_active",
                     "last_seen_at",

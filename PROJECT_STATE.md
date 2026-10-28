@@ -49,7 +49,7 @@ Operational family order/public names come from the database. Five operational s
 
 Owner panel: `/painel/`, authenticated staff only. Approval, rejection, revalidation, publication, hiding and family moves remain human actions.
 
-Approval attests delivery to Portugal and ship-from within PL/CZ/FR/ES/DE, verified on the actual listing. Individual country metadata is optional and never fabricated. Approval uses the official AliExpress affiliate path, persists verified promotion, hides newly approved Offers and preserves existing editorial visibility.
+Approval attests delivery to Portugal and ship-from within PL/CZ/FR/ES/DE, verified on the actual listing. Individual country metadata is optional and never fabricated. Approval records the Owner's attestation and a hidden Offer without generating its first affiliate link. New affiliate links are generated through the official AliExpress path only when the Owner explicitly publishes the Offer. Previously verified links and existing editorial visibility remain unchanged on approval. Hourly maintenance does not create an initial affiliate link for hidden unlinked Offers.
 
 Approval is not a positive discovery-learning signal. Semantic rejections and classification moves remain family-isolated; factual/logistics failures do not become semantic rejection signals.
 

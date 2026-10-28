@@ -27,7 +27,7 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import public_eligibility_q
-from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError
+from apps.integrations.aliexpress.exceptions import AliExpressRateLimitError, AliExpressTransportError
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 TEST_PASSWORD = "owner-test-password-only"
@@ -190,6 +190,53 @@ class OwnerEditorialServiceTests(TestCase):
         self.assertEqual([e.action for e in events], ["HIDE", "PUBLISH"])
         self.assertTrue(events[1].previous_owner_hidden)
         self.assertFalse(events[1].new_owner_hidden)
+
+    def test_newly_approved_offer_generates_link_only_on_owner_publication(self):
+        candidate = OfferCandidate.objects.create(
+            product_family=self.family,
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="lazy-link",
+            title="New lowcost offer",
+            product_url="https://www.aliexpress.com/item/123456.html",
+        )
+        approval_api = Mock()
+        approved = approve_candidate(candidate, user=self.user, client=approval_api)
+        approval_api.generate_affiliate_link.assert_not_called()
+        self.assertEqual(approved.offer.affiliate_url, "")
+        self.assertTrue(approved.offer.owner_hidden)
+        client = Mock()
+        client.generate_affiliate_link.return_value = "https://s.click.aliexpress.com/e/_New"
+        result = publish_offer_to_storefront(
+            approved.offer, family=self.family, user=self.user, client=client
+        )
+        approved.offer.refresh_from_db()
+        client.generate_affiliate_link.assert_called_once_with(candidate.product_url)
+        self.assertTrue(result.changed)
+        self.assertFalse(approved.offer.owner_hidden)
+        self.assertEqual(approved.offer.affiliate_url, "https://s.click.aliexpress.com/e/_New")
+        self.assertEqual(
+            approved.offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.ELIGIBLE
+        )
+        self.assertIsNotNone(approved.offer.affiliate_promotion_verified_at)
+
+    def test_newly_approved_offer_stays_hidden_when_affiliate_generation_fails(self):
+        offer = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="publication-api-failure",
+            product_url="https://www.aliexpress.com/item/987654.html",
+            owner_hidden=True,
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.UNKNOWN,
+            protocol_verified_at=timezone.now(),
+        )
+        OfferFamilyPlacement.objects.create(offer=offer, product_family=self.family)
+        client = Mock()
+        client.generate_affiliate_link.side_effect = AliExpressTransportError("temporary")
+        with self.assertRaises(OwnerEditorialError):
+            publish_offer_to_storefront(offer, family=self.family, user=self.user, client=client)
+        offer.refresh_from_db()
+        self.assertTrue(offer.owner_hidden)
+        self.assertEqual(offer.affiliate_url, "")
+        self.assertEqual(OfferEditorialEvent.objects.filter(offer=offer).count(), 0)
 
     def test_publish_old_verified_offer_succeeds(self):
         now = timezone.now()
@@ -629,11 +676,7 @@ class OwnerPanelCatalogTests(TestCase):
         self.assertEqual(CandidateDecision.objects.count(), before["decisions"])
         self.assertEqual(OfferFamilyPlacement.objects.count(), before["placements"])
 
-    @patch("apps.catalog.services.candidate_approval.AliExpressClient")
-    def test_panel_approve_reuses_existing_service(self, client_class):
-        client_class.return_value.generate_affiliate_link.return_value = (
-            "https://affiliate.example/pending"
-        )
+    def test_panel_approve_reuses_existing_service_without_affiliate_generation(self):
         response = self.client.post(
             reverse("owner-panel:candidate-approve", args=[self.family.slug, self.pending.pk]),
             {},
@@ -645,6 +688,11 @@ class OwnerPanelCatalogTests(TestCase):
         self.assertIsNone(self.pending.approved_offer.ship_from_country)
         self.assertIsNone(self.pending.approved_offer.ship_from_verified_at)
         self.assertIsNotNone(self.pending.approved_offer.protocol_verified_at)
+        self.assertEqual(self.pending.approved_offer.affiliate_url, "")
+        self.assertEqual(
+            self.pending.approved_offer.affiliate_promotion_status,
+            Offer.AffiliatePromotionStatus.UNKNOWN,
+        )
 
     @patch("apps.catalog.owner_panel_views.approve_candidate")
     def test_panel_approve_rate_limit_is_safe_and_returns_to_review(self, approve):

@@ -64,9 +64,7 @@ class CandidateApprovalTests(TestCase):
         self.assertIsNone(result.offer.ship_from_verified_at)
         self.assertEqual(result.decision.ship_from_country, "")
         self.assertEqual(result.decision.review_signals, [])
-        self.client_api.generate_affiliate_link.assert_called_once_with(
-            self.candidate.product_url
-        )
+        self.client_api.generate_affiliate_link.assert_not_called()
 
     def test_approval_preserves_independently_known_exact_country_metadata(self):
         historical = timezone.now() - timedelta(days=30)
@@ -91,12 +89,12 @@ class CandidateApprovalTests(TestCase):
     def test_approval_creates_hidden_offer_observation_placement_and_history(self):
         result = self.approve()
         self.candidate.refresh_from_db()
-        self.assertEqual(result.offer.affiliate_url, "https://affiliate.example/1")
+        self.assertEqual(result.offer.affiliate_url, "")
         self.assertEqual(
             result.offer.affiliate_promotion_status,
-            Offer.AffiliatePromotionStatus.ELIGIBLE,
+            Offer.AffiliatePromotionStatus.UNKNOWN,
         )
-        self.assertIsNotNone(result.offer.affiliate_promotion_verified_at)
+        self.assertIsNone(result.offer.affiliate_promotion_verified_at)
         self.assertTrue(result.offer.owner_hidden)
         self.assertEqual(self.candidate.status, OfferCandidate.Status.APPROVED)
         self.assertEqual(self.candidate.approved_offer_id, result.offer.pk)
@@ -145,15 +143,15 @@ class CandidateApprovalTests(TestCase):
         self.assertEqual(result.offer.ship_from_verified_at, verified_at)
         self.assertEqual(result.offer.protocol_verified_at, now)
 
-    def test_existing_offer_always_replaces_old_affiliate_link(self):
+    def test_existing_published_offer_keeps_its_link_when_approved_in_another_family(self):
         old_url = "https://affiliate.example/old"
-        fresh_url = "https://affiliate.example/fresh"
+        verified_at = timezone.now() - timedelta(days=1)
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="existing-old-link",
             affiliate_url=old_url,
             affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
-            affiliate_promotion_verified_at=timezone.now() - timedelta(days=1),
+            affiliate_promotion_verified_at=verified_at,
             owner_hidden=False,
         )
         candidate = OfferCandidate.objects.create(
@@ -162,27 +160,19 @@ class CandidateApprovalTests(TestCase):
             external_product_id=offer.external_product_id,
             product_url="https://www.aliexpress.com/item/200.html",
         )
-        self.client_api.generate_affiliate_link.return_value = fresh_url
-        now = timezone.now()
-
-        result = self.approve(candidate, now=now)
-
+        result = self.approve(candidate)
         result.offer.refresh_from_db()
-        self.client_api.generate_affiliate_link.assert_called_once_with(candidate.product_url)
-        self.assertEqual(result.offer.affiliate_url, fresh_url)
-        self.assertNotEqual(result.offer.affiliate_url, old_url)
-        self.assertEqual(
-            result.offer.affiliate_promotion_status,
-            Offer.AffiliatePromotionStatus.ELIGIBLE,
-        )
-        self.assertEqual(result.offer.affiliate_promotion_verified_at, now)
+        self.client_api.generate_affiliate_link.assert_not_called()
+        self.assertEqual(result.offer.affiliate_url, old_url)
+        self.assertEqual(result.offer.affiliate_promotion_verified_at, verified_at)
         self.assertFalse(result.offer.owner_hidden)
 
-    def test_existing_eligible_offer_still_refreshes_affiliate_link(self):
+    def test_existing_eligible_hidden_offer_keeps_verified_link_at_approval(self):
+        url = "https://affiliate.example/already-valid"
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="existing-eligible",
-            affiliate_url="https://affiliate.example/already-valid",
+            affiliate_url=url,
             affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
             affiliate_promotion_verified_at=timezone.now(),
             owner_hidden=True,
@@ -193,26 +183,25 @@ class CandidateApprovalTests(TestCase):
             external_product_id=offer.external_product_id,
             product_url="https://www.aliexpress.com/item/201.html",
         )
-        self.client_api.generate_affiliate_link.return_value = "https://affiliate.example/new-eligible"
+        self.approve(candidate)
+        offer.refresh_from_db()
+        self.client_api.generate_affiliate_link.assert_not_called()
+        self.assertEqual(offer.affiliate_url, url)
+        self.assertTrue(offer.owner_hidden)
 
-        result = self.approve(candidate)
-
-        result.offer.refresh_from_db()
-        self.client_api.generate_affiliate_link.assert_called_once_with(candidate.product_url)
-        self.assertEqual(result.offer.affiliate_url, "https://affiliate.example/new-eligible")
-        self.assertTrue(result.offer.owner_hidden)
-
-    def test_existing_unknown_and_ineligible_are_reset_to_fresh_eligible(self):
+    def test_existing_unknown_and_ineligible_are_not_silently_promoted_on_approval(self):
         for index, status in enumerate(
             (Offer.AffiliatePromotionStatus.UNKNOWN, Offer.AffiliatePromotionStatus.INELIGIBLE)
         ):
             with self.subTest(status=status):
+                old = f"https://affiliate.example/status-old-{index}"
+                verified_at = timezone.now() - timedelta(days=2)
                 offer = Offer.objects.create(
                     source=Offer.Source.ALIEXPRESS,
                     external_product_id=f"existing-status-{index}",
-                    affiliate_url=f"https://affiliate.example/status-old-{index}",
+                    affiliate_url=old,
                     affiliate_promotion_status=status,
-                    affiliate_promotion_verified_at=timezone.now() - timedelta(days=2),
+                    affiliate_promotion_verified_at=verified_at,
                     owner_hidden=True,
                 )
                 candidate = OfferCandidate.objects.create(
@@ -221,80 +210,51 @@ class CandidateApprovalTests(TestCase):
                     external_product_id=offer.external_product_id,
                     product_url=f"https://www.aliexpress.com/item/{300 + index}.html",
                 )
-                fresh = f"https://affiliate.example/status-fresh-{index}"
                 api = Mock()
-                api.generate_affiliate_link.return_value = fresh
-                now = timezone.now()
-
-                approve_candidate(
-                    candidate,
-                    user=self.user,
-                    client=api,
-                    now=now,
-                )
-
+                approve_candidate(candidate, user=self.user, client=api)
                 offer.refresh_from_db()
-                api.generate_affiliate_link.assert_called_once_with(candidate.product_url)
-                self.assertEqual(offer.affiliate_url, fresh)
-                self.assertEqual(
-                    offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.ELIGIBLE
-                )
-                self.assertEqual(offer.affiliate_promotion_verified_at, now)
+                api.generate_affiliate_link.assert_not_called()
+                self.assertEqual(offer.affiliate_url, old)
+                self.assertEqual(offer.affiliate_promotion_status, status)
+                self.assertEqual(offer.affiliate_promotion_verified_at, verified_at)
                 self.assertTrue(offer.owner_hidden)
 
-    def test_affiliate_generation_failure_is_atomic_for_existing_offer(self):
-        verified_at = timezone.now() - timedelta(days=3)
+    def test_approval_does_not_contact_affiliate_api_or_change_existing_history(self):
+        old_url = "https://affiliate.example/original"
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="failure-existing",
-            affiliate_url="https://affiliate.example/original",
+            affiliate_url=old_url,
             affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
-            affiliate_promotion_verified_at=verified_at,
+            affiliate_promotion_verified_at=timezone.now() - timedelta(days=3),
             owner_hidden=True,
         )
         OfferObservation.objects.create(offer=offer, price="99.00", currency="EUR")
-        OfferFamilyPlacement.objects.create(offer=offer, product_family=self.family)
         candidate = OfferCandidate.objects.create(
             product_family=self.family,
             source=Offer.Source.ALIEXPRESS,
             external_product_id=offer.external_product_id,
             product_url="https://www.aliexpress.com/item/400.html",
         )
-        before = {
-            "affiliate_url": offer.affiliate_url,
-            "status": offer.affiliate_promotion_status,
-            "verified_at": offer.affiliate_promotion_verified_at,
-            "observations": offer.observations.count(),
-            "placements": OfferFamilyPlacement.objects.filter(offer=offer).count(),
-            "decisions": CandidateDecision.objects.filter(candidate=candidate).count(),
-        }
         api = Mock()
         api.generate_affiliate_link.side_effect = AliExpressTransportError("temporary")
-
-        with self.assertRaises(AliExpressTransportError):
-            approve_candidate(candidate, user=self.user, client=api)
-
-        candidate.refresh_from_db()
+        result = approve_candidate(candidate, user=self.user, client=api)
+        api.generate_affiliate_link.assert_not_called()
         offer.refresh_from_db()
-        self.assertEqual(candidate.status, OfferCandidate.Status.PENDING)
-        self.assertEqual(offer.affiliate_url, before["affiliate_url"])
-        self.assertEqual(offer.affiliate_promotion_status, before["status"])
-        self.assertEqual(offer.affiliate_promotion_verified_at, before["verified_at"])
-        self.assertEqual(offer.observations.count(), before["observations"])
-        self.assertEqual(
-            OfferFamilyPlacement.objects.filter(offer=offer).count(), before["placements"]
-        )
-        self.assertEqual(
-            CandidateDecision.objects.filter(candidate=candidate).count(), before["decisions"]
-        )
+        self.assertEqual(result.candidate.status, OfferCandidate.Status.APPROVED)
+        self.assertEqual(offer.affiliate_url, old_url)
+        self.assertTrue(offer.owner_hidden)
+        self.assertEqual(offer.observations.count(), 2)
+        self.assertEqual(candidate.decisions.count(), 1)
 
-    def test_explicit_not_promotable_does_not_fall_back_to_old_link(self):
+    def test_explicitly_ineligible_offer_stays_ineligible_after_approval(self):
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="not-promotable",
             affiliate_url="https://affiliate.example/old-not-promotable",
-            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
-            affiliate_promotion_verified_at=timezone.now() - timedelta(days=1),
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.INELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
+            owner_hidden=True,
         )
         candidate = OfferCandidate.objects.create(
             product_family=self.family,
@@ -303,21 +263,13 @@ class CandidateApprovalTests(TestCase):
             product_url="https://www.aliexpress.com/item/401.html",
         )
         api = Mock()
-        api.generate_affiliate_link.side_effect = AliExpressAPIError(
-            "AliExpress API error: cannot be sold or promoted in the selected country"
-        )
-
-        with self.assertRaises(AliExpressAPIError):
-            approve_candidate(candidate, user=self.user, client=api)
-
-        candidate.refresh_from_db()
+        api.generate_affiliate_link.side_effect = AliExpressAPIError("not promotable")
+        result = approve_candidate(candidate, user=self.user, client=api)
+        api.generate_affiliate_link.assert_not_called()
         offer.refresh_from_db()
-        self.assertEqual(candidate.status, OfferCandidate.Status.PENDING)
-        self.assertEqual(offer.affiliate_url, "https://affiliate.example/old-not-promotable")
-        self.assertEqual(
-            offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.ELIGIBLE
-        )
-        self.assertEqual(candidate.decisions.count(), 0)
+        self.assertEqual(result.candidate.status, OfferCandidate.Status.APPROVED)
+        self.assertEqual(offer.affiliate_promotion_status, Offer.AffiliatePromotionStatus.INELIGIBLE)
+        self.assertTrue(offer.owner_hidden)
 
     def test_non_pending_candidate_cannot_be_approved_or_generate_link(self):
         for index, status in enumerate(

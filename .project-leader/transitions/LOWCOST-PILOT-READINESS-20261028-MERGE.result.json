@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-READINESS-20261028-MERGE",
+  "task_id": "LOWCOST-PILOT-READINESS-20261028",
+  "repository": "martaxi-boss/lowcost-europa",
+  "terminal_status": "SUCCESS",
+  "authorization_record": ".project-leader/transitions/LOWCOST-PILOT-READINESS-20261028-MERGE.authorization.json",
+  "action": "merge_tested_pilot_readiness_into_main",
+  "target": {
+    "kind": "github_pull_request",
+    "identifier": "martaxi-boss/lowcost-europa#161",
+    "revision": "467822329282b74bd9f30ef35e01329fbf52a34a",
+    "base_revision": "eeff80db3d3473a447b79bd5637a70fc4a9b8d7b",
+    "environment": "main integration only; staging unchanged"
+  },
+  "observed_at": "2026-10-28T08:35:37.872Z",
+  "final_state": {
+    "status": "MERGED_TO_MAIN",
+    "revision": "ec0d7ef16ff9547640d2c31a33b19f9c2be3bb6f"
+  },
+  "evidence": [
+    "https://github.com/martaxi-boss/lowcost-europa/pull/161",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40656957589",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40657353781"
+  ],
+  "residual_blockers": [
+    "VPS deployment of new main not yet certified",
+    "Public indexing and commercial launch remain disabled",
+    "External branch protection remains unconfigured"
+  ]
+}
