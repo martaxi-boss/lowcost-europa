@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-STOCK-REVIEW-20261028-STAGING",
+  "task_id": "LOWCOST-STOCK-REVIEW-20261028",
+  "authorization_record": ".project-leader/transitions/LOWCOST-STOCK-REVIEW-20261028-STAGING.authorization.json",
+  "terminal_status": "SUCCESS",
+  "action": "deploy_bounded_safe_stock_status_and_private_owner_triage_to_existing_duckdns_test_vps",
+  "observed_at": "2026-10-28T11:16:26Z",
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "base_revision": "b19fe804c05cf81cf340cce4cc27d0816f3dfaa3",
+    "revision": "a21ca6d6a09f8d147bc072da7686075b0123d960"
+  },
+  "evidence": [
+    "https://github.com/martaxi-boss/lowcost-europa/pull/173",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40677845712",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40678145558",
+    "https://github.com/martaxi-boss/lowcost-europa/pull/174",
+    "https://github.com/martaxi-boss/lowcost-europa/actions/runs/40678277740",
+    "https://github.com/martaxi-boss/VPS/actions/runs/40678609876"
+  ],
+  "postconditions": [
+    "SSH_HOST_PIN=PASS",
+    "BACKUP_PREFLIGHT=pass",
+    "EXACT_GIT_PREFLIGHT=pass",
+    "STOCK_REVIEW_GUARD=pass",
+    "IMPORT_FIRST_LINK_GUARD=pass",
+    "DJANGO_DEPLOY_CHECK=pass",
+    "MIGRATION_CHECK=pass",
+    "FIVE_FAMILIES_AND_NOINDEX=pass",
+    "LOCAL_READY=pass",
+    "ROLLOUT_STATUS=success",
+    "LOWCOST_EXTERNAL_STAGING_SMOKE=PASS",
+    "one-use deploy branch cleaned"
+  ],
+  "remaining_manual_gates": [
+    "Owner decisions required to lower blocked PENDING family queues below 20",
+    "Seller SKU-specific stock and warehouse origin not available from current official affiliate metadata",
+    "Authenticated Owner flow on physical phone/desktop not personally tested",
+    "GitHub main protection, off-VPS recovery key custody, public commercial/indexing go-live still pending Owner action"
+  ]
+}
