@@ -1,4 +1,5 @@
-<article class="offer-card{% if selection_card %} offer-card--featured{% endif %}">
+{% load l10n %}
+<article class="offer-card{% if selection_card %} offer-card--featured{% endif %}" data-offer-card data-offer-id="{{ offer.pk }}" data-equipment-type="{{ offer.equipment_type }}" data-price="{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price|unlocalize }}{% endif %}{% endwith %}" data-currency="{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.currency }}{% endif %}{% endwith %}">
   {% if offer.image_url %}
     {% with image_url=offer.image_url %}
       {% if image_url|slice:":8" == "https://" %}
@@ -24,6 +25,7 @@
     </dl>
     {% if request.user.is_authenticated and request.user.is_staff and not owner_preview_public %}<div class="owner-context-actions"><form class="owner-context-action" method="post" action="{% url 'owner-panel:offer-hide' family.slug offer.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}?gestao=retirados#gestao-owner"><button type="submit">RETIRAR DA MONTRA</button></form>{% if offer.approved_candidate and owner_target_families %}<form class="owner-context-move" method="post" action="{% url 'owner-panel:candidate-move' family.slug offer.approved_candidate.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}?gestao=montra#gestao-owner"><label>MUDAR FAMÍLIA<select name="target_family" required>{% for target in owner_target_families %}<option value="{{ target.pk }}">{{ target.name }}</option>{% endfor %}</select></label><button type="submit">MUDAR FAMÍLIA</button></form>{% endif %}</div>{% endif %}
     <div class="offer-cta">
+      <button class="compare-toggle" type="button" data-compare-toggle aria-pressed="false" aria-label="Adicionar {{ offer.title|default:'equipamento' }} à comparação" hidden>+ Comparar equipamento</button>
       {% if offer.can_redirect %}
         <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}">VER PREÇO E COMPRAR NO ALIEXPRESS <span aria-hidden="true">↗</span></a>
         <p class="meta"><strong>Compra externa.</strong> Vai continuar no parceiro; alguns links podem gerar comissão afiliada.</p>

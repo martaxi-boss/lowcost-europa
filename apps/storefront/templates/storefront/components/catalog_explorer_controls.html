@@ -1,0 +1,48 @@
+<div class="catalog-explorer__toolbar" data-explorer-controls hidden>
+  <div class="catalog-explorer__intro">
+    <strong>Encontre o equipamento certo</strong>
+    <p>Pesquise, filtre e compare até três ofertas. Os valores são observações do parceiro, não preços garantidos.</p>
+  </div>
+  <div class="catalog-explorer__fields">
+    <label>Pesquisar nesta lista
+      <input type="search" autocomplete="off" placeholder="Nome ou característica" data-explorer-search>
+    </label>
+    <label>Tipo de equipamento
+      <select data-explorer-type>
+        <option value="">Todos os tipos</option>
+        <option value="DEDICATED">Equipamento dedicado</option>
+        <option value="COMBO">Combo multifunções</option>
+        <option value="OTHER">Tipo não especificado</option>
+      </select>
+    </label>
+    <label>Preço observado (EUR)
+      <select data-explorer-budget>
+        <option value="">Qualquer preço ou moeda</option>
+        <option value="500">Até 500 €</option>
+        <option value="1000">Até 1 000 €</option>
+        <option value="2500">Até 2 500 €</option>
+        <option value="5000">Até 5 000 €</option>
+        <option value="unknown">Sem preço observado</option>
+      </select>
+    </label>
+    <label>Organizar ofertas
+      <select data-explorer-sort>
+        <option value="editorial">Ordem editorial</option>
+        <option value="price-asc">Preço observado: crescente</option>
+        <option value="price-desc">Preço observado: decrescente</option>
+      </select>
+    </label>
+    <button class="catalog-explorer__reset" type="button" data-explorer-reset>Limpar filtros</button>
+  </div>
+  <p class="catalog-explorer__status" data-explorer-count role="status" aria-live="polite"></p>
+  <p class="catalog-explorer__currency-note" data-currency-notice hidden>Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.</p>
+</div>
+<p class="catalog-explorer__empty" data-explorer-empty hidden>Não foram encontradas ofertas para estes filtros. Experimente outros termos ou limpe os filtros.</p>
+<section class="compare-panel" data-compare-panel aria-label="Comparação de equipamentos" hidden>
+  <div class="compare-panel__heading">
+    <div><p class="eyebrow">Decida com informação</p><h3>Comparar equipamentos</h3></div>
+    <button type="button" class="catalog-explorer__reset" data-compare-clear>Limpar comparação</button>
+  </div>
+  <div class="compare-panel__grid" data-compare-results></div>
+  <p class="compare-panel__disclaimer">Preços e logística são dados observados que devem ser confirmados na AliExpress. Comparar não envia informação para terceiros.</p>
+</section>
