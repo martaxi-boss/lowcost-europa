@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-READINESS-20261028-MERGE",
+  "task_id": "LOWCOST-PILOT-READINESS-20261028",
+  "repository": "martaxi-boss/lowcost-europa",
+  "created_at": "2026-10-28T08:30:56.989Z",
+  "action": "merge_tested_pilot_readiness_into_main",
+  "effect_class": "E2_CONSEQUENTIAL_TRANSITION",
+  "authority": {
+    "source": "CURRENT_OWNER_INSTRUCTION",
+    "summary": "Owner authorized corrections for Lowcost Europa while retaining the existing DuckDNS test domain, noindex/nofollow and commercial launch unvalidated. PR 161 implementation HEAD passed CI 40656957589; no deployment or commercial activation is authorized.",
+    "binding_mode": "EXACT_REVISION_BOUND"
+  },
+  "target": {
+    "kind": "github_pull_request",
+    "identifier": "martaxi-boss/lowcost-europa#161",
+    "revision": "467822329282b74bd9f30ef35e01329fbf52a34a",
+    "base_revision": "eeff80db3d3473a447b79bd5637a70fc4a9b8d7b",
+    "environment": "main integration only; no DNS, VPS rollout, indexing or commercial GO-LIVE"
+  }
+}
