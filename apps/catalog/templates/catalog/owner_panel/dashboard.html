@@ -1,1 +1,127 @@
-{% extends "catalog/owner_panel/base.html" %}{% block body %}<nav class="owner-top"><span class="brand">LOWCOST EUROPA</span><a href="{% url 'storefront:home' %}">VER LOJA</a><form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form></nav><main class="owner-wrap" id="familias"><h1>Resumo</h1><p>Visão global do catálogo. A gestão diária acontece na própria loja.</p><section class="card" aria-label="Atividade de encaminhamentos"><h2>Cliques brutos nos últimos 7 dias</h2><p><strong>{{ recent_raw_clicks_total }}</strong> encaminhamentos registados. Estes números não representam visitantes únicos, compras ou comissões. Consulte os relatórios de vendas da AliExpress para confirmar resultados.</p><p>Uma oferta presente em duas categorias pode contar em ambas; não some os subtotais das categorias.</p></section>{% for family in families %}<a class="card" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner"><h2>{{ family.name }}</h2><div class="counts"><div class="count"><strong>Cliques brutos (7 dias)</strong><br>{{ family.recent_raw_clicks }}</div><div class="count"><strong>Ofertas na montra sem observação recente (7 dias)</strong><br>{{ family.stale_public_offers }}</div><div class="count"><strong>A rever</strong><br>{{ family.owner_counts.pending }}</div><div class="count"><strong>Na montra</strong><br>{{ family.owner_counts.storefront }}</div><div class="count"><strong>Aprovados</strong><br>{{ family.owner_counts.approved }}</div><div class="count"><strong>Retirados</strong><br>{{ family.owner_counts.hidden }}</div><div class="count"><strong>Rejeitados</strong><br>{{ family.owner_counts.rejected }}</div><div class="count"><strong>Revalidação necessária</strong><br>{{ family.owner_counts.review_required }}</div><div class="count"><strong>Não elegível promoção</strong><br>{{ family.owner_counts.promotion_ineligible }}</div></div></a>{% empty %}<div class="empty">Não existem famílias operacionais.</div>{% endfor %}</main>{% endblock %}
+{% extends "catalog/owner_panel/base.html" %}
+{% block title %}Estatísticas e gestão | Lowcost Europa{% endblock %}
+{% block owner_extra_head %}
+<style>
+.analytics-intro{color:#424842;margin-top:-4px;line-height:1.55}
+.metrics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.metric{background:#f4f7f5;border:1px solid #dce7e0;border-radius:12px;padding:14px;min-width:0}
+.metric-label{font-size:.83rem;display:block;color:#48574e;line-height:1.4}
+.metric-value{font-size:clamp(1.45rem,5vw,2.1rem);font-weight:800;display:block;margin:5px 0;color:#103c32;line-height:1.2}
+.metric-hint{display:block;color:#526057;font-size:.78rem}
+.analytics-note{font-size:.86rem;color:#454e48;line-height:1.6}
+.analytics-section-title{margin:0 0 6px}
+.analytics-section-subtitle{margin:0 0 15px;color:#465348;font-size:.88rem;line-height:1.5}
+.chart-grid{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:5px;align-items:end;min-height:172px}
+.chart-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
+.chart-count{font-size:.65rem;color:#435047;min-height:12px;line-height:1}
+.chart-track{height:112px;width:100%;background:#eef4ef;border-radius:5px;display:flex;align-items:flex-end;overflow:hidden}
+.chart-bar{background:#24765a;width:100%;border-radius:5px 5px 0 0}
+.chart-label{font-size:.6rem;color:#435047;text-align:center;white-space:nowrap;min-height:13px}
+.chart-day:nth-child(even) .chart-label{visibility:hidden}
+.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.source-card{background:#f8faf8;border:1px solid #e2e8e2;border-radius:12px;padding:12px;min-width:0}
+.source-card h3{margin:0 0 8px;font-size:.98rem}
+.source-card p{margin:6px 0 0;font-size:.84rem;color:#4b554d;line-height:1.5}
+.source-status{font-size:.78rem;font-weight:800;color:#76551a;background:#fcf4df;border-radius:999px;padding:4px 8px;display:inline-block}
+.analytics-list{padding-left:20px;margin-bottom:0}
+.analytics-list li{padding:7px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere}
+.analytics-list li:last-child{border-bottom:0}
+.analytics-count{font-weight:800;color:#103c32}
+.analytics-link{overflow-wrap:anywhere;color:#103c32}
+.analytics-warning{font-weight:700;color:#8a4b14}
+code{overflow-wrap:anywhere}
+@media(max-width:450px){.source-grid{grid-template-columns:1fr}.chart-grid{gap:3px}.chart-label{font-size:.53rem}.analytics-intro{font-size:.94rem}}
+@media(min-width:700px){.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+{% endblock %}
+{% block body %}
+<nav class="owner-top">
+  <span class="brand">LOWCOST EUROPA</span>
+  <a href="{% url 'storefront:home' %}">VER LOJA</a>
+  <form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form>
+</nav>
+<main class="owner-wrap" id="familias">
+  <h1>Estatísticas e gestão</h1>
+  <p class="analytics-intro">Resumo privado do catálogo e da atividade comercial. Os dados do site e os dados de plataformas externas são apresentados em separado.</p>
+
+  <section class="card" aria-label="Atividade de encaminhamentos">
+    <h2 class="analytics-section-title">Cliques para parceiros</h2>
+    <p class="analytics-section-subtitle">Cliques brutos registados pelo Low Cost Europa quando alguém utiliza o botão de saída para uma oferta.</p>
+    <div class="metrics-grid">
+      <div class="metric"><span class="metric-label">Últimas 24 horas</span><strong class="metric-value">{{ raw_clicks_24h }}</strong><span class="metric-hint">Saídas registadas</span></div>
+      <div class="metric"><span class="metric-label">Últimos 7 dias</span><strong class="metric-value">{{ recent_raw_clicks_total }}</strong><span class="metric-hint">Saídas registadas</span></div>
+      <div class="metric"><span class="metric-label">7 dias anteriores</span><strong class="metric-value">{{ previous_raw_clicks_total }}</strong><span class="metric-hint">Período comparativo</span></div>
+      <div class="metric"><span class="metric-label">Últimos 30 dias</span><strong class="metric-value">{{ raw_clicks_30d }}</strong><span class="metric-hint">Saídas registadas</span></div>
+    </div>
+    <p class="analytics-note"><strong>Cliques brutos nos últimos 7 dias:</strong> <strong>{{ recent_raw_clicks_total }}</strong> encaminhamentos registados. Estes números não representam visitantes únicos, compras ou comissões. Uma oferta presente em duas categorias pode contar em ambas; não some os subtotais das categorias.</p>
+  </section>
+
+  <section class="card" aria-label="Evolução diária dos cliques">
+    <h2 class="analytics-section-title">Evolução — 14 dias</h2>
+    <p class="analytics-section-subtitle">Contagem diária de cliques de saída, na hora de Portugal. As datas sem cliques aparecem a zero.</p>
+    <div class="chart-grid" role="list" aria-label="Cliques de saída por dia">
+      {% for day in daily_raw_clicks %}
+      <div class="chart-day" role="listitem" aria-label="{{ day.date_label }}: {{ day.total }} cliques" title="{{ day.date_label }}: {{ day.total }} cliques">
+        <span class="chart-count">{{ day.total }}</span>
+        <div class="chart-track"><div class="chart-bar" style="height:{{ day.height }}%"></div></div>
+        <span class="chart-label">{{ day.short_label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card" aria-label="Estado dos links publicados">
+    <h2 class="analytics-section-title">Links de afiliado e montra</h2>
+    <div class="metrics-grid">
+      <div class="metric"><span class="metric-label">Ofertas públicas elegíveis</span><strong class="metric-value">{{ eligible_public_offers }}</strong><span class="metric-hint">Com link e verificações técnicas</span></div>
+      <div class="metric"><span class="metric-label">Ofertas visíveis bloqueadas</span><strong class="metric-value">{{ visible_blocked_offers }}</strong><span class="metric-hint">Não passam o filtro de publicação</span></div>
+    </div>
+    {% if visible_blocked_offers %}<p class="analytics-warning">Atenção: existem ofertas com publicação editorial ativa que não passam o filtro público. Verificar antes de anunciar.</p>{% endif %}
+    <p class="analytics-note">Tracking ID configurado neste processo:
+      {% if affiliate_tracking_id %}<strong><code>{{ affiliate_tracking_id }}</code></strong>{% else %}<strong>Não disponível</strong>{% endif %}.
+      Este identificador não prova a atribuição histórica de cada link curto nem confirma comissões.</p>
+  </section>
+
+  <section class="card" aria-label="Produtos mais clicados">
+    <h2 class="analytics-section-title">Produtos mais clicados (7 dias)</h2>
+    {% if top_clicked_offers %}
+    <ol class="analytics-list">{% for item in top_clicked_offers %}
+      <li><span>{{ item.offer__title|default:"Produto sem título"|truncatechars:75 }}</span> — <span class="analytics-count">{{ item.total }} cliques</span></li>
+    {% endfor %}</ol>
+    {% else %}<p class="analytics-note">Sem cliques de saída registados neste período.</p>{% endif %}
+  </section>
+
+  <section class="card" aria-label="Integrações para lançamento">
+    <h2 class="analytics-section-title">Tráfego, publicidade e vendas</h2>
+    <p class="analytics-section-subtitle">Área preparada para ligar as fontes oficiais depois da configuração do domínio definitivo e das autorizações necessárias. Ainda não apresenta valores externos.</p>
+    <div class="source-grid">
+      <article class="source-card"><h3>Visitas e interações</h3><span class="source-status">A ativar no lançamento</span><p>Google Analytics 4: páginas visitadas, interações e saídas, após configurar a privacidade e o consentimento quando necessário.</p></article>
+      <article class="source-card"><h3>Meta Ads</h3><span class="source-status">Por integrar no site</span><p>Investimento, alcance, impressões e cliques da conta de anúncios autorizada. Um clique Meta não equivale a uma compra.</p></article>
+      <article class="source-card"><h3>AliExpress — vendas</h3><span class="source-status">API de encomendas por certificar</span><p>Encomendas e comissões por estado e Tracking ID, apenas quando o fornecedor devolver dados reais.</p></article>
+      <article class="source-card"><h3>Google Search Console</h3><span class="source-status">Após domínio definitivo</span><p>Registo de propriedade, sitemap, pesquisas, impressões e cliques orgânicos quando o site for lançado.</p></article>
+    </div>
+    <p class="analytics-note">Vendas, comissões, visitantes únicos e resultados dos anúncios estão indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero.</p>
+  </section>
+
+  <section aria-label="Catálogo e filas">
+    <h2>Gestão por categoria</h2>
+    <p class="analytics-note">A gestão diária dos produtos continua na própria montra.</p>
+    {% for family in families %}
+    <a class="card analytics-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">
+      <h2>{{ family.name }}</h2>
+      <div class="counts">
+        <div class="count"><strong>Cliques brutos (7 dias)</strong><br>{{ family.recent_raw_clicks }}</div>
+        <div class="count"><strong>Ofertas na montra sem observação recente (7 dias)</strong><br>{{ family.stale_public_offers }}</div>
+        <div class="count"><strong>A rever</strong><br>{{ family.owner_counts.pending }}</div>
+        <div class="count"><strong>Na montra</strong><br>{{ family.owner_counts.storefront }}</div>
+        <div class="count"><strong>Aprovados</strong><br>{{ family.owner_counts.approved }}</div>
+        <div class="count"><strong>Retirados</strong><br>{{ family.owner_counts.hidden }}</div>
+        <div class="count"><strong>Rejeitados</strong><br>{{ family.owner_counts.rejected }}</div>
+        <div class="count"><strong>Revalidação necessária</strong><br>{{ family.owner_counts.review_required }}</div>
+        <div class="count"><strong>Não elegível promoção</strong><br>{{ family.owner_counts.promotion_ineligible }}</div>
+      </div>
+    </a>
+    {% empty %}<div class="empty">Não existem famílias operacionais.</div>{% endfor %}
+  </section>
+</main>
+{% endblock %}
