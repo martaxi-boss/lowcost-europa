@@ -513,6 +513,23 @@ class OwnerPanelCatalogTests(TestCase):
             },
         )
 
+    def test_dashboard_reports_raw_clicks_and_outdated_public_offers_without_sales_claims(self):
+        old = timezone.now() - timedelta(days=9)
+        Offer.objects.filter(pk=self.offer.pk).update(last_seen_at=old)
+        OfferClick.objects.create(offer=self.offer)
+        old_click = OfferClick.objects.create(offer=self.offer)
+        OfferClick.objects.filter(pk=old_click.pk).update(clicked_at=old)
+
+        response = self.client.get(reverse("owner-panel:dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["recent_raw_clicks_total"], 1)
+        family = response.context["families"][0]
+        self.assertEqual(family.recent_raw_clicks, 1)
+        self.assertEqual(family.stale_public_offers, 1)
+        self.assertContains(response, "não representam visitantes únicos, compras ou comissões")
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+
     def test_family_page_is_portuguese_with_one_click_approve_and_primary_rejection_reason(self):
         response = self.client.get(reverse("owner-panel:family", args=[self.family.slug]))
         self.assertEqual(response.status_code, 200)

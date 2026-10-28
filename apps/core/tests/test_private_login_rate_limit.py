@@ -263,7 +263,7 @@ class RateLimitStateTests(RateLimitTestMixin, TestCase):
         self.assertNotIn("password", raw.lower())
         self.assertEqual(oct(state_path.stat().st_mode & 0o777), "0o600")
 
-    def test_limiter_failure_is_fail_open_and_does_not_expose_secret(self):
+    def test_limiter_failure_fails_closed_and_does_not_expose_secret(self):
         from django.http import HttpResponse
 
         from apps.core.middleware import PrivateLoginRateLimitMiddleware
@@ -283,10 +283,37 @@ class RateLimitStateTests(RateLimitTestMixin, TestCase):
         ):
             with self.assertLogs("apps.core.middleware", level=logging.ERROR) as captured:
                 response = middleware.process_view(request, None, (), {})
-        self.assertIsNone(response)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertEqual(response["Retry-After"], "60")
         log_text = " ".join(captured.output)
         self.assertNotIn("super-secret-value", log_text)
         self.assertNotIn("state unavailable", log_text)
+
+
+    def test_limiter_write_failure_returns_503_without_leaking_password(self):
+        from django.contrib.auth.models import AnonymousUser
+        from django.http import HttpResponse
+
+        from apps.core.middleware import PrivateLoginRateLimitMiddleware
+
+        middleware = PrivateLoginRateLimitMiddleware(lambda request: HttpResponse("normal"))
+        request = RequestFactory().post(
+            "/painel/entrar/",
+            {"password": "sensitive-password"},
+            REMOTE_ADDR="192.0.2.46",
+        )
+        request.user = AnonymousUser()
+        with patch("apps.core.middleware.FileLoginRateLimiter.record_failure", side_effect=OSError):
+            with self.assertLogs("apps.core.middleware", level=logging.ERROR) as captured:
+                check = middleware.process_view(request, None, (), {})
+                self.assertIsNone(check)
+                response = middleware.process_response(request, HttpResponse("Palavra-passe incorreta."))
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertNotIn("sensitive-password", response.content.decode())
+        self.assertNotIn("sensitive-password", " ".join(captured.output))
 
 
 class ClientSourcePolicyTests(TestCase):

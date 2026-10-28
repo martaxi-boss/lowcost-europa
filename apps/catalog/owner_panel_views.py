@@ -1,17 +1,20 @@
+from datetime import timedelta
 from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
+from django.utils import timezone
 
 from apps.catalog.models import (
     Offer,
     OfferCandidate,
+    OfferClick,
     OfferFamilyPlacement,
     ProductFamily,
 )
@@ -206,9 +209,45 @@ def dashboard(request):
             "display_order", "name", "pk"
         )
     )
+    recent_cutoff = timezone.now() - timedelta(days=7)
+    recent_clicks_total = OfferClick.objects.filter(clicked_at__gte=recent_cutoff).count()
+    recent_clicks_by_family = dict(
+        OfferClick.objects.filter(
+            clicked_at__gte=recent_cutoff,
+            offer__family_placements__product_family__status__in=[
+                ProductFamily.Status.NEW,
+                ProductFamily.Status.TESTING,
+                ProductFamily.Status.VERIFIED,
+                ProductFamily.Status.PROVEN,
+                ProductFamily.Status.WINNER,
+                ProductFamily.Status.OBSERVATION,
+            ],
+        )
+        .values("offer__family_placements__product_family_id")
+        .annotate(total=Count("id"))
+        .values_list("offer__family_placements__product_family_id", "total")
+    )
+    stale_public_by_family = dict(
+        OfferFamilyPlacement.objects.filter(
+            offer__is_active=True,
+            offer__owner_hidden=False,
+            offer__last_seen_at__lt=recent_cutoff,
+        )
+        .values("product_family_id")
+        .annotate(total=Count("offer_id", distinct=True))
+        .values_list("product_family_id", "total")
+    )
     for family in families:
         family.owner_counts = _family_counts(family)
-    return _private(render(request, "catalog/owner_panel/dashboard.html", {"families": families}))
+        family.recent_raw_clicks = recent_clicks_by_family.get(family.pk, 0)
+        family.stale_public_offers = stale_public_by_family.get(family.pk, 0)
+    return _private(
+        render(
+            request,
+            "catalog/owner_panel/dashboard.html",
+            {"families": families, "recent_raw_clicks_total": recent_clicks_total},
+        )
+    )
 
 
 @_owner_staff_required

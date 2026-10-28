@@ -632,6 +632,16 @@ class InstitutionalTransparencyTests(TestCase):
             for phrase in forbidden:
                 self.assertNotIn(phrase, content)
 
+    def test_social_sharing_metadata_does_not_enable_indexing(self):
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, 'property="og:locale" content="pt_PT"')
+        self.assertContains(
+            response,
+            'property="og:image" content="http://testserver/static/storefront/lowcost-europa-brand-main.webp"',
+        )
+        self.assertContains(response, 'name="twitter:card" content="summary"')
+        self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
+
     def test_default_seo_is_noindex_and_staging_has_no_canonical(self):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
