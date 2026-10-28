@@ -126,6 +126,68 @@ class StorefrontOwnerModeTests(TestCase):
         self.assertContains(response, "Mudar família")
         self.assertContains(response, 'name="note"')
 
+    def test_blocked_private_queue_shows_manual_review_goal_and_oldest_first(self):
+        now = timezone.now()
+        for index in range(19):
+            OfferCandidate.objects.create(
+                product_family=self.family,
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=f"review-backlog-{index}",
+                title=f"Backlog number {index}",
+                last_observed_at=now - timedelta(days=19-index),
+            )
+        self.pending.last_observed_at = now
+        self.pending.save(update_fields=["last_observed_at"])
+        self.client.force_login(self.staff)
+        response = self.client.get(f"{self.url}?gestao=rever")
+        self.assertEqual(response.context["owner_pending_count"], 20)
+        self.assertTrue(response.context["owner_queue_blocked"])
+        self.assertEqual(response.context["owner_to_review_for_search"], 1)
+        self.assertEqual(response.context["owner_pending_order"], "antigos")
+        self.assertEqual(
+            response.context["owner_selected_candidates"][0].external_product_id,
+            "review-backlog-0",
+        )
+        self.assertContains(response, "Pesquisa semanal em pausa")
+        self.assertContains(response, "Não há aprovações, rejeições ou remoções automáticas")
+        self.assertEqual(
+            OfferCandidate.objects.filter(
+                product_family=self.family, status=OfferCandidate.Status.PENDING
+            ).count(),
+            20,
+        )
+        self.assertEqual(
+            OfferCandidate.objects.filter(status=OfferCandidate.Status.REJECTED).count(),
+            1,
+        )
+
+        recent = self.client.get(f"{self.url}?gestao=rever&ordem=recentes")
+        self.assertEqual(recent.context["owner_pending_order"], "recentes")
+        self.assertEqual(
+            recent.context["owner_selected_candidates"][0].pk,
+            self.pending.pk,
+        )
+        self.assertContains(recent, "Mais antigos primeiro")
+        self.assertEqual(recent["Cache-Control"], "private, no-store")
+
+        self.client.force_login(self.nonstaff)
+        public = self.client.get(f"{self.url}?gestao=rever&ordem=antigos")
+        self.assertNotContains(public, "Pesquisa semanal em pausa")
+        self.assertNotContains(public, "Backlog number 0")
+
+    def test_below_cap_keeps_recent_order_without_automatic_mutations(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(f"{self.url}?gestao=rever")
+        self.assertFalse(response.context["owner_queue_blocked"])
+        self.assertEqual(response.context["owner_pending_count"], 1)
+        self.assertEqual(response.context["owner_pending_order"], "recentes")
+        self.assertEqual(response.context["owner_to_review_for_search"], 0)
+        self.assertContains(response, "Pesquisa semanal permitida")
+        self.assertEqual(
+            OfferCandidate.objects.get(pk=self.pending.pk).status,
+            OfferCandidate.Status.PENDING,
+        )
+
     def test_approved_hidden_is_distinct_from_editorially_retired(self):
         self.client.force_login(self.staff)
         approved = self.client.get(f"{self.url}?gestao=aprovados")
