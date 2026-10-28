@@ -19,6 +19,14 @@
       : null;
   }
 
+  function withinBudget(price, limit) {
+    if (!limit) return true;
+    if (limit === "unknown") return price === null;
+    const ceiling = Number(limit);
+    return Number.isFinite(ceiling) && price !== null
+      && price.currency === "EUR" && price.amount <= ceiling;
+  }
+
   function comparePrices(left, right, direction) {
     // Non-comparable currencies stay in separate groups; no exchange rate guessed.
     if (left === null) return right === null ? 0 : 1;
@@ -31,7 +39,7 @@
 
   // Export pure business rules for Node regression tests; browser usage is unchanged.
   if (typeof module === "object" && module.exports) {
-    module.exports = { normalizeText, readPrice, comparePrices };
+    module.exports = { normalizeText, readPrice, comparePrices, withinBudget };
   }
   if (typeof document === "undefined") return;
 
@@ -50,6 +58,7 @@
 
     const search = root.querySelector("[data-explorer-search]");
     const type = root.querySelector("[data-explorer-type]");
+    const budget = root.querySelector("[data-explorer-budget]");
     const sort = root.querySelector("[data-explorer-sort]");
     const count = root.querySelector("[data-explorer-count]");
     const empty = root.querySelector("[data-explorer-empty]");
@@ -77,7 +86,8 @@
           (kind === "OTHER"
             ? !["DEDICATED", "COMBO"].includes(card.dataset.equipmentType)
             : card.dataset.equipmentType === kind);
-        const matched = isType && terms.every((term) => labels.get(card).includes(term));
+        const matched = isType && withinBudget(prices.get(card), budget.value)
+          && terms.every((term) => labels.get(card).includes(term));
         card.hidden = !matched;
         if (matched) visible++;
       });
@@ -102,7 +112,11 @@
         cards.filter((card) => !card.hidden).map((card) => prices.get(card)?.currency)
           .filter(Boolean)
       );
-      currencyNotice.hidden = sort.value === "editorial" || currencies.size < 2;
+      currencyNotice.hidden = !budget.value
+        && (sort.value === "editorial" || currencies.size < 2);
+      currencyNotice.textContent = budget.value && budget.value !== "unknown"
+        ? "O limite aplica-se só a preços em EUR; valores de outras moedas não são convertidos."
+        : "Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.";
     }
 
     function renderCompare() {
@@ -179,6 +193,7 @@
     root.querySelector("[data-explorer-reset]").addEventListener("click", () => {
       search.value = "";
       type.value = "";
+      budget.value = "";
       sort.value = "editorial";
       refresh();
       search.focus();
@@ -188,6 +203,7 @@
     });
     search.addEventListener("input", refresh);
     type.addEventListener("change", refresh);
+    budget.addEventListener("change", refresh);
     sort.addEventListener("change", refresh);
     controls.hidden = false;
     refresh();
