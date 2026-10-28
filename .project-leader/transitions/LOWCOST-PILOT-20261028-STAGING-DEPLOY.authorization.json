@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "transition_id": "LOWCOST-PILOT-20261028-STAGING-DEPLOY",
+  "task_id": "LOWCOST-PILOT-20261028-STAGING",
+  "repository": "martaxi-boss/lowcost-europa",
+  "created_at": "2026-10-28T09:15:06.505Z",
+  "action": "deploy_verified_pilot_commit_to_existing_staging_vps",
+  "effect_class": "E2_CONSEQUENTIAL_TRANSITION",
+  "authority": {
+    "source": "CURRENT_OWNER_INSTRUCTION",
+    "summary": "Owner instructed REA 6.8.0 to continue correcting Lowcost Europa, maintaining lowcost-europa.duckdns.org exclusively as test domain and deferring commercial launch and public indexing. Reuse only proven GitHub Actions to pinned VPS SSH staging path, with exact SHA, clean worktree, healthy backups, rollback and explicit noindex checks; no marketing, DNS or production activation.",
+    "binding_mode": "EXACT_REVISION_BOUND"
+  },
+  "target": {
+    "kind": "vps-staging-django-worktree",
+    "identifier": "146.59.145.3:/srv/lowcost-europa",
+    "revision": "8b350bd0cb92492e9d6f031f3472533336acd00d",
+    "base_revision": "f0d520d31ef6a3aa06ee11f2793be50f75d58a2c",
+    "environment": "Lowcost Europa pilot staging; DuckDNS test hostname; Django and Nginx noindex; commercial OFF"
+  }
+}
