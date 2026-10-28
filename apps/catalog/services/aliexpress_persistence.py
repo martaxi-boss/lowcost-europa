@@ -37,9 +37,8 @@ def import_aliexpress_product(
         raise AliExpressResponseError(
             "detail product_id does not match requested product_id"
         )
-    affiliate_url = ""
-    if not dry_run and product.product_url:
-        affiliate_url = client.generate_affiliate_link(product.product_url)
+    # Factual diagnostics must never generate a new affiliate link.
+    # Initial generation is reserved for an explicit Owner publication.
 
     observed_at = timezone.now()
 
@@ -53,7 +52,7 @@ def import_aliexpress_product(
                 "title": product.title or "",
                 "product_url": product.product_url or "",
                 "image_url": product.image_url or "",
-                "affiliate_url": affiliate_url or "",
+                "affiliate_url": "",
                 "is_active": True,
             },
         )
@@ -67,8 +66,7 @@ def import_aliexpress_product(
                 offer.product_url = product.product_url
             if product.image_url:
                 offer.image_url = product.image_url
-            if affiliate_url:
-                offer.affiliate_url = affiliate_url
+            # Reimports preserve previously verified affiliate URLs verbatim.
             offer.save(
                 update_fields=[
                     "last_seen_at",
@@ -76,7 +74,6 @@ def import_aliexpress_product(
                     "title",
                     "product_url",
                     "image_url",
-                    "affiliate_url",
                     "updated_at",
                 ]
             )
