@@ -136,7 +136,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
 
         OfferObservation.objects.create(
             offer=self.offer,
-            observed_at=now + timedelta(seconds=1),
+            observed_at=now - timedelta(minutes=1),
             availability=OfferObservation.Availability.AVAILABLE,
             price=Decimal("102.50"),
             currency="EUR",
