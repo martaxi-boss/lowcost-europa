@@ -2,6 +2,7 @@
 
 import os
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -15,6 +16,7 @@ from apps.catalog.models import (
     OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
+    OfferObservation,
     ProductFamily,
 )
 
@@ -106,6 +108,83 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "abrir fila de revisão")
         self.assertEqual(
             OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 20
+        )
+
+    def test_factual_stock_price_and_logistics_warnings_never_invent_evidence(self):
+        now = timezone.now()
+        OfferObservation.objects.create(
+            offer=self.offer,
+            observed_at=now - timedelta(days=2),
+            availability=OfferObservation.Availability.AVAILABLE,
+            price=Decimal("99.99"),
+            currency="EUR",
+        )
+        OfferObservation.objects.create(
+            offer=self.offer,
+            observed_at=now - timedelta(minutes=2),
+            availability=OfferObservation.Availability.UNKNOWN,
+        )
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["latest_availability_unconfirmed"], 1)
+        self.assertEqual(response.context["current_price_unconfirmed"], 1)
+        self.assertEqual(response.context["delivery_days_unproven"], 1)
+        self.assertContains(response, "UNKNOWN não significa esgotado")
+        self.assertContains(response, "o preço histórico pode estar disponível")
+        self.assertContains(response, "Não apresentar a promessa de entrega até 5 dias")
+
+        OfferObservation.objects.create(
+            offer=self.offer,
+            observed_at=now - timedelta(minutes=1),
+            availability=OfferObservation.Availability.AVAILABLE,
+            price=Decimal("102.50"),
+            currency="EUR",
+            delivery_days=4,
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["latest_availability_unconfirmed"], 0)
+        self.assertEqual(response.context["current_price_unconfirmed"], 0)
+        self.assertEqual(response.context["delivery_days_unproven"], 0)
+
+    def test_price_with_whitespace_currency_is_not_fresh_evidence(self):
+        OfferObservation.objects.create(
+            offer=self.offer,
+            observed_at=timezone.now(),
+            price=Decimal("20.00"),
+            currency="   ",
+            availability=OfferObservation.Availability.UNKNOWN,
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["current_price_unconfirmed"], 1)
+
+    def test_retired_family_candidates_are_visible_in_owner_summary_without_mutation(self):
+        retired = ProductFamily.objects.create(
+            name="Microcorrente antiga",
+            slug="microcorrente-antiga",
+            status=ProductFamily.Status.RETIRED,
+        )
+        candidates = [
+            OfferCandidate(
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=f"retired-pending-{index}",
+                product_family=retired,
+            )
+            for index in range(2)
+        ]
+        OfferCandidate.objects.bulk_create(candidates)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["retired_pending_total"], 2)
+        self.assertEqual(response.context["paused_discovery_families"], 0)
+        self.assertEqual(len(response.context["families"]), 1)
+        self.assertContains(response, "Microcorrente antiga")
+        self.assertContains(response, "2 candidatos pendentes pertencem a famílias descontinuadas")
+        self.assertEqual(
+            OfferCandidate.objects.filter(
+                product_family=retired, status=OfferCandidate.Status.PENDING
+            ).count(),
+            2,
         )
 
     def test_daily_chart_includes_zero_days_and_local_date(self):
