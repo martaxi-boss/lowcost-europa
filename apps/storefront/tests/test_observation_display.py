@@ -252,7 +252,7 @@ class ObservationFallbackDisplayTests(TestCase):
         response = self.detail()
         self.assertContains(response, "115,00 EUR")
         self.assertContains(response, "Estimativa indicada no detalhe: 4 dias")
-        self.assertContains(response, "Confirme o prazo atual no parceiro.")
+        self.assertContains(response, "Confirme o prazo no parceiro.")
 
     def test_observation_prefetch_is_bounded_for_multiple_offers(self):
         now = timezone.now()
