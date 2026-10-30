@@ -28,7 +28,7 @@
       <button class="compare-toggle" type="button" data-compare-toggle aria-pressed="false" aria-label="Adicionar {{ offer.title|default:'equipamento' }} à comparação" hidden>+ Comparar equipamento</button>
       {% if offer.can_redirect %}
         <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}">VER PREÇO E COMPRAR NO ALIEXPRESS <span aria-hidden="true">↗</span></a>
-        <p class="meta"><strong>Compra externa.</strong> Vai continuar no parceiro; alguns links podem gerar comissão afiliada.</p>
+        <p class="meta"><strong>Compra externa.</strong> Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar.</p>
       {% else %}
         <button class="button button--large" type="button" disabled aria-disabled="true">Oferta indisponível</button><p class="meta">Esta oferta não está disponível para encaminhamento neste momento.</p>
       {% endif %}
