@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, ProductFamily
+from apps.catalog.services.observation_display import observation_history_queryset
 
 
 class ObservationFallbackDisplayTests(TestCase):
@@ -222,6 +223,36 @@ class ObservationFallbackDisplayTests(TestCase):
         self.assertContains(response, expected)
         if expected != latest_text:
             self.assertNotContains(response, latest_text)
+
+    def test_many_unknown_reports_do_not_hide_older_facts_or_load_all_history(self):
+        offer = self.make_offer("historical-volume")
+        now = timezone.now()
+        old = OfferObservation.objects.create(
+            offer=offer,
+            price=Decimal("120.00"),
+            currency="EUR",
+            delivery_days=4,
+            observed_at=now - timedelta(days=12),
+        )
+        for index in range(75):
+            OfferObservation.objects.create(
+                offer=offer,
+                availability=OfferObservation.Availability.UNKNOWN,
+                observed_at=now - timedelta(minutes=80 - index),
+            )
+        new = OfferObservation.objects.create(
+            offer=offer,
+            price=Decimal("115.00"),
+            currency="EUR",
+            observed_at=now,
+        )
+        related = list(observation_history_queryset().filter(offer=offer))
+        self.assertLessEqual(len(related), 5)
+        self.assertEqual({observation.pk for observation in related}, {old.pk, new.pk})
+        response = self.detail()
+        self.assertContains(response, "115,00 EUR")
+        self.assertContains(response, "Estimativa indicada no detalhe: 4 dias")
+        self.assertContains(response, "Confirme o prazo atual no parceiro.")
 
     def test_observation_prefetch_is_bounded_for_multiple_offers(self):
         now = timezone.now()
