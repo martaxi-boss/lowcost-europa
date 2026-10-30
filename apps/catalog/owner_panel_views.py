@@ -4,7 +4,7 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q, Subquery
 from django.db.models.functions import TruncDate
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,6 +19,7 @@ from apps.catalog.models import (
     OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
+    OfferObservation,
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import (
@@ -285,6 +286,54 @@ def dashboard(request):
     origin_without_individual_proof = eligible_queryset.filter(
         Q(ship_from_country__isnull=True) | Q(ship_from_verified_at__isnull=True)
     ).count()
+
+    # Seller listing status is not the same as variant-level stock. Read the
+    # newest observation for availability, but keep historical price evidence
+    # distinct so an UNKNOWN observation does not erase earlier facts.
+    newest_observation = OfferObservation.objects.filter(
+        offer_id=OuterRef("pk")
+    ).order_by("-observed_at", "-pk")
+    newest_price = (
+        OfferObservation.objects.filter(
+            offer_id=OuterRef("pk"),
+            price__isnull=False,
+            currency__isnull=False,
+        )
+        .exclude(currency="")
+        .order_by("-observed_at", "-pk")
+    )
+    numeric_delivery_evidence = OfferObservation.objects.filter(
+        offer_id=OuterRef("pk")
+    ).filter(Q(delivery_days__isnull=False) | Q(search_delivery_days__isnull=False))
+    eligible_with_evidence = eligible_queryset.annotate(
+        last_availability=Subquery(newest_observation.values("availability")[:1]),
+        last_price_at=Subquery(newest_price.values("observed_at")[:1]),
+        has_delivery_days=Exists(numeric_delivery_evidence),
+    )
+    latest_availability_unconfirmed = eligible_with_evidence.filter(
+        Q(last_availability=OfferObservation.Availability.UNKNOWN)
+        | Q(last_availability__isnull=True)
+    ).count()
+    current_price_unconfirmed = eligible_with_evidence.filter(
+        Q(last_price_at__isnull=True) | Q(last_price_at__lt=last_day_cutoff)
+    ).count()
+    delivery_days_unproven = eligible_with_evidence.filter(
+        has_delivery_days=False
+    ).count()
+
+    # Historical candidates in retired families remain immutable here. They
+    # must be visible as an Owner reconciliation item, not silently deleted,
+    # rejected, approved or counted in the five active discovery queues.
+    retired_pending_by_family = list(
+        OfferCandidate.objects.filter(
+            status=OfferCandidate.Status.PENDING,
+            product_family__status=ProductFamily.Status.RETIRED,
+        )
+        .values("product_family__name", "product_family__slug")
+        .annotate(total=Count("pk"))
+        .order_by("product_family__name", "product_family__slug")
+    )
+    retired_pending_total = sum(row["total"] for row in retired_pending_by_family)
     visible_blocked_offers = visible_offers.exclude(public_eligibility_q(now)).count()
     stale_public_by_family = dict(
         OfferFamilyPlacement.objects.filter(
@@ -344,6 +393,11 @@ def dashboard(request):
                 "top_clicked_offers": top_clicked_offers,
                 "eligible_public_offers": eligible_public_offers,
                 "origin_without_individual_proof": origin_without_individual_proof,
+                "latest_availability_unconfirmed": latest_availability_unconfirmed,
+                "current_price_unconfirmed": current_price_unconfirmed,
+                "delivery_days_unproven": delivery_days_unproven,
+                "retired_pending_by_family": retired_pending_by_family,
+                "retired_pending_total": retired_pending_total,
                 "paused_discovery_families": paused_discovery_families,
                 "visible_blocked_offers": visible_blocked_offers,
                 "affiliate_tracking_id": os.environ.get("ALIEXPRESS_TRACKING_ID", "").strip(),
