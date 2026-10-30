@@ -137,6 +137,28 @@ class AffiliatePromotionGateTests(TestCase):
         self.assertEqual(self.offer.affiliate_url, "https://affiliate.example/refreshed")
         self.assertEqual(result.promotion_eligible, 1)
 
+    def test_invalid_https_promotion_result_preserves_existing_verified_link(self):
+        original_url = self.offer.affiliate_url
+        original_verified = self.offer.affiliate_promotion_verified_at
+        for invalid in (
+            "http://affiliate.example/unsafe",
+            "javascript:alert(1)",
+            "https://user:pass@affiliate.example/item",
+            "https://affiliate.example:9999/item",
+            "https://",
+        ):
+            with self.subTest(invalid=invalid):
+                client = Mock()
+                client.generate_affiliate_link.return_value = invalid
+                client.get_product_detail.return_value = self.detail()
+                result = maintain_catalog_offers(batch_size=1, client=client, now=self.now)
+                self.offer.refresh_from_db()
+                self.assertEqual(self.offer.affiliate_url, original_url)
+                self.assertEqual(self.offer.affiliate_promotion_verified_at, original_verified)
+                self.assertEqual(self.offer.affiliate_promotion_status, "ELIGIBLE")
+                self.assertEqual(result.promotion_transient_failures, 1)
+                self.assertEqual(result.promotion_eligible, 0)
+
     def test_exact_product_url_and_identity_are_preserved(self):
         original_id = self.offer.external_product_id
         original_url = self.offer.product_url

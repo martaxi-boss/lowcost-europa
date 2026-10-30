@@ -48,6 +48,18 @@ class StorefrontViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "A seleção pública está a ser preparada")
 
+    def test_category_with_published_offer_does_not_claim_to_be_in_preparation(self):
+        family = ProductFamily.objects.create(name="Available family", slug="available-family")
+        Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS,
+            external_product_id="available-family-offer",
+            product_family=family,
+            title="Equipment in public catalog",
+        )
+        response = self.client.get(reverse("storefront:home"))
+        self.assertContains(response, "Seleção em avaliação")
+        self.assertNotContains(response, "Em preparação")
+
     def test_missing_product_family_returns_404(self):
         response = self.client.get(
             reverse("storefront:product-family-detail", kwargs={"slug": "missing"})
