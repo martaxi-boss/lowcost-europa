@@ -5,6 +5,7 @@ from functools import wraps
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count, Exists, OuterRef, Prefetch, Q, Subquery
+from django.db.models.functions import Trim
 from django.db.models.functions import TruncDate
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -299,7 +300,8 @@ def dashboard(request):
             price__isnull=False,
             currency__isnull=False,
         )
-        .exclude(currency="")
+        .annotate(clean_currency=Trim("currency"))
+        .exclude(clean_currency="")
         .order_by("-observed_at", "-pk")
     )
     numeric_delivery_evidence = OfferObservation.objects.filter(
