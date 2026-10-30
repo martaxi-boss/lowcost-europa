@@ -9,6 +9,7 @@ from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
     public_eligibility_q,
 )
+from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import AliExpressError
 
@@ -67,8 +68,8 @@ def publish_offer_to_storefront(offer, *, family, user, client=None, now=None):
     if not is_protocol_verified(locked, as_of=now):
         raise OwnerEditorialError("É necessária verificação inicial do protocolo antes de publicar")
     if locked.affiliate_promotion_status == Offer.AffiliatePromotionStatus.ELIGIBLE:
-        if not locked.affiliate_url:
-            raise OwnerEditorialError("A oferta não tem link de parceiro disponível")
+        if not is_https_affiliate_url(locked.affiliate_url):
+            raise OwnerEditorialError("A oferta não tem link HTTPS válido do parceiro")
         if locked.affiliate_promotion_verified_at is None:
             raise OwnerEditorialError("A promoção afiliada ainda não foi verificada")
     elif not locked.product_url:
@@ -104,7 +105,7 @@ def publish_offer_to_storefront(offer, *, family, user, client=None, now=None):
                 "Não foi possível confirmar o link afiliado na AliExpress. "
                 "A oferta permanece fora da montra."
             ) from exc
-        if not generated or not str(generated).startswith("https://"):
+        if not is_https_affiliate_url(generated):
             raise OwnerEditorialError("A AliExpress não devolveu um link afiliado HTTPS válido")
         locked.affiliate_url = generated
         locked.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE

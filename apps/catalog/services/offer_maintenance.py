@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
 from apps.catalog.services.public_eligibility import public_eligibility_q
+from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import (
     AliExpressAPIError,
@@ -96,8 +97,8 @@ def verify_affiliate_promotion(offer, *, client, now):
             )
             return Offer.AffiliatePromotionStatus.INELIGIBLE
         raise
-    if not affiliate_url:
-        raise ValueError("AliExpress returned no promotion link")
+    if not is_https_affiliate_url(affiliate_url):
+        raise ValueError("AliExpress returned an invalid HTTPS promotion link")
     offer.affiliate_url = affiliate_url
     offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.ELIGIBLE
     offer.affiliate_promotion_verified_at = now

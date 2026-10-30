@@ -31,6 +31,7 @@ from apps.catalog.services.public_eligibility import (
     public_eligibility_q,
 )
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
+from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 
 LEGACY_FAMILY_REDIRECTS = {
     "depilacao-laser-triple-wave": "diodo-laser-remocao-tatuagens-pigmentacao",
@@ -126,6 +127,8 @@ def _prepare_offer(offer, family):
 
 def _prepare_family(family):
     family.public_status = PUBLIC_STATUS_LABELS.get(family.status, "Em avaliação")
+    if family.status == ProductFamily.Status.NEW and family.public_placements:
+        family.public_status = "Seleção em avaliação"
     if family.status == ProductFamily.Status.RETIRED:
         placements = []
     else:
@@ -431,7 +434,7 @@ def offer_go(request, offer_id):
         ],
     ).distinct()
     offer = get_object_or_404(eligible)
-    if not offer.affiliate_url:
+    if not is_https_affiliate_url(offer.affiliate_url):
         raise Http404
 
     destination = offer.affiliate_url

@@ -65,6 +65,21 @@ class OfferGoTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 404)
         self.assertEqual(OfferClick.objects.count(), 0)
 
+    def test_unsafe_cached_destinations_never_redirect_or_count_clicks(self):
+        for invalid in (
+            "http://affiliate.example/not-secure",
+            "javascript:alert(1)",
+            "https://user:pass@affiliate.example/item",
+            "https://affiliate.example:9999/item",
+            "https://",
+        ):
+            with self.subTest(invalid=invalid):
+                self.offer.affiliate_url = invalid
+                self.offer.save(update_fields=["affiliate_url"])
+                response = self.client.get(self.url)
+                self.assertEqual(response.status_code, 404)
+                self.assertEqual(OfferClick.objects.filter(offer=self.offer).count(), 0)
+
     def test_missing_individual_ship_from_uses_owner_protocol_attestation(self):
         self.offer.ship_from_country = None
         self.offer.ship_from_verified_at = None
