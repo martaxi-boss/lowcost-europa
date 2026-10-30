@@ -147,6 +147,17 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["current_price_unconfirmed"], 0)
         self.assertEqual(response.context["delivery_days_unproven"], 0)
 
+    def test_price_with_whitespace_currency_is_not_fresh_evidence(self):
+        OfferObservation.objects.create(
+            offer=self.offer,
+            observed_at=timezone.now(),
+            price=Decimal("20.00"),
+            currency="   ",
+            availability=OfferObservation.Availability.UNKNOWN,
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["current_price_unconfirmed"], 1)
+
     def test_retired_family_candidates_are_visible_in_owner_summary_without_mutation(self):
         retired = ProductFamily.objects.create(
             name="Microcorrente antiga",
