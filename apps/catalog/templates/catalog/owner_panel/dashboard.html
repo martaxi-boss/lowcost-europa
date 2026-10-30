@@ -76,8 +76,10 @@ code{overflow-wrap:anywhere}
     <div class="metrics-grid">
       <div class="metric"><span class="metric-label">Ofertas públicas elegíveis</span><strong class="metric-value">{{ eligible_public_offers }}</strong><span class="metric-hint">Com link e verificações técnicas</span></div>
       <div class="metric"><span class="metric-label">Ofertas visíveis bloqueadas</span><strong class="metric-value">{{ visible_blocked_offers }}</strong><span class="metric-hint">Não passam o filtro de publicação</span></div>
+      <div class="metric"><span class="metric-label">Origem individual por confirmar</span><strong class="metric-value">{{ origin_without_individual_proof }}</strong><span class="metric-hint">Das ofertas elegíveis, sem país e data comprovados individualmente</span></div>
     </div>
     {% if visible_blocked_offers %}<p class="analytics-warning">Atenção: existem ofertas com publicação editorial ativa que não passam o filtro público. Verificar antes de anunciar.</p>{% endif %}
+    {% if origin_without_individual_proof %}<p class="analytics-warning">A origem de envio individual ainda não foi comprovada em todas as ofertas. Isto não prova origem proibida: a publicação segue a aprovação humana existente. Confirmar o armazém e a variante diretamente no parceiro antes de promover.</p>{% endif %}
     <p class="analytics-note">Tracking ID configurado neste processo:
       {% if affiliate_tracking_id %}<strong><code>{{ affiliate_tracking_id }}</code></strong>{% else %}<strong>Não disponível</strong>{% endif %}.
       Este identificador não prova a atribuição histórica de cada link curto nem confirma comissões.</p>
@@ -167,6 +169,7 @@ code{overflow-wrap:anywhere}
   <section aria-label="Catálogo e filas">
     <h2>Gestão por categoria</h2>
     <p class="analytics-note">A gestão diária dos produtos continua na própria montra.</p>
+    {% if paused_discovery_families %}<p class="analytics-warning">{{ paused_discovery_families }} categorias com descoberta semanal em pausa por excesso de candidatos pendentes. A revisão exige decisão humana; nenhum produto será aprovado nem rejeitado automaticamente.</p>{% endif %}
     {% for family in families %}
     <a class="card analytics-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">
       <h2>{{ family.name }}</h2>
@@ -182,6 +185,7 @@ code{overflow-wrap:anywhere}
         <div class="count"><strong>Não elegível promoção</strong><br>{{ family.owner_counts.promotion_ineligible }}</div>
       </div>
     </a>
+    {% if family.discovery_paused %}<p class="analytics-warning">Pesquisa semanal em pausa nesta categoria. Rever pelo menos {{ family.reviews_to_resume_discovery }} candidatos para retomar: <a href="{% url 'storefront:product-family-detail' family.slug %}?gestao=rever&amp;ordem=antigos#gestao-owner">abrir fila de revisão</a>.</p>{% endif %}
     {% empty %}<div class="empty">Não existem famílias operacionais.</div>{% endfor %}
   </section>
 </main>
