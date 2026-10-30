@@ -2,6 +2,16 @@ name: Final audit evidence
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-audit.yml'
+      - 'requirements/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-audit.yml'
+      - 'requirements/**'
 
 permissions:
   contents: read
@@ -46,7 +56,12 @@ jobs:
         run: pip-audit -r requirements/base.txt -f json -o /tmp/dependency-audit.json
       - name: Static security analysis
         if: always()
-        run: bandit -r apps config -f json -o /tmp/static-security.json
+        # Runtime code only. Test-only passwords and fixed temporary directories
+        # are deliberately exercised by fixtures, not used by production.
+        run: >-
+          bandit -r apps config
+          -x apps/catalog/tests,apps/core/tests,apps/integrations/tests,apps/storefront/tests,config/settings/test.py
+          -f json -o /tmp/static-security.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
