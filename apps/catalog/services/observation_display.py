@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+from django.db.models import OuterRef, Q, Subquery
+from django.db.models.functions import Trim
+
 from apps.catalog.models import OfferObservation
 
 
@@ -17,8 +20,33 @@ class PublicOfferObservationData:
         return logistics_text(self.logistics_observation)
 
 
+def _latest_fact_id(condition, *, require_currency=False):
+    """Select the latest observation for one fact and offer."""
+    candidates = OfferObservation.objects.filter(offer_id=OuterRef("offer_id")).filter(
+        condition
+    )
+    if require_currency:
+        candidates = candidates.annotate(
+            clean_currency=Trim("currency")
+        ).exclude(clean_currency="")
+    return Subquery(candidates.order_by("-observed_at", "-pk").values("pk")[:1])
+
+
 def observation_history_queryset():
-    return OfferObservation.objects.order_by("-observed_at", "-pk")
+    """Load no more than five historical factual rows for each visible offer."""
+    price = _latest_fact_id(
+        Q(price__isnull=False, currency__isnull=False), require_currency=True
+    )
+    rating = _latest_fact_id(Q(evaluation_rate_percent__isnull=False))
+    sales = _latest_fact_id(Q(sales_count__isnull=False))
+    commission = _latest_fact_id(Q(commission_rate__isnull=False))
+    logistics = _latest_fact_id(
+        Q(search_delivery_days__isnull=False) | Q(delivery_days__isnull=False)
+    )
+    return OfferObservation.objects.filter(
+        Q(pk=price) | Q(pk=rating) | Q(pk=sales) | Q(pk=commission)
+        | Q(pk=logistics)
+    ).order_by("-observed_at", "-pk")
 
 
 def _has_valid_price(observation: OfferObservation) -> bool:

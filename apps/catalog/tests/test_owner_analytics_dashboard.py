@@ -12,6 +12,7 @@ from django.utils import timezone
 from apps.catalog.models import (
     ExternalMetricsSnapshot,
     Offer,
+    OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
     ProductFamily,
@@ -73,6 +74,39 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "indisponíveis até existirem integrações verificadas")
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+
+    def test_missing_individual_origin_is_visible_only_as_owner_warning(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["eligible_public_offers"], 1)
+        self.assertEqual(response.context["origin_without_individual_proof"], 1)
+        self.assertContains(response, "Origem individual por confirmar")
+        self.assertContains(response, "Isto não prova origem proibida")
+        self.offer.ship_from_country = "PL"
+        self.offer.ship_from_verified_at = timezone.now()
+        self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["origin_without_individual_proof"], 0)
+
+    def test_pending_queue_alert_never_changes_candidate_status(self):
+        candidates = [
+            OfferCandidate(
+                source=Offer.Source.ALIEXPRESS,
+                external_product_id=f"pending-audit-{index}",
+                product_family=self.family,
+                status=OfferCandidate.Status.PENDING,
+            )
+            for index in range(20)
+        ]
+        OfferCandidate.objects.bulk_create(candidates)
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["paused_discovery_families"], 1)
+        family = response.context["families"][0]
+        self.assertTrue(family.discovery_paused)
+        self.assertEqual(family.reviews_to_resume_discovery, 1)
+        self.assertContains(response, "abrir fila de revisão")
+        self.assertEqual(
+            OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 20
+        )
 
     def test_daily_chart_includes_zero_days_and_local_date(self):
         self._click_ago(1)

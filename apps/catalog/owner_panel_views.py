@@ -4,7 +4,7 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Prefetch, Q
 from django.db.models.functions import TruncDate
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -46,6 +46,7 @@ from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
     public_eligibility_q,
 )
+from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
 
@@ -279,7 +280,11 @@ def dashboard(request):
         owner_hidden=False,
         family_placements__product_family__status__in=operational_statuses,
     ).distinct()
-    eligible_public_offers = visible_offers.filter(public_eligibility_q(now)).count()
+    eligible_queryset = visible_offers.filter(public_eligibility_q(now))
+    eligible_public_offers = eligible_queryset.count()
+    origin_without_individual_proof = eligible_queryset.filter(
+        Q(ship_from_country__isnull=True) | Q(ship_from_verified_at__isnull=True)
+    ).count()
     visible_blocked_offers = visible_offers.exclude(public_eligibility_q(now)).count()
     stale_public_by_family = dict(
         OfferFamilyPlacement.objects.filter(
@@ -291,8 +296,14 @@ def dashboard(request):
         .annotate(total=Count("offer_id", distinct=True))
         .values_list("product_family_id", "total")
     )
+    paused_discovery_families = 0
     for family in families:
         family.owner_counts = _family_counts(family)
+        family.discovery_paused = family.owner_counts["pending"] >= PENDING_CAP_PER_FAMILY
+        family.reviews_to_resume_discovery = max(
+            0, family.owner_counts["pending"] - PENDING_CAP_PER_FAMILY + 1
+        )
+        paused_discovery_families += int(family.discovery_paused)
         family.recent_raw_clicks = recent_clicks_by_family.get(family.pk, 0)
         family.stale_public_offers = stale_public_by_family.get(family.pk, 0)
 
@@ -332,6 +343,8 @@ def dashboard(request):
                 "daily_raw_clicks": daily_clicks,
                 "top_clicked_offers": top_clicked_offers,
                 "eligible_public_offers": eligible_public_offers,
+                "origin_without_individual_proof": origin_without_individual_proof,
+                "paused_discovery_families": paused_discovery_families,
                 "visible_blocked_offers": visible_blocked_offers,
                 "affiliate_tracking_id": os.environ.get("ALIEXPRESS_TRACKING_ID", "").strip(),
                 "owner_metrics_checked_at": now,

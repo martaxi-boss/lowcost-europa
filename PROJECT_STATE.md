@@ -1,6 +1,15 @@
 # Lowcost Europa — Project State
 
-Historical reconciliation baseline: 2026-10-03. Most recent operational evidence: 2026-10-28.
+Historical reconciliation baseline: 2026-10-03. Most recent verified staging evidence: 2026-10-30.
+
+## REA FINAL corrective quality and hygiene — 2026-10-30
+
+- **Verified deployed baseline:** GitHub main and staging VPS both reported application revision `28c998e88bb723424c8ed36d4ba93904339ec877` during [VPS Actions 41019784552](https://github.com/martaxi-boss/VPS/actions/runs/41019784552). Pinned host, backups, Django checks, migration plan, local readiness, DuckDNS HTTPS/noindex and private login checks passed. Automated Chromium desktop/mobile staging checks reported 15/15, zero errors.
+- **Baseline security:** [GitHub Actions 41019656392](https://github.com/martaxi-boss/lowcost-europa/actions/runs/41019656392) passed pip-audit and Bandit; baseline CI passed. The original REA FINAL in VPS performed its own read-only frontend scan in [Actions 41041261678](https://github.com/martaxi-boss/VPS/actions/runs/41041261678); JavaScript syntax was parsed without errors, but semantic coverage is partial. This is not a Python/Django penetration test.
+- **Corrective source changes:** [PR #184](https://github.com/martaxi-boss/lowcost-europa/pull/184) bounds the historical observations fetched by the storefront while preserving original PostgreSQL facts; makes missing individual ship-from evidence and paused candidate queues visible in the private owner dashboard; preserves human-only candidate decisions; adds accurate seller-side stock/origin copy; and widens the existing security-audit workflow to application, configuration, deployment, test and workflow changes. No new server, MCP, provider, migration or third-party analytics is introduced.
+- **Evidence boundary:** the deployed SHA above predates PR #184. Its new code must not be described as deployed until a matching, successful staging rollout has been independently observed. A green source CI is not itself a deployment.
+- **Remaining external dependencies:** GitHub main branch protection requires repository administration; individual seller SKU/warehouse truth is not provided reliably by the available AliExpress Affiliate API; physical-device and authenticated Owner scenario acceptance, Meta server credentials/report freshness and off-VPS Restic recovery-secret custody require real operational verification. Do not auto-approve/reject products or invent shipping origins to clear these gates.
+- **Commercial controls:** final commercial domain, legal/operator launch gates, indexing, Search Console, Meta campaign changes and public GO LIVE remain outside this corrective work; DuckDNS and `noindex` remain the staging baseline.
 
 ## REA safe stock and backlog improvement — 2026-10-28 (latest verified)
 
