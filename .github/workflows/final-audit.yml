@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/final-audit.yml'
+      - '.github/workflows/**'
       - 'requirements/**'
       - 'apps/**'
       - 'config/**'
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/final-audit.yml'
+      - '.github/workflows/**'
       - 'requirements/**'
       - 'apps/**'
       - 'config/**'
