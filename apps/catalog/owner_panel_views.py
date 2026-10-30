@@ -5,8 +5,7 @@ from functools import wraps
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count, Exists, OuterRef, Prefetch, Q, Subquery
-from django.db.models.functions import Trim
-from django.db.models.functions import TruncDate
+from django.db.models.functions import Trim, TruncDate
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
