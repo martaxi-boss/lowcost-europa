@@ -77,9 +77,15 @@ code{overflow-wrap:anywhere}
       <div class="metric"><span class="metric-label">Ofertas públicas elegíveis</span><strong class="metric-value">{{ eligible_public_offers }}</strong><span class="metric-hint">Com link e verificações técnicas</span></div>
       <div class="metric"><span class="metric-label">Ofertas visíveis bloqueadas</span><strong class="metric-value">{{ visible_blocked_offers }}</strong><span class="metric-hint">Não passam o filtro de publicação</span></div>
       <div class="metric"><span class="metric-label">Origem individual por confirmar</span><strong class="metric-value">{{ origin_without_individual_proof }}</strong><span class="metric-hint">Das ofertas elegíveis, sem país e data comprovados individualmente</span></div>
+      <div class="metric"><span class="metric-label">Disponibilidade atual sem prova</span><strong class="metric-value">{{ latest_availability_unconfirmed }}</strong><span class="metric-hint">Última observação UNKNOWN ou inexistente; não significa esgotado</span></div>
+      <div class="metric"><span class="metric-label">Preço sem confirmação em 24 h</span><strong class="metric-value">{{ current_price_unconfirmed }}</strong><span class="metric-hint">Histórico de preço preservado; atualização recente indisponível</span></div>
+      <div class="metric"><span class="metric-label">Sem prazo numérico observado</span><strong class="metric-value">{{ delivery_days_unproven }}</strong><span class="metric-hint">Sem prova de prazo de entrega, muito menos garantia de até 5 dias</span></div>
     </div>
     {% if visible_blocked_offers %}<p class="analytics-warning">Atenção: existem ofertas com publicação editorial ativa que não passam o filtro público. Verificar antes de anunciar.</p>{% endif %}
     {% if origin_without_individual_proof %}<p class="analytics-warning">A origem de envio individual ainda não foi comprovada em todas as ofertas. Isto não prova origem proibida: a publicação segue a aprovação humana existente. Confirmar o armazém e a variante diretamente no parceiro antes de promover.</p>{% endif %}
+    {% if latest_availability_unconfirmed %}<p class="analytics-warning">A disponibilidade da última consulta não comprova o stock de {{ latest_availability_unconfirmed }} ofertas. UNKNOWN não significa esgotado e uma confirmação anterior não garante a variante atual.</p>{% endif %}
+    {% if current_price_unconfirmed %}<p class="analytics-warning">Existem {{ current_price_unconfirmed }} ofertas sem preço confirmado nas últimas 24 horas; o preço histórico pode estar disponível, mas deve ser reconfirmado no vendedor.</p>{% endif %}
+    {% if delivery_days_unproven %}<p class="analytics-warning">Para {{ delivery_days_unproven }} ofertas, não existe sequer um prazo numérico guardado no histórico. Não apresentar a promessa de entrega até 5 dias sem prova atual.</p>{% endif %}
     <p class="analytics-note">Tracking ID configurado neste processo:
       {% if affiliate_tracking_id %}<strong><code>{{ affiliate_tracking_id }}</code></strong>{% else %}<strong>Não disponível</strong>{% endif %}.
       Este identificador não prova a atribuição histórica de cada link curto nem confirma comissões.</p>
@@ -170,6 +176,14 @@ code{overflow-wrap:anywhere}
     <h2>Gestão por categoria</h2>
     <p class="analytics-note">A gestão diária dos produtos continua na própria montra.</p>
     {% if paused_discovery_families %}<p class="analytics-warning">{{ paused_discovery_families }} categorias com descoberta semanal em pausa por excesso de candidatos pendentes. A revisão exige decisão humana; nenhum produto será aprovado nem rejeitado automaticamente.</p>{% endif %}
+    {% if retired_pending_total %}
+      <p class="analytics-warning">{{ retired_pending_total }} candidatos pendentes pertencem a famílias descontinuadas e não entram nas filas das cinco categorias atuais. Mantêm-se guardados para revisão manual; nenhuma decisão foi tomada automaticamente.</p>
+      <ul class="analytics-list">
+      {% for group in retired_pending_by_family %}
+        <li><strong>{{ group.product_family__name }}</strong> (descontinuada): {{ group.total }} candidato{{ group.total|pluralize }} pendente{{ group.total|pluralize }}.</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
     {% for family in families %}
     <a class="card analytics-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">
       <h2>{{ family.name }}</h2>
