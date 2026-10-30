@@ -121,7 +121,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         )
         OfferObservation.objects.create(
             offer=self.offer,
-            observed_at=now,
+            observed_at=now - timedelta(minutes=2),
             availability=OfferObservation.Availability.UNKNOWN,
         )
 
