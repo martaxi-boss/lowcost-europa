@@ -70,7 +70,7 @@ jobs:
             for (const b of branches) {
               const name = b.name;
               const sha = b.commit.sha;
-              if (name === 'main' || !/^(builder|ops|hygiene)\//.test(name)
+              if (name === 'main' || !/^(builder|ops|hygiene|rea)\//.test(name)
                   || openHeads.has(name) || !merged.get(name)?.has(sha)) {
                 preserved++;
                 continue;
