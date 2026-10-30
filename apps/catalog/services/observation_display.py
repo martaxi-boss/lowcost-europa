@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Iterable
 
+from django.db.models import OuterRef, Q, Subquery
+from django.db.models.functions import Trim
+
 from apps.catalog.models import OfferObservation
 
 
