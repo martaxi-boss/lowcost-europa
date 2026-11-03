@@ -17,3 +17,6 @@ staticfiles/
 .DS_Store
 .idea/
 .vscode/
+
+# Legacy VPS runtime archives (not source code)
+/archive/
