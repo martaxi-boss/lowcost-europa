@@ -25,3 +25,6 @@ staticfiles/
 /data/
 /private/
 /www/
+
+# Copies of real databases and external backups stay off GitHub
+/backups/
