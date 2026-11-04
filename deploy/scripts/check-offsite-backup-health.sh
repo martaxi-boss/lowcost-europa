@@ -2,10 +2,10 @@
 set -eu
 umask 077
 
-R2_ENV=${R2_ENV:-/etc/lowcost-europa/r2.env}
-PASSWORD_FILE=${PASSWORD_FILE:-/etc/lowcost-europa/restic-password}
+R2_ENV=${R2_ENV:-/srv/projects/lowcost-europa/private/systemd-env/r2.env}
+PASSWORD_FILE=${PASSWORD_FILE:-/srv/projects/lowcost-europa/private/systemd-env/restic-password}
 LOCK_FILE=${LOCK_FILE:-/run/lock/lowcost-europa-restic.lock}
-SUCCESS_MARKER=${SUCCESS_MARKER:-/var/lib/lowcost-europa/offsite-backup.last-success}
+SUCCESS_MARKER=${SUCCESS_MARKER:-/srv/projects/lowcost-europa/data/offsite-backup.last-success}
 RESTIC_BIN=${RESTIC_BIN:-restic}
 MAX_SNAPSHOT_AGE_SECONDS=129600
 MAX_MARKER_AGE_SECONDS=129600
