@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/lowcost-europa-offsite-backup-health
+ExecStart=/srv/projects/lowcost-europa/bin/lowcost-europa-offsite-backup-health
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
