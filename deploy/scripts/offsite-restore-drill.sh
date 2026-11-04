@@ -2,9 +2,9 @@
 set -eu
 umask 077
 
-R2_ENV=/etc/lowcost-europa/r2.env
-PASSWORD_FILE=/etc/lowcost-europa/restic-password
-LIVE_ENV=/etc/lowcost-europa/lowcost-europa.env
+R2_ENV=/srv/projects/lowcost-europa/private/systemd-env/r2.env
+PASSWORD_FILE=/srv/projects/lowcost-europa/private/systemd-env/restic-password
+LIVE_ENV=/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env
 LOCK_FILE=/run/lock/lowcost-europa-restic.lock
 
 check_root_secret() {
@@ -66,8 +66,16 @@ trap cleanup EXIT HUP INT TERM
 
 restic restore latest     --tag lowcost-europa,offsite     --target "$target"     --no-cache >/dev/null
 
-restored_backup_dir="$target/var/backups/lowcost-europa/daily"
-restored_env="$target/etc/lowcost-europa/lowcost-europa.env"
+# Current snapshots store application backups under the isolated repository directory.
+# Keep read-only compatibility with old snapshot paths; never restore into the live project.
+restored_backup_dir="$target/srv/projects/lowcost-europa/backups/daily"
+if [ ! -d "$restored_backup_dir" ]; then
+    restored_backup_dir="$target/var/backups/lowcost-europa/daily"
+fi
+restored_env="$target/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env"
+if [ ! -f "$restored_env" ]; then
+    restored_env="$target/etc/lowcost-europa/lowcost-europa.env"
+fi
 [ -f "$restored_env" ] || { echo "Restored application environment is missing" >&2; exit 1; }
 
 latest_dump=$(find "$restored_backup_dir" -maxdepth 1 -type f -name '*.dump' -printf '%T@ %p\n' |

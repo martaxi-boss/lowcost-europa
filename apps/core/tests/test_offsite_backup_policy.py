@@ -69,7 +69,7 @@ class OffsiteBackupPolicyTests(SimpleTestCase):
         self.assertLess(prune_at, marker_at)
 
     def test_success_marker_is_atomic_and_restrictive(self):
-        self.assertIn("STATE_DIR=/var/lib/lowcost-europa", self.backup)
+        self.assertIn("STATE_DIR=/srv/projects/lowcost-europa/data", self.backup)
         self.assertIn("SUCCESS_MARKER=$STATE_DIR/offsite-backup.last-success", self.backup)
         self.assertIn("install -d -o root -g root -m 0700", self.backup)
         self.assertIn("os.fchmod(fd, 0o600)", self.backup)
@@ -106,6 +106,27 @@ class OffsiteBackupPolicyTests(SimpleTestCase):
         self.assertIn("OnCalendar=*-*-* 05:15:00 UTC", self.health_timer)
         self.assertIn("Persistent=true", self.health_timer)
         self.assertNotIn("OnCalendar=Sun", self.health_timer)
+
+    def test_restore_uses_private_project_paths_and_supports_archived_snapshots(self):
+        private = "/srv/projects/lowcost-europa/private/systemd-env/"
+        archive_root = "$target/srv/projects/lowcost-europa"
+        self.assertIn("R2_ENV=" + private + "r2.env", self.restore)
+        self.assertIn("PASSWORD_FILE=" + private + "restic-password", self.restore)
+        self.assertIn("LIVE_ENV=" + private + "lowcost-europa.env", self.restore)
+        self.assertIn(
+            f'restored_backup_dir="{archive_root}/backups/daily"', self.restore
+        )
+        self.assertIn(
+            'restored_backup_dir="$target/var/backups/lowcost-europa/daily"', self.restore
+        )
+        self.assertIn(
+            f'restored_env="{archive_root}/private/systemd-env/lowcost-europa.env"',
+            self.restore,
+        )
+        self.assertIn(
+            'restored_env="$target/etc/lowcost-europa/lowcost-europa.env"',
+            self.restore,
+        )
 
     def test_restore_drill_uses_real_temporary_postgres_database(self):
         self.assertIn("lowcost_europa_restic_restore_", self.restore)
