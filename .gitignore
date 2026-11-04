@@ -28,3 +28,7 @@ staticfiles/
 
 # Copies of real databases and external backups stay off GitHub
 /backups/
+
+# Installed VPS-only backup script copies and isolated process state
+/bin/
+/.pm2/
