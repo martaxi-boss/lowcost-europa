@@ -109,13 +109,24 @@ class OffsiteBackupPolicyTests(SimpleTestCase):
 
     def test_restore_uses_private_project_paths_and_supports_archived_snapshots(self):
         private = "/srv/projects/lowcost-europa/private/systemd-env/"
+        archive_root = "$target/srv/projects/lowcost-europa"
         self.assertIn("R2_ENV=" + private + "r2.env", self.restore)
         self.assertIn("PASSWORD_FILE=" + private + "restic-password", self.restore)
         self.assertIn("LIVE_ENV=" + private + "lowcost-europa.env", self.restore)
-        self.assertIn('restored_backup_dir="$target/srv/projects/lowcost-europa/backups/daily"', self.restore)
-        self.assertIn('restored_backup_dir="$target/var/backups/lowcost-europa/daily"', self.restore)
-        self.assertIn('restored_env="$target/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env"', self.restore)
-        self.assertIn('restored_env="$target/etc/lowcost-europa/lowcost-europa.env"', self.restore)
+        self.assertIn(
+            f'restored_backup_dir="{archive_root}/backups/daily"', self.restore
+        )
+        self.assertIn(
+            'restored_backup_dir="$target/var/backups/lowcost-europa/daily"', self.restore
+        )
+        self.assertIn(
+            f'restored_env="{archive_root}/private/systemd-env/lowcost-europa.env"',
+            self.restore,
+        )
+        self.assertIn(
+            'restored_env="$target/etc/lowcost-europa/lowcost-europa.env"',
+            self.restore,
+        )
 
     def test_restore_drill_uses_real_temporary_postgres_database(self):
         self.assertIn("lowcost_europa_restic_restore_", self.restore)
