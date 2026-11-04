@@ -20,3 +20,8 @@ staticfiles/
 
 # Legacy VPS runtime archives (not source code)
 /archive/
+
+# VPS independent runtime: generated site and state stay private
+/data/
+/private/
+/www/
