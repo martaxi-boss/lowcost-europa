@@ -4,4 +4,4 @@ After=postgresql.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/lowcost-europa-backup
+ExecStart=/srv/projects/lowcost-europa/bin/lowcost-europa-backup
