@@ -44,3 +44,11 @@ O teste real [GitHub Actions #41750334632](https://github.com/martaxi-boss/VPS/a
 O motor Ferrari/REA, via [Actions #41751694306](https://github.com/martaxi-boss/VPS/actions/runs/41751694306), confirmou `MOVED_VERIFIED` para os dois diretórios: `/var/lib/lowcost-europa` mudou fisicamente para `data/` e `/root/project-secrets/lowcost-europa` para `private/`. As propriedades, modos e inodes foram preservados, sem copiar o conteudo; os caminhos originais ficaram como ligacoes temporarias. Os servicos protegidos mantiveram o estado.
 
 A configuracao ambiental externa em `/etc/lowcost-europa` e os ficheiros de integracao do Ubuntu ainda precisam de auditoria e migracao apropriada. O Nginx precisa apontar para `www/` e os servicos, backups e scripts devem usar os caminhos fisicos novos antes de retirar qualquer alias. Nao declarar desinstalacao completamente independente ate certificar reinicio e ausencia de referencias externas.
+
+## Nginx e ficheiro de ambiente da instalacao — 04-11-2026
+
+A configuracao ativa Nginx foi atualizada para `/srv/projects/lowcost-europa/www`, sem referencias ao antigo `/var/www/lowcost-europa`. A execucao [#41753196864](https://github.com/martaxi-boss/VPS/actions/runs/41753196864) confirmou substituicao de quatro referencias, `nginx -t` positivo, reload valido, servicos preservados e backup dentro da pasta do projeto. O ficheiro versionado `deploy/nginx/lowcost-europa.conf` foi alinhado com os caminhos canonicos, incluindo `staticfiles/`.
+
+A antiga pasta `/etc/lowcost-europa` foi movida fisicamente para `/srv/projects/lowcost-europa/private/systemd-env` com [prova #41753483523](https://github.com/martaxi-boss/VPS/actions/runs/41753483523). Permissoes e inode preservados; a origem continua apenas como alias temporario. O template `deploy/systemd/lowcost-europa.service` aponta para o ficheiro de ambiente interno e para o `gunicorn` do venv do projeto.
+
+O proximo teste deve verificar o `EnvironmentFile` da unidade systemd efetiva e o arranque controlado; so depois e permitido remover o alias `/etc/lowcost-europa`. **Esta documentacao nao equivale a certificacao de reinicio.**
