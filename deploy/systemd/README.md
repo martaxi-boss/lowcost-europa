@@ -7,7 +7,7 @@ Implementation reference, not a live host-health certificate. Current infrastruc
 `lowcost-europa-catalog-maintenance.service` runs:
 
 ```text
-/srv/lowcost-europa/.venv/bin/python manage.py maintain_catalog_offers --batch-size 10
+/srv/projects/lowcost-europa/.venv/bin/python manage.py maintain_catalog_offers --batch-size 10
 ```
 
 This means **up to 10 eligible Offers per hourly execution**, not a guarantee that 10 Offers are always checked. A run may have fewer eligible Offers or stop early when the existing AliExpress rate-limit breaker aborts the batch.
