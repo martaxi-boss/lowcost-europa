@@ -2,8 +2,8 @@
 set -eu
 umask 077
 
-ENV_FILE=/etc/lowcost-europa/lowcost-europa.env
-BACKUP_DIR=/var/backups/lowcost-europa/daily
+ENV_FILE=/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env
+BACKUP_DIR=/srv/projects/lowcost-europa/backups/daily
 
 set -a
 . "$ENV_FILE"

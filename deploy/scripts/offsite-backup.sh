@@ -2,12 +2,12 @@
 set -eu
 umask 077
 
-R2_ENV=/etc/lowcost-europa/r2.env
-PASSWORD_FILE=/etc/lowcost-europa/restic-password
-APP_ENV=/etc/lowcost-europa/lowcost-europa.env
-BACKUP_DIR=/var/backups/lowcost-europa/daily
+R2_ENV=/srv/projects/lowcost-europa/private/systemd-env/r2.env
+PASSWORD_FILE=/srv/projects/lowcost-europa/private/systemd-env/restic-password
+APP_ENV=/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env
+BACKUP_DIR=/srv/projects/lowcost-europa/backups/daily
 LOCK_FILE=/run/lock/lowcost-europa-restic.lock
-STATE_DIR=/var/lib/lowcost-europa
+STATE_DIR=/srv/projects/lowcost-europa/data
 SUCCESS_MARKER=$STATE_DIR/offsite-backup.last-success
 MAX_DUMP_AGE_SECONDS=21600
 

@@ -64,3 +64,13 @@ A execucao real [VPS #41754735726](https://github.com/martaxi-boss/VPS/actions/r
 A execucao real [VPS #41787555837](https://github.com/martaxi-boss/VPS/actions/runs/41787555837) removeu **oito referencias ao antigo `/srv/lowcost-europa`** em tres unidades systemd (weekly-discovery, catalog-maintenance, affiliate-report) e na configuracao Nginx `lowcost-europa-temp`. Foram guardadas copias anteriores em `archive/config-migration-20261104/` sob a pasta do projeto. `systemd-analyze verify`, `nginx -t`, `systemctl daemon-reload` e recarga Nginx passaram; estados dos servicos protegidos inalterados. As unidades versionadas no GitHub foram alinhadas tanto no `WorkingDirectory` e `ExecStart` como no `EnvironmentFile` privado do projeto.
 
 **A validar:** as unidades remotas de manutencao podem ainda conservar referencias antigas ao ficheiro de ambiente `/etc/lowcost-europa`, e os scripts de backup/restauro mantem referencias a `/var/lib/lowcost-europa` e `/var/backups/lowcost-europa`. Antes de remover aliases, confirmar e atualizar esses consumidores, exercitar backup/restauro e testar reinicio controlado. Nao considerar desinstalacao independente certificada.
+
+## Scripts de backup e ExecStart dentro do projeto — 04-11-2026
+
+**Movimentacao real:** [Actions #41788166561](https://github.com/martaxi-boss/VPS/actions/runs/41788166561) moveu os tres scripts `lowcost-europa-backup`, `lowcost-europa-offsite-backup` e `lowcost-europa-offsite-backup-health` de `/usr/local/sbin` para **`/srv/projects/lowcost-europa/bin/`**, preservando permissoes e propriedade. Os nomes antigos sao apenas symlinks temporarios.
+
+**Caminhos internos:** [Actions #41788336141](https://github.com/martaxi-boss/VPS/actions/runs/41788336141) atualizou as referencias dos tres scripts para `private/systemd-env/`, `data/` e `backups/` dentro do projeto, com `sh -n` positivo, backup local e servicos protegidos inalterados.
+
+**Unidades de backup:** [Actions #41788761333](https://github.com/martaxi-boss/VPS/actions/runs/41788761333) alterou e validou as tres unidades systemd de backup e health para `ExecStart=/srv/projects/lowcost-europa/bin/...`; foi efetuado `daemon-reload`, sem reiniciar os servicos. Os templates GitHub `deploy/systemd` e `deploy/scripts` foram alinhados aos mesmos caminhos privados.
+
+**Ainda pendente:** validar um ciclo real de backup, verificacao remota e restauracao; confirmar todos os consumidores de `/usr/local/sbin` e remover os aliases antigos so depois da prova. `project-secrets-offsite-backup`, de nome generico, permanece inalterado ate verificar ownership e referencias. A organizacao fisica de ficheiros nao constitui certificacao de desinstalacao independente.
