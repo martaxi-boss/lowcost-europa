@@ -8,13 +8,13 @@
 - Arquivo antigo de utilizador administrativo consolidado em `/srv/projects/lowcost-europa/archive/migration-preserved/home-lowcost-admin` (40 960 bytes); antes em `/root/migration-preserved/home-lowcost-admin`.
 
 ## Componentes ainda externos (pendente)
-- Dados operacionais: `/var/lib/lowcost-europa`.
-- Configuracoes privadas: `/root/project-secrets/lowcost-europa`.
+- Dados operacionais: `/srv/projects/lowcost-europa/data` (a antiga `/var/lib/lowcost-europa` e agora ligacao temporaria).
+- Configuracoes privadas: `/srv/projects/lowcost-europa/private` (o antigo caminho de segredos e agora ligacao temporaria).
 - Ficheiros web: **movidos fisicamente** para `/srv/projects/lowcost-europa/www`; `/var/www/lowcost-europa` e apenas um symlink temporario usado pela configuracao Nginx antiga.
 - Unidade `systemd`, configuracao Nginx e tarefas agendadas de manutencao, relatorios, descoberta e backups, associadas ao projeto.
 - A release local nao coincide necessariamente com o commit `main` atual. Nao substituir sem auditar o diff e os dados.
 
-Arquivos gerados, bases de dados e segredos ficam fora do GitHub; a pasta `archive/` e ignorada. A migracao dos dados operacionais e segredos externos ainda nao foi realizada. O diretorio web publico foi consolidado posteriormente.
+Arquivos gerados, bases de dados e segredos ficam fora do GitHub; a pasta `archive/` e ignorada. Os dados operacionais e a pasta privada foram consolidados fisicamente em 04/11/2026. Os ficheiros web ja estavam consolidados. Ainda existem referencias de compatibilidade que exigem cutover e testes.
 
 ## Objetivo e desinstalacao
 O codigo foi movido fisicamente para a instalacao canonica `/srv/projects/lowcost-europa/` (117 411 840 bytes, sem libertacao de espaco). A unidade `lowcost-europa.service` ja utiliza `/srv/projects/lowcost-europa` (configuracao systemd validada e recarregada sem reinicio). Faltam o proxy, backups, dados e segredos, a validacao de um reinicio e a eliminacao da ligacao antiga. Considerar a desinstalacao apenas apos parar os seus servicos, exportar/restaurar dados e retirar referencias exclusivas, sem tocar nos servicos partilhados.
@@ -38,3 +38,9 @@ O diretorio `/var/www/lowcost-europa` foi movido fisicamente, no mesmo filesyste
 O teste real [GitHub Actions #41750334632](https://github.com/martaxi-boss/VPS/actions/runs/41750334632) terminou com **MOVED_AND_VERIFIED**: `nginx -t` passou, o utilizador `www-data` manteve acesso ao diretorio de conteudo e os servicos protegidos permaneceram com estado igual. Nao foram movidas bases de dados, segredos ou configuracoes privadas. O rename nao liberta espaco no disco.
 
 **Ainda pendente:** migrar as referencias Nginx de `/var/www/lowcost-europa` para `/srv/projects/lowcost-europa/www`, validar HTTP/HTTPS e reinicio, e so depois remover o symlink antigo. Permanecem em aberto os dados proprios em `/var/lib/lowcost-europa` e configuracoes privadas externas. Nao considerar a desinstalacao autonoma totalmente certificada.
+
+## Consolidacao de dados e segredos — 04-11-2026
+
+O motor Ferrari/REA, via [Actions #41751694306](https://github.com/martaxi-boss/VPS/actions/runs/41751694306), confirmou `MOVED_VERIFIED` para os dois diretórios: `/var/lib/lowcost-europa` mudou fisicamente para `data/` e `/root/project-secrets/lowcost-europa` para `private/`. As propriedades, modos e inodes foram preservados, sem copiar o conteudo; os caminhos originais ficaram como ligacoes temporarias. Os servicos protegidos mantiveram o estado.
+
+A configuracao ambiental externa em `/etc/lowcost-europa` e os ficheiros de integracao do Ubuntu ainda precisam de auditoria e migracao apropriada. O Nginx precisa apontar para `www/` e os servicos, backups e scripts devem usar os caminhos fisicos novos antes de retirar qualquer alias. Nao declarar desinstalacao completamente independente ate certificar reinicio e ausencia de referencias externas.
