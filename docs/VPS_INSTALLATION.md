@@ -52,3 +52,9 @@ A configuracao ativa Nginx foi atualizada para `/srv/projects/lowcost-europa/www
 A antiga pasta `/etc/lowcost-europa` foi movida fisicamente para `/srv/projects/lowcost-europa/private/systemd-env` com [prova #41753483523](https://github.com/martaxi-boss/VPS/actions/runs/41753483523). Permissoes e inode preservados; a origem continua apenas como alias temporario. O template `deploy/systemd/lowcost-europa.service` aponta para o ficheiro de ambiente interno e para o `gunicorn` do venv do projeto.
 
 O proximo teste deve verificar o `EnvironmentFile` da unidade systemd efetiva e o arranque controlado; so depois e permitido remover o alias `/etc/lowcost-europa`. **Esta documentacao nao equivale a certificacao de reinicio.**
+
+## Backups fisicamente dentro do projeto — 04-11-2026
+
+A execucao real [VPS #41754735726](https://github.com/martaxi-boss/VPS/actions/runs/41754735726) moveu fisicamente os backups de `/var/backups/lowcost-europa` para **`/srv/projects/lowcost-europa/backups`**, sem copia, preservando a identidade e propriedade da pasta. O caminho anterior permanece como symlink de compatibilidade. Os estados dos servicos protegidos nao mudaram.
+
+**Pendente:** o codigo de backup, restauro e tarefas agendadas ainda contem referencias antigas a `/var/backups/lowcost-europa`, `/etc/lowcost-europa` e `/srv/lowcost-europa`. A auditoria [#41754384341](https://github.com/martaxi-boss/VPS/actions/runs/41754384341) confirmou referencias ativas em tres unidades systemd e varios scripts. **Nao remover estas ligacoes nem declarar restauro certificado ate corrigir os consumidores e testar o ciclo de backup/restauro.** Nenhum ficheiro de backup foi publicado no GitHub.
