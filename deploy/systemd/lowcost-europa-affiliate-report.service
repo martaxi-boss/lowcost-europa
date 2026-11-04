@@ -6,10 +6,10 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=le001_1789265592
-WorkingDirectory=/srv/lowcost-europa
-EnvironmentFile=/etc/lowcost-europa/lowcost-europa.env
+WorkingDirectory=/srv/projects/lowcost-europa
+EnvironmentFile=/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env
 Environment=DJANGO_SETTINGS_MODULE=config.settings.production
-ExecStart=/srv/lowcost-europa/.venv/bin/python manage.py sync_external_metrics
+ExecStart=/srv/projects/lowcost-europa/.venv/bin/python manage.py sync_external_metrics
 PrivateTmp=true
 NoNewPrivileges=true
 UMask=0077
