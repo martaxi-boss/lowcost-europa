@@ -1456,6 +1456,63 @@ UI_TRANSLATIONS = {
 }
 
 
+UI_TRANSLATIONS.update({
+  "Identificação do operador": {
+    "en": "Operator identification",
+    "es": "Identificación del operador",
+    "fr": "Identification de l’opérateur",
+    "de": "Angaben zum Betreiber"
+  },
+  "Operador e responsável pelo tratamento": {
+    "en": "Operator and data controller",
+    "es": "Operador y responsable del tratamiento",
+    "fr": "Opérateur et responsable du traitement",
+    "de": "Betreiber und Verantwortlicher"
+  },
+  "Morada": {
+    "en": "Address",
+    "es": "Dirección",
+    "fr": "Adresse",
+    "de": "Anschrift"
+  },
+  "Finalidades, fundamento e conservação": {
+    "en": "Purposes, legal basis and retention",
+    "es": "Finalidades, base jurídica y conservación",
+    "fr": "Finalités, base juridique et conservation",
+    "de": "Zwecke, Rechtsgrundlage und Aufbewahrung"
+  },
+  "Prestadores e serviços externos": {
+    "en": "Providers and external services",
+    "es": "Proveedores y servicios externos",
+    "fr": "Prestataires et services externes",
+    "de": "Anbieter und externe Dienste"
+  },
+  "Os seus direitos": {
+    "en": "Your rights",
+    "es": "Sus derechos",
+    "fr": "Vos droits",
+    "de": "Ihre Rechte"
+  },
+  "Os dados das mensagens são utilizados para responder ao contacto. Os logs técnicos servem a operação e a segurança do site. Estes tratamentos baseiam-se no interesse legítimo em responder às comunicações e manter o serviço seguro. A conservação é limitada ao tempo necessário para essas finalidades e para cumprir obrigações legais ou defender direitos.": {
+    "en": "Message data is used to respond to your enquiry. Technical logs support website operations and security. This processing relies on our legitimate interest in responding to communications and keeping the service secure. Retention is limited to the time needed for those purposes and to meet legal obligations or defend legal rights.",
+    "es": "Los datos de los mensajes se utilizan para responder a su consulta. Los registros técnicos sirven para operar y proteger el sitio. El tratamiento se basa en el interés legítimo de responder a las comunicaciones y mantener la seguridad del servicio. La conservación se limita al tiempo necesario para estas finalidades y para cumplir obligaciones legales o defender derechos.",
+    "fr": "Les données des messages servent à répondre à votre demande. Les journaux techniques assurent le fonctionnement et la sécurité du site. Ces traitements reposent sur notre intérêt légitime à répondre aux communications et à sécuriser le service. La conservation est limitée à la durée nécessaire à ces finalités et au respect des obligations légales ou à la défense de droits.",
+    "de": "Nachrichtendaten werden zur Beantwortung Ihrer Anfrage verwendet. Technische Protokolle dienen dem Betrieb und der Sicherheit der Website. Grundlage ist unser berechtigtes Interesse an der Beantwortung von Mitteilungen und am sicheren Betrieb. Die Aufbewahrung ist auf die für diese Zwecke sowie für gesetzliche Pflichten oder die Rechtsverteidigung erforderliche Dauer begrenzt."
+  },
+  "O alojamento é assegurado pela OVHcloud e o correio utiliza a Dynadot e uma caixa de gestão Gmail. Ao abrir WhatsApp ou AliExpress, passa a utilizar serviços externos sujeitos às respetivas políticas. Estes fornecedores podem tratar dados fora do Espaço Económico Europeu; consulte as informações sobre transferências internacionais e garantias nas suas políticas.": {
+    "en": "Hosting is provided by OVHcloud and email uses Dynadot and a Gmail management mailbox. When you open WhatsApp or AliExpress, you use external services governed by their own policies. These providers may process data outside the European Economic Area; see their policies for information about international transfers and safeguards.",
+    "es": "El alojamiento lo presta OVHcloud y el correo utiliza Dynadot y un buzón de gestión Gmail. Al abrir WhatsApp o AliExpress utiliza servicios externos sujetos a sus propias políticas. Estos proveedores pueden tratar datos fuera del Espacio Económico Europeo; consulte sus políticas sobre transferencias internacionales y garantías.",
+    "fr": "L’hébergement est assuré par OVHcloud et la messagerie utilise Dynadot et une boîte de gestion Gmail. En ouvrant WhatsApp ou AliExpress, vous utilisez des services externes soumis à leurs propres politiques. Ces prestataires peuvent traiter des données hors de l’Espace économique européen ; consultez leurs politiques sur les transferts internationaux et les garanties.",
+    "de": "Das Hosting erfolgt durch OVHcloud; E-Mails werden über Dynadot und ein Gmail-Verwaltungspostfach verarbeitet. Wenn Sie WhatsApp oder AliExpress öffnen, nutzen Sie externe Dienste mit eigenen Datenschutzregeln. Diese Anbieter können Daten außerhalb des Europäischen Wirtschaftsraums verarbeiten; Informationen zu internationalen Übermittlungen und Schutzmaßnahmen finden Sie in deren Richtlinien."
+  },
+  "Pode pedir acesso, retificação, apagamento, limitação, oposição e, quando aplicável, portabilidade dos seus dados através do e-mail indicado. Pode também apresentar reclamação à autoridade de proteção de dados competente, em Portugal a CNPD. O exercício de cada direito depende dos requisitos legais aplicáveis.": {
+    "en": "You may request access, rectification, erasure, restriction, objection and, where applicable, portability of your data using the email address above. You may also complain to the competent data protection authority, the CNPD in Portugal. Each right is subject to the applicable legal requirements.",
+    "es": "Puede solicitar acceso, rectificación, supresión, limitación, oposición y, cuando proceda, portabilidad de sus datos mediante el correo indicado. También puede reclamar ante la autoridad de protección de datos competente, la CNPD en Portugal. Cada derecho está sujeto a los requisitos legales aplicables.",
+    "fr": "Vous pouvez demander l’accès, la rectification, l’effacement, la limitation, l’opposition et, le cas échéant, la portabilité de vos données à l’adresse e-mail indiquée. Vous pouvez également saisir l’autorité de protection des données compétente, la CNPD au Portugal. Chaque droit est soumis aux conditions légales applicables.",
+    "de": "Über die angegebene E-Mail-Adresse können Sie Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch und gegebenenfalls Datenübertragbarkeit beantragen. Sie können sich auch bei der zuständigen Datenschutzbehörde beschweren, in Portugal der CNPD. Für jedes Recht gelten die jeweiligen gesetzlichen Voraussetzungen."
+  }
+})
+
 def translate_ui(value, language):
     if not value:
         return value
