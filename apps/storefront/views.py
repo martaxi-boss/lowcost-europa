@@ -32,6 +32,7 @@ from apps.catalog.services.public_eligibility import (
 )
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
+from apps.storefront.ui_translations import translate_ui
 
 LEGACY_FAMILY_REDIRECTS = {
     "depilacao-laser-triple-wave": "diodo-laser-remocao-tatuagens-pigmentacao",
@@ -126,9 +127,14 @@ def _prepare_offer(offer, family):
 
 
 def _prepare_family(family):
-    family.public_status = PUBLIC_STATUS_LABELS.get(family.status, "Em avaliação")
+    from django.utils.translation import get_language
+
+    lang = get_language()
+    family.public_status = translate_ui(
+        PUBLIC_STATUS_LABELS.get(family.status, "Em avaliação"), lang
+    )
     if family.status == ProductFamily.Status.NEW and family.public_placements:
-        family.public_status = "Seleção em avaliação"
+        family.public_status = translate_ui("Seleção em avaliação", lang)
     if family.status == ProductFamily.Status.RETIRED:
         placements = []
     else:
