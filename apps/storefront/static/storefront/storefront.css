@@ -951,3 +951,9 @@ body { background: var(--bg); }
     scroll-snap-align: start;
   }
 }
+
+/* On narrow product-filter pages, a fixed contact bubble can cover form fields.
+   Contact remains accessible via the menu and footer. */
+@media (max-width: 620px) {
+  body:has(.catalog-detail) .whatsapp-float { display: none; }
+}

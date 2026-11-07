@@ -70,6 +70,8 @@ async function main() {
       assert.equal(res.status(), 200);
       await verify(page, "detail", width);
       assert.equal(await page.locator("[data-offer-card]").count(), 4);
+      assert.equal(await page.locator(".whatsapp-float").isVisible(), !mobile,
+        "Fixed contact button must not obscure mobile product filters");
       assert.equal(await page.locator("[data-compare-dock]").isVisible(), false);
       assert.equal(await page.locator("[data-compare-panel]").isVisible(), false);
       const controls = page.locator("[data-compare-toggle]");
