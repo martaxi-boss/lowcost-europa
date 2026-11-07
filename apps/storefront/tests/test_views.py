@@ -8,8 +8,9 @@ from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, ProductFamily
 
-
-TEST_OPERATOR = {"name": "Example Operator", "address": "Example Street, Portugal", "tax_id": "TEST-ID"}
+TEST_OPERATOR = {
+    "name": "Example Operator", "address": "Example Street, Portugal", "tax_id": "TEST-ID"
+}
 
 
 class StorefrontViewTests(TestCase):
