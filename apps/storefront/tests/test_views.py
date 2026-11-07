@@ -528,8 +528,8 @@ class InstitutionalTransparencyTests(TestCase):
     def test_contact_page_uses_only_authorized_public_channels(self):
         response = self.client.get(reverse("storefront:contacto"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "help.onlinefuture@gmail.com")
-        self.assertContains(response, "mailto:help.onlinefuture@gmail.com")
+        self.assertContains(response, "geral@lowcost-europa.eu")
+        self.assertContains(response, "mailto:geral@lowcost-europa.eu")
         self.assertContains(response, "+351 965 471 236")
         self.assertContains(response, reverse("storefront:whatsapp-contact"))
         self.assertContains(response, reverse("storefront:contacto"))
@@ -549,7 +549,7 @@ class InstitutionalTransparencyTests(TestCase):
             response = self.client.get(reverse(f"storefront:{name}"))
             self.assertContains(response, reverse("storefront:contacto"))
         privacy = self.client.get(reverse("storefront:privacidade"))
-        self.assertContains(privacy, "help.onlinefuture@gmail.com")
+        self.assertContains(privacy, "geral@lowcost-europa.eu")
 
     def test_sitemap_has_eleven_urls_for_five_active_families(self):
         for index in range(5):
@@ -577,7 +577,7 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertIn("não significa utilizador único, compra, conversão ou comissão", content)
         self.assertIn("logs técnicos", content)
         self.assertIn("endereço ip", content)
-        self.assertIn("help.onlinefuture@gmail.com", content)
+        self.assertIn("geral@lowcost-europa.eu", content)
         self.assertNotIn("offerclick", content)
         self.assertNotIn("server-rendered", content)
         self.assertNotIn("set-cookie", content)
