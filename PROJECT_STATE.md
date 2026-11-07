@@ -2,6 +2,9 @@
 
 ## Dynadot paid domain readiness — 2026-11-07 (DNS and cutover pending)
 
+- **Última decisão:** endereço principal `https://www.lowcost-europa.eu`; `https://lowcost-europa.eu` deve passar por 301 para WWW após certificado, contacto público `geral@lowcost-europa.eu` no site todo. O Gmail de destino para encaminhamento permanece privado e a ativação não é verificável por DNS; a configuração na Dynadot fica pendente de confirmação. Indexação comercial só depois de certificar todos os gates de lançamento.
+
+
 - Intended primary domain **lowcost-europa.eu** using **Dynadot DNS**; no Cloudflare. The authoritative DNS preflight [VPS #42405767220](https://github.com/martaxi-boss/VPS/actions/runs/42405767220) confirmed ns1/ns2.dyna-ns.net, but both apex/www A records still point to Dynadot parking **185.53.179.149**, not the OVH VPS **146.59.145.3**.
 - Existing Dynadot email MX, SPF, DKIM and DMARC are publicly present and must be preserved. Mail DNS does not certify functional send/receive.
 - VPS application live at **fefd5df92753382bb7ad191ee19e38b90d8167a3**; Django active, Nginx config valid, old DuckDNS health PASS. New TLS certificate, vhost, allowed hosts, CSRF origins and primary URL are **NOT YET configured**.
