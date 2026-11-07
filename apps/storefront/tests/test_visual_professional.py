@@ -29,6 +29,10 @@ class EditorialStorefrontTests(SimpleTestCase):
         self.assertIn("{% url 'storefront:offer-go' offer.pk %}", card)
         self.assertNotIn("Entrega garantida", card)
 
+    def test_missing_photo_does_not_claim_published_family_is_in_preparation(self):
+        card = self.template("components/product_family_card.html")
+        self.assertEqual(card.count("Imagem indisponível{% else %}Seleção em preparação"), 2)
+
     def test_mobile_comparison_is_keyboard_accessible(self):
         controls = self.template("components/catalog_explorer_controls.html")
         for text in ('data-compare-dock hidden', 'data-compare-show',

@@ -5,11 +5,11 @@
         {% if image_url|slice:":8" == "https://" %}
           <div class="product-card__media"><img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480" loading="lazy" data-product-image><span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span><span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span></div>
         {% else %}
-          <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>Seleção em preparação</small></div>
+          <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>{% if family.display_offer %}Imagem indisponível{% else %}Seleção em preparação{% endif %}</small></div>
         {% endif %}
       {% endwith %}
     {% else %}
-      <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>Seleção em preparação</small></div>
+      <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>{% if family.display_offer %}Imagem indisponível{% else %}Seleção em preparação{% endif %}</small></div>
     {% endif %}
   </a>
   <div class="product-card__body">

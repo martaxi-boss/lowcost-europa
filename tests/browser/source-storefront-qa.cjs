@@ -92,6 +92,14 @@ async function main() {
       assert.equal(await page.locator("[data-explorer-empty]").isVisible(), true);
       await page.locator("[data-explorer-reset]").click();
       if (width === 390 || width === 1440) {
+        // A full-page shot must start at document top, otherwise a sticky header
+        // is captured midway through the page after test interactions.
+        await page.evaluate(() => {
+          document.documentElement.style.scrollBehavior = "auto";
+          document.body.style.scrollBehavior = "auto";
+          window.scrollTo({ top: 0, behavior: "instant" });
+        });
+        await page.waitForFunction(() => window.scrollY === 0);
         await page.screenshot({
           path: path.join(out, "detail-" + width + ".png"),
           fullPage: true,
