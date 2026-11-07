@@ -66,7 +66,7 @@ preços como observados e stock/prazos sujeitos a confirmação no parceiro.
 
 O proprietário forneceu a identidade individual, morada e NIF na conversa de 07/11.
 Os valores não pertencem ao repositório nem aos logs. O deploy transporta-os cifrados,
-guarda-os em `private/legal/operator.json` e renderiza-os em contacto, termos e privacidade.
+guarda-os em `.legal/operator.json` e renderiza-os em contacto, termos e privacidade.
 A ausência de campos bloqueia a indexação. Não se reutilizam os dados privados da conta Dynadot.
 As páginas de privacidade incluem responsável, finalidades, fundamento, critério de conservação,
 serviços externos e direitos, com tradução nos cinco idiomas.
