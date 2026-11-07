@@ -1,0 +1,10 @@
+{% load storefront_i18n %}
+{% if public_operator %}
+<section aria-labelledby="public-operator-title">
+  <h2 id="public-operator-title">{{ "Identificação do operador"|ui_t }}</h2>
+  <p><strong>{{ "Operador e responsável pelo tratamento"|ui_t }}:</strong> {{ public_operator.name }}</p>
+  <p><strong>{{ "Morada"|ui_t }}:</strong> {{ public_operator.address }}</p>
+  <p><strong>NIF:</strong> {{ public_operator.tax_id }}</p>
+  <p><strong>E-mail:</strong> <a href="mailto:geral@lowcost-europa.eu">geral@lowcost-europa.eu</a></p>
+</section>
+{% endif %}
