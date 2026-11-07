@@ -47,6 +47,13 @@ JS_TEXTS = (
     "Comparar equipamento",
     "Na comparação",
     "Equipamento",
+    "de 3 equipamentos selecionados",
+    "ofertas nesta lista",
+    "de",
+    "Limite de três equipamentos. Retire um para acrescentar outro.",
+    "O limite aplica-se só a preços em EUR; valores de outras moedas não são convertidos.",
+    "Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.",
+    "+ Comparar equipamento",
 )
 
 
