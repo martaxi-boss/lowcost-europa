@@ -62,9 +62,16 @@ class PublicLanguageTests(TestCase):
             "hifu",
             "diodo-laser-remocao-tatuagens-pigmentacao",
         )
-        for index, slug in enumerate(slugs, start=1):
+        names = (
+            "Cavitação + RF + Vacuum (corpo)",
+            "Hydrodermoabrasão / Aqua Facial / Multifunções faciais",
+            "Pressoterapia / Vacuum / Drenagem",
+            "HIFU profissional",
+            "Diodo Laser / Remoção de Tatuagens / Pigmentação",
+        )
+        for index, (slug, name) in enumerate(zip(slugs, names), start=1):
             ProductFamily.objects.create(
-                name=f"Família pública {index}", slug=slug, display_order=index
+                name=name, slug=slug, display_order=index
             )
         response = self.client.get("/", HTTP_ACCEPT_LANGUAGE="es")
         self.assertContains(response, "Cavitación + RF + vacío (cuerpo)")
