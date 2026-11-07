@@ -21,7 +21,7 @@
     {% if query %}
       <div class="section-heading">
         <p class="eyebrow">{{ "Pesquisa de produtos validados"|ui_t }}</p>
-        <h2 id="search-results-heading">{{ result_count }} resultado{{ result_count|pluralize }} para “{{ query }}”</h2>
+        <h2 id="search-results-heading">{{ result_count }} {% if result_count == 1 %}{{ "resultado para"|ui_t }}{% else %}{{ "resultados para"|ui_t }}{% endif %} “{{ query }}”</h2>
         <p class="section-intro">{{ "Mostramos apenas ofertas elegíveis já publicadas. Selecione até três para comparar antes de visitar o parceiro."|ui_t }}</p>
       </div>
       {% if page.object_list %}
@@ -36,7 +36,7 @@
         {% if page.has_other_pages %}
           <nav class="search-pagination" aria-label="Páginas de resultados">
             {% if page.has_previous %}<a href="?q={{ query|urlencode }}&amp;page={{ page.previous_page_number }}">{{ "← Anterior"|ui_t }}</a>{% endif %}
-            <span>Página {{ page.number }} de {{ page.paginator.num_pages }}</span>
+            <span>{{ "Página"|ui_t }} {{ page.number }} {{ "de"|ui_t }} {{ page.paginator.num_pages }}</span>
             {% if page.has_next %}<a href="?q={{ query|urlencode }}&amp;page={{ page.next_page_number }}">{{ "Seguinte →"|ui_t }}</a>{% endif %}
           </nav>
           <p class="search-page-note">{{ "A pesquisa e os filtros desta página não alteram os resultados das outras páginas."|ui_t }}</p>
