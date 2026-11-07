@@ -1,5 +1,15 @@
 # Lowcost Europa — Project State
 
+## Indexing preparation and verified domain — 2026-11-07
+
+- **Current production evidence:** [VPS audit #42421004057](https://github.com/martaxi-boss/VPS/actions/runs/42421004057) confirms main and VPS at `bb3921b646102cba0af0f397bddfde8b2f37d39a`, clean tracked files, active Django, valid Nginx, HTTPS SAN apex+WWW and renewal timer. The earlier "DNS/cutover pending" section below is historical and superseded by this readback.
+- **Google domain ownership:** `lowcost-europa.eu` confirmed by Search Console through an additional Dynadot TXT; all existing site/email records preserved. Ownership verification is complete; Google URL inspection still says the homepage is not indexed / unknown.
+- **Launch held for operator identity:** public noindex, robots disallow and indexing flag remain in force. Operator legal name, establishment address/country, fiscal ID and applicable company registration must be supplied before public launch. No invented or account-derived identity.
+- **Preparation only:** draft PR #207 bounds indexing to the canonical hostname, keeps operational routes private, qualifies affiliate links and includes regression tests. Not deployed or merged. Sitemap submission and six indexing requests remain outstanding until legal completion and launch verification.
+- **Live offers:** 52 eligible links, 17/10/5/12/8 across the five categories. All 52 HEAD routes return HTTPS affiliate redirects. Three observed prices older than seven days; latest stock observations all UNKNOWN. No stock, checkout-price, delivery or commission guarantee.
+- Evidence and continuation: [indexing readiness report](docs/operations/indexing-readiness-20261107.md), [public HTTP audit](docs/operations/indexing-public-audit-20261107.json). Temporary VPS audit workflow removed after completion. No runtime application data or backup deletion.
+
+
 ## Dynadot paid domain readiness — 2026-11-07 (DNS and cutover pending)
 
 - **Última decisão:** endereço principal `https://www.lowcost-europa.eu`; `https://lowcost-europa.eu` deve passar por 301 para WWW após certificado, contacto público `geral@lowcost-europa.eu` no site todo. O Gmail de destino para encaminhamento permanece privado e a ativação não é verificável por DNS; a configuração na Dynadot fica pendente de confirmação. Indexação comercial só depois de certificar todos os gates de lançamento.
