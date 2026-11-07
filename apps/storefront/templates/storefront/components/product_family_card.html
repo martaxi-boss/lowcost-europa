@@ -23,8 +23,8 @@
         <div><span>{{ "Prazo indicado"|ui_t }}</span><strong>{{ family.display_offer.logistics_text|default:"Prazo não confirmado" }}</strong>{% with obs=family.display_offer.observation_display.logistics_observation %}{% if obs %}<small class="fact-date">Observado em {{ obs.observed_at|date:"d/m/Y" }}</small>{% endif %}{% endwith %}{% if family.display_offer.logistics_observation_old %}<small class="fact-freshness-warning">{{ "Prazo histórico; confirme no parceiro."|ui_t }}</small>{% endif %}</div>
       </div>
     {% else %}
-      <p class="category-orientation"><strong>Seleção em preparação.</strong> {{ "Ainda estamos a validar opções para esta categoria."|ui_t }}</p>
+      <p class="category-orientation"><strong>{{ "Seleção em preparação."|ui_t }}</strong> {{ "Ainda estamos a validar opções para esta categoria."|ui_t }}</p>
     {% endif %}
-    <div class="card-actions"><a class="button button--secondary button--full" href="{% url 'storefront:product-family-detail' family.slug %}">{{ "Explorar equipamentos"|ui_t }} <span aria-hidden="true">→</span></a>{% if request.user.is_authenticated and request.user.is_staff %}<a class="owner-family-manage-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">Gerir</a>{% endif %}</div>
+    <div class="card-actions"><a class="button button--secondary button--full" href="{% url 'storefront:product-family-detail' family.slug %}">{{ "Explorar equipamentos"|ui_t }} <span aria-hidden="true">→</span></a>{% if request.user.is_authenticated and request.user.is_staff %}<a class="owner-family-manage-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">{{ "Gerir"|ui_t }}</a>{% endif %}</div>
   </div>
 </article>
