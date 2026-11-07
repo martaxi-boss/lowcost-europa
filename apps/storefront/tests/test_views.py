@@ -9,6 +9,9 @@ from django.utils import timezone
 from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, ProductFamily
 
 
+TEST_OPERATOR = {"name": "Example Operator", "address": "Example Street, Portugal", "tax_id": "TEST-ID"}
+
+
 class StorefrontViewTests(TestCase):
     def setUp(self):
         def add_legacy_equivalent_placement(sender, instance, created, **kwargs):
@@ -693,7 +696,10 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertNotContains(robots, "Allow: /")
         self.assertNotContains(robots, "Sitemap:")
 
-    @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
+    @override_settings(
+        PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True,
+        PUBLIC_OPERATOR=TEST_OPERATOR,
+    )
     def test_canonical_and_indexing_can_be_enabled_with_explicit_public_site_url(self):
         home = self.client.get(reverse("storefront:home"))
         robots = self.client.get(reverse("storefront:robots"))
@@ -710,7 +716,8 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertNotIn("X-Robots-Tag", home)
 
     @override_settings(
-        PUBLIC_SITE_URL="https://www.lowcost-europa.eu", PUBLIC_INDEXING_ENABLED=True
+        PUBLIC_SITE_URL="https://www.lowcost-europa.eu", PUBLIC_INDEXING_ENABLED=True,
+        PUBLIC_OPERATOR=TEST_OPERATOR,
     )
     def test_alternate_hostname_remains_noindex_after_launch(self):
         home = self.client.get(reverse("storefront:home"))
@@ -720,7 +727,10 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertEqual(home["X-Robots-Tag"], "noindex, nofollow")
         self.assertEqual(robots.content.decode(), "User-agent: *\nDisallow: /\n")
 
-    @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
+    @override_settings(
+        PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True,
+        PUBLIC_OPERATOR=TEST_OPERATOR,
+    )
     def test_operational_endpoints_stay_private_after_launch(self):
         paths = ("/painel/", "/admin/", "/health/live/", "/health/ready/", "/ops/")
         for path in paths:
@@ -730,7 +740,10 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertEqual(self.client.get("/painel/").status_code, 302)
         self.assertEqual(self.client.get("/admin/").status_code, 302)
 
-    @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
+    @override_settings(
+        PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True,
+        PUBLIC_OPERATOR=TEST_OPERATOR,
+    )
     def test_retired_category_and_missing_page_stay_noindex_after_launch(self):
         family = ProductFamily.objects.create(
             name="Retired", slug="retired-indexing", status=ProductFamily.Status.RETIRED
@@ -770,3 +783,20 @@ class InstitutionalTransparencyTests(TestCase):
             reverse("storefront:product-family-detail", kwargs={"slug": active.slug}),
         )
         self.assertNotContains(response, "retired-family-sitemap")
+
+    @override_settings(
+        PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True, PUBLIC_OPERATOR={}
+    )
+    def test_missing_operator_keeps_public_indexing_closed(self):
+        home = self.client.get("/")
+        self.assertEqual(home["X-Robots-Tag"], "noindex, nofollow")
+        self.assertNotContains(home, 'rel="canonical"')
+        self.assertContains(self.client.get("/robots.txt"), "Disallow: /\n")
+
+    @override_settings(PUBLIC_OPERATOR=TEST_OPERATOR)
+    def test_legal_operator_renders_on_all_three_institutional_pages(self):
+        for path in ("/contacto/", "/termos/", "/privacidade/"):
+            response = self.client.get(path)
+            self.assertContains(response, TEST_OPERATOR["name"])
+            self.assertContains(response, TEST_OPERATOR["address"])
+            self.assertContains(response, TEST_OPERATOR["tax_id"])
