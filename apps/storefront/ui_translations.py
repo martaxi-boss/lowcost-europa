@@ -1386,6 +1386,48 @@ UI_TRANSLATIONS = {
     "en": "Some catalogue categories",
     "fr": "Quelques catégories du catalogue",
     "de": "Einige Katalogkategorien"
+  },
+  "Laser estético": {
+    "es": "Láser estético",
+    "en": "Aesthetic laser",
+    "fr": "Laser esthétique",
+    "de": "Ästhetiklaser"
+  },
+  "Cavitação e radiofrequência": {
+    "es": "Cavitación y radiofrecuencia",
+    "en": "Cavitation and radiofrequency",
+    "fr": "Cavitation et radiofréquence",
+    "de": "Kavitation und Radiofrequenz"
+  },
+  "Hidrodermoabrasão": {
+    "es": "Hidrodermoabrasión",
+    "en": "Hydrodermabrasion",
+    "fr": "Hydrodermabrasion",
+    "de": "Hydrodermabrasion"
+  },
+  "Pressoterapia": {
+    "es": "Presoterapia",
+    "en": "Pressotherapy",
+    "fr": "Pressothérapie",
+    "de": "Pressotherapie"
+  },
+  "HIFU": {
+    "es": "HIFU",
+    "en": "HIFU",
+    "fr": "HIFU",
+    "de": "HIFU"
+  },
+  "Laser de díodo": {
+    "es": "Láser de diodo",
+    "en": "Diode laser",
+    "fr": "Laser diode",
+    "de": "Diodenlaser"
+  },
+  "Tratamentos corporais": {
+    "es": "Tratamientos corporales",
+    "en": "Body treatments",
+    "fr": "Soins corporels",
+    "de": "Körperbehandlungen"
   }
 }
 
