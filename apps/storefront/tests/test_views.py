@@ -692,18 +692,52 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertNotContains(robots, "Allow: /")
         self.assertNotContains(robots, "Sitemap:")
 
-    @override_settings(PUBLIC_SITE_URL="https://example.test", PUBLIC_INDEXING_ENABLED=True)
+    @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
     def test_canonical_and_indexing_can_be_enabled_with_explicit_public_site_url(self):
         home = self.client.get(reverse("storefront:home"))
         robots = self.client.get(reverse("storefront:robots"))
-        self.assertContains(home, '<link rel="canonical" href="https://example.test/">', html=True)
+        self.assertContains(home, '<link rel="canonical" href="https://testserver/">', html=True)
         self.assertContains(home, '<meta name="robots" content="index, follow">', html=True)
         self.assertContains(
-            home, '<meta property="og:url" content="https://example.test/">', html=True
+            home, '<meta property="og:url" content="https://testserver/">', html=True
         )
         self.assertContains(robots, "Allow: /")
-        self.assertContains(robots, "Sitemap: https://example.test/sitemap.xml")
-        self.assertNotContains(robots, "Disallow: /")
+        self.assertContains(robots, "Sitemap: https://testserver/sitemap.xml")
+        self.assertNotIn("Disallow: /", robots.content.decode().splitlines())
+        self.assertContains(robots, "Disallow: /painel/")
+        self.assertContains(robots, "Disallow: /admin/")
+        self.assertNotIn("X-Robots-Tag", home)
+
+    @override_settings(PUBLIC_SITE_URL="https://www.lowcost-europa.eu", PUBLIC_INDEXING_ENABLED=True)
+    def test_alternate_hostname_remains_noindex_after_launch(self):
+        home = self.client.get(reverse("storefront:home"))
+        robots = self.client.get(reverse("storefront:robots"))
+        self.assertContains(home, '<meta name="robots" content="noindex, nofollow">', html=True)
+        self.assertNotContains(home, 'rel="canonical"')
+        self.assertEqual(home["X-Robots-Tag"], "noindex, nofollow")
+        self.assertEqual(robots.content.decode(), "User-agent: *\nDisallow: /\n")
+
+    @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
+    def test_operational_endpoints_stay_private_after_launch(self):
+        for path in ("/painel/", "/admin/", "/health/live/", "/health/ready/", "/ops/"):
+            response = self.client.get(path)
+            self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+            self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertEqual(self.client.get("/painel/").status_code, 302)
+        self.assertEqual(self.client.get("/admin/").status_code, 302)
+
+    @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
+    def test_retired_category_and_missing_page_stay_noindex_after_launch(self):
+        family = ProductFamily.objects.create(
+            name="Retired", slug="retired-indexing", status=ProductFamily.Status.RETIRED
+        )
+        response = self.client.get(
+            reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+        )
+        self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertNotContains(response, 'rel="canonical"')
+        self.assertEqual(self.client.get("/missing-public-page/")["X-Robots-Tag"], "noindex, nofollow")
 
     def test_robots_disallows_indexing_by_default(self):
         response = self.client.get(reverse("storefront:robots"))
