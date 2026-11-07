@@ -2,13 +2,13 @@
 
 ## Estado e limites
 
-**Lançamento retido por dados legais do operador. Indexação não concluída.**
+**Identidade legal fornecida pelo proprietário. Deploy e indexação em curso; não concluídos nesta fotografia.**
 Esta preparação foi autorizada pelo proprietário na conversa de 07/11.
 Não foi pedido qualquer comando manual para a VPS.
 
 - Propriedade de domínio `lowcost-europa.eu` criada no Google Search Console e confirmada pelo Google com **Propriedade validada**, por TXT na Dynadot.
 - Inspeção da raiz WWW no Google: **O URL não está no Google** / **A Google não reconhece o URL**. Sem sitemap de referência detetado.
-- Sitemap ainda não submetido nem pedidos de indexação enviados: aguarda os dados legais e deploy aprovado pelos gates da mesma ordem.
+- Sitemap ainda não submetido nem pedidos de indexação enviados nesta fotografia: aguarda deploy e verificações finais.
 - Produção continua com `DJANGO_PUBLIC_INDEXING_ENABLED=false`, meta/headers noindex e robots `Disallow: /`.
 - Código de preparação em PR #207, **rascunho e não implantado**.
 
@@ -62,14 +62,14 @@ preços como observados e stock/prazos sujeitos a confirmação no parceiro.
 - Links afiliados qualificados com `rel="sponsored nofollow"`.
 - Testes de regressão para lançamento, hostname alternativo, rotas privadas e categoria retirada.
 
-## Dados necessários antes do lançamento
+## Identidade legal e privacidade
 
-As páginas legais não identificam o operador. Solicitar apenas:
-nome completo ou denominação social, morada do estabelecimento com país,
-NIF/NIPC ou identificação fiscal equivalente e, se for sociedade, registo comercial aplicável.
-Não reutilizar silenciosamente os dados privados da conta Dynadot.
-Não publicar identificadores pessoais no repositório público; integrar os valores
-confirmados no ambiente privado e renderizá-los nas páginas legais autorizadas.
+O proprietário forneceu a identidade individual, morada e NIF na conversa de 07/11.
+Os valores não pertencem ao repositório nem aos logs. O deploy transporta-os cifrados,
+guarda-os em `private/legal/operator.json` e renderiza-os em contacto, termos e privacidade.
+A ausência de campos bloqueia a indexação. Não se reutilizam os dados privados da conta Dynadot.
+As páginas de privacidade incluem responsável, finalidades, fundamento, critério de conservação,
+serviços externos e direitos, com tradução nos cinco idiomas.
 
 Fontes oficiais:
 - [DL 7/2004, artigo 10.º](https://diariodarepublica.pt/dr/legislacao-consolidada/decreto-lei/2004-73199154-73197494).
