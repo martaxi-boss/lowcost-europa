@@ -14,7 +14,7 @@ class EditorialStorefrontTests(SimpleTestCase):
             self.template("product_family_detail.html"),
         ):
             self.assertIn("{% if family.display_offer %}Seleção editorial", template)
-            self.assertIn("{% else %}Em preparação{% endif %}", template)
+            self.assertIn("{% else %}{{ family.public_status }}{% endif %}", template)
 
     def test_offer_information_is_clear_and_factual(self):
         card = self.template("components/offer_card.html")

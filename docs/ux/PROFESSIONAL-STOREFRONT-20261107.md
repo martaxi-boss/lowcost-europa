@@ -5,7 +5,7 @@ Redesenhar a apresentação na aplicação Django existente, sem alterar dados, 
 
 ## Alterações propostas em branch
 - Homepage e navegação com linguagem mais direta, orientação por especialidades e melhor hierarquia visual.
-- Cartões editoriais com estado honesto: **Seleção editorial** quando existe uma oferta publicada, **Em preparação** quando não existe.
+- Cartões editoriais com estado honesto: **Seleção editorial** quando existe uma oferta publicada, estado público original quando não existe.
 - Preço e logística continuam dados observados e da oferta representativa, sem afirmar preço mínimo de toda a categoria.
 - Avaliação e vendas do parceiro em secção expandível acessível; preço, logística e saída para AliExpress permanecem visíveis.
 - CTA curto, legível e transparente: **VER PREÇO NO ALIEXPRESS**, com nota explicativa de compra no parceiro.
