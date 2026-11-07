@@ -1,5 +1,15 @@
 # Lowcost Europa — Project State
 
+## Public technical launch and Google requests — 2026-11-07
+
+- **Application deployed:** `51bee8009492c3cd5855f4aae71de3597fd1965b` from PR #207. [Guarded VPS launch #42422451050](https://github.com/martaxi-boss/VPS/actions/runs/42422451050) PASS: PUBLIC_INDEXING_ENABLED=true, legal identity privately provisioned, Django/Nginx healthy, no migrations. Main CI #42422298302 passed 744 tests; Chromium #42422298343 and source audit #42422298429 passed.
+- **Public SEO:** external verification passed 11/11 sitemap pages with HTTP 200, index/follow, exact WWW canonical and no noindex header; 52/52 affiliate routes HTTPS with sponsored/nofollow. Panel/admin still require authentication and remain noindex/private, as do operational endpoints, search and noncanonical hosts. HTTPS and redirects remain valid; mail DNS unchanged.
+- **Google confirmed:** domain ownership verified by additive Dynadot TXT; six individual indexing requests (home + all five categories) each accepted into the priority crawl queue. This is **not** confirmation of index inclusion.
+- **Sitemap:** submission accepted, but the sitemap report initially still showed Couldn't fetch / zero discovered URLs. The live Google smartphone test at 22:59:54 successfully fetched the XML, with crawling and indexing permitted. Sitemap processing and actual indexing remain external pending states; do not declare them complete.
+- **Legal data:** supplied by the owner, stored only in private VPS configuration, rendered on contact/terms/privacy. No real identity fields in source/tests/logs. Temporary encryption key and launch workflows removed, rollback preserved.
+- **Closeout:** [full report](docs/operations/indexing-closeout-20261107.md) and [postlaunch public evidence](docs/operations/indexing-public-after-20261107.json). Final documentation alignment checks that only documentation differs from the deployed application revision and confirms clean Git/VPS state.
+
+
 ## Indexing preparation and verified domain — 2026-11-07
 
 - **Current production evidence:** [VPS audit #42421004057](https://github.com/martaxi-boss/VPS/actions/runs/42421004057) confirms main and VPS at `bb3921b646102cba0af0f397bddfde8b2f37d39a`, clean tracked files, active Django, valid Nginx, HTTPS SAN apex+WWW and renewal timer. The earlier "DNS/cutover pending" section below is historical and superseded by this readback.
