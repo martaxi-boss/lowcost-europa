@@ -440,7 +440,8 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(
             response,
-            "Descubra equipamentos por especialidade e compare opções de parceiros externos, com informação útil reunida num só lugar.",
+            ("Descubra equipamentos por especialidade e compare opções de parceiros externos, "
+             "com informação útil reunida num só lugar."),
         )
         self.assertNotContains(response, "Explorar categorias")
         self.assertNotContains(response, "Curadoria editorial")
