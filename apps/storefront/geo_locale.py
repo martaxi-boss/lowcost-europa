@@ -2,7 +2,7 @@
 
 Only PT, ES, FR and DE receive non-English automatic languages. GB and
 every other location (including unresolved IPs) default to English. No IP is
-stored, no remote lookup is performed, and explicit language cookies win.
+stored and no remote lookup is performed. Browser and old language cookies are ignored.
 """
 
 import ipaddress
@@ -10,8 +10,8 @@ import logging
 from functools import lru_cache
 from pathlib import Path
 
-import geoip2.database
-from geoip2.errors import AddressNotFoundError
+import maxminddb
+from maxminddb.errors import InvalidDatabaseError
 from django.conf import settings
 from django.middleware.locale import LocaleMiddleware
 from django.utils import translation
@@ -68,7 +68,7 @@ def public_client_ip(request):
 @lru_cache(maxsize=1)
 def _reader(db_path):
     """A shared, read-only MMDB reader; restart the process after DB updates."""
-    return geoip2.database.Reader(db_path)
+    return maxminddb.open_database(db_path)
 
 
 def lookup_country(ip):
@@ -79,10 +79,9 @@ def lookup_country(ip):
     if not db_path.is_file():
         return None
     try:
-        return _reader(str(db_path)).country(str(ip)).country.iso_code
-    except AddressNotFoundError:
-        return None
-    except (OSError, ValueError) as exc:
+        record = _reader(str(db_path)).get(str(ip))
+        return (record or {}).get("country", {}).get("iso_code")
+    except (InvalidDatabaseError, OSError, ValueError) as exc:
         logger.warning("Country database unavailable: %s", type(exc).__name__)
         return None
 
