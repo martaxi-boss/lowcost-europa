@@ -1440,6 +1440,18 @@ UI_TRANSLATIONS = {
     "en": "The storefront language is chosen by the country associated with the public IP address, including VPNs: Portuguese for Portugal, Spanish for Spain, French for France, German for Germany, and English for all other countries. The country database is queried locally without storing the IP address for this selection.",
     "fr": "La langue du site dépend du pays associé à l'adresse IP publique, y compris en cas de VPN : portugais pour le Portugal, espagnol pour l'Espagne, français pour la France, allemand pour l'Allemagne et anglais pour les autres pays. La base de données des pays est consultée localement, sans enregistrer l'adresse IP pour ce choix.",
     "de": "Die Sprache der Website richtet sich nach dem Land der öffentlichen IP-Adresse, auch bei Verwendung eines VPN: Portugiesisch für Portugal, Spanisch für Spanien, Französisch für Frankreich, Deutsch für Deutschland und Englisch für alle anderen Länder. Die Länder-Datenbank wird lokal abgefragt, ohne die IP-Adresse für diese Auswahl zu speichern."
+  },
+  "Mensagens de contacto": {
+    "es": "Mensajes de contacto",
+    "en": "Contact messages",
+    "fr": "Messages de contact",
+    "de": "Kontaktanfragen"
+  },
+  "Quando envia um e-mail para o nosso endereço institucional, os dados que incluir (como o seu endereço de e-mail e a mensagem) são tratados por serviços de correio eletrónico para podermos receber e responder. As mensagens podem ser encaminhadas para uma caixa de gestão privada.": {
+    "es": "Cuando nos envía un correo electrónico, los datos que incluya (como su dirección de correo y el mensaje) son tratados por servicios de correo electrónico para que podamos recibirlo y responder. Los mensajes pueden reenviarse a una cuenta de gestión privada.",
+    "en": "When you email our business address, the details you include (such as your email address and message) are processed by email services so we can receive and reply. Messages may be forwarded to a private management mailbox.",
+    "fr": "Lorsque vous écrivez à notre adresse professionnelle, les informations fournies (telles que votre adresse e-mail et votre message) sont traitées par des services de messagerie pour nous permettre de recevoir votre demande et d'y répondre. Les messages peuvent être transférés vers une boîte de gestion privée.",
+    "de": "Wenn Sie uns an unsere geschäftliche E-Mail-Adresse schreiben, werden Ihre Angaben (z. B. Ihre E-Mail-Adresse und Ihre Nachricht) von E-Mail-Diensten verarbeitet, damit wir die Nachricht empfangen und beantworten können. Nachrichten können an ein privates Verwaltungspostfach weitergeleitet werden."
   }
 }
 
