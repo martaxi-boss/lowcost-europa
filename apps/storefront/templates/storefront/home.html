@@ -49,7 +49,7 @@
                 {% endif %}
               </div>
               <div class="showcase-tile__info">
-                <small>Categoria {{ family.display_order|stringformat:"02d" }}</small>
+                <small>{{ "Categoria"|ui_t }} {{ family.display_order|stringformat:"02d" }}</small>
                 <strong>{{ family|family_label }}</strong>
                 <span aria-hidden="true">↗</span>
               </div>
@@ -68,7 +68,7 @@
   <div class="container">
     <div class="family-navigation-heading"><p class="eyebrow">{{ "Explore o catálogo"|ui_t }}</p><h2>{{ "Encontre a sua especialidade."|ui_t }}</h2></div>
     {% if families %}
-      <nav class="family-index family-index--compact" aria-label="Famílias de produtos">
+      <nav class="family-index family-index--compact" aria-label="{{ "Famílias de produtos"|ui_t }}">
         {% for family in families %}
           <a href="{% url 'storefront:product-family-detail' family.slug %}"><span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span><span>{{ family|family_label }}</span><span aria-hidden="true">↗</span></a>
         {% endfor %}
