@@ -440,7 +440,8 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(
             response,
-            "Explore equipamentos por especialidade e encontre opções organizadas num só lugar.",
+            ("Descubra equipamentos por especialidade e compare opções de parceiros externos, "
+             "com informação útil reunida num só lugar."),
         )
         self.assertNotContains(response, "Explorar categorias")
         self.assertNotContains(response, "Curadoria editorial")
@@ -451,8 +452,8 @@ class StorefrontViewTests(TestCase):
         self.assertNotContains(response, "O catálogo cresce por validação")
         self.assertNotContains(response, 'class="hero-actions"')
         self.assertNotContains(response, 'class="trust-list"')
-        self.assertContains(response, 'class="family-index family-index--compact"')
-        self.assertContains(response, "Seleções para comparar com calma.")
+        self.assertContains(response, 'class="family-index atelier-index"')
+        self.assertContains(response, "As especialidades, em detalhe.")
         self.assertContains(response, "Como ajudamos")
         self.assertContains(response, "Como funciona")
         self.assertNotContains(response, "Transparência comercial")

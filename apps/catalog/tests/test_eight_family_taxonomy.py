@@ -166,7 +166,7 @@ class EightFamilyTaxonomyMigrationTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertNotContains(response, "5 categorias")
         self.assertNotContains(response, "Cinco famílias reais")
-        self.assertContains(response, 'class="family-index family-index--compact"')
+        self.assertContains(response, 'class="family-index atelier-index"')
 
 
 class EightFamilyTaxonomyBaselineSafetyTests(TestCase):
