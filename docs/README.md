@@ -10,8 +10,10 @@ Current references:
 - [Systemd implementation](../deploy/systemd/README.md)
 - [Current technical pilot integration and hygiene (2026-10-14)](ops/PILOT-TECHNICAL-HYGIENE-CLOSEOUT-20261014.md)
 - [Current pilot feedback and browser QA checklist](qa/PILOT-FEEDBACK-READINESS-20261014.md)
+- [Professional storefront visual changes and source-browser QA (07/11/2026)](ux/PROFESSIONAL-STOREFRONT-20261107.md)
+- [GitHub source hygiene and branch preservation (07/11/2026)](ops/GITHUB-HYGIENE-20261107.md)
 
-Except for the two explicitly linked current pilot documents above, reports under adr/, audits/, commercial/, launch/, mvp/, ops/, qa/, studies/, storefront/ and ux/, plus PHASE_0_RECONNAISSANCE.md and the initial catalog structure/taxonomy reports, are historical checkpoints.
+Except for the explicitly linked current references above, reports under adr/, audits/, commercial/, launch/, mvp/, ops/, qa/, studies/, storefront/ and ux/, plus PHASE_0_RECONNAISSANCE.md and the initial catalog structure/taxonomy reports, are historical checkpoints.
 Their dates, counts, gates, test totals, infrastructure and copy describe that phase only.
 They must not reintroduce seven-day expiry, approval-learning feedback, eight-family expansion,
 DigitalOcean/DC administration or old backup-installation instructions.
