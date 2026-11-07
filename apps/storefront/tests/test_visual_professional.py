@@ -53,3 +53,42 @@ class EditorialStorefrontTests(SimpleTestCase):
         base = self.template("base.html")
         self.assertIn("storefront.css' %}?v=i18n-20261107", base)
         self.assertIn("catalog-explorer.js' %}?v=i18n-20261107", base)
+
+
+
+class PublicLaunchIdentityTests(SimpleTestCase):
+    """Guard the new public contact identity and SSL-gated canonical domain."""
+
+    def template(self, name):
+        return (settings.BASE_DIR / "apps/storefront/templates/storefront" / name).read_text()
+
+    def test_official_contact_replaces_testing_gmail_on_all_public_pages(self):
+        for name in ("contacto.html", "privacidade.html"):
+            with self.subTest(template=name):
+                content = self.template(name)
+                self.assertIn('mailto:geral@lowcost-europa.eu', content)
+                self.assertNotIn("@gmail.com", content)
+
+    def test_www_is_canonical_and_apex_redirects_only_after_tls(self):
+        root = settings.BASE_DIR
+        nginx = (root / "deploy/nginx/lowcost-europa.eu.conf").read_text()
+        env_example = (root / ".env.example").read_text()
+        self.assertIn("server_name www.lowcost-europa.eu;", nginx)
+        self.assertIn("server_name lowcost-europa.eu;", nginx)
+        self.assertEqual(
+            nginx.count("return 301 https://www.lowcost-europa.eu$request_uri;"),
+            2,
+        )
+        self.assertIn(
+            "ssl_certificate /etc/letsencrypt/live/lowcost-europa.eu/fullchain.pem;",
+            nginx,
+        )
+        self.assertIn("location = /aliexpress/callback {", nginx)
+        self.assertEqual(nginx.count('add_header X-Robots-Tag "noindex, nofollow" always;'), 3)
+        self.assertIn(
+            "# DJANGO_PUBLIC_SITE_URL=https://www.lowcost-europa.eu",
+            env_example,
+        )
+        self.assertIn("# DJANGO_PUBLIC_INDEXING_ENABLED=false", env_example)
+        # No sensitive Gmail destination must be present in the public templates.
+        self.assertNotIn("@gmail.com", self.template("contacto.html"))

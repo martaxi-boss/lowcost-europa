@@ -1,4 +1,4 @@
-# Low Cost Europa — passagem segura para lowcost-europa.eu (Dynadot)
+# Low Cost Europa — passagem segura para www.lowcost-europa.eu (Dynadot)
 
 ## Situação auditada em 07/11/2026
 
@@ -63,14 +63,14 @@ pinado. Ficheiros de domínio pertencem ao repositório
    `DJANGO_ALLOWED_HOSTS` deve incluir o domínio raiz, `www` e
    DuckDNS (sem perder localhost/hosts internos); `DJANGO_CSRF_TRUSTED_ORIGINS`
    deve incluir as novas origens HTTPS; `DJANGO_PUBLIC_SITE_URL`
-   passa a `https://lowcost-europa.eu`. Manter
+   passa a `https://www.lowcost-europa.eu`. Manter
    `DJANGO_PUBLIC_INDEXING_ENABLED=false`. Preservar restantes variáveis.
 6. Testar `django check --deploy` e serviço com os hosts novos.
    Só **depois** substituir o vhost temporário por
    `deploy/nginx/lowcost-europa.eu.conf`, verificando `nginx -t` antes
    de recarregar. Não modificar o vhost DuckDNS nem outros projetos.
 7. Verificar HTTPS (certificado/cadeia), resposta 200 da raiz,
-   `www` → `https://lowcost-europa.eu` (301), cinco categorias,
+   domínio raiz → `https://www.lowcost-europa.eu` (301), cinco categorias,
    filtros e painel, IP→língua em cinco países e fallback inglês,
    `X-Robots-Tag: noindex`, redirecionamentos de afiliado e saúde DuckDNS.
 8. Registar evidência de GitHub Actions, commit exato no VPS e estado limpo,
@@ -93,3 +93,13 @@ publicação comercial apenas por ter um domínio pago.
 ## Fonte para o painel Dynadot
 
 [Documentação oficial de DNS Dynadot](https://www.dynadot.com/pt/ajuda/pergunta/configurar-DNS).
+
+## Identidade institucional e correio para lançamento público
+
+- Website público canónico aprovado: **https://www.lowcost-europa.eu**. O domínio sem `www` deve redirecionar permanentemente para `www` **após ambos terem certificado TLS válido**.
+- Endereço **público** de contacto e privacidade: `geral@lowcost-europa.eu`, substituindo o endereço de teste antigo nas páginas e respetivos testes.
+- O destino Gmail para **reencaminhamento** é **privado e não pertence ao código, logs, site ou GitHub**. A propriedade da caixa e a opção de encaminhamento na Dynadot não podem ser verificadas a partir dos MX públicos.
+- Como o MX atual é `webhost.dynadot.com`, verificar em primeiro lugar se existe um plano `My Emails` com caixa `geral`. Nesse caso usar **Mailboxes → General Settings → Delivery Options → Forwarding** e confirmar no Gmail. Documentação: https://www.dynadot.com/help/question/set-up-email-forwarding
+- **ATENÇÃO**: no domínio com `Dynadot Email Hosting`, mudar diretamente para `Email Settings → Forwarding Email` pode **desligar o alojamento de e-mail existente**. Só usar encaminhamento do domínio depois de confirmar que não está ativo um plano de e-mail. Documentação: https://www.dynadot.com/help/question/email-forwarding
+- Verificar envio a `geral@lowcost-europa.eu` por um endereço **externo diferente do Gmail de destino**; confirmar a mensagem recebida e cabeçalhos. O encaminhamento gratuito recebe, mas não permite necessariamente enviar como `geral@...`.
+- Não ativar `DJANGO_PUBLIC_INDEXING_ENABLED=true` sem verificação comprovada de: DNS+TLS WWW/apex, envio/receção do e-mail, painel/login privado, páginas legais e identidade do operador, cinco categorias/ofertas atuais e sinalização de afiliados, língua por IP e conteúdo `noindex` pronto para levantamento. A ativação comercial e indexação são passos distintos.
