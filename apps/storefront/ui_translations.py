@@ -1,3 +1,4 @@
+# ruff: noqa: E501 -- fixed, reviewed UI translations are intentionally long strings
 """Curated five-language public UI copy. Portuguese is the source and fallback.
 
 Only fixed interface terms and known category names are localised. Seller-supplied
