@@ -14,7 +14,7 @@
     {% endif %}
   </a>
   <div class="product-card__body">
-    <div class="card-topline"><span class="badge">{% if family.display_offer %}Seleção editorial{% else %}{{ family.public_status }}{% endif %}</span><span class="card-kicker">Especialidade {{ family.display_order|stringformat:"02d" }}</span></div>
+    <div class="card-topline"><span class="badge">{% if family.display_offer %}Seleção editorial{% else %}{{ family.public_status }}{% endif %}</span><span class="card-kicker">{{ "Especialidade"|ui_t }} {{ family.display_order|stringformat:"02d" }}</span></div>
     <h3><a href="{% url 'storefront:product-family-detail' family.slug %}">{{ family|family_label }}</a></h3>
     {% if family.display_offer %}
       <p class="category-orientation">{{ "Consulte opções publicadas e compare preço e logística observados."|ui_t }}</p>
