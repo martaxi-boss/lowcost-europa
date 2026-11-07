@@ -89,6 +89,20 @@ class PublicLanguageTests(TestCase):
         self.assertContains(response, "Comment ça marche")
         self.assertContains(response, '<html lang="fr">')
 
+
+    def test_contact_email_privacy_notice_is_localised_in_all_five_languages(self):
+        label = "Mensagens de contacto"
+        variants = {
+            "pt-pt": label,
+            "es": "Mensajes de contacto",
+            "en": "Contact messages",
+            "fr": "Messages de contact",
+            "de": "Kontaktanfragen",
+        }
+        for language, expected in variants.items():
+            with self.subTest(language=language):
+                self.assertEqual(translate_ui(label, language), expected)
+
     def test_unknown_text_and_external_supplier_data_are_not_guessed(self):
         self.assertEqual(translate_ui("Unknown offer data", "es"), "Unknown offer data")
         self.assertEqual(
