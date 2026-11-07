@@ -920,7 +920,7 @@ body { background: var(--bg); }
   .family-navigation-heading { display: block; }
   .family-navigation-heading h2 { margin-top: 6px; }
   .product-card__image { padding: 11px; }
-  .catalog-compare-dock { bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .catalog-compare-dock { bottom: max(16px, env(safe-area-inset-bottom)); }
   .catalog-compare-dock > span { flex: 1 1 135px; }
   .catalog-compare-dock button { flex: 0 0 auto; }
 }
