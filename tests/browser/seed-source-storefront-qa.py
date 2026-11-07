@@ -9,6 +9,7 @@ import django
 django.setup()
 
 from django.utils import timezone  # noqa: E402
+
 from apps.catalog.models import (  # noqa: E402
     Offer, OfferFamilyPlacement, OfferObservation, ProductFamily,
 )
