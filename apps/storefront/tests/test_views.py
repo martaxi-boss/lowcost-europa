@@ -57,7 +57,7 @@ class StorefrontViewTests(TestCase):
             title="Equipment in public catalog",
         )
         response = self.client.get(reverse("storefront:home"))
-        self.assertContains(response, "Seleção em avaliação")
+        self.assertContains(response, "Seleção editorial")
         self.assertNotContains(response, "Em preparação")
 
     def test_missing_product_family_returns_404(self):
@@ -440,7 +440,7 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(
             response,
-            "Equipamentos profissionais de estética, selecionados para uma compra informada.",
+            "Explore equipamentos por especialidade e encontre opções organizadas num só lugar.",
         )
         self.assertNotContains(response, "Explorar categorias")
         self.assertNotContains(response, "Curadoria editorial")
@@ -452,7 +452,7 @@ class StorefrontViewTests(TestCase):
         self.assertNotContains(response, 'class="hero-actions"')
         self.assertNotContains(response, 'class="trust-list"')
         self.assertContains(response, 'class="family-index family-index--compact"')
-        self.assertContains(response, "Produtos em destaque")
+        self.assertContains(response, "Seleções para comparar com calma.")
         self.assertContains(response, "Como ajudamos")
         self.assertContains(response, "Como funciona")
         self.assertNotContains(response, "Transparência comercial")
@@ -477,7 +477,7 @@ class StorefrontViewTests(TestCase):
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
         self.assertContains(response, "Preço observado")
-        self.assertContains(response, "VER PREÇO E COMPRAR NO ALIEXPRESS")
+        self.assertContains(response, "VER PREÇO NO ALIEXPRESS")
         self.assertContains(response, reverse("storefront:offer-go", kwargs={"offer_id": offer.pk}))
         self.assertNotContains(response, "Comprar agora")
         self.assertNotContains(response, offer.affiliate_url)
@@ -494,7 +494,7 @@ class StorefrontViewTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         content = response.content.decode().lower()
         self.assertIn("seleção editorial", content)
-        self.assertIn("sem transformar a escolha editorial num ranking", content)
+        self.assertIn("a ordem é editorial, não um ranking de qualidade", content)
         for phrase in ("melhor produto", "mais vendido", "ranking automático", "winner"):
             self.assertNotIn(phrase, content)
         self.assertNotIn('class="badge">winner', content)

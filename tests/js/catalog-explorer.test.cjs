@@ -48,3 +48,18 @@ test('budget filter never guesses conversions or hides unknown price without req
   assert.equal(withinBudget(eur, 'unknown'), false);
   assert.equal(withinBudget(null, ''), true);
 });
+
+test('comparison dock is bound to real selection and panel controls', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const root = path.resolve(__dirname, '../..');
+  const html = fs.readFileSync(path.join(root, 'apps/storefront/templates/storefront/components/catalog_explorer_controls.html'), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'apps/storefront/static/storefront/catalog-explorer.js'), 'utf8');
+  assert.match(html, /data-compare-dock hidden/);
+  assert.match(html, /data-compare-show/);
+  assert.match(html, /data-compare-heading tabindex="-1"/);
+  assert.match(script, /dock\.hidden = selected\.size === 0/);
+  assert.match(script, /dockOpen\.addEventListener\("click"/);
+  assert.match(script, /panel\.scrollIntoView/);
+  assert.match(script, /selected\.size < 3/);
+});
