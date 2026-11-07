@@ -75,15 +75,18 @@ jobs:
       - name: Prepare synthetic database
         run: |
           python manage.py migrate --noinput
+          python manage.py collectstatic --noinput
           PYTHONPATH=. python tests/browser/seed-source-storefront-qa.py
       - name: Start branch-local Django for browser tests
         run: |
-          python manage.py runserver 127.0.0.1:8787 --noreload > qa-server.log 2>&1 &
+          python manage.py runserver 127.0.0.1:8787 --noreload --insecure > qa-server.log 2>&1 &
           for i in $(seq 1 35); do
             if curl -fsS http://127.0.0.1:8787/ > /dev/null; then break; fi
             sleep 1
           done
           curl -fsS http://127.0.0.1:8787/ > /dev/null
+          curl -fsS http://127.0.0.1:8787/static/storefront/storefront.css > /dev/null
+          curl -fsS http://127.0.0.1:8787/static/storefront/catalog-explorer.js > /dev/null
       - name: Test live browser layout and controls at four widths
         run: node tests/browser/source-storefront-qa.cjs
       - uses: actions/upload-artifact@v4
