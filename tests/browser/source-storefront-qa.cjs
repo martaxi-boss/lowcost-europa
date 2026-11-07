@@ -128,6 +128,57 @@ async function main() {
       await page.close();
       await context.close();
     }
+
+    // Verify language negotiation in a real mobile browser against the
+    // existing Django source, with all five public category links intact.
+    const languageCases = [
+      { locale: "pt-PT", code: "pt-pt", heading: /Escolhas mais claras\./ },
+      { locale: "es-ES", code: "es", heading: /Decisiones más claras\./ },
+      { locale: "en-GB", code: "en", heading: /Clearer choices\./ },
+      { locale: "fr-FR", code: "fr", heading: /Des choix plus clairs\./ },
+      { locale: "de-DE", code: "de", heading: /Klarere Entscheidungen\./ },
+    ];
+    for (const { locale, code, heading } of languageCases) {
+      const context = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+        locale,
+        extraHTTPHeaders: { "Accept-Language": locale + ","
+          + locale.slice(0, 2) + ";q=0.9" },
+        reducedMotion: "reduce",
+      });
+      const page = await context.newPage();
+      const pageErrors = [];
+      page.on("pageerror", e => pageErrors.push(e.message));
+      let res = await page.goto(origin + "/", { waitUntil: "networkidle" });
+      assert.equal(res.status(), 200);
+      await verify(page, "language:" + code, 390);
+      assert.equal(await page.locator("html").getAttribute("lang"), code);
+      assert.match(await page.locator("main h1").innerText(), heading);
+      assert.equal(await page.locator(".family-index a").count(), 5);
+      assert.equal(await page.locator(".product-card").count(), 5);
+      assert.equal(await page.locator("main #familias").count(), 1);
+      await page.screenshot({
+        path: path.join(out, "home-lang-" + code + ".png"),
+        fullPage: true, animations: "disabled",
+      });
+
+      // A language choice must override the browser locale on this device.
+      if (code === "es") {
+        await page.locator("#lang-footer").selectOption("fr");
+        await page.locator("#idioma button[type=submit]").click();
+        await page.waitForURL(origin + "/");
+        assert.equal(await page.locator("html").getAttribute("lang"), "fr");
+        assert.match(await page.locator("main h1").innerText(),
+          /Des choix plus clairs/);
+        const cookie = await context.cookies();
+        assert.equal(cookie.find(c => c.name === "lowcost_language")?.value, "fr");
+        report.checks.push({ page: "manual-language", width: 390, status: "PASS" });
+      }
+      assert.equal(pageErrors.length, 0, "Locale " + locale + ": " + pageErrors.join("; "));
+      await context.close();
+    }
   } catch (e) {
     report.errors.push(String(e.stack || e));
   } finally {

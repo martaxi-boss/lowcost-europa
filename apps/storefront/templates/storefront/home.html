@@ -1,44 +1,45 @@
 {% extends "storefront/base.html" %}
+{% load storefront_i18n %}
 {% block content %}
 <section class="hero hero--commercial" aria-labelledby="hero-title">
   <div class="container hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow eyebrow--hero">Equipamentos de estética profissional · seleção organizada</p>
-      <h1 id="hero-title">Equipamentos de estética. <em>Escolhas mais claras.</em></h1>
+      <p class="eyebrow eyebrow--hero">{{ "Equipamentos de estética profissional · seleção organizada"|ui_t }}</p>
+      <h1 id="hero-title">{{ "Equipamentos de estética."|ui_t }} <em>{{ "Escolhas mais claras."|ui_t }}</em></h1>
       <div class="hero-lead">
-        <p>Explore equipamentos por especialidade e encontre opções organizadas num só lugar.</p>
-        <p>Compare preços e informações observadas antes de consultar a oferta no parceiro. Sem promessas de stock ou entrega que não podemos confirmar.</p>
+        <p>{{ "Explore equipamentos por especialidade e encontre opções organizadas num só lugar."|ui_t }}</p>
+        <p>{{ "Compare preços e informações observadas antes de consultar a oferta no parceiro. Sem promessas de stock ou entrega que não podemos confirmar."|ui_t }}</p>
       </div>
       <form class="search-form search-form--hero" method="get" action="{% url 'storefront:search' %}" role="search">
-        <label for="home-equipment-search">Encontre o seu equipamento</label>
+        <label for="home-equipment-search">{{ "Encontre o seu equipamento"|ui_t }}</label>
         <div class="search-form__row">
           <input id="home-equipment-search" type="search" name="q" placeholder="HIFU, laser, pressoterapia..." autocomplete="off" maxlength="100" required>
-          <button type="submit">Pesquisar <span aria-hidden="true">→</span></button>
+          <button type="submit">{{ "Pesquisar"|ui_t }} <span aria-hidden="true">→</span></button>
         </div>
       </form>
       <div class="hero-primary-action hero-cta-row">
-        <a class="button button--large hero-primary-cta" href="#familias">VER EQUIPAMENTOS E PREÇOS <span aria-hidden="true">↗</span></a>
-        <a class="hero-secondary-cta" href="{% url 'storefront:como-funciona' %}">Como funciona <span aria-hidden="true">→</span></a>
+        <a class="button button--large hero-primary-cta" href="#familias">{{ "VER EQUIPAMENTOS E PREÇOS"|ui_t }} <span aria-hidden="true">↗</span></a>
+        <a class="hero-secondary-cta" href="{% url 'storefront:como-funciona' %}">{{ "Como funciona"|ui_t }} <span aria-hidden="true">→</span></a>
       </div>
       <div class="hero-essentials" aria-label="Como organizamos a seleção">
-        <span>Organizado por categorias</span>
-        <span>Preços observados</span>
-        <span>Compra externa transparente</span>
+        <span>{{ "Organizado por categorias"|ui_t }}</span>
+        <span>{{ "Preços observados"|ui_t }}</span>
+        <span>{{ "Compra externa transparente"|ui_t }}</span>
       </div>
     </div>
     <div class="hero-showcase" aria-label="Algumas categorias do catálogo">
-      <div class="hero-showcase__heading"><span>Explore por especialidade</span><span aria-hidden="true">✦</span></div>
+      <div class="hero-showcase__heading"><span>{{ "Explore por especialidade"|ui_t }}</span><span aria-hidden="true">✦</span></div>
       {% if families %}
         <div class="hero-showcase__grid">
           {% for family in families|slice:":3" %}
-            <a class="showcase-tile{% if forloop.first %} showcase-tile--primary{% endif %}" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Explorar {{ family.name }}">
+            <a class="showcase-tile{% if forloop.first %} showcase-tile--primary{% endif %}" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Explorar {{ family|family_label }}">
               <div class="showcase-tile__media">
                 {% if family.display_offer and family.display_offer.image_url %}
                   {% with image_url=family.display_offer.image_url %}
                     {% if image_url|slice:":8" == "https://" %}
                       <img src="{{ image_url }}" alt="" width="420" height="320" loading="lazy" data-product-image>
-                      <span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span>
-                      <span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span>
+                      <span class="image-fallback" data-image-fallback hidden>{{ "Imagem indisponível"|ui_t }}</span>
+                      <span class="image-quality-note" data-image-quality hidden>{{ "Fotografia de baixa resolução"|ui_t }}</span>
                     {% else %}
                       <span class="showcase-tile__monogram" aria-hidden="true">LE</span>
                     {% endif %}
@@ -48,28 +49,28 @@
                 {% endif %}
               </div>
               <div class="showcase-tile__info">
-                <small>Categoria {{ family.display_order|stringformat:"02d" }}</small>
-                <strong>{{ family.name }}</strong>
+                <small>{{ "Categoria"|ui_t }} {{ family.display_order|stringformat:"02d" }}</small>
+                <strong>{{ family|family_label }}</strong>
                 <span aria-hidden="true">↗</span>
               </div>
             </a>
           {% endfor %}
         </div>
       {% else %}
-        <div class="hero-showcase__empty"><span aria-hidden="true">LE</span><p>Estamos a preparar a seleção das categorias.</p></div>
+        <div class="hero-showcase__empty"><span aria-hidden="true">LE</span><p>{{ "Estamos a preparar a seleção das categorias."|ui_t }}</p></div>
       {% endif %}
-      <p class="hero-showcase__footnote">As imagens representam anúncios das respetivas categorias. Consulte os detalhes antes de comprar.</p>
+      <p class="hero-showcase__footnote">{{ "As imagens representam anúncios das respetivas categorias. Consulte os detalhes antes de comprar."|ui_t }}</p>
     </div>
   </div>
 </section>
 
 <section class="section section--compact" id="familias">
   <div class="container">
-    <div class="family-navigation-heading"><p class="eyebrow">Explore o catálogo</p><h2>Encontre a sua especialidade.</h2></div>
+    <div class="family-navigation-heading"><p class="eyebrow">{{ "Explore o catálogo"|ui_t }}</p><h2>{{ "Encontre a sua especialidade."|ui_t }}</h2></div>
     {% if families %}
-      <nav class="family-index family-index--compact" aria-label="Famílias de produtos">
+      <nav class="family-index family-index--compact" aria-label="{{ "Famílias de produtos"|ui_t }}">
         {% for family in families %}
-          <a href="{% url 'storefront:product-family-detail' family.slug %}"><span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span><span>{{ family.name }}</span><span aria-hidden="true">↗</span></a>
+          <a href="{% url 'storefront:product-family-detail' family.slug %}"><span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span><span>{{ family|family_label }}</span><span aria-hidden="true">↗</span></a>
         {% endfor %}
       </nav>
     {% endif %}
@@ -79,37 +80,37 @@
 <section class="section section--surface">
   <div class="container">
     <div class="section-heading section-heading--split">
-      <div><p class="eyebrow">Catálogo organizado</p><h2>Seleções para comparar com calma.</h2></div>
-      <p class="section-intro">Entre na categoria, consulte os equipamentos apresentados e compare os dados observados. A ordem é editorial, não um ranking de qualidade.</p>
+      <div><p class="eyebrow">{{ "Catálogo organizado"|ui_t }}</p><h2>{{ "Seleções para comparar com calma."|ui_t }}</h2></div>
+      <p class="section-intro">{{ "Entre na categoria, consulte os equipamentos apresentados e compare os dados observados. A ordem é editorial, não um ranking de qualidade."|ui_t }}</p>
     </div>
     {% if families %}
-      <p class="card-grid-hint">Deslize os cartões para explorar mais categorias.</p>
+      <p class="card-grid-hint">{{ "Deslize os cartões para explorar mais categorias."|ui_t }}</p>
       <div class="card-grid" role="region" aria-label="Categorias em destaque">
         {% for family in families %}{% include "storefront/components/product_family_card.html" with family=family %}{% endfor %}
       </div>
     {% else %}
-      <div class="empty-state"><h3>A seleção pública está a ser preparada.</h3><p>Estamos a validar produtos e fontes antes de os apresentar aqui.</p></div>
+      <div class="empty-state"><h3>{{ "A seleção pública está a ser preparada."|ui_t }}</h3><p>{{ "Estamos a validar produtos e fontes antes de os apresentar aqui."|ui_t }}</p></div>
     {% endif %}
   </div>
 </section>
 
 <section class="section">
   <div class="container value-grid">
-    <div class="section-heading value-grid__heading"><p class="eyebrow">Como ajudamos</p><h2>Menos ruído. Mais contexto para decidir.</h2><p class="section-intro">Selecionamos e organizamos informação útil sem transformar sinais incompletos em certezas.</p></div>
-    <article class="value-card"><span>01</span><h3>Selecionamos</h3><p>Trabalhamos com um catálogo curto e organizado em vez de milhares de listagens sem contexto.</p></article>
-    <article class="value-card"><span>02</span><h3>Organizamos</h3><p>Preço observado, logística disponível e sinais do parceiro aparecem com rótulos claros.</p></article>
-    <article class="value-card"><span>03</span><h3>Encaminhamos</h3><p>Não fazemos checkout. O clique de oferta leva ao parceiro, onde a compra e o pagamento acontecem.</p></article>
+    <div class="section-heading value-grid__heading"><p class="eyebrow">{{ "Como ajudamos"|ui_t }}</p><h2>{{ "Menos ruído. Mais contexto para decidir."|ui_t }}</h2><p class="section-intro">{{ "Selecionamos e organizamos informação útil sem transformar sinais incompletos em certezas."|ui_t }}</p></div>
+    <article class="value-card"><span>01</span><h3>{{ "Selecionamos"|ui_t }}</h3><p>{{ "Trabalhamos com um catálogo curto e organizado em vez de milhares de listagens sem contexto."|ui_t }}</p></article>
+    <article class="value-card"><span>02</span><h3>{{ "Organizamos"|ui_t }}</h3><p>{{ "Preço observado, logística disponível e sinais do parceiro aparecem com rótulos claros."|ui_t }}</p></article>
+    <article class="value-card"><span>03</span><h3>{{ "Encaminhamos"|ui_t }}</h3><p>{{ "Não fazemos checkout. O clique de oferta leva ao parceiro, onde a compra e o pagamento acontecem."|ui_t }}</p></article>
   </div>
 </section>
 
 <section class="section section--dark">
   <div class="container process-grid">
-    <div><p class="eyebrow eyebrow--light">Como funciona</p><h2>Da categoria ao parceiro, sem esconder quem vende.</h2></div>
+    <div><p class="eyebrow eyebrow--light">{{ "Como funciona"|ui_t }}</p><h2>{{ "Da categoria ao parceiro, sem esconder quem vende."|ui_t }}</h2></div>
     <ol class="steps">
-      <li><span>1</span><div><strong>Escolher uma categoria</strong><p>Explore as famílias editoriais disponíveis.</p></div></li>
-      <li><span>2</span><div><strong>Comparar ofertas</strong><p>Veja os dados observados, as limitações e a razão editorial quando existir.</p></div></li>
-      <li><span>3</span><div><strong>Seguir para o parceiro</strong><p>O CTA identifica claramente que vai sair do Lowcost Europa.</p></div></li>
-      <li><span>4</span><div><strong>Comprar fora do Lowcost Europa</strong><p>Pagamento, envio e apoio à encomenda são tratados pelo vendedor ou plataforma.</p></div></li>
+      <li><span>1</span><div><strong>{{ "Escolher uma categoria"|ui_t }}</strong><p>{{ "Explore as famílias editoriais disponíveis."|ui_t }}</p></div></li>
+      <li><span>2</span><div><strong>{{ "Comparar ofertas"|ui_t }}</strong><p>{{ "Veja os dados observados, as limitações e a razão editorial quando existir."|ui_t }}</p></div></li>
+      <li><span>3</span><div><strong>{{ "Seguir para o parceiro"|ui_t }}</strong><p>{{ "O CTA identifica claramente que vai sair do Lowcost Europa."|ui_t }}</p></div></li>
+      <li><span>4</span><div><strong>{{ "Comprar fora do Lowcost Europa"|ui_t }}</strong><p>{{ "Pagamento, envio e apoio à encomenda são tratados pelo vendedor ou plataforma."|ui_t }}</p></div></li>
     </ol>
   </div>
 </section>

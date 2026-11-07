@@ -582,7 +582,9 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertNotIn("server-rendered", content)
         self.assertNotIn("set-cookie", content)
         self.assertNotIn("middleware django", content)
-        self.assertNotIn("csrf", content)
+        # Two CSRF-protected language forms are intentionally public, but no owner form.
+        self.assertEqual(content.count('name="csrfmiddlewaretoken"'), 2)
+        self.assertIn('action="/i18n/setlang/"', content)
         self.assertNotIn("nenhum ip é processado", content)
 
     def test_privacy_metadata_is_public_and_factual(self):

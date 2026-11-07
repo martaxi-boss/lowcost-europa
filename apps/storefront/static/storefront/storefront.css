@@ -957,3 +957,14 @@ body { background: var(--bg); }
 @media (max-width: 620px) {
   body:has(.catalog-detail) .whatsapp-float { display: none; }
 }
+
+
+/* Language selector only. Existing layout, categories and cards are untouched. */
+.locale-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.locale-switch label { font-size: .82rem; font-weight: 750; }
+.locale-switch select { min-height: 40px; max-width: 180px; border: 1px solid #a7b9af; border-radius: 8px; padding: 7px 10px; color: #17392e; background: #fff; font: inherit; font-size: .87rem; }
+.locale-switch button { min-height: 40px; border: 1px solid #c7decf; border-radius: 8px; padding: 7px 13px; color: #17392e; background: #f2f6ef; font: inherit; font-size: .85rem; font-weight: 800; cursor: pointer; }
+.locale-switch select:focus-visible, .locale-switch button:focus-visible { outline: 3px solid #dab874; outline-offset: 2px; }
+.site-nav .locale-switch { padding: 10px 12px; border-top: 1px solid var(--border); }
+.site-footer .locale-switch { padding-top: 21px; border-top: 1px solid rgba(255,255,255,.13); }
+.site-footer .locale-switch label { color: #d2dfdb; }

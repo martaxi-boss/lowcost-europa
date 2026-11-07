@@ -1,25 +1,26 @@
 {% extends "storefront/base.html" %}
+{% load storefront_i18n %}
 {% block content %}
 <section class="section">
   <div class="container prose">
-    <p class="eyebrow">Utilização do site</p>
-    <h1>Termos de Utilização</h1>
-    <p class="lead">O Lowcost Europa seleciona, organiza e apresenta produtos e ofertas disponibilizados por vendedores ou plataformas externas.</p>
+    <p class="eyebrow">{{ "Utilização do site"|ui_t }}</p>
+    <h1>{{ "Termos de Utilização"|ui_t }}</h1>
+    <p class="lead">{{ "O Lowcost Europa seleciona, organiza e apresenta produtos e ofertas disponibilizados por vendedores ou plataformas externas."|ui_t }}</p>
 
-    <h2>Compra em plataformas externas</h2>
-    <p>O Lowcost Europa não processa diretamente o pagamento das compras apresentadas. Ao escolher comprar, o utilizador é encaminhado para o vendedor ou plataforma externa, onde a transação é concluída.</p>
-    <p>O preço final, o stock, a disponibilidade, o pagamento, a entrega, as devoluções, as garantias e o apoio relativo à encomenda estão sujeitos às condições do vendedor ou da plataforma externa.</p>
-    <p>Os preços e a disponibilidade apresentados no Lowcost Europa podem alterar-se entre o momento da consulta e a abertura da página externa.</p>
+    <h2>{{ "Compra em plataformas externas"|ui_t }}</h2>
+    <p>{{ "O Lowcost Europa não processa diretamente o pagamento das compras apresentadas. Ao escolher comprar, o utilizador é encaminhado para o vendedor ou plataforma externa, onde a transação é concluída."|ui_t }}</p>
+    <p>{{ "O preço final, o stock, a disponibilidade, o pagamento, a entrega, as devoluções, as garantias e o apoio relativo à encomenda estão sujeitos às condições do vendedor ou da plataforma externa."|ui_t }}</p>
+    <p>{{ "Os preços e a disponibilidade apresentados no Lowcost Europa podem alterar-se entre o momento da consulta e a abertura da página externa."|ui_t }}</p>
 
-    <h2>Relação de afiliado</h2>
-    <p>Alguns links do Lowcost Europa são links de afiliado. O Lowcost Europa pode receber uma comissão quando uma compra elegível ocorre após um encaminhamento.</p>
-    <p>Essa comissão não é apresentada como um custo adicional obrigatório para o comprador.</p>
+    <h2>{{ "Relação de afiliado"|ui_t }}</h2>
+    <p>{{ "Alguns links do Lowcost Europa são links de afiliado. O Lowcost Europa pode receber uma comissão quando uma compra elegível ocorre após um encaminhamento."|ui_t }}</p>
+    <p>{{ "Essa comissão não é apresentada como um custo adicional obrigatório para o comprador."|ui_t }}</p>
 
-    <h2>Antes de concluir a compra</h2>
-    <p>Antes de concluir a compra, confirme na plataforma externa o produto, o preço, o stock, a entrega, as condições aplicáveis e os restantes dados finais da transação.</p>
+    <h2>{{ "Antes de concluir a compra"|ui_t }}</h2>
+    <p>{{ "Antes de concluir a compra, confirme na plataforma externa o produto, o preço, o stock, a entrega, as condições aplicáveis e os restantes dados finais da transação."|ui_t }}</p>
 
-    <h2>Mais informação</h2>
-    <p>Consulte também as páginas de <a href="{% url 'storefront:privacidade' %}">Privacidade</a>, <a href="{% url 'storefront:afiliados' %}">Afiliados</a> e <a href="{% url 'storefront:contacto' %}">Contacto</a>.</p>
+    <h2>{{ "Mais informação"|ui_t }}</h2>
+    <p>{{ "Consulte também as páginas de"|ui_t }} <a href="{% url 'storefront:privacidade' %}">{{ "Privacidade"|ui_t }}</a>, <a href="{% url 'storefront:afiliados' %}">{{ "Afiliados"|ui_t }}</a> e <a href="{% url 'storefront:contacto' %}">{{ "Contacto"|ui_t }}</a>.</p>
   </div>
 </section>
 {% endblock %}

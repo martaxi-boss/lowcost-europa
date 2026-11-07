@@ -1,53 +1,54 @@
+{% load storefront_i18n %}
 <div class="catalog-explorer__toolbar" data-explorer-controls hidden>
   <div class="catalog-explorer__intro">
-    <strong>Encontre o equipamento certo</strong>
-    <p>Pesquise, filtre e compare até três ofertas. Os valores são observações do parceiro, não preços garantidos.</p>
+    <strong>{{ "Encontre o equipamento certo"|ui_t }}</strong>
+    <p>{{ "Pesquise, filtre e compare até três ofertas. Os valores são observações do parceiro, não preços garantidos."|ui_t }}</p>
   </div>
   <div class="catalog-explorer__fields">
-    <label>Pesquisar nesta lista
+    <label>{{ "Pesquisar nesta lista"|ui_t }}
       <input type="search" autocomplete="off" placeholder="Nome ou característica" data-explorer-search>
     </label>
-    <label>Tipo de equipamento
+    <label>{{ "Tipo de equipamento"|ui_t }}
       <select data-explorer-type>
-        <option value="">Todos os tipos</option>
-        <option value="DEDICATED">Equipamento dedicado</option>
-        <option value="COMBO">Combo multifunções</option>
-        <option value="OTHER">Tipo não especificado</option>
+        <option value="">{{ "Todos os tipos"|ui_t }}</option>
+        <option value="DEDICATED">{{ "Equipamento dedicado"|ui_t }}</option>
+        <option value="COMBO">{{ "Combo multifunções"|ui_t }}</option>
+        <option value="OTHER">{{ "Tipo não especificado"|ui_t }}</option>
       </select>
     </label>
-    <label>Preço observado (EUR)
+    <label>{{ "Preço observado (EUR)"|ui_t }}
       <select data-explorer-budget>
-        <option value="">Qualquer preço ou moeda</option>
-        <option value="500">Até 500 €</option>
-        <option value="1000">Até 1 000 €</option>
-        <option value="2500">Até 2 500 €</option>
-        <option value="5000">Até 5 000 €</option>
-        <option value="unknown">Sem preço observado</option>
+        <option value="">{{ "Qualquer preço ou moeda"|ui_t }}</option>
+        <option value="500">{{ "Até 500 €"|ui_t }}</option>
+        <option value="1000">{{ "Até 1 000 €"|ui_t }}</option>
+        <option value="2500">{{ "Até 2 500 €"|ui_t }}</option>
+        <option value="5000">{{ "Até 5 000 €"|ui_t }}</option>
+        <option value="unknown">{{ "Sem preço observado"|ui_t }}</option>
       </select>
     </label>
-    <label>Organizar ofertas
+    <label>{{ "Organizar ofertas"|ui_t }}
       <select data-explorer-sort>
-        <option value="editorial">Ordem editorial</option>
-        <option value="price-asc">Preço observado: crescente</option>
-        <option value="price-desc">Preço observado: decrescente</option>
+        <option value="editorial">{{ "Ordem editorial"|ui_t }}</option>
+        <option value="price-asc">{{ "Preço observado: crescente"|ui_t }}</option>
+        <option value="price-desc">{{ "Preço observado: decrescente"|ui_t }}</option>
       </select>
     </label>
-    <button class="catalog-explorer__reset" type="button" data-explorer-reset>Limpar filtros</button>
+    <button class="catalog-explorer__reset" type="button" data-explorer-reset>{{ "Limpar filtros"|ui_t }}</button>
   </div>
   <p class="catalog-explorer__status" data-explorer-count role="status" aria-live="polite"></p>
-  <p class="catalog-explorer__currency-note" data-currency-notice hidden>Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.</p>
+  <p class="catalog-explorer__currency-note" data-currency-notice hidden>{{ "Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim."|ui_t }}</p>
 </div>
 <div class="catalog-compare-dock" data-compare-dock hidden aria-live="polite">
-  <span data-compare-dock-count>0 equipamentos selecionados</span>
-  <button type="button" data-compare-show>Ver comparação <span aria-hidden="true">↑</span></button>
+  <span data-compare-dock-count>{{ "0 equipamentos selecionados"|ui_t }}</span>
+  <button type="button" data-compare-show>{{ "Ver comparação"|ui_t }} <span aria-hidden="true">↑</span></button>
 </div>
-<p class="catalog-explorer__empty" data-explorer-empty hidden>Não foram encontradas ofertas para estes filtros. Experimente outros termos ou limpe os filtros.</p>
+<p class="catalog-explorer__empty" data-explorer-empty hidden>{{ "Não foram encontradas ofertas para estes filtros. Experimente outros termos ou limpe os filtros."|ui_t }}</p>
 <section class="compare-panel" data-compare-panel aria-label="Comparação de equipamentos" hidden>
   <div class="compare-panel__heading">
-    <div><p class="eyebrow">Decida com informação</p><h3 data-compare-heading tabindex="-1">Comparar equipamentos</h3></div>
-    <button type="button" class="catalog-explorer__reset" data-compare-clear>Limpar comparação</button>
+    <div><p class="eyebrow">{{ "Decida com informação"|ui_t }}</p><h3 data-compare-heading tabindex="-1">{{ "Comparar equipamentos"|ui_t }}</h3></div>
+    <button type="button" class="catalog-explorer__reset" data-compare-clear>{{ "Limpar comparação"|ui_t }}</button>
   </div>
   <div class="compare-panel__grid" data-compare-results></div>
   <p class="compare-panel__message" data-compare-message role="status" aria-live="polite"></p>
-  <p class="compare-panel__disclaimer">Preços e logística são dados observados que devem ser confirmados na AliExpress. Comparar não envia informação para terceiros.</p>
+  <p class="compare-panel__disclaimer">{{ "Preços e logística são dados observados que devem ser confirmados na AliExpress. Comparar não envia informação para terceiros."|ui_t }}</p>
 </section>

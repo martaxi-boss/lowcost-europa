@@ -43,6 +43,17 @@
   }
   if (typeof document === "undefined") return;
 
+  // Server-rendered, escaped labels. Portuguese remains the fallback.
+  const uiLabels = (() => {
+    try {
+      return JSON.parse(document.getElementById("lowcost-js-i18n")?.textContent || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const uiT = (key) => Object.prototype.hasOwnProperty.call(uiLabels, key)
+    ? uiLabels[key] : key;
+
   function addText(parent, tag, className, text) {
     const element = document.createElement(tag);
     if (className) element.className = className;
@@ -110,7 +121,8 @@
         const group = list.closest("[data-offer-group]");
         if (group) group.hidden = !arranged.some((card) => !card.hidden);
       }
-      count.textContent = visible + " de " + cards.length + " ofertas nesta lista";
+      count.textContent = visible + " " + uiT("de") + " " + cards.length
+        + " " + uiT("ofertas nesta lista");
       empty.hidden = visible !== 0;
       const currencies = new Set(
         cards.filter((card) => !card.hidden).map((card) => prices.get(card)?.currency)
@@ -119,8 +131,8 @@
       currencyNotice.hidden = !budget.value
         && (sort.value === "editorial" || currencies.size < 2);
       currencyNotice.textContent = budget.value && budget.value !== "unknown"
-        ? "O limite aplica-se só a preços em EUR; valores de outras moedas não são convertidos."
-        : "Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.";
+        ? uiT("O limite aplica-se só a preços em EUR; valores de outras moedas não são convertidos.")
+        : uiT("Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.");
     }
 
     function renderCompare() {
@@ -129,7 +141,7 @@
         const tile = document.createElement("article");
         tile.className = "compare-panel__item";
         const title = card.querySelector(".offer-title")?.textContent?.trim()
-          || "Equipamento";
+          || uiT("Equipamento");
         const image = card.querySelector(".offer-card__image");
         if (image && /^https:\/\//.test(image.src)) {
           const photo = document.createElement("img");
@@ -139,27 +151,27 @@
           tile.appendChild(photo);
         }
         addText(tile, "h4", "", title);
-        addText(tile, "small", "", "Preço observado");
+        addText(tile, "small", "", uiT("Preço observado"));
         addText(tile, "strong", "compare-panel__price",
           card.querySelector(".offer-price-block .price")?.textContent?.trim()
-          || "Não disponível");
-        addText(tile, "small", "", "Logística observada");
+          || uiT("Não disponível"));
+        addText(tile, "small", "", uiT("Logística observada"));
         addText(tile, "p", "",
-          card.querySelector(".facts dd")?.textContent?.trim() || "Prazo não confirmado");
+          card.querySelector(".facts dd")?.textContent?.trim() || uiT("Prazo não confirmado"));
         const actions = document.createElement("div");
         actions.className = "compare-panel__actions";
         const href = card.querySelector('.offer-cta a[href^="/go/"]')?.getAttribute("href");
         if (href && /^\/go\/\d+\/$/.test(href)) {
           const link = document.createElement("a");
           link.href = href;
-          link.textContent = "Ver no AliExpress ↗";
+          link.textContent = uiT("Ver no AliExpress") + " ↗";
           link.className = "button button--secondary";
           actions.appendChild(link);
         }
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "compare-panel__remove";
-        remove.textContent = "Retirar";
+        remove.textContent = uiT("Retirar");
         remove.addEventListener("click", () => toggle(card));
         actions.appendChild(remove);
         tile.appendChild(actions);
@@ -168,7 +180,7 @@
       panel.hidden = selected.size === 0;
       if (dock && dockCount) {
         dock.hidden = selected.size === 0;
-        dockCount.textContent = selected.size + " de 3 equipamentos selecionados";
+        dockCount.textContent = selected.size + " " + uiT("de 3 equipamentos selecionados");
       }
     }
 
@@ -178,7 +190,7 @@
       if (selected.has(key)) selected.delete(key);
       else if (selected.size < 3) selected.set(key, card);
       else {
-        if (compareMessage) compareMessage.textContent = "Limite de três equipamentos. Retire um para acrescentar outro.";
+        if (compareMessage) compareMessage.textContent = uiT("Limite de três equipamentos. Retire um para acrescentar outro.");
         return;
       }
       if (compareMessage) compareMessage.textContent = "";
@@ -187,7 +199,7 @@
         const control = item.querySelector("[data-compare-toggle]");
         if (!control) continue;
         control.setAttribute("aria-pressed", String(active));
-        control.textContent = active ? "✓ Na comparação" : "+ Comparar equipamento";
+        control.textContent = active ? "✓ " + uiT("Na comparação") : uiT("+ Comparar equipamento");
       }
       renderCompare();
     }
