@@ -24,3 +24,11 @@ Redesenhar a apresentação na aplicação Django existente, sem alterar dados, 
 - Testes pós-deploy contra SHA efetivo da VPS; reportar erros, screenshots e estado de noindex, sem visitas automáticas aos links /go/.
 - Testar /painel/ autenticado e regressar à versão anterior quando existir regressão.
 - CI verde não é prova de deploy nem de aceitação estética. Nenhuma publicação comercial automática.
+
+## Higiene incremental (sem apagar dados)
+
+- Árvore Git da revisão anterior verificada: 379 entradas versionadas, sem pastas de cache, ambientes virtuais, node_modules, artefactos QA temporários ou arquivos de backup.
+- A variante de 07/11 mantém só uma folha CSS e o JavaScript de comparação existente; removidas regras CSS redundantes introduzidas na própria branch.
+- Incrementado o identificador dos assets alterados no template base para evitar servir CSS/JS antigos de cache após o futuro deploy.
+- Sem instalação de dependências, migrações, alteração de serviços, purge APT ou eliminação dos backups; a VPS do site não foi modificada nesta branch.
+- O design OpenPencil foi executado isoladamente pelo motor Ferrari no seu diretório privado e não foi copiado para a aplicação Django como runtime, nem instalado programa na pasta Lowcost Europa.
