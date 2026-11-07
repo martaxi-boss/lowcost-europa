@@ -92,6 +92,7 @@ class StorefrontViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HIFU Professional")
         self.assertContains(response, "7D HIFU Professional Machine")
+        self.assertContains(response, 'rel="sponsored nofollow"')
         self.assertContains(response, "199,90 EUR")
         self.assertContains(response, "Estimativa indicada pela pesquisa: 5 dias")
 
@@ -708,7 +709,9 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertContains(robots, "Disallow: /admin/")
         self.assertNotIn("X-Robots-Tag", home)
 
-    @override_settings(PUBLIC_SITE_URL="https://www.lowcost-europa.eu", PUBLIC_INDEXING_ENABLED=True)
+    @override_settings(
+        PUBLIC_SITE_URL="https://www.lowcost-europa.eu", PUBLIC_INDEXING_ENABLED=True
+    )
     def test_alternate_hostname_remains_noindex_after_launch(self):
         home = self.client.get(reverse("storefront:home"))
         robots = self.client.get(reverse("storefront:robots"))
@@ -719,7 +722,8 @@ class InstitutionalTransparencyTests(TestCase):
 
     @override_settings(PUBLIC_SITE_URL="https://testserver", PUBLIC_INDEXING_ENABLED=True)
     def test_operational_endpoints_stay_private_after_launch(self):
-        for path in ("/painel/", "/admin/", "/health/live/", "/health/ready/", "/ops/"):
+        paths = ("/painel/", "/admin/", "/health/live/", "/health/ready/", "/ops/")
+        for path in paths:
             response = self.client.get(path)
             self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
             self.assertEqual(response["Cache-Control"], "private, no-store")
@@ -737,7 +741,8 @@ class InstitutionalTransparencyTests(TestCase):
         self.assertContains(response, '<meta name="robots" content="noindex, nofollow">', html=True)
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         self.assertNotContains(response, 'rel="canonical"')
-        self.assertEqual(self.client.get("/missing-public-page/")["X-Robots-Tag"], "noindex, nofollow")
+        missing = self.client.get("/missing-public-page/")
+        self.assertEqual(missing["X-Robots-Tag"], "noindex, nofollow")
 
     def test_robots_disallows_indexing_by_default(self):
         response = self.client.get(reverse("storefront:robots"))
