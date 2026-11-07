@@ -50,3 +50,6 @@ Thumbs.db
 
 # Project-local country MMDB: readable by Django, never tracked
 /.geoip/
+
+# Owner-confirmed public legal fields are provisioned privately on the VPS
+/.legal/
