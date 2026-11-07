@@ -62,3 +62,14 @@ JS_TEXTS = (
 def storefront_js_labels():
     lang = get_language()
     return {text: translate_ui(text, lang) for text in JS_TEXTS}
+
+@register.filter
+def ui_og_locale(language):
+    """Open Graph expects region-qualified locale identifiers."""
+    return {
+        "pt-pt": "pt_PT",
+        "es": "es_ES",
+        "en": "en_GB",
+        "fr": "fr_FR",
+        "de": "de_DE",
+    }.get(str(language).lower(), "pt_PT")
