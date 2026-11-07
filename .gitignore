@@ -47,3 +47,6 @@ Thumbs.db
 *.swp
 *.swo
 *.tmp
+
+# Project-local country MMDB: readable by Django, never tracked
+/.geoip/
