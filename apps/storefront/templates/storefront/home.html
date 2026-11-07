@@ -1,75 +1,83 @@
 {% extends "storefront/base.html" %}
 {% block content %}
-<section class="hero hero--commercial" aria-labelledby="hero-title">
-  <div class="container hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow eyebrow--hero">Equipamentos de estética profissional · seleção organizada</p>
-      <h1 id="hero-title">Equipamentos de estética. <em>Escolhas mais claras.</em></h1>
-      <div class="hero-lead">
-        <p>Explore equipamentos por especialidade e encontre opções organizadas num só lugar.</p>
-        <p>Compare preços e informações observadas antes de consultar a oferta no parceiro. Sem promessas de stock ou entrega que não podemos confirmar.</p>
+<section class="hero hero--atelier" aria-labelledby="hero-title">
+  <div class="container atelier-layout">
+    <div class="atelier-copy">
+      <p class="atelier-overline"><span aria-hidden="true" class="atelier-line"></span> LOWCOST EUROPA <span aria-hidden="true">/</span> ESTÉTICA PROFISSIONAL</p>
+      <h1 id="hero-title">Equipamentos de estética. <em>Compare antes de escolher.</em></h1>
+      <p class="atelier-lead">Descubra equipamentos por especialidade e compare opções de parceiros externos, com informação útil reunida num só lugar.</p>
+      <div class="atelier-actions">
+        <a class="atelier-primary-link" href="#familias">Explorar equipamentos <span aria-hidden="true">↗</span></a>
+        <a class="atelier-secondary-link" href="{% url 'storefront:como-funciona' %}">Como funciona <span aria-hidden="true">→</span></a>
       </div>
-      <form class="search-form search-form--hero" method="get" action="{% url 'storefront:search' %}" role="search">
-        <label for="home-equipment-search">Encontre o seu equipamento</label>
+      <form class="search-form search-form--hero atelier-search" method="get" action="{% url 'storefront:search' %}" role="search">
+        <label for="home-equipment-search">Procura um equipamento específico?</label>
         <div class="search-form__row">
           <input id="home-equipment-search" type="search" name="q" placeholder="HIFU, laser, pressoterapia..." autocomplete="off" maxlength="100" required>
           <button type="submit">Pesquisar <span aria-hidden="true">→</span></button>
         </div>
       </form>
-      <div class="hero-primary-action hero-cta-row">
-        <a class="button button--large hero-primary-cta" href="#familias">VER EQUIPAMENTOS E PREÇOS <span aria-hidden="true">↗</span></a>
-        <a class="hero-secondary-cta" href="{% url 'storefront:como-funciona' %}">Como funciona <span aria-hidden="true">→</span></a>
-      </div>
-      <div class="hero-essentials" aria-label="Como organizamos a seleção">
-        <span>Organizado por categorias</span>
-        <span>Preços observados</span>
-        <span>Compra externa transparente</span>
+      <div class="atelier-trust" aria-label="Como funciona esta montra">
+        <div><strong>{{ families|length|stringformat:"02d" }}</strong><span>Especialidades</span></div>
+        <div><strong>Preços</strong><span>Observados</span></div>
+        <div><strong>Compra</strong><span>No parceiro</span></div>
       </div>
     </div>
-    <div class="hero-showcase" aria-label="Algumas categorias do catálogo">
-      <div class="hero-showcase__heading"><span>Explore por especialidade</span><span aria-hidden="true">✦</span></div>
+    <div class="atelier-feature" aria-label="Categoria em destaque">
       {% if families %}
-        <div class="hero-showcase__grid">
-          {% for family in families|slice:":3" %}
-            <a class="showcase-tile{% if forloop.first %} showcase-tile--primary{% endif %}" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Explorar {{ family.name }}">
-              <div class="showcase-tile__media">
-                {% if family.display_offer and family.display_offer.image_url %}
-                  {% with image_url=family.display_offer.image_url %}
-                    {% if image_url|slice:":8" == "https://" %}
-                      <img src="{{ image_url }}" alt="" width="420" height="320" loading="lazy" data-product-image>
-                      <span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span>
-                      <span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span>
-                    {% else %}
-                      <span class="showcase-tile__monogram" aria-hidden="true">LE</span>
-                    {% endif %}
-                  {% endwith %}
-                {% else %}
-                  <span class="showcase-tile__monogram" aria-hidden="true">LE</span>
-                {% endif %}
-              </div>
-              <div class="showcase-tile__info">
-                <small>Categoria {{ family.display_order|stringformat:"02d" }}</small>
-                <strong>{{ family.name }}</strong>
-                <span aria-hidden="true">↗</span>
-              </div>
-            </a>
-          {% endfor %}
-        </div>
+        {% with family=families.0 %}
+          <a class="atelier-feature__card" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Explorar {{ family.name }}">
+            <div class="atelier-feature__image">
+              <span class="atelier-feature__topnote">EM DESTAQUE / 01</span>
+              {% if family.display_offer and family.display_offer.image_url %}
+                {% with image_url=family.display_offer.image_url %}
+                  {% if image_url|slice:":8" == "https://" %}
+                    <img src="{{ image_url }}" alt="" width="600" height="460" loading="eager" decoding="async" data-product-image>
+                    <span class="image-fallback" data-image-fallback hidden>Imagem indisponível</span>
+                    <span class="image-quality-note" data-image-quality hidden>Fotografia de baixa resolução</span>
+                  {% else %}
+                    <span class="atelier-feature__placeholder" aria-hidden="true">LE</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span class="atelier-feature__placeholder" aria-hidden="true">LE</span>
+              {% endif %}
+            </div>
+            <div class="atelier-feature__caption">
+              <small>DESCUBRA ESTA ESPECIALIDADE</small>
+              <div><strong>{{ family.name }}</strong><span aria-hidden="true">↗</span></div>
+              <p>Consulte equipamentos, preços observados e informações disponíveis.</p>
+            </div>
+          </a>
+        {% endwith %}
+        {% if families.1 %}
+          <div class="atelier-feature__foot">
+            <span>Outra especialidade</span>
+            <a href="{% url 'storefront:product-family-detail' families.1.slug %}">{{ families.1.name }} <span aria-hidden="true">↗</span></a>
+          </div>
+        {% endif %}
       {% else %}
-        <div class="hero-showcase__empty"><span aria-hidden="true">LE</span><p>Estamos a preparar a seleção das categorias.</p></div>
+        <div class="atelier-feature__empty"><span aria-hidden="true">LE</span><p>A seleção pública está a ser preparada.</p></div>
       {% endif %}
-      <p class="hero-showcase__footnote">As imagens representam anúncios das respetivas categorias. Consulte os detalhes antes de comprar.</p>
     </div>
   </div>
 </section>
 
-<section class="section section--compact" id="familias">
-  <div class="container">
-    <div class="family-navigation-heading"><p class="eyebrow">Explore o catálogo</p><h2>Encontre a sua especialidade.</h2></div>
+<section class="atelier-specialties" id="familias" aria-labelledby="atelier-specialties-title">
+  <div class="container atelier-specialties__inner">
+    <div class="atelier-specialties__heading">
+      <p class="atelier-specialties__kicker">O NOSSO CATÁLOGO</p>
+      <h2 id="atelier-specialties-title">Explore por especialidade.</h2>
+      <p>Escolha uma categoria e conheça as ofertas disponíveis.</p>
+    </div>
     {% if families %}
-      <nav class="family-index family-index--compact" aria-label="Famílias de produtos">
+      <nav class="family-index atelier-index" aria-label="Famílias de produtos">
         {% for family in families %}
-          <a href="{% url 'storefront:product-family-detail' family.slug %}"><span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span><span>{{ family.name }}</span><span aria-hidden="true">↗</span></a>
+          <a href="{% url 'storefront:product-family-detail' family.slug %}">
+            <span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span>
+            <span class="atelier-index__name">{{ family.name }}</span>
+            <span aria-hidden="true">↗</span>
+          </a>
         {% endfor %}
       </nav>
     {% endif %}
@@ -79,7 +87,7 @@
 <section class="section section--surface">
   <div class="container">
     <div class="section-heading section-heading--split">
-      <div><p class="eyebrow">Catálogo organizado</p><h2>Seleções para comparar com calma.</h2></div>
+      <div><p class="eyebrow">Catálogo organizado</p><h2>As especialidades, em detalhe.</h2></div>
       <p class="section-intro">Entre na categoria, consulte os equipamentos apresentados e compare os dados observados. A ordem é editorial, não um ranking de qualidade.</p>
     </div>
     {% if families %}
