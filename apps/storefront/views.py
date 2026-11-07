@@ -174,6 +174,7 @@ def _render_storefront(request, template, context):
         static("storefront/lowcost-europa-brand-main.webp")
     )
     context["geo_language_enabled"] = settings.GEO_LANGUAGE_ENABLED
+    context["public_operator"] = settings.PUBLIC_OPERATOR
     response = render(request, template, context)
     if request.user.is_authenticated and request.user.is_staff:
         response["Cache-Control"] = "private, no-store"
