@@ -33,6 +33,11 @@ class EditorialStorefrontTests(SimpleTestCase):
         card = self.template("components/product_family_card.html")
         self.assertEqual(card.count("Imagem indisponível{% else %}Seleção em preparação"), 2)
 
+    def test_mobile_categories_have_real_scrollable_region(self):
+        home = self.template("home.html")
+        self.assertIn('class="card-grid" role="region"', home)
+        self.assertIn("Deslize os cartões", home)
+
     def test_mobile_comparison_is_keyboard_accessible(self):
         controls = self.template("components/catalog_explorer_controls.html")
         for text in ('data-compare-dock hidden', 'data-compare-show',

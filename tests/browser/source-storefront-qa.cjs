@@ -45,6 +45,16 @@ async function main() {
       assert.equal(res.status(), 200);
       await verify(page, "home", width);
       assert.equal(await page.locator(".product-card").count(), 5);
+      const cardMetrics = await page.locator(".section--surface .card-grid").evaluate(
+        element => ({ width: element.clientWidth, scrollWidth: element.scrollWidth })
+      );
+      if (mobile) {
+        assert.ok(cardMetrics.scrollWidth > cardMetrics.width,
+          "Mobile product cards should be swipeable at " + width + "px");
+      } else {
+        assert.ok(cardMetrics.scrollWidth <= cardMetrics.width + 12,
+          "Desktop product cards should fit their grid");
+      }
       assert.match(await page.locator("h1").innerText(), /Equipamentos de estética/);
       assert.match(await page.locator(".family-index").innerText(), /HIFU profissional/);
       if (width === 390 || width === 1440) {

@@ -924,3 +924,30 @@ body { background: var(--bg); }
   .catalog-compare-dock > span { flex: 1 1 135px; }
   .catalog-compare-dock button { flex: 0 0 auto; }
 }
+
+/* Mobile catalog: compact, swipeable editorial cards without JavaScript. */
+.card-grid-hint { display: none; }
+@media (max-width: 620px) {
+  .card-grid-hint {
+    display: block;
+    margin: -8px 0 14px;
+    color: #597365;
+    font-size: .8rem;
+  }
+  .section--surface .card-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(260px, 82%);
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 2px;
+    padding: 4px 2px 18px;
+    scrollbar-width: thin;
+  }
+  .section--surface .card-grid > .product-card {
+    height: 100%;
+    scroll-snap-align: start;
+  }
+}

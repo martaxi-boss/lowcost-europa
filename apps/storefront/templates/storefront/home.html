@@ -83,7 +83,8 @@
       <p class="section-intro">Entre na categoria, consulte os equipamentos apresentados e compare os dados observados. A ordem é editorial, não um ranking de qualidade.</p>
     </div>
     {% if families %}
-      <div class="card-grid">
+      <p class="card-grid-hint">Deslize os cartões para explorar mais categorias.</p>
+      <div class="card-grid" role="region" aria-label="Categorias em destaque">
         {% for family in families %}{% include "storefront/components/product_family_card.html" with family=family %}{% endfor %}
       </div>
     {% else %}
