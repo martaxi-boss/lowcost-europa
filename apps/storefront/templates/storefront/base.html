@@ -48,6 +48,7 @@
           <a href="{% url 'storefront:como-funciona' %}">{{ "Como funciona"|ui_t }}</a>
           <a href="{% url 'storefront:afiliados' %}">{{ "Afiliados"|ui_t }}</a>
           <a href="{% url 'storefront:contacto' %}">{{ "Contacto"|ui_t }}</a>
+        {% if not geo_language_enabled %}
         <form class="locale-switch" method="post" action="{% url 'set_language' %}" aria-label="Idioma / Language">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -61,6 +62,7 @@
           </select>
           <button type="submit">OK</button>
         </form>
+        {% endif %}
         </nav>
       </details>
     </div>
@@ -98,7 +100,8 @@
         </nav>
       </div>
     </div>
-    <div class="container" id="idioma">        <form class="locale-switch" method="post" action="{% url 'set_language' %}" aria-label="Idioma / Language">
+    <div class="container" id="idioma">        {% if not geo_language_enabled %}
+        <form class="locale-switch" method="post" action="{% url 'set_language' %}" aria-label="Idioma / Language">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <label for="lang-footer">Idioma / Language</label>
@@ -110,7 +113,8 @@
             <option value="de"{% if CURRENT_LANGUAGE == "de" %} selected{% endif %}>Deutsch</option>
           </select>
           <button type="submit">OK</button>
-        </form></div>
+        </form>
+        {% endif %}</div>
     <div class="container footer-bottom">
       <p>{{ "Alguns links podem ser afiliados. Preços, disponibilidade, entrega e condições são definidos pelo parceiro e podem mudar."|ui_t }}</p>
       {% if geo_language_enabled %}<p><a href="https://db-ip.com" rel="noopener noreferrer">IP Geolocation by DB-IP</a></p>{% endif %}
