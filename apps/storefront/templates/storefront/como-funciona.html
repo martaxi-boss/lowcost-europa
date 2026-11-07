@@ -1,9 +1,10 @@
 {% extends "storefront/base.html" %}
+{% load storefront_i18n %}
 {% block content %}
 <section class="section">
   <div class="container prose">
-    <p class="eyebrow">Transparência</p>
-    <h1>Como funciona</h1>
+    <p class="eyebrow">{{ "Transparência"|ui_t }}</p>
+    <h1>{{ "Como funciona"|ui_t }}</h1>
     <p class="lead">O Lowcost Europa apresenta uma seleção curada de ofertas e informação factual disponível no momento da observação.</p>
     <ol>
       <li>Selecionamos ofertas para análise editorial.</li>
