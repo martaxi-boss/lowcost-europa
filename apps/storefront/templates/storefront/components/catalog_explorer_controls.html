@@ -37,12 +37,17 @@
   <p class="catalog-explorer__status" data-explorer-count role="status" aria-live="polite"></p>
   <p class="catalog-explorer__currency-note" data-currency-notice hidden>Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.</p>
 </div>
+<div class="catalog-compare-dock" data-compare-dock hidden aria-live="polite">
+  <span data-compare-dock-count>0 equipamentos selecionados</span>
+  <button type="button" data-compare-show>Ver comparação <span aria-hidden="true">↑</span></button>
+</div>
 <p class="catalog-explorer__empty" data-explorer-empty hidden>Não foram encontradas ofertas para estes filtros. Experimente outros termos ou limpe os filtros.</p>
 <section class="compare-panel" data-compare-panel aria-label="Comparação de equipamentos" hidden>
   <div class="compare-panel__heading">
-    <div><p class="eyebrow">Decida com informação</p><h3>Comparar equipamentos</h3></div>
+    <div><p class="eyebrow">Decida com informação</p><h3 data-compare-heading tabindex="-1">Comparar equipamentos</h3></div>
     <button type="button" class="catalog-explorer__reset" data-compare-clear>Limpar comparação</button>
   </div>
   <div class="compare-panel__grid" data-compare-results></div>
+  <p class="compare-panel__message" data-compare-message role="status" aria-live="polite"></p>
   <p class="compare-panel__disclaimer">Preços e logística são dados observados que devem ser confirmados na AliExpress. Comparar não envia informação para terceiros.</p>
 </section>

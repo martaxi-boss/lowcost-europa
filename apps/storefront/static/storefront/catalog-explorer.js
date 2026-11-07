@@ -65,6 +65,10 @@
     const currencyNotice = root.querySelector("[data-currency-notice]");
     const panel = root.querySelector("[data-compare-panel]");
     const grid = root.querySelector("[data-compare-results]");
+    const dock = root.querySelector("[data-compare-dock]");
+    const dockCount = root.querySelector("[data-compare-dock-count]");
+    const dockOpen = root.querySelector("[data-compare-show]");
+    const compareMessage = root.querySelector("[data-compare-message]");
     const selected = new Map();
     const lists = Array.from(root.querySelectorAll("[data-offer-list], .offer-list"));
     const sourceOrder = new Map(lists.map((list) => [
@@ -162,6 +166,10 @@
         grid.appendChild(tile);
       }
       panel.hidden = selected.size === 0;
+      if (dock && dockCount) {
+        dock.hidden = selected.size === 0;
+        dockCount.textContent = selected.size + " de 3 equipamentos selecionados";
+      }
     }
 
     function toggle(card) {
@@ -170,9 +178,10 @@
       if (selected.has(key)) selected.delete(key);
       else if (selected.size < 3) selected.set(key, card);
       else {
-        count.textContent = "Pode comparar até três ofertas. Retire uma para acrescentar outra.";
+        if (compareMessage) compareMessage.textContent = "Limite de três equipamentos. Retire um para acrescentar outro.";
         return;
       }
+      if (compareMessage) compareMessage.textContent = "";
       for (const item of cards) {
         const active = selected.has(item.dataset.offerId);
         const control = item.querySelector("[data-compare-toggle]");
@@ -188,6 +197,13 @@
       if (!button) return;
       button.hidden = false;
       button.addEventListener("click", () => toggle(card));
+    });
+
+    if (dockOpen) dockOpen.addEventListener("click", () => {
+      if (panel.hidden) return;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      panel.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      panel.querySelector("[data-compare-heading]")?.focus({ preventScroll: true });
     });
 
     root.querySelector("[data-explorer-reset]").addEventListener("click", () => {
