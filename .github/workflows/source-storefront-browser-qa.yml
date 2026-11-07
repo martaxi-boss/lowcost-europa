@@ -75,7 +75,7 @@ jobs:
       - name: Prepare synthetic database
         run: |
           python manage.py migrate --noinput
-          python tests/browser/seed-source-storefront-qa.py
+          PYTHONPATH=. python tests/browser/seed-source-storefront-qa.py
       - name: Start branch-local Django for browser tests
         run: |
           python manage.py runserver 127.0.0.1:8787 --noreload > qa-server.log 2>&1 &
