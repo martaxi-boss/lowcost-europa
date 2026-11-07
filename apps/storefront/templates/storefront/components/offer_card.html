@@ -15,7 +15,7 @@
   <div class="offer-card__body">
     <div class="offer-card__header">
       <div class="offer-card__labels"><span class="source-label">{{ offer.get_source_display }}</span>{% if offer.equipment_type == "DEDICATED" %}<span class="equipment-badge">{{ "Equipamento dedicado"|ui_t }}</span>{% elif offer.equipment_type == "COMBO" %}<span class="equipment-badge">{{ "Combo multifunções"|ui_t }}</span>{% endif %}</div>
-      <p class="offer-card__category">Na categoria {{ family|family_label }}</p>
+      <p class="offer-card__category">{{ "Na categoria"|ui_t }} {{ family|family_label }}</p>
       <h3 class="offer-title" title="{{ offer.title|default:'Oferta disponível' }}">{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
     {% if placement and placement.selection_reason %}<div class="selection-reason"><strong>{{ "Porque está aqui"|ui_t }}</strong><p>{{ placement.selection_reason }}</p></div>{% endif %}
