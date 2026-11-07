@@ -1,4 +1,5 @@
 {% extends "storefront/base.html" %}
+{% load storefront_i18n %}
 {% block content %}
 <section class="search-hero">
   <div class="container">
@@ -10,7 +11,7 @@
       <label for="catalog-global-search">O que procura?</label>
       <div class="search-form__row">
         <input id="catalog-global-search" name="q" type="search" value="{{ query }}" placeholder="Ex.: HIFU, laser, pressoterapia" maxlength="100" autocomplete="off" required>
-        <button type="submit">Pesquisar <span aria-hidden="true">→</span></button>
+        <button type="submit">{{ "Pesquisar"|ui_t }} <span aria-hidden="true">→</span></button>
       </div>
     </form>
   </div>
