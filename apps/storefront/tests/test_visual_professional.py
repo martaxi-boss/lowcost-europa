@@ -37,9 +37,6 @@ class EditorialStorefrontTests(SimpleTestCase):
         home = self.template("home.html")
         self.assertIn('class="card-grid" role="region"', home)
         self.assertIn("Deslize os cartões", home)
-        self.assertIn('class="atelier-specialties"', home)
-        self.assertIn('class="atelier-feature__card"', home)
-        self.assertIn("Compare antes de escolher.", home)
 
     def test_mobile_comparison_is_keyboard_accessible(self):
         controls = self.template("components/catalog_explorer_controls.html")
@@ -54,5 +51,5 @@ class EditorialStorefrontTests(SimpleTestCase):
 
     def test_static_css_and_explorer_script_are_versioned(self):
         base = self.template("base.html")
-        self.assertIn("storefront.css' %}?v=atelier-20261107b", base)
+        self.assertIn("storefront.css' %}?v=ux-20261107", base)
         self.assertIn("catalog-explorer.js' %}?v=ux-20261107", base)

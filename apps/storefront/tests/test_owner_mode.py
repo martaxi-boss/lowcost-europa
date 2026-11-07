@@ -332,8 +332,7 @@ class OwnerStorefrontNavigationTests(TestCase):
         response = self.client.get(reverse("storefront:home"))
         self.assertContains(
             response,
-            ("Descubra equipamentos por especialidade e compare opções de parceiros externos, "
-             "com informação útil reunida num só lugar."),
+            "Explore equipamentos por especialidade e encontre opções organizadas num só lugar.",
         )
         self.assertNotContains(response, "enviados da Europa, a preços mais acessíveis")
         self.assertContains(response, "Gestão ativa")
