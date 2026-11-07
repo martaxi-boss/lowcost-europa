@@ -1,24 +1,21 @@
 """Synthetic, isolated browser-QA catalog; never run against a real customer database."""
 
 import os
+from datetime import datetime, timezone
 from decimal import Decimal
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.test")
 import django
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.test")
 django.setup()
-
-from django.utils import timezone  # noqa: E402
-
-from apps.catalog.models import (  # noqa: E402
-    Offer, OfferFamilyPlacement, OfferObservation, ProductFamily,
-)
 
 
 def seed():
+    from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, ProductFamily
+
     if ProductFamily.objects.exists() or Offer.objects.exists():
         raise RuntimeError("Refusing to overwrite a non-empty catalog")
-    now = timezone.now()
+    now = datetime.now(timezone.utc)
     categories = (
         ("HIFU profissional", "hifu-profissional"),
         ("Laser estético", "laser-estetico"),
