@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from apps.core.public_operator import read_public_operator
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
@@ -130,6 +132,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 PUBLIC_SITE_URL = env("DJANGO_PUBLIC_SITE_URL", "").rstrip("/")
 PUBLIC_INDEXING_ENABLED = env_bool("DJANGO_PUBLIC_INDEXING_ENABLED", False)
+PUBLIC_OPERATOR = read_public_operator(BASE_DIR / "private" / "legal" / "operator.json")
 
 CATALOG_MAINTENANCE_BATCH_SIZE = env_int_range(
     "CATALOG_MAINTENANCE_BATCH_SIZE", 5, minimum=1, maximum=20
