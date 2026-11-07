@@ -88,17 +88,13 @@ def lookup_country(ip):
 
 
 class EuropeCountryLocaleMiddleware(LocaleMiddleware):
-    """Preserve Django's manual cookie; replace browser detection on public UI."""
+    """Enforce IP-based language on public UI, not cookies or browser settings."""
 
     def process_request(self, request):
         super().process_request(request)
         if not settings.GEO_LANGUAGE_ENABLED or not is_public_storefront_page(
             request.path_info
         ):
-            return
-
-        selected = request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME, "").lower()
-        if selected in {code for code, _label in settings.LANGUAGES}:
             return
 
         country = lookup_country(public_client_ip(request))
