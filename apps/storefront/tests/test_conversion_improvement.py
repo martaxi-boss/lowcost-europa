@@ -17,7 +17,7 @@ class StorefrontConversionMarkupTests(SimpleTestCase):
             settings.BASE_DIR
             / "apps/storefront/templates/storefront/home.html"
         ).read_text()
-        self.assertIn("VER EQUIPAMENTOS E PREÇOS", home)
+        self.assertIn("Explorar equipamentos", home)
         self.assertIn('href="#familias"', home)
         self.assertIn('id="familias"', home)
 
@@ -66,9 +66,9 @@ class StorefrontConversionBehaviorTests(TestCase):
 
         response = self.client.get(reverse("storefront:home"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "VER EQUIPAMENTOS E PREÇOS")
+        self.assertContains(response, "Explorar equipamentos")
         self.assertContains(response, 'href="#familias"')
-        self.assertContains(response, 'class="family-index family-index--compact"')
+        self.assertContains(response, 'class="family-index atelier-index"')
         for slug in self.FAMILY_SLUGS:
             self.assertContains(
                 response,
