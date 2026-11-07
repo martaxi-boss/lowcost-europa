@@ -53,6 +53,30 @@ jobs:
           cache-dependency-path: requirements/development.txt
       - name: Install dependencies
         run: pip install -r requirements/development.txt
+      - name: Reject tracked runtime and browser QA residue
+        run: |
+          python - <<'PY'
+          import subprocess
+          from pathlib import PurePosixPath
+
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          blocked_dirs = {
+              "node_modules", ".venv", "venv", "__pycache__", ".pytest_cache",
+              ".ruff_cache", "qa-artifacts", "test-results", "playwright-report",
+              "staticfiles", "coverage", ".npm"
+          }
+          blocked_names = {".DS_Store", "Thumbs.db"}
+          invalid = [
+              name for name in tracked if name and (
+                  any(part in blocked_dirs for part in PurePosixPath(name).parts)
+                  or PurePosixPath(name).name in blocked_names
+                  or name.endswith((".pyc", ".pyo", ".swp", ".swo", ".tmp", ".log"))
+              )
+          ]
+          if invalid:
+              raise SystemExit("Tracked generated files: " + ", ".join(invalid))
+          print(f"GIT_HYGIENE_PASS tracked_files={len(tracked) - 1}")
+          PY
       - name: Django check
         run: python manage.py check
       - name: Production deploy check

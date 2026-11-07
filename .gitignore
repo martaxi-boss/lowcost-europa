@@ -32,3 +32,18 @@ staticfiles/
 # Installed VPS-only backup script copies and isolated process state
 /bin/
 /.pm2/
+
+# Generated frontend and browser QA output (not source)
+node_modules/
+.npm/
+.cache/
+qa-artifacts/
+test-results/
+playwright-report/
+coverage/
+
+# Editor and temporary build files
+Thumbs.db
+*.swp
+*.swo
+*.tmp
