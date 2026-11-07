@@ -26,7 +26,7 @@ class StorefrontConversionMarkupTests(SimpleTestCase):
             settings.BASE_DIR
             / "apps/storefront/templates/storefront/components/offer_card.html"
         ).read_text()
-        self.assertIn("VER PREÇO E COMPRAR NO ALIEXPRESS", offer_card)
+        self.assertIn("VER PREÇO NO ALIEXPRESS", offer_card)
         self.assertIn("{% url 'storefront:offer-go' offer.pk %}", offer_card)
         self.assertIn("Compra externa.", offer_card)
         self.assertIn("alguns links podem gerar comissão afiliada", offer_card)
@@ -105,7 +105,7 @@ class StorefrontConversionBehaviorTests(TestCase):
             reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
         )
         go_url = reverse("storefront:offer-go", kwargs={"offer_id": offer.pk})
-        self.assertContains(detail, "VER PREÇO E COMPRAR NO ALIEXPRESS")
+        self.assertContains(detail, "VER PREÇO NO ALIEXPRESS")
         self.assertContains(detail, go_url)
         self.assertContains(detail, "Compra externa.")
         self.assertNotContains(detail, offer.affiliate_url)

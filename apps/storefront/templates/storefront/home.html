@@ -3,11 +3,11 @@
 <section class="hero hero--commercial" aria-labelledby="hero-title">
   <div class="container hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow eyebrow--hero">Equipamentos de estética · seleção editorial</p>
-      <h1 id="hero-title">Tecnologia para a estética. <em>Escolhas com critério.</em></h1>
+      <p class="eyebrow eyebrow--hero">Equipamentos de estética profissional · seleção organizada</p>
+      <h1 id="hero-title">Equipamentos de estética. <em>Escolhas mais claras.</em></h1>
       <div class="hero-lead">
-        <p>Equipamentos profissionais de estética, selecionados para uma compra informada.</p>
-        <p>Pesquise e compare preços observados e opções de envio para Portugal. A compra acontece no parceiro.</p>
+        <p>Explore equipamentos por especialidade e encontre opções organizadas num só lugar.</p>
+        <p>Compare preços e informações observadas antes de consultar a oferta no parceiro. Sem promessas de stock ou entrega que não podemos confirmar.</p>
       </div>
       <form class="search-form search-form--hero" method="get" action="{% url 'storefront:search' %}" role="search">
         <label for="home-equipment-search">Encontre o seu equipamento</label>
@@ -65,6 +65,7 @@
 
 <section class="section section--compact" id="familias">
   <div class="container">
+    <div class="family-navigation-heading"><p class="eyebrow">Explore o catálogo</p><h2>Encontre a sua especialidade.</h2></div>
     {% if families %}
       <nav class="family-index family-index--compact" aria-label="Famílias de produtos">
         {% for family in families %}
@@ -78,11 +79,12 @@
 <section class="section section--surface">
   <div class="container">
     <div class="section-heading section-heading--split">
-      <div><p class="eyebrow">Catálogo organizado</p><h2>Produtos em destaque por categoria.</h2></div>
-      <p class="section-intro">Cada card abre a seleção da categoria. Quando existe uma oferta representativa, mostramos apenas informação observada — sem transformar a escolha editorial num ranking.</p>
+      <div><p class="eyebrow">Catálogo organizado</p><h2>Seleções para comparar com calma.</h2></div>
+      <p class="section-intro">Entre na categoria, consulte os equipamentos apresentados e compare os dados observados. A ordem é editorial, não um ranking de qualidade.</p>
     </div>
     {% if families %}
-      <div class="card-grid">
+      <p class="card-grid-hint">Deslize os cartões para explorar mais categorias.</p>
+      <div class="card-grid" role="region" aria-label="Categorias em destaque">
         {% for family in families %}{% include "storefront/components/product_family_card.html" with family=family %}{% endfor %}
       </div>
     {% else %}
