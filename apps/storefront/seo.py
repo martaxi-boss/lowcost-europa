@@ -8,6 +8,7 @@ def public_indexing_active(request):
     public = urlsplit(settings.PUBLIC_SITE_URL)
     return bool(
         settings.PUBLIC_INDEXING_ENABLED
+        and all(settings.PUBLIC_OPERATOR.get(key) for key in ("name", "address", "tax_id"))
         and public.scheme == "https"
         and public.netloc
         and request.get_host().lower() == public.netloc.lower()
