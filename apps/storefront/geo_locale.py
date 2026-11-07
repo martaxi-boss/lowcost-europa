@@ -11,11 +11,11 @@ from functools import lru_cache
 from pathlib import Path
 
 import maxminddb
-from maxminddb.errors import InvalidDatabaseError
 from django.conf import settings
 from django.middleware.locale import LocaleMiddleware
 from django.utils import translation
 from django.utils.cache import patch_vary_headers
+from maxminddb.errors import InvalidDatabaseError
 
 logger = logging.getLogger(__name__)
 
