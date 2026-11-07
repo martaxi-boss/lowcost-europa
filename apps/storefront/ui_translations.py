@@ -1332,6 +1332,60 @@ UI_TRANSLATIONS = {
     "en": "Results",
     "fr": "Résultats",
     "de": "Ergebnisse"
+  },
+  "Famílias de produtos": {
+    "es": "Familias de productos",
+    "en": "Product families",
+    "fr": "Familles de produits",
+    "de": "Produktfamilien"
+  },
+  "Página": {
+    "es": "Página",
+    "en": "Page",
+    "fr": "Page",
+    "de": "Seite"
+  },
+  "resultado para": {
+    "es": "resultado para",
+    "en": "result for",
+    "fr": "résultat pour",
+    "de": "Ergebnis für"
+  },
+  "resultados para": {
+    "es": "resultados para",
+    "en": "results for",
+    "fr": "résultats pour",
+    "de": "Ergebnisse für"
+  },
+  "Uma seleção de equipamentos": {
+    "es": "Una selección de equipos",
+    "en": "A selection of equipment",
+    "fr": "Une sélection d'équipements",
+    "de": "Eine Geräteauswahl"
+  },
+  "Cookie de idioma": {
+    "es": "Cookie de idioma",
+    "en": "Language cookie",
+    "fr": "Cookie de langue",
+    "de": "Sprach-Cookie"
+  },
+  "A escolha manual do idioma é guardada num cookie funcional, sem análise de utilização nem geolocalização por IP.": {
+    "es": "La elección manual del idioma se guarda en una cookie funcional, sin análisis de uso ni geolocalización por IP.",
+    "en": "Your manual language choice is saved in a functional cookie, without usage analytics or IP geolocation.",
+    "fr": "Votre choix manuel de langue est enregistré dans un cookie fonctionnel, sans analyse d'utilisation ni géolocalisation par IP.",
+    "de": "Ihre manuelle Sprachauswahl wird in einem funktionalen Cookie gespeichert, ohne Nutzungsanalyse oder IP-Geolokalisierung."
+  },
+  "Como organizamos a seleção": {
+    "es": "Cómo organizamos la selección",
+    "en": "How we organise the selection",
+    "fr": "Comment nous organisons la sélection",
+    "de": "So ordnen wir die Auswahl"
+  },
+  "Algumas categorias do catálogo": {
+    "es": "Algunas categorías del catálogo",
+    "en": "Some catalogue categories",
+    "fr": "Quelques catégories du catalogue",
+    "de": "Einige Katalogkategorien"
   }
 }
 
