@@ -1,15 +1,17 @@
 # Lowcost Europa — Project State
 
-## IP-country storefront language — proposal 2026-11-07
+## Dynadot paid domain readiness — 2026-11-07 (DNS and cutover pending)
 
-**Live rollout gate 2026-11-07:** [VPS #42404168316](https://github.com/martaxi-boss/VPS/actions/runs/42404168316) stopped at country DB provisioning because the service user cannot traverse protected `data/`; automatic rollback to `c00376d0` PASSED. Follow-up source moves MMDB to `.geoip/` inside the project, with no permissions change to protected data. This follow-up has not yet been deployed; the feature flag remains OFF on the live DuckDNS host until checked.
+- Intended primary domain **lowcost-europa.eu** using **Dynadot DNS**; no Cloudflare. The authoritative DNS preflight [VPS #42405767220](https://github.com/martaxi-boss/VPS/actions/runs/42405767220) confirmed ns1/ns2.dyna-ns.net, but both apex/www A records still point to Dynadot parking **185.53.179.149**, not the OVH VPS **146.59.145.3**.
+- Existing Dynadot email MX, SPF, DKIM and DMARC are publicly present and must be preserved. Mail DNS does not certify functional send/receive.
+- VPS application live at **fefd5df92753382bb7ad191ee19e38b90d8167a3**; Django active, Nginx config valid, old DuckDNS health PASS. New TLS certificate, vhost, allowed hosts, CSRF origins and primary URL are **NOT YET configured**.
+- Source-only domain preparation supplies separate HTTP ACME and eventual HTTPS Nginx configurations and [operational runbook](docs/operations/custom-domain-dynadot-20261107.md). **Do not activate SSL template until certificate issuance and both DNS A records verified.** Keep DuckDNS and noindex until fully checked.
 
+## IP-country storefront language — live staging certified 2026-11-07
 
-
-- Branch fix/europe-country-ip-locale-20261107 adds a strict public IP-country rule: PT Portuguese, ES Spanish, FR French, DE German, GB English, every other/unknown IP English. No VPN detection, browser language or old language cookie takes precedence when activated. This is intentionally limited to public storefront pages and does not expand commercial scope outside Europe.
-- Free local DB-IP Country Lite (CC BY 4.0) is read with maxminddb from .geoip/ inside the application folder; a project-local updater, attribution, privacy disclosure, and tests are included. It is an opt-in via DJANGO_GEO_LANGUAGE_ENABLED (default false) until production database, Nginx trust, CI and real-IP VPN checks are certified.
-- This is SOURCE WORK ONLY until merged and deployed; do not claim the DuckDNS website is already IP-localized. No DNS, indexing, database migrations, product data or affiliate URLs are changed.
-
+- [PR #202](https://github.com/martaxi-boss/lowcost-europa/pull/202) and [PR #203](https://github.com/martaxi-boss/lowcost-europa/pull/203) merged; VPS deployed matching SHA **fefd5df92753382bb7ad191ee19e38b90d8167a3** in [rollout #42404667890](https://github.com/martaxi-boss/VPS/actions/runs/42404667890). Country MMDB in project-local .geoip/; service, backups, HTTPS and noindex PASS.
+- Exact rule: public IP country **PT→pt-PT, ES→es, FR→fr, DE→de, GB→en; all others and unresolved→en**. Browser language and an old cookie are ignored on the public storefront when IP mode is enabled. VPN egress IP is treated like any other.
+- [VPS six-country QA #42404916518](https://github.com/martaxi-boss/VPS/actions/runs/42404916518) PASS for PT/ES/FR/DE/GB/NL with local requests that supply database-derived public-IP samples. These are **not six independent live VPN connections**. The first provision attempt [#42404168316](https://github.com/martaxi-boss/VPS/actions/runs/42404168316) failed safely on protected data/ directory and rollback passed; isolated .geoip/ fixed it without weakening private data permissions.
 
 Historical reconciliation baseline: 2026-10-03. Most recent verified staging evidence before this source-only update: 2026-10-30.
 
