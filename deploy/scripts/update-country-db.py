@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 import maxminddb
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DB_DIR = PROJECT_ROOT / "data" / "geoip"
+DB_DIR = PROJECT_ROOT / ".geoip"
 DESTINATION = DB_DIR / "dbip-country-lite.mmdb"
 MAX_ARCHIVE_BYTES = 32 * 1024 * 1024
 MAX_DATABASE_BYTES = 64 * 1024 * 1024
