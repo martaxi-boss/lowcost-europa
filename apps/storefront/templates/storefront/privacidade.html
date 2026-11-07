@@ -6,6 +6,7 @@
     <p class="eyebrow">{{ "Privacidade"|ui_t }}</p>
     <h1>{{ "Privacidade"|ui_t }}</h1>
     <p class="lead">{{ "Esta página explica, em linguagem simples, que informação é registada atualmente quando o Lowcost Europa encaminha um visitante para uma oferta externa."|ui_t }}</p>
+    {% include "storefront/components/public_operator.html" %}
 
     <h2>{{ "Registo de encaminhamentos"|ui_t }}</h2>
     <p>{{ "Quando ocorre um encaminhamento válido para uma oferta externa, o Lowcost Europa pode registar a oferta e a data/hora do clique."|ui_t }}</p>
@@ -30,6 +31,14 @@
 
     <h2>{{ "Contacto"|ui_t }}</h2>
     <p>{{ "Para questões de privacidade, transparência ou correções factuais, contacte"|ui_t }} <a href="mailto:geral@lowcost-europa.eu">geral@lowcost-europa.eu</a> {{ "ou consulte a página"|ui_t }} <a href="{% url 'storefront:contacto' %}">{{ "Contacto"|ui_t }}</a>.</p>
+    <h2>{{ "Finalidades, fundamento e conservação"|ui_t }}</h2>
+    <p>{{ "Os dados das mensagens são utilizados para responder ao contacto. Os logs técnicos servem a operação e a segurança do site. Estes tratamentos baseiam-se no interesse legítimo em responder às comunicações e manter o serviço seguro. A conservação é limitada ao tempo necessário para essas finalidades e para cumprir obrigações legais ou defender direitos."|ui_t }}</p>
+    <h2>{{ "Prestadores e serviços externos"|ui_t }}</h2>
+    <p>{{ "O alojamento é assegurado pela OVHcloud e o correio utiliza a Dynadot e uma caixa de gestão Gmail. Ao abrir WhatsApp ou AliExpress, passa a utilizar serviços externos sujeitos às respetivas políticas. Estes fornecedores podem tratar dados fora do Espaço Económico Europeu; consulte as informações sobre transferências internacionais e garantias nas suas políticas."|ui_t }}</p>
+    <p><a href="https://www.ovhcloud.com/en/personal-data-protection/">OVHcloud</a> · <a href="https://www.dynadot.com/terms-of-use?redirect=part2">Dynadot</a> · <a href="https://policies.google.com/privacy">Google</a> · <a href="https://www.whatsapp.com/legal/privacy-policy">WhatsApp</a></p>
+    <h2>{{ "Os seus direitos"|ui_t }}</h2>
+    <p>{{ "Pode pedir acesso, retificação, apagamento, limitação, oposição e, quando aplicável, portabilidade dos seus dados através do e-mail indicado. Pode também apresentar reclamação à autoridade de proteção de dados competente, em Portugal a CNPD. O exercício de cada direito depende dos requisitos legais aplicáveis."|ui_t }}</p>
+    <p><a href="https://www.cnpd.pt/">CNPD — Comissão Nacional de Proteção de Dados</a></p>
   </div>
 </section>
 {% endblock %}
