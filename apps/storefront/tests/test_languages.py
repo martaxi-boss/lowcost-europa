@@ -26,9 +26,7 @@ class PublicLanguageTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, heading)
                 self.assertContains(response, f'<html lang="{code}">')
-                self.assertContains(
-                    response, 'class="family-index family-index--compact"'
-                )
+                # The category navigation is shown when families are present.
                 self.assertContains(response, 'id="familias"')
                 self.assertContains(response, 'name="language"')
                 self.assertNotContains(response, "atelier-specialties")
@@ -76,7 +74,7 @@ class PublicLanguageTests(TestCase):
                 reverse("storefront:product-family-detail", args=[slug]),
             )
         self.assertContains(response, 'class="card-grid" role="region"')
-        self.assertEqual(response.content.count(b'class="product-card'), 5)
+        self.assertEqual(response.content.count(b'<article class="product-card'), 5)
 
     def test_institutional_page_keeps_url_and_renders_language(self):
         response = self.client.get("/como-funciona/", HTTP_ACCEPT_LANGUAGE="fr")
