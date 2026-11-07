@@ -725,6 +725,276 @@ UI_TRANSLATIONS = {
     "en": "Diode laser / tattoo removal / pigmentation",
     "fr": "Laser diode / détatouage / pigmentation",
     "de": "Diodenlaser / Tattooentfernung / Pigmentierung"
+  },
+  "← Voltar às categorias": {
+    "es": "← Volver a las categorías",
+    "en": "← Back to categories",
+    "fr": "← Retour aux catégories",
+    "de": "← Zurück zu den Kategorien"
+  },
+  "Uma seleção organizada para comparar ofertas desta categoria com base na informação factual disponível. A compra acontece sempre no parceiro.": {
+    "es": "Una selección organizada para comparar ofertas de esta categoría según los datos disponibles. La compra se realiza siempre con el socio.",
+    "en": "An organised selection to compare offers in this category using available factual information. Purchases always take place with the partner.",
+    "fr": "Une sélection organisée pour comparer les offres de cette catégorie selon les informations disponibles. L'achat se fait toujours auprès du partenaire.",
+    "de": "Eine übersichtliche Auswahl zum Vergleich von Angeboten dieser Kategorie anhand verfügbarer Fakten. Der Kauf erfolgt immer beim Partner."
+  },
+  "Ir para a gestão desta categoria": {
+    "es": "Ir a la gestión de esta categoría",
+    "en": "Manage this category",
+    "fr": "Gérer cette catégorie",
+    "de": "Diese Kategorie verwalten"
+  },
+  "Como ler esta página": {
+    "es": "Cómo leer esta página",
+    "en": "How to read this page",
+    "fr": "Comment lire cette page",
+    "de": "Hinweise zu dieser Seite"
+  },
+  "Escolhas editoriais organizadas para facilitar a comparação. A posição não representa um ranking objetivo.": {
+    "es": "Selecciones editoriales organizadas para facilitar la comparación. El orden no representa una clasificación objetiva.",
+    "en": "Editorial selections organised to make comparisons easier. Position does not imply an objective ranking.",
+    "fr": "Des sélections éditoriales organisées pour faciliter la comparaison. L'ordre n'est pas un classement objectif.",
+    "de": "Redaktionell ausgewählte Angebote erleichtern den Vergleich. Die Reihenfolge stellt keine objektive Rangliste dar."
+  },
+  "Curadoria editorial": {
+    "es": "Selección editorial",
+    "en": "Editorial curation",
+    "fr": "Sélection éditoriale",
+    "de": "Redaktionelle Auswahl"
+  },
+  "Seleções Lowcost Europa": {
+    "es": "Selecciones Lowcost Europa",
+    "en": "Lowcost Europa selections",
+    "fr": "Sélections Lowcost Europa",
+    "de": "Lowcost Europa Auswahl"
+  },
+  "Mais opções validadas": {
+    "es": "Más opciones verificadas",
+    "en": "More validated options",
+    "fr": "Autres options vérifiées",
+    "de": "Weitere geprüfte Angebote"
+  },
+  "Outras ofertas selecionadas": {
+    "es": "Otras ofertas seleccionadas",
+    "en": "Other selected offers",
+    "fr": "Autres offres sélectionnées",
+    "de": "Weitere ausgewählte Angebote"
+  },
+  "Outras ofertas desta categoria, apresentadas pela ordem editorial definida no catálogo.": {
+    "es": "Otras ofertas de esta categoría, ordenadas según los criterios editoriales del catálogo.",
+    "en": "Other offers in this category, shown in the catalogue's editorial order.",
+    "fr": "Autres offres de cette catégorie, présentées dans l'ordre éditorial du catalogue.",
+    "de": "Weitere Angebote dieser Kategorie in der redaktionellen Katalogreihenfolge."
+  },
+  "Preferimos manter a categoria vazia a apresentar um produto sem validação suficiente. Volte mais tarde para consultar novas opções.": {
+    "es": "Preferimos dejar la categoría vacía antes que mostrar productos insuficientemente verificados. Vuelva más adelante.",
+    "en": "We prefer to leave the category empty rather than show an insufficiently verified product. Please check back later.",
+    "fr": "Nous préférons laisser la catégorie vide plutôt que présenter un produit insuffisamment vérifié. Revenez plus tard.",
+    "de": "Wir lassen diese Kategorie lieber leer, statt unzureichend geprüfte Produkte zu zeigen. Schauen Sie später wieder vorbei."
+  },
+  "Antes de continuar": {
+    "es": "Antes de continuar",
+    "en": "Before you continue",
+    "fr": "Avant de continuer",
+    "de": "Bevor Sie fortfahren"
+  },
+  "A compra acontece fora do Lowcost Europa.": {
+    "es": "La compra se realiza fuera de Lowcost Europa.",
+    "en": "Purchases take place outside Lowcost Europa.",
+    "fr": "L'achat s'effectue hors de Lowcost Europa.",
+    "de": "Der Kauf erfolgt außerhalb von Lowcost Europa."
+  },
+  "O Lowcost Europa organiza informação e encaminha para o parceiro. Preço, disponibilidade, pagamento, entrega e apoio à encomenda são definidos pelo vendedor ou plataforma. Alguns links podem gerar comissão afiliada.": {
+    "es": "Lowcost Europa organiza información y redirige al socio. El precio, la disponibilidad, el pago, la entrega y la asistencia corresponden al vendedor o plataforma. Algunos enlaces pueden generar una comisión de afiliación.",
+    "en": "Lowcost Europa organises information and redirects to partners. Prices, availability, payment, delivery and order support are set by the seller or platform. Some links may earn an affiliate commission.",
+    "fr": "Lowcost Europa organise les informations et redirige vers le partenaire. Prix, disponibilité, paiement, livraison et assistance sont définis par le vendeur ou la plateforme. Certains liens peuvent générer une commission d'affiliation.",
+    "de": "Lowcost Europa ordnet Informationen und leitet zum Partner weiter. Preis, Verfügbarkeit, Zahlung, Lieferung und Bestellservice werden vom Verkäufer oder der Plattform festgelegt. Einige Links können Provisionen auslösen."
+  },
+  "Como funcionam os links de afiliado": {
+    "es": "Cómo funcionan los enlaces de afiliación",
+    "en": "How affiliate links work",
+    "fr": "Fonctionnement des liens d'affiliation",
+    "de": "So funktionieren Affiliate-Links"
+  },
+  "← Explorar categorias": {
+    "es": "← Explorar categorías",
+    "en": "← Browse categories",
+    "fr": "← Parcourir les catégories",
+    "de": "← Kategorien entdecken"
+  },
+  "Catálogo Lowcost Europa": {
+    "es": "Catálogo Lowcost Europa",
+    "en": "Lowcost Europa catalogue",
+    "fr": "Catalogue Lowcost Europa",
+    "de": "Lowcost Europa Katalog"
+  },
+  "Pesquisar equipamentos": {
+    "es": "Buscar equipos",
+    "en": "Search equipment",
+    "fr": "Rechercher des équipements",
+    "de": "Geräte suchen"
+  },
+  "Encontre ofertas selecionadas por equipamento ou especialidade, antes de continuar para o parceiro.": {
+    "es": "Encuentre ofertas seleccionadas por equipo o especialidad antes de visitar al socio.",
+    "en": "Find selected offers by equipment or speciality before going to the partner.",
+    "fr": "Trouvez des offres sélectionnées par équipement ou spécialité avant d'accéder au partenaire.",
+    "de": "Finden Sie ausgewählte Angebote nach Gerät oder Fachgebiet, bevor Sie zum Partner wechseln."
+  },
+  "O que procura?": {
+    "es": "¿Qué busca?",
+    "en": "What are you looking for?",
+    "fr": "Que recherchez-vous ?",
+    "de": "Wonach suchen Sie?"
+  },
+  "Pesquisa de produtos validados": {
+    "es": "Búsqueda de productos verificados",
+    "en": "Search validated products",
+    "fr": "Recherche de produits vérifiés",
+    "de": "Geprüfte Produkte suchen"
+  },
+  "Mostramos apenas ofertas elegíveis já publicadas. Selecione até três para comparar antes de visitar o parceiro.": {
+    "es": "Solo mostramos ofertas aptas y publicadas. Seleccione hasta tres para comparar antes de visitar al socio.",
+    "en": "We only show eligible, published offers. Select up to three to compare before visiting the partner.",
+    "fr": "Nous présentons uniquement les offres admissibles et publiées. Sélectionnez jusqu'à trois offres à comparer.",
+    "de": "Wir zeigen nur veröffentlichte, zulässige Angebote. Wählen Sie bis zu drei zum Vergleich."
+  },
+  "← Anterior": {
+    "es": "← Anterior",
+    "en": "← Previous",
+    "fr": "← Précédent",
+    "de": "← Zurück"
+  },
+  "Seguinte →": {
+    "es": "Siguiente →",
+    "en": "Next →",
+    "fr": "Suivant →",
+    "de": "Weiter →"
+  },
+  "A pesquisa e os filtros desta página não alteram os resultados das outras páginas.": {
+    "es": "La búsqueda y los filtros de esta página no modifican los resultados de las demás páginas.",
+    "en": "Search and filters on this page do not affect results on other pages.",
+    "fr": "La recherche et les filtres de cette page ne modifient pas les résultats des autres pages.",
+    "de": "Suche und Filter dieser Seite ändern die Ergebnisse anderer Seiten nicht."
+  },
+  "Não encontramos ofertas para esta pesquisa.": {
+    "es": "No se encontraron ofertas para esta búsqueda.",
+    "en": "No offers found for this search.",
+    "fr": "Aucune offre trouvée pour cette recherche.",
+    "de": "Keine Angebote für diese Suche gefunden."
+  },
+  "Experimente procurar por HIFU, laser, cavitação ou outra especialidade.": {
+    "es": "Pruebe a buscar HIFU, láser, cavitación u otra especialidad.",
+    "en": "Try searching for HIFU, laser, cavitation or another speciality.",
+    "fr": "Essayez HIFU, laser, cavitation ou une autre spécialité.",
+    "de": "Versuchen Sie HIFU, Laser, Kavitation oder ein anderes Fachgebiet."
+  },
+  "Ver todas as categorias": {
+    "es": "Ver todas las categorías",
+    "en": "View all categories",
+    "fr": "Voir toutes les catégories",
+    "de": "Alle Kategorien ansehen"
+  },
+  "Procure um equipamento ou escolha uma especialidade": {
+    "es": "Busque un equipo o elija una especialidad",
+    "en": "Search for equipment or choose a speciality",
+    "fr": "Recherchez un équipement ou choisissez une spécialité",
+    "de": "Suchen Sie ein Gerät oder wählen Sie ein Fachgebiet"
+  },
+  "Escreva um termo acima ou explore as cinco categorias da montra.": {
+    "es": "Introduzca un término arriba o explore las cinco categorías de la tienda.",
+    "en": "Enter a search term above or explore the five storefront categories.",
+    "fr": "Saisissez un terme ci-dessus ou explorez les cinq catégories.",
+    "de": "Geben Sie oben einen Suchbegriff ein oder entdecken Sie die fünf Kategorien."
+  },
+  "Explorar categorias": {
+    "es": "Explorar categorías",
+    "en": "Explore categories",
+    "fr": "Explorer les catégories",
+    "de": "Kategorien entdecken"
+  },
+  "Gerir": {
+    "es": "Gestionar",
+    "en": "Manage",
+    "fr": "Gérer",
+    "de": "Verwalten"
+  },
+  "Seleção em preparação.": {
+    "es": "Selección en preparación.",
+    "en": "Selection in preparation.",
+    "fr": "Sélection en préparation.",
+    "de": "Auswahl in Vorbereitung."
+  },
+  "Observação com mais de 7 dias. Confirme o preço atual no parceiro.": {
+    "es": "Dato de hace más de 7 días. Confirme el precio actual con el socio.",
+    "en": "Observation over 7 days old. Confirm the current price with the partner.",
+    "fr": "Donnée datant de plus de 7 jours. Vérifiez le prix actuel auprès du partenaire.",
+    "de": "Die Angabe ist über 7 Tage alt. Prüfen Sie den aktuellen Preis beim Partner."
+  },
+  "Observação com mais de 7 dias. Confirme o prazo no parceiro.": {
+    "es": "Dato de hace más de 7 días. Confirme el plazo con el socio.",
+    "en": "Observation over 7 days old. Confirm the delivery time with the partner.",
+    "fr": "Donnée datant de plus de 7 jours. Vérifiez le délai auprès du partenaire.",
+    "de": "Die Angabe ist über 7 Tage alt. Prüfen Sie die Lieferzeit beim Partner."
+  },
+  "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar.": {
+    "es": "Continuará en el sitio del socio; algunos enlaces pueden generar una comisión. Confirme la variante, las existencias y el país de envío antes de pagar.",
+    "en": "You will continue on the partner's site; some links may earn a commission. Check the variant, stock and dispatch country before paying.",
+    "fr": "Vous allez poursuivre sur le site du partenaire ; certains liens peuvent générer une commission. Vérifiez la variante, le stock et le pays d'expédition avant de payer.",
+    "de": "Sie wechseln zum Partner; einige Links können Provisionen auslösen. Prüfen Sie Variante, Lagerbestand und Versandland vor der Zahlung."
+  },
+  "Pesquise, filtre e compare até três ofertas. Os valores são observações do parceiro, não preços garantidos.": {
+    "es": "Busque, filtre y compare hasta tres ofertas. Los importes son datos observados del socio, no precios garantizados.",
+    "en": "Search, filter and compare up to three offers. Amounts are observed partner data, not guaranteed prices.",
+    "fr": "Recherchez, filtrez et comparez jusqu'à trois offres. Les montants sont des données constatées, pas des prix garantis.",
+    "de": "Suchen, filtern und vergleichen Sie bis zu drei Angebote. Die Beträge sind beobachtete Partnerdaten, keine garantierten Preise."
+  },
+  "Preço observado (EUR)": {
+    "es": "Precio observado (EUR)",
+    "en": "Observed price (EUR)",
+    "fr": "Prix constaté (EUR)",
+    "de": "Erfasster Preis (EUR)"
+  },
+  "Até 500 €": {
+    "es": "Hasta 500 €",
+    "en": "Up to €500",
+    "fr": "Jusqu'à 500 €",
+    "de": "Bis 500 €"
+  },
+  "Até 1 000 €": {
+    "es": "Hasta 1.000 €",
+    "en": "Up to €1,000",
+    "fr": "Jusqu'à 1 000 €",
+    "de": "Bis 1.000 €"
+  },
+  "Até 2 500 €": {
+    "es": "Hasta 2.500 €",
+    "en": "Up to €2,500",
+    "fr": "Jusqu'à 2 500 €",
+    "de": "Bis 2.500 €"
+  },
+  "Até 5 000 €": {
+    "es": "Hasta 5.000 €",
+    "en": "Up to €5,000",
+    "fr": "Jusqu'à 5 000 €",
+    "de": "Bis 5.000 €"
+  },
+  "Preços de moedas diferentes não são comparados nem convertidos. Ofertas sem preço ficam no fim.": {
+    "es": "No se comparan ni convierten precios en distintas monedas. Las ofertas sin precio aparecen al final.",
+    "en": "Prices in different currencies are neither compared nor converted. Offers without prices appear last.",
+    "fr": "Les prix dans différentes devises ne sont ni comparés ni convertis. Les offres sans prix apparaissent à la fin.",
+    "de": "Preise in verschiedenen Währungen werden weder verglichen noch umgerechnet. Angebote ohne Preis stehen am Ende."
+  },
+  "Não foram encontradas ofertas para estes filtros. Experimente outros termos ou limpe os filtros.": {
+    "es": "No se encontraron ofertas para estos filtros. Pruebe otros términos o borre los filtros.",
+    "en": "No offers match these filters. Try other terms or clear the filters.",
+    "fr": "Aucune offre ne correspond à ces filtres. Essayez d'autres termes ou effacez les filtres.",
+    "de": "Keine Angebote entsprechen diesen Filtern. Versuchen Sie andere Begriffe oder löschen Sie die Filter."
+  },
+  "Preços e logística são dados observados que devem ser confirmados na AliExpress. Comparar não envia informação para terceiros.": {
+    "es": "Los precios y los datos de envío son observaciones que deben confirmarse en AliExpress. Comparar no envía información a terceros.",
+    "en": "Prices and delivery information are observed data to confirm on AliExpress. Comparing does not send information to third parties.",
+    "fr": "Les prix et les informations logistiques sont des données à vérifier sur AliExpress. La comparaison n'envoie aucune donnée à des tiers.",
+    "de": "Preise und Lieferangaben sind Beobachtungen, die auf AliExpress zu prüfen sind. Beim Vergleichen werden keine Daten an Dritte gesendet."
   }
 }
 
