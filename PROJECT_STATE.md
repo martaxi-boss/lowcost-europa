@@ -1,6 +1,16 @@
 # Lowcost Europa — Project State
 
-Historical reconciliation baseline: 2026-10-03. Most recent verified staging evidence: 2026-10-30.
+Historical reconciliation baseline: 2026-10-03. Most recent verified staging evidence before this source-only update: 2026-10-30.
+
+## GitHub source and hygiene — 2026-11-07 (runtime deployment not yet certified)
+
+- **Integrated source:** GitHub `main` at `d1562eb8458652bdf0a04fa60ee6029a4b60514e` after [PR #196](https://github.com/martaxi-boss/lowcost-europa/pull/196) (professional storefront redesign) and [PR #197](https://github.com/martaxi-boss/lowcost-europa/pull/197) (safe GitHub hygiene). No database schema, automatic publication, DNS, commercial indexing or affiliate integration change was introduced by the visual PR.
+- **Source CI:** post-merge [CI #42388935895](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42388935895) SUCCESS, [source-browser Chromium QA #42388935881](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42388935881) SUCCESS (synthetic catalogue; four viewports), [Final audit evidence #42388935902](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42388935902) SUCCESS. The prior branch CI covered 717 Django tests. Passing CI does not prove current VPS SHA or real product photography quality.
+- **GitHub hygiene:** tracked generated files blocked by CI, ignore rules for disposable caches and browser output, and guarded merged-PR branch pruning. [#42385458184](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42385458184) cleaned eight provably merged refs; [#42388936280](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42388936280) handled the visual PR ref. Unmerged history was preserved.
+- **VPS hygiene:** [#42389097397](https://github.com/martaxi-boss/VPS/actions/runs/42389097397) ran the existing allowlisted cache cleaner, reported NO_ELIGIBLE_CACHE across seven allowed roots, with services unchanged and zero application or DB data deleted. The issue was closed.
+- **Deployment boundary:** The version at `/srv/projects/lowcost-europa` has **not** been demonstrated to match `d1562eb8458652bdf0a04fa60ee6029a4b60514e` in this checkpoint. Do not claim the DuckDNS public site shows the new design without live SHA readback and staging QA. The real catalogue/photographs, authenticated Owner experience and physical Android validation remain separate checks.
+- **Commercial controls:** `noindex`, test hostname, legal/operator information and final domain decision remain outside this redesign; do not activate launch or paid campaigns. `main` branch protection is still an administrative task.
+
 
 ## REA FINAL verified live audit and bounded corrections — 2026-10-30
 
