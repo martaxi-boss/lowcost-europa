@@ -995,6 +995,204 @@ UI_TRANSLATIONS = {
     "en": "Prices and delivery information are observed data to confirm on AliExpress. Comparing does not send information to third parties.",
     "fr": "Les prix et les informations logistiques sont des données à vérifier sur AliExpress. La comparaison n'envoie aucune donnée à des tiers.",
     "de": "Preise und Lieferangaben sind Beobachtungen, die auf AliExpress zu prüfen sind. Beim Vergleichen werden keine Daten an Dritte gesendet."
+  },
+  "Relação comercial": {
+    "es": "Relación comercial",
+    "en": "Commercial relationship",
+    "fr": "Relation commerciale",
+    "de": "Geschäftliche Beziehung"
+  },
+  "Alguns links do Lowcost Europa são links de afiliado.": {
+    "es": "Algunos enlaces de Lowcost Europa son enlaces de afiliación.",
+    "en": "Some Lowcost Europa links are affiliate links.",
+    "fr": "Certains liens de Lowcost Europa sont des liens d'affiliation.",
+    "de": "Einige Links auf Lowcost Europa sind Affiliate-Links."
+  },
+  "Quando uma compra elegível ocorre depois de um encaminhamento, o Lowcost Europa pode receber uma comissão do vendedor ou da plataforma.": {
+    "es": "Si se realiza una compra apta tras acceder mediante un enlace, Lowcost Europa puede recibir una comisión del vendedor o la plataforma.",
+    "en": "When an eligible purchase follows a referral, Lowcost Europa may receive a commission from the seller or platform.",
+    "fr": "Si un achat admissible suit une redirection, Lowcost Europa peut recevoir une commission du vendeur ou de la plateforme.",
+    "de": "Wenn nach einer Weiterleitung ein provisionsfähiger Kauf erfolgt, kann Lowcost Europa eine Provision vom Verkäufer oder der Plattform erhalten."
+  },
+  "Uma comissão não é garantida em cada clique ou em cada compra. A relação de afiliado não é escondida e não deve ser interpretada como uma avaliação independente de cada vendedor.": {
+    "es": "No se garantiza una comisión por cada clic o compra. La relación de afiliación se divulga y no debe interpretarse como una evaluación independiente de cada vendedor.",
+    "en": "A commission is not guaranteed for every click or purchase. The affiliate relationship is disclosed and should not be taken as an independent assessment of each seller.",
+    "fr": "Une commission n'est pas garantie à chaque clic ou achat. La relation d'affiliation est déclarée et ne constitue pas une évaluation indépendante de chaque vendeur.",
+    "de": "Eine Provision ist nicht für jeden Klick oder Kauf garantiert. Die Affiliate-Beziehung wird offengelegt und ist keine unabhängige Bewertung der einzelnen Verkäufer."
+  },
+  "O Lowcost Europa não apresenta a comissão como um aumento obrigatório do preço pago pelo comprador. O preço e as condições finais são os mostrados pelo vendedor.": {
+    "es": "Lowcost Europa no presenta la comisión como un recargo obligatorio para el comprador. El precio y las condiciones finales son los que muestra el vendedor.",
+    "en": "Lowcost Europa does not present the commission as a mandatory surcharge for buyers. Final prices and terms are those shown by the seller.",
+    "fr": "Lowcost Europa ne présente pas la commission comme un supplément obligatoire pour l'acheteur. Le prix et les conditions définitifs sont ceux du vendeur.",
+    "de": "Lowcost Europa stellt die Provision nicht als verpflichtenden Aufpreis für Käufer dar. Maßgeblich sind Preis und Bedingungen des Verkäufers."
+  },
+  "Para dúvidas sobre a relação de afiliado ou transparência, consulte": {
+    "es": "Si tiene preguntas sobre afiliación o transparencia, consulte",
+    "en": "For questions about affiliation or transparency, see",
+    "fr": "Pour toute question sur l'affiliation ou la transparence, consultez",
+    "de": "Bei Fragen zu Affiliate-Links oder Transparenz siehe"
+  },
+  "O Lowcost Europa apresenta uma seleção curada de ofertas e informação factual disponível no momento da observação.": {
+    "es": "Lowcost Europa presenta una selección editorial de ofertas y datos disponibles en el momento de su observación.",
+    "en": "Lowcost Europa presents a curated selection of offers and factual information available when observed.",
+    "fr": "Lowcost Europa présente une sélection éditoriale d'offres et d'informations factuelles disponibles au moment du relevé.",
+    "de": "Lowcost Europa zeigt eine redaktionelle Auswahl von Angeboten und Fakten, die zum Erfassungszeitpunkt verfügbar waren."
+  },
+  "Selecionamos ofertas para análise editorial.": {
+    "es": "Seleccionamos ofertas para su análisis editorial.",
+    "en": "We select offers for editorial review.",
+    "fr": "Nous sélectionnons des offres pour une analyse éditoriale.",
+    "de": "Wir wählen Angebote zur redaktionellen Prüfung aus."
+  },
+  "Mostramos preço, disponibilidade e logística apenas quando existem dados observados.": {
+    "es": "Mostramos precio, disponibilidad y envío solo cuando hay datos observados.",
+    "en": "We show price, availability and delivery details only when observed data exists.",
+    "fr": "Nous affichons prix, disponibilité et livraison uniquement lorsque des données ont été constatées.",
+    "de": "Wir zeigen Preis, Verfügbarkeit und Lieferung nur bei tatsächlich erfassten Daten."
+  },
+  "Ao escolher": {
+    "es": "Al seleccionar",
+    "en": "When you select",
+    "fr": "Lorsque vous choisissez",
+    "de": "Wenn Sie"
+  },
+  "Ver oferta": {
+    "es": "Ver oferta",
+    "en": "View offer",
+    "fr": "Voir l'offre",
+    "de": "Angebot ansehen"
+  },
+  ", é encaminhado para o site do vendedor.": {
+    "es": ", accederá al sitio del vendedor.",
+    "en": ", you are taken to the seller's website.",
+    "fr": ", vous accédez au site du vendeur.",
+    "de": ", werden Sie zur Website des Verkäufers weitergeleitet."
+  },
+  "A compra, o pagamento, a expedição e o pós-venda acontecem no vendedor.": {
+    "es": "La compra, el pago, el envío y el servicio posventa corresponden al vendedor.",
+    "en": "Purchase, payment, dispatch and after-sales support are handled by the seller.",
+    "fr": "L'achat, le paiement, l'expédition et le service après-vente sont assurés par le vendeur.",
+    "de": "Kauf, Zahlung, Versand und Kundendienst erfolgen beim Verkäufer."
+  },
+  "Algumas ligações são de afiliado e o Lowcost Europa pode receber comissão numa compra elegível.": {
+    "es": "Algunos enlaces son de afiliación y Lowcost Europa puede recibir una comisión por una compra apta.",
+    "en": "Some links are affiliate links and Lowcost Europa may receive a commission on eligible purchases.",
+    "fr": "Certains liens sont affiliés et Lowcost Europa peut recevoir une commission sur un achat admissible.",
+    "de": "Einige Links sind Affiliate-Links und Lowcost Europa kann bei provisionsfähigen Käufen eine Provision erhalten."
+  },
+  "O Lowcost Europa não processa o pagamento da compra. Preços, disponibilidade e estimativas logísticas podem mudar no vendedor.": {
+    "es": "Lowcost Europa no procesa los pagos. Los precios, la disponibilidad y las estimaciones de envío pueden cambiar en el sitio del vendedor.",
+    "en": "Lowcost Europa does not process payments. Prices, availability and delivery estimates may change on the seller's website.",
+    "fr": "Lowcost Europa ne traite pas les paiements. Prix, disponibilité et délais estimés peuvent changer sur le site du vendeur.",
+    "de": "Lowcost Europa wickelt keine Zahlungen ab. Preise, Verfügbarkeit und Lieferprognosen können sich beim Verkäufer ändern."
+  },
+  "Quando mostramos uma estimativa baseada apenas na pesquisa, como 5 dias, isso é uma indicação observada e não uma garantia de entrega.": {
+    "es": "Cuando mostramos una estimación basada solo en la búsqueda, como 5 días, se trata de un dato observado y no de una garantía de entrega.",
+    "en": "When we show a search-based estimate, such as five days, it is observed information, not a delivery guarantee.",
+    "fr": "Lorsqu'un délai est estimé à partir de la recherche, par exemple cinq jours, il s'agit d'une indication constatée et non d'une garantie de livraison.",
+    "de": "Eine aus Suchdaten abgeleitete Angabe wie fünf Tage ist eine Beobachtung und keine Liefergarantie."
+  },
+  "Utilização do site": {
+    "es": "Uso del sitio web",
+    "en": "Website use",
+    "fr": "Utilisation du site",
+    "de": "Nutzung der Website"
+  },
+  "Termos de Utilização": {
+    "es": "Condiciones de uso",
+    "en": "Terms of use",
+    "fr": "Conditions d'utilisation",
+    "de": "Nutzungsbedingungen"
+  },
+  "O Lowcost Europa seleciona, organiza e apresenta produtos e ofertas disponibilizados por vendedores ou plataformas externas.": {
+    "es": "Lowcost Europa selecciona, organiza y presenta productos y ofertas de vendedores o plataformas externas.",
+    "en": "Lowcost Europa selects, organises and displays products and offers from external sellers or platforms.",
+    "fr": "Lowcost Europa sélectionne, organise et présente des produits et offres de vendeurs ou plateformes externes.",
+    "de": "Lowcost Europa wählt Produkte und Angebote externer Verkäufer oder Plattformen aus, ordnet und zeigt sie an."
+  },
+  "Compra em plataformas externas": {
+    "es": "Compra en plataformas externas",
+    "en": "Purchases on external platforms",
+    "fr": "Achats sur des plateformes externes",
+    "de": "Käufe auf externen Plattformen"
+  },
+  "O Lowcost Europa não processa diretamente o pagamento das compras apresentadas. Ao escolher comprar, o utilizador é encaminhado para o vendedor ou plataforma externa, onde a transação é concluída.": {
+    "es": "Lowcost Europa no procesa directamente los pagos. Al elegir comprar, el usuario accede al vendedor o plataforma externa, donde se completa la transacción.",
+    "en": "Lowcost Europa does not directly process purchase payments. When choosing to buy, users are directed to the external seller or platform, where the transaction is completed.",
+    "fr": "Lowcost Europa ne traite pas directement les paiements. Lors d'un achat, l'utilisateur est redirigé vers le vendeur ou la plateforme externe où la transaction est conclue.",
+    "de": "Lowcost Europa wickelt Kaufzahlungen nicht selbst ab. Beim Kaufwunsch werden Nutzer zum externen Verkäufer oder zur Plattform weitergeleitet, wo die Transaktion erfolgt."
+  },
+  "O preço final, o stock, a disponibilidade, o pagamento, a entrega, as devoluções, as garantias e o apoio relativo à encomenda estão sujeitos às condições do vendedor ou da plataforma externa.": {
+    "es": "El precio final, las existencias, la disponibilidad, el pago, la entrega, las devoluciones, las garantías y la asistencia se rigen por las condiciones del vendedor o plataforma externa.",
+    "en": "Final prices, stock, availability, payment, delivery, returns, warranties and order support are subject to the terms of the seller or external platform.",
+    "fr": "Prix final, stock, disponibilité, paiement, livraison, retours, garanties et assistance relèvent des conditions du vendeur ou de la plateforme externe.",
+    "de": "Endpreis, Bestand, Verfügbarkeit, Zahlung, Lieferung, Rücksendungen, Garantien und Bestellservice unterliegen den Bedingungen des Verkäufers oder der externen Plattform."
+  },
+  "Os preços e a disponibilidade apresentados no Lowcost Europa podem alterar-se entre o momento da consulta e a abertura da página externa.": {
+    "es": "Los precios y la disponibilidad mostrados pueden cambiar entre la consulta y la apertura de la página externa.",
+    "en": "Prices and availability shown on Lowcost Europa may change between viewing the listing and opening the external page.",
+    "fr": "Les prix et la disponibilité affichés sur Lowcost Europa peuvent changer entre la consultation et l'ouverture de la page externe.",
+    "de": "Die bei Lowcost Europa gezeigten Preise und Verfügbarkeiten können sich bis zum Öffnen der externen Seite ändern."
+  },
+  "Relação de afiliado": {
+    "es": "Relación de afiliación",
+    "en": "Affiliate relationship",
+    "fr": "Relation d'affiliation",
+    "de": "Affiliate-Beziehung"
+  },
+  "Alguns links do Lowcost Europa são links de afiliado. O Lowcost Europa pode receber uma comissão quando uma compra elegível ocorre após um encaminhamento.": {
+    "es": "Algunos enlaces son de afiliación. Lowcost Europa puede recibir una comisión por compras aptas realizadas tras una redirección.",
+    "en": "Some Lowcost Europa links are affiliate links. Lowcost Europa may earn a commission on eligible purchases following a referral.",
+    "fr": "Certains liens de Lowcost Europa sont affiliés. Lowcost Europa peut recevoir une commission lorsqu'un achat admissible suit une redirection.",
+    "de": "Einige Links auf Lowcost Europa sind Affiliate-Links. Lowcost Europa kann bei provisionsfähigen Käufen nach einer Weiterleitung eine Provision erhalten."
+  },
+  "Essa comissão não é apresentada como um custo adicional obrigatório para o comprador.": {
+    "es": "Esa comisión no se presenta como un coste adicional obligatorio para el comprador.",
+    "en": "This commission is not presented as a mandatory additional cost to the buyer.",
+    "fr": "Cette commission n'est pas présentée comme un coût supplémentaire obligatoire pour l'acheteur.",
+    "de": "Diese Provision wird nicht als verpflichtender Zusatzpreis für Käufer dargestellt."
+  },
+  "Antes de concluir a compra": {
+    "es": "Antes de finalizar la compra",
+    "en": "Before completing a purchase",
+    "fr": "Avant de finaliser l'achat",
+    "de": "Vor Abschluss des Kaufs"
+  },
+  "Antes de concluir a compra, confirme na plataforma externa o produto, o preço, o stock, a entrega, as condições aplicáveis e os restantes dados finais da transação.": {
+    "es": "Antes de finalizar, compruebe en la plataforma externa el producto, el precio, las existencias, la entrega y las condiciones aplicables.",
+    "en": "Before buying, verify the product, price, stock, delivery, applicable terms and other final transaction details on the external platform.",
+    "fr": "Avant l'achat, vérifiez sur la plateforme externe le produit, le prix, le stock, la livraison, les conditions et les détails définitifs.",
+    "de": "Prüfen Sie vor dem Kauf auf der externen Plattform Produkt, Preis, Bestand, Lieferung, Bedingungen und alle weiteren abschließenden Angaben."
+  },
+  "Mais informação": {
+    "es": "Más información",
+    "en": "More information",
+    "fr": "Plus d'informations",
+    "de": "Weitere Informationen"
+  },
+  "Consulte também as páginas de": {
+    "es": "Consulte también las páginas de",
+    "en": "Also see the pages on",
+    "fr": "Consultez également les pages",
+    "de": "Weitere Informationen finden Sie unter"
+  },
+  "Contacto institucional": {
+    "es": "Contacto institucional",
+    "en": "Institutional contact",
+    "fr": "Contact institutionnel",
+    "de": "Offizieller Kontakt"
+  },
+  "Use estes canais para questões sobre o site Lowcost Europa, informação apresentada, links afiliados, correções factuais e transparência da plataforma.": {
+    "es": "Utilice estos canales para preguntas sobre Lowcost Europa, la información mostrada, los enlaces de afiliación, correcciones y transparencia.",
+    "en": "Use these channels for questions about Lowcost Europa, displayed information, affiliate links, factual corrections and platform transparency.",
+    "fr": "Utilisez ces canaux pour toute question sur Lowcost Europa, les informations affichées, l'affiliation, les corrections factuelles et la transparence.",
+    "de": "Nutzen Sie diese Kontaktwege für Fragen zur Website, zu angezeigten Angaben, Affiliate-Links, Korrekturen und Transparenz."
+  },
+  "Compras, pagamentos, expedição, devoluções e suporte da encomenda são tratados pelo vendedor ou pela plataforma de venda, não pelo Lowcost Europa.": {
+    "es": "Las compras, pagos, envíos, devoluciones y asistencia al pedido corresponden al vendedor o plataforma, no a Lowcost Europa.",
+    "en": "Purchases, payments, shipping, returns and order support are handled by the seller or selling platform, not by Lowcost Europa.",
+    "fr": "Les achats, paiements, expéditions, retours et l'assistance aux commandes sont assurés par le vendeur ou la plateforme, pas par Lowcost Europa.",
+    "de": "Käufe, Zahlungen, Versand, Rücksendungen und Bestellservice werden vom Verkäufer oder der Plattform bearbeitet, nicht von Lowcost Europa."
   }
 }
 
