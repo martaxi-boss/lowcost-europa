@@ -32,3 +32,7 @@ Redesenhar a apresentação na aplicação Django existente, sem alterar dados, 
 - Incrementado o identificador dos assets alterados no template base para evitar servir CSS/JS antigos de cache após o futuro deploy.
 - Sem instalação de dependências, migrações, alteração de serviços, purge APT ou eliminação dos backups; a VPS do site não foi modificada nesta branch.
 - O design OpenPencil foi executado isoladamente pelo motor Ferrari no seu diretório privado e não foi copiado para a aplicação Django como runtime, nem instalado programa na pasta Lowcost Europa.
+
+## QA gráfico da própria branch (sem VPS)
+
+Novo workflow `.github/workflows/source-storefront-browser-qa.yml`, acionado quando mudam os templates ou CSS/JS da montra. Num runner GitHub descartável: PostgreSQL de teste, catálogo totalmente sintético, Django local, Chromium real e screenshots a 390/1440 px. Faz verificações de overflow a 360/390/430/1440, pesquisa, filtros, comparador e foco de teclado. Não acede ao catálogo de produção, não visita links /go/ e não faz deploy. Uma captura do runner com placeholders honestos valida layout e comportamento, não a qualidade das fotografias do fornecedor.
