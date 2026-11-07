@@ -60,7 +60,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "apps.catalog.middleware.OwnerPanelPrivacyHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
+    "apps.storefront.geo_locale.EuropeCountryLocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -117,6 +117,10 @@ LANGUAGE_COOKIE_NAME = "lowcost_language"
 LANGUAGE_COOKIE_SAMESITE = "Lax"
 LANGUAGE_COOKIE_HTTPONLY = True
 LANGUAGE_COOKIE_SECURE = not DEBUG
+
+# Opt in only after the local, attributed MMDB has been provisioned on the VPS.
+GEO_LANGUAGE_ENABLED = env_bool("DJANGO_GEO_LANGUAGE_ENABLED", False)
+GEO_LANGUAGE_COUNTRY_DB = BASE_DIR / "data" / "geoip" / "dbip-country-lite.mmdb"
 TIME_ZONE = "Europe/Lisbon"
 USE_I18N = True
 USE_TZ = True

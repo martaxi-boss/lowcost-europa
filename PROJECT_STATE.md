@@ -1,5 +1,12 @@
 # Lowcost Europa — Project State
 
+## IP-country storefront language — proposal 2026-11-07
+
+- Branch fix/europe-country-ip-locale-20261107 adds a strict public IP-country rule: PT Portuguese, ES Spanish, FR French, DE German, GB English, every other/unknown IP English. No VPN detection, browser language or old language cookie takes precedence when activated. This is intentionally limited to public storefront pages and does not expand commercial scope outside Europe.
+- Free local DB-IP Country Lite (CC BY 4.0) is read with maxminddb from data/geoip inside the application folder; a project-local updater, attribution, privacy disclosure, and tests are included. It is an opt-in via DJANGO_GEO_LANGUAGE_ENABLED (default false) until production database, Nginx trust, CI and real-IP VPN checks are certified.
+- This is SOURCE WORK ONLY until merged and deployed; do not claim the DuckDNS website is already IP-localized. No DNS, indexing, database migrations, product data or affiliate URLs are changed.
+
+
 Historical reconciliation baseline: 2026-10-03. Most recent verified staging evidence before this source-only update: 2026-10-30.
 
 ## GitHub source and hygiene — 2026-11-07 (runtime deployment not yet certified)

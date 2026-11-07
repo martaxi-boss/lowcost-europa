@@ -1428,6 +1428,18 @@ UI_TRANSLATIONS = {
     "en": "Body treatments",
     "fr": "Soins corporels",
     "de": "Körperbehandlungen"
+  },
+  "Idioma pelo IP": {
+    "es": "Idioma por IP",
+    "en": "Language by IP address",
+    "fr": "Langue selon l'adresse IP",
+    "de": "Sprache nach IP-Adresse"
+  },
+  "O idioma da montra é escolhido pelo país associado ao IP público, incluindo VPN: Portugal em português, Espanha em espanhol, França em francês, Alemanha em alemão e restantes países em inglês. A consulta à base de países é feita localmente, sem guardar o IP para esta escolha.": {
+    "es": "El idioma del sitio se elige según el país asociado a la IP pública, incluidas las VPN: Portugal en portugués, España en español, Francia en francés, Alemania en alemán y los demás países en inglés. La consulta a la base de datos de países se hace localmente, sin guardar la IP para esta elección.",
+    "en": "The storefront language is chosen by the country associated with the public IP address, including VPNs: Portuguese for Portugal, Spanish for Spain, French for France, German for Germany, and English for all other countries. The country database is queried locally without storing the IP address for this selection.",
+    "fr": "La langue du site dépend du pays associé à l'adresse IP publique, y compris en cas de VPN : portugais pour le Portugal, espagnol pour l'Espagne, français pour la France, allemand pour l'Allemagne et anglais pour les autres pays. La base de données des pays est consultée localement, sans enregistrer l'adresse IP pour ce choix.",
+    "de": "Die Sprache der Website richtet sich nach dem Land der öffentlichen IP-Adresse, auch bei Verwendung eines VPN: Portugiesisch für Portugal, Spanisch für Spanien, Französisch für Frankreich, Deutsch für Deutschland und Englisch für alle anderen Länder. Die Länder-Datenbank wird lokal abgefragt, ohne die IP-Adresse für diese Auswahl zu speichern."
   }
 }
 
