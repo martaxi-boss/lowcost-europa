@@ -3,6 +3,7 @@
 import ipaddress
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
@@ -17,6 +18,12 @@ from apps.storefront.geo_locale import (
 class CountryLocaleSecurityTests(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
+
+    def test_country_database_path_is_private_to_project_not_restricted_data_dir(self):
+        self.assertEqual(
+            settings.GEO_LANGUAGE_COUNTRY_DB,
+            settings.BASE_DIR / ".geoip" / "dbip-country-lite.mmdb",
+        )
 
     def test_direct_public_ip_ignores_untrusted_x_real_ip(self):
         request = self.factory.get(

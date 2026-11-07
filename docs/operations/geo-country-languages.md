@@ -55,8 +55,8 @@ segredos, ficheiros ou programas fora da pasta de projeto.
    ./.venv/bin/python deploy/scripts/update-country-db.py.
    O script descarrega (HTTPS) a versão atual da DB-IP Country Lite,
    tenta o mês anterior se ainda não publicada, valida o formato e instala
-   atomica e exclusivamente em data/geoip/dbip-country-lite.mmdb.
-   A pasta data/ já é ignorada pelo Git. A base não é versionada.
+   atomica e exclusivamente em .geoip/dbip-country-lite.mmdb.
+   A pasta .geoip/ é ignorada pelo Git. A base não é versionada.
 4. Auditar o Nginx atual: upstream local; verificar no respetivo bloco
    de proxy a diretiva proxy_set_header X-Real-IP $remote_addr;
    sem aceitar valores X-Real-IP oriundos de clientes. **Não** alterar proxies
@@ -84,3 +84,7 @@ Quando a funcionalidade está ativa, o rodapé público mostra o link
 
 A Política de Privacidade também explica o uso transitório do IP para esta
 escolha e mantém a descrição separada dos logs técnicos e dos cliques.
+
+### Permissões reais do projeto
+
+A primeira tentativa de instalação [VPS #42404168316](https://github.com/martaxi-boss/VPS/actions/runs/42404168316) foi bloqueada porque `data/` tem permissões privadas e o utilizador da aplicação não consegue atravessar esse diretório. O rollback anterior `c00376d0` passou. Por isso, a base pública de países passa a residir em `.geoip/` dentro do projeto, dedicada e acessível ao serviço Django, sem abrir os dados privados em `data/`.
