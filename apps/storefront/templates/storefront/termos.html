@@ -1,4 +1,5 @@
 {% extends "storefront/base.html" %}
+{% load storefront_i18n %}
 {% block content %}
 <section class="section">
   <div class="container prose">
@@ -19,7 +20,7 @@
     <p>Antes de concluir a compra, confirme na plataforma externa o produto, o preço, o stock, a entrega, as condições aplicáveis e os restantes dados finais da transação.</p>
 
     <h2>Mais informação</h2>
-    <p>Consulte também as páginas de <a href="{% url 'storefront:privacidade' %}">Privacidade</a>, <a href="{% url 'storefront:afiliados' %}">Afiliados</a> e <a href="{% url 'storefront:contacto' %}">Contacto</a>.</p>
+    <p>Consulte também as páginas de <a href="{% url 'storefront:privacidade' %}">{{ "Privacidade"|ui_t }}</a>, <a href="{% url 'storefront:afiliados' %}">{{ "Afiliados"|ui_t }}</a> e <a href="{% url 'storefront:contacto' %}">{{ "Contacto"|ui_t }}</a>.</p>
   </div>
 </section>
 {% endblock %}
