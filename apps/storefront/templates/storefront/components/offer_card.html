@@ -34,7 +34,7 @@
     <div class="offer-cta">
       <button class="compare-toggle" type="button" data-compare-toggle aria-pressed="false" aria-label="Adicionar {{ offer.title|default:'equipamento' }} à comparação" hidden>{{ "+ Comparar equipamento"|ui_t }}</button>
       {% if offer.can_redirect %}
-        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}">{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
+        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}" rel="sponsored nofollow">{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
         <p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>
       {% else %}
         <button class="button button--large" type="button" disabled aria-disabled="true">{{ "Oferta indisponível"|ui_t }}</button><p class="meta">{{ "Esta oferta não está disponível para encaminhamento neste momento."|ui_t }}</p>

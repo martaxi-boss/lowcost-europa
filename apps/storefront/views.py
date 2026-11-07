@@ -32,6 +32,7 @@ from apps.catalog.services.public_eligibility import (
 )
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
+from apps.storefront.seo import PRIVATE_PATH_PREFIXES, public_indexing_active
 from apps.storefront.ui_translations import translate_ui
 
 LEGACY_FAMILY_REDIRECTS = {
@@ -155,13 +156,9 @@ def _prepare_family(family):
 
 
 
-def _public_indexing_active():
-    return settings.PUBLIC_INDEXING_ENABLED and bool(settings.PUBLIC_SITE_URL)
-
-
-
-def _seo_context(path, page_title, meta_description):
-    indexing_active = _public_indexing_active()
+def _seo_context(request, page_title, meta_description):
+    path = request.path
+    indexing_active = public_indexing_active(request)
     canonical_url = f"{settings.PUBLIC_SITE_URL}{path}" if indexing_active else None
     robots_directive = "index, follow" if indexing_active else "noindex, nofollow"
     return {
@@ -177,6 +174,7 @@ def _render_storefront(request, template, context):
         static("storefront/lowcost-europa-brand-main.webp")
     )
     context["geo_language_enabled"] = settings.GEO_LANGUAGE_ENABLED
+    context["public_operator"] = settings.PUBLIC_OPERATOR
     response = render(request, template, context)
     if request.user.is_authenticated and request.user.is_staff:
         response["Cache-Control"] = "private, no-store"
@@ -193,7 +191,7 @@ def home(request):
     context = {
         "families": families,
         **_seo_context(
-            request.path,
+            request,
             "Lowcost Europa",
             "Produtos selecionados com informação factual de preço, oferta e logística.",
         ),
@@ -234,7 +232,7 @@ def search(request):
         "result_count": len(matches),
         "page": page,
         **_seo_context(
-            request.path,
+            request,
             "Pesquisar equipamentos | Lowcost Europa",
             "Pesquisa de ofertas editoriais elegíveis no catálogo Lowcost Europa.",
         ),
@@ -361,19 +359,25 @@ def product_family_detail(request, slug):
         "family": family,
         **_owner_family_context(request, family),
         **_seo_context(
-            request.path,
+            request,
             f"{family.name} | Lowcost Europa",
             f"Ofertas atuais e informação factual para {family.name}.",
         ),
     }
-    return _render_storefront(request, "storefront/product_family_detail.html", context)
+    if family.status == ProductFamily.Status.RETIRED:
+        context["robots_directive"] = "noindex, nofollow"
+        context["canonical_url"] = None
+    response = _render_storefront(request, "storefront/product_family_detail.html", context)
+    if family.status == ProductFamily.Status.RETIRED:
+        response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 def institutional_page(request, page):
     page_title, meta_description = INSTITUTIONAL_PAGES[page]
     context = {
         "page_key": page,
-        **_seo_context(request.path, page_title, meta_description),
+        **_seo_context(request, page_title, meta_description),
     }
     return _render_storefront(request, f"storefront/{page}.html", context)
 
@@ -383,8 +387,10 @@ def whatsapp_contact(request):
 
 
 def robots_txt(request):
-    if _public_indexing_active():
+    if public_indexing_active(request):
         body = "User-agent: *\nAllow: /\n"
+        body += "".join(f"Disallow: {path}\n" for path in PRIVATE_PATH_PREFIXES)
+        body += "Disallow: /pesquisar/\n"
         body += f"Sitemap: {settings.PUBLIC_SITE_URL}{reverse('storefront:sitemap')}\n"
     else:
         body = "User-agent: *\nDisallow: /\n"

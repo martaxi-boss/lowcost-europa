@@ -1,0 +1,754 @@
+{
+  "timestamp": "2026-11-07T22:33:02.861265+00:00",
+  "tls_validation": true,
+  "sitemap_status": 200,
+  "sitemap_urls": [
+    "https://www.lowcost-europa.eu/",
+    "https://www.lowcost-europa.eu/como-funciona/",
+    "https://www.lowcost-europa.eu/afiliados/",
+    "https://www.lowcost-europa.eu/privacidade/",
+    "https://www.lowcost-europa.eu/termos/",
+    "https://www.lowcost-europa.eu/contacto/",
+    "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+    "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+    "https://www.lowcost-europa.eu/products/hifu/",
+    "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+    "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/"
+  ],
+  "pages": [
+    {
+      "url": "https://www.lowcost-europa.eu/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/como-funciona/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/afiliados/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/privacidade/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/termos/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/contacto/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {
+        "/go/168/": "",
+        "/go/167/": "",
+        "/go/72/": "",
+        "/go/71/": "",
+        "/go/80/": "",
+        "/go/79/": "",
+        "/go/179/": "",
+        "/go/178/": "",
+        "/go/147/": "",
+        "/go/74/": "",
+        "/go/177/": "",
+        "/go/73/": "",
+        "/go/128/": "",
+        "/go/170/": "",
+        "/go/169/": "",
+        "/go/82/": "",
+        "/go/83/": ""
+      },
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {
+        "/go/165/": "",
+        "/go/97/": "",
+        "/go/109/": "",
+        "/go/102/": "",
+        "/go/99/": "",
+        "/go/94/": "",
+        "/go/101/": "",
+        "/go/98/": ""
+      },
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hifu/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {
+        "/go/186/": "",
+        "/go/185/": "",
+        "/go/59/": "",
+        "/go/68/": "",
+        "/go/157/": "",
+        "/go/67/": "",
+        "/go/66/": "",
+        "/go/176/": "",
+        "/go/175/": "",
+        "/go/70/": "",
+        "/go/62/": "",
+        "/go/184/": ""
+      },
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {
+        "/go/143/": "",
+        "/go/90/": "",
+        "/go/135/": "",
+        "/go/132/": "",
+        "/go/129/": "",
+        "/go/89/": "",
+        "/go/87/": "",
+        "/go/172/": "",
+        "/go/92/": "",
+        "/go/137/": ""
+      },
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {
+        "/go/146/": "",
+        "/go/156/": "",
+        "/go/155/": "",
+        "/go/154/": "",
+        "/go/152/": ""
+      },
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/robots.txt",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": null,
+      "location": null,
+      "robots_meta": [],
+      "canonical": [],
+      "h1": 0,
+      "affiliate_links": {},
+      "robots_body": "User-agent: *\nDisallow: /\n"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/painel/",
+      "status": 302,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": "/painel/entrar/",
+      "robots_meta": [],
+      "canonical": [],
+      "h1": 0,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/admin/",
+      "status": 302,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "max-age=0, no-cache, no-store, must-revalidate, private",
+      "location": "/admin/login/?next=/admin/",
+      "robots_meta": [],
+      "canonical": [],
+      "h1": 0,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/ops/",
+      "status": 404,
+      "x_robots": "noindex, nofollow",
+      "cache_control": null,
+      "location": null,
+      "robots_meta": [],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {},
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pesquisar/?q=hifu",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": "private, no-store",
+      "location": null,
+      "robots_meta": [
+        "noindex, nofollow"
+      ],
+      "canonical": [],
+      "h1": 1,
+      "affiliate_links": {
+        "/go/186/": "",
+        "/go/185/": "",
+        "/go/59/": "",
+        "/go/68/": "",
+        "/go/157/": "",
+        "/go/67/": "",
+        "/go/66/": "",
+        "/go/176/": "",
+        "/go/175/": "",
+        "/go/70/": "",
+        "/go/62/": "",
+        "/go/184/": ""
+      },
+      "robots_body": null
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/health/ready/",
+      "status": 200,
+      "x_robots": "noindex, nofollow",
+      "cache_control": null,
+      "location": null,
+      "robots_meta": [],
+      "canonical": [],
+      "h1": 0,
+      "affiliate_links": {},
+      "robots_body": null
+    }
+  ],
+  "affiliate_head_checks": [
+    {
+      "path": "/go/168/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/167/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/72/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/71/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/80/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/79/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/179/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/178/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/147/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/74/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/177/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/73/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/128/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/170/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/169/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/82/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/83/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/165/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/97/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/109/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/102/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/99/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/94/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/101/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/98/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/186/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/185/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/59/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/68/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/157/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/67/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/66/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/176/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/175/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/70/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/62/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/184/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/143/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/90/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/135/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/132/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/129/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/89/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/87/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/172/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/92/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/137/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/146/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/156/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/155/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/154/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    },
+    {
+      "path": "/go/152/",
+      "status": 302,
+      "destination_https": true,
+      "destination_host": "s.click.aliexpress.com",
+      "rel": "",
+      "noindex": "noindex, nofollow"
+    }
+  ],
+  "redirects": [
+    {
+      "url": "http://www.lowcost-europa.eu/",
+      "status": 301,
+      "location": "https://www.lowcost-europa.eu/"
+    },
+    {
+      "url": "http://lowcost-europa.eu/",
+      "status": 301,
+      "location": "https://www.lowcost-europa.eu/"
+    },
+    {
+      "url": "https://lowcost-europa.eu/",
+      "status": 301,
+      "location": "https://www.lowcost-europa.eu/"
+    }
+  ],
+  "indexing_status": "HELD_FOR_OPERATOR_LEGAL_DATA"
+}
