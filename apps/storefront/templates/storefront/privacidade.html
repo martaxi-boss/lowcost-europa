@@ -15,10 +15,9 @@
     <h2>{{ "Páginas públicas"|ui_t }}</h2>
     <p>{{ "As páginas públicas atuais não utilizam ferramentas de análise de utilização."|ui_t }}</p>
 
-    <h2>{{ "Cookie de idioma"|ui_t }}</h2>
+    <h2>{% if geo_language_enabled %}{{ "Idioma pelo IP"|ui_t }}{% else %}{{ "Cookie de idioma"|ui_t }}{% endif %}</h2>
     {% if geo_language_enabled %}
-    <p>{{ "O país do IP é estimado por uma base local para escolher o idioma inicial da montra: português em Portugal, espanhol em Espanha, francês em França, alemão na Alemanha e inglês nos restantes países. A escolha do idioma não guarda o IP."|ui_t }}</p>
-    <p>{{ "A escolha manual do idioma é guardada num cookie funcional e prevalece sobre a deteção do país."|ui_t }}</p>
+    <p>{{ "O idioma da montra é escolhido pelo país associado ao IP público, incluindo VPN: Portugal em português, Espanha em espanhol, França em francês, Alemanha em alemão e restantes países em inglês. A consulta à base de países é feita localmente, sem guardar o IP para esta escolha."|ui_t }}</p>
     {% else %}
     <p>{{ "A escolha manual do idioma é guardada num cookie funcional, sem análise de utilização nem geolocalização por IP."|ui_t }}</p>
     {% endif %}
