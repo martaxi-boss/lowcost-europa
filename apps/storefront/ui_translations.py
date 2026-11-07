@@ -1193,6 +1193,84 @@ UI_TRANSLATIONS = {
     "en": "Purchases, payments, shipping, returns and order support are handled by the seller or selling platform, not by Lowcost Europa.",
     "fr": "Les achats, paiements, expéditions, retours et l'assistance aux commandes sont assurés par le vendeur ou la plateforme, pas par Lowcost Europa.",
     "de": "Käufe, Zahlungen, Versand, Rücksendungen und Bestellservice werden vom Verkäufer oder der Plattform bearbeitet, nicht von Lowcost Europa."
+  },
+  "Esta página explica, em linguagem simples, que informação é registada atualmente quando o Lowcost Europa encaminha um visitante para uma oferta externa.": {
+    "es": "Esta página explica de forma sencilla qué información se registra actualmente cuando Lowcost Europa dirige a un visitante a una oferta externa.",
+    "en": "This page explains, in plain language, what is currently recorded when Lowcost Europa refers a visitor to an external offer.",
+    "fr": "Cette page explique simplement les informations actuellement enregistrées lorsque Lowcost Europa redirige un visiteur vers une offre externe.",
+    "de": "Diese Seite erklärt einfach, welche Informationen derzeit erfasst werden, wenn Lowcost Europa Besucher zu externen Angeboten weiterleitet."
+  },
+  "Registo de encaminhamentos": {
+    "es": "Registro de redirecciones",
+    "en": "Referral records",
+    "fr": "Enregistrement des redirections",
+    "de": "Weiterleitungsprotokoll"
+  },
+  "Quando ocorre um encaminhamento válido para uma oferta externa, o Lowcost Europa pode registar a oferta e a data/hora do clique.": {
+    "es": "Cuando se produce una redirección válida a una oferta externa, Lowcost Europa puede registrar la oferta y la fecha y hora del clic.",
+    "en": "When a valid referral to an external offer occurs, Lowcost Europa may record the offer and the date and time of the click.",
+    "fr": "Lors d'une redirection valide vers une offre externe, Lowcost Europa peut enregistrer l'offre ainsi que la date et l'heure du clic.",
+    "de": "Bei einer gültigen Weiterleitung zu einem externen Angebot kann Lowcost Europa das Angebot sowie Datum und Uhrzeit des Klicks erfassen."
+  },
+  "Esse registo de encaminhamento da aplicação não guarda endereço IP, dados de identificação do navegador ou dispositivo, identificador de sessão, impressão digital do dispositivo, página de origem, e-mail, localização ou outro identificador persistente.": {
+    "es": "Este registro de redirección de la aplicación no almacena dirección IP, datos identificativos del navegador o dispositivo, identificador de sesión, huella digital, página de origen, correo electrónico, ubicación ni otros identificadores persistentes.",
+    "en": "This application referral record does not store IP addresses, browser or device identification data, session identifiers, device fingerprints, referrer pages, email addresses, locations or other persistent identifiers.",
+    "fr": "Cet enregistrement applicatif des redirections ne conserve ni adresse IP, ni données d'identification du navigateur ou de l'appareil, ni identifiant de session, empreinte numérique, page d'origine, e-mail, localisation ou autre identifiant persistant.",
+    "de": "Dieser Weiterleitungsdatensatz der Anwendung speichert keine IP-Adresse, Browser- oder Gerätekennungen, Sitzungs-IDs, Fingerabdrücke, Herkunftsseiten, E-Mail-Adressen, Standorte oder sonstigen dauerhaften Kennungen."
+  },
+  "Um clique registado não significa utilizador único, compra, conversão ou comissão.": {
+    "es": "Un clic registrado no significa usuario único, compra, conversión ni comisión.",
+    "en": "A recorded click does not mean a unique user, purchase, conversion or commission.",
+    "fr": "Un clic enregistré ne signifie pas un utilisateur unique, un achat, une conversion ou une commission.",
+    "de": "Ein erfasster Klick bedeutet weder einen eindeutigen Nutzer noch einen Kauf, eine Conversion oder eine Provision."
+  },
+  "Páginas públicas": {
+    "es": "Páginas públicas",
+    "en": "Public pages",
+    "fr": "Pages publiques",
+    "de": "Öffentliche Seiten"
+  },
+  "As páginas públicas atuais não utilizam ferramentas de análise de utilização.": {
+    "es": "Las páginas públicas actuales no usan herramientas de análisis de uso.",
+    "en": "Current public pages do not use usage analytics tools.",
+    "fr": "Les pages publiques actuelles n'utilisent pas d'outils d'analyse d'utilisation.",
+    "de": "Die aktuellen öffentlichen Seiten verwenden keine Nutzungsanalyse-Tools."
+  },
+  "Logs técnicos": {
+    "es": "Registros técnicos",
+    "en": "Technical logs",
+    "fr": "Journaux techniques",
+    "de": "Technische Protokolle"
+  },
+  "Separadamente do registo de encaminhamento, a infraestrutura que suporta o site pode manter logs técnicos de acesso e erro para operação e segurança. Esses logs podem incluir, por exemplo, o endereço IP e a URL solicitada.": {
+    "es": "Al margen del registro de redirecciones, la infraestructura del sitio puede conservar registros técnicos de acceso y error para su funcionamiento y seguridad. Pueden incluir la dirección IP y la URL solicitada.",
+    "en": "Separately from application referral records, the infrastructure may keep technical access and error logs for operations and security. These may include IP addresses and requested URLs.",
+    "fr": "Indépendamment des redirections enregistrées par l'application, l'infrastructure peut conserver des journaux techniques d'accès et d'erreurs pour l'exploitation et la sécurité, notamment les adresses IP et les URL demandées.",
+    "de": "Unabhängig von den Weiterleitungsdaten kann die Infrastruktur technische Zugriffs- und Fehlerprotokolle für Betrieb und Sicherheit speichern, etwa IP-Adressen und aufgerufene URLs."
+  },
+  "Para questões de privacidade, transparência ou correções factuais, contacte": {
+    "es": "Para cuestiones de privacidad, transparencia o correcciones, contacte con",
+    "en": "For questions about privacy, transparency or factual corrections, contact",
+    "fr": "Pour toute question relative à la confidentialité, la transparence ou des corrections, contactez",
+    "de": "Bei Fragen zu Datenschutz, Transparenz oder sachlichen Korrekturen kontaktieren Sie"
+  },
+  "ou consulte a página": {
+    "es": "o consulte la página",
+    "en": "or see the page",
+    "fr": "ou consultez la page",
+    "de": "oder besuchen Sie die Seite"
+  },
+  "Idioma": {
+    "es": "Idioma",
+    "en": "Language",
+    "fr": "Langue",
+    "de": "Sprache"
+  },
+  "Aplicar": {
+    "es": "Aplicar",
+    "en": "Apply",
+    "fr": "Appliquer",
+    "de": "Übernehmen"
   }
 }
 
