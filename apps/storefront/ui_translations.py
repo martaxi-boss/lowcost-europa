@@ -1271,6 +1271,66 @@ UI_TRANSLATIONS = {
     "en": "Apply",
     "fr": "Appliquer",
     "de": "Übernehmen"
+  },
+  "0 equipamentos selecionados": {
+    "es": "0 equipos seleccionados",
+    "en": "0 pieces of equipment selected",
+    "fr": "0 équipements sélectionnés",
+    "de": "0 Geräte ausgewählt"
+  },
+  "de 3 equipamentos selecionados": {
+    "es": "de 3 equipos seleccionados",
+    "en": "of 3 pieces of equipment selected",
+    "fr": "sur 3 équipements sélectionnés",
+    "de": "von 3 Geräten ausgewählt"
+  },
+  "ofertas nesta lista": {
+    "es": "ofertas en esta lista",
+    "en": "offers in this list",
+    "fr": "offres dans cette liste",
+    "de": "Angebote in dieser Liste"
+  },
+  "de": {
+    "es": "de",
+    "en": "of",
+    "fr": "sur",
+    "de": "von"
+  },
+  "Limite de três equipamentos. Retire um para acrescentar outro.": {
+    "es": "Límite de tres equipos. Quite uno para añadir otro.",
+    "en": "You can compare up to three pieces of equipment. Remove one to add another.",
+    "fr": "Limite de trois équipements. Retirez-en un pour en ajouter un autre.",
+    "de": "Sie können bis zu drei Geräte vergleichen. Entfernen Sie eines, um ein anderes hinzuzufügen."
+  },
+  "O limite aplica-se só a preços em EUR; valores de outras moedas não são convertidos.": {
+    "es": "El límite solo se aplica a precios en EUR; los importes en otras monedas no se convierten.",
+    "en": "The limit only applies to prices in EUR; other currencies are not converted.",
+    "fr": "La limite s'applique uniquement aux prix en EUR ; les autres devises ne sont pas converties.",
+    "de": "Das Limit gilt nur für Preise in EUR; andere Währungen werden nicht umgerechnet."
+  },
+  "+ Comparar equipamento": {
+    "es": "+ Comparar equipo",
+    "en": "+ Compare equipment",
+    "fr": "+ Comparer l'équipement",
+    "de": "+ Gerät vergleichen"
+  },
+  "Na categoria": {
+    "es": "En la categoría",
+    "en": "In category",
+    "fr": "Dans la catégorie",
+    "de": "In Kategorie"
+  },
+  "Comparação": {
+    "es": "Comparación",
+    "en": "Comparison",
+    "fr": "Comparaison",
+    "de": "Vergleich"
+  },
+  "Resultados": {
+    "es": "Resultados",
+    "en": "Results",
+    "fr": "Résultats",
+    "de": "Ergebnisse"
   }
 }
 
