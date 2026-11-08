@@ -53,3 +53,6 @@ Thumbs.db
 
 # Owner-confirmed public legal fields are provisioned privately on the VPS
 /.legal/
+
+# Private IndexNow proof configuration and accepted content fingerprints
+/.indexnow/
