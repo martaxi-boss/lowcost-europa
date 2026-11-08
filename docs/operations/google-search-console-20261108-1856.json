@@ -1,0 +1,135 @@
+{
+  "evidenceType": "authenticated_engine_report",
+  "source": "Official Google APIs Explorer; Search Console API",
+  "property": "sc-domain:lowcost-europa.eu",
+  "authorizationScope": "https://www.googleapis.com/auth/webmasters.readonly",
+  "sitemapList": {
+    "checkedAt": "2026-11-08T18:43:47.010Z",
+    "method": "sitemaps.list",
+    "httpStatus": 200,
+    "response": {
+      "sitemap": [
+        {
+          "path": "https://www.lowcost-europa.eu/sitemap.xml",
+          "lastSubmitted": "2026-11-08T00:35:17.963Z",
+          "isPending": true,
+          "isSitemapsIndex": false,
+          "warnings": "0",
+          "errors": "0"
+        }
+      ]
+    },
+    "interpretation": "Pending, not yet processed. No lastDownloaded, type or contents returned. Zero errors/warnings while pending does not confirm successful sitemap processing or resolution of the earlier fetch report."
+  },
+  "urlInspections": [
+    {
+      "url": "https://www.lowcost-europa.eu/",
+      "checkedAt": "2026-11-08T18:50:04.461Z",
+      "method": "urlInspection.index.inspect",
+      "httpStatus": 200,
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Enviada e indexada",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-11-07T22:53:01Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.lowcost-europa.eu/",
+        "userCanonical": "https://www.lowcost-europa.eu/",
+        "crawledAs": "MOBILE"
+      }
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+      "checkedAt": "2026-11-08T18:55:03.202Z",
+      "method": "urlInspection.index.inspect",
+      "httpStatus": 200,
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Enviada e indexada",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-11-07T22:55:00Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+        "userCanonical": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+        "crawledAs": "MOBILE"
+      }
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "checkedAt": "2026-11-08T18:55:35.510Z",
+      "method": "urlInspection.index.inspect",
+      "httpStatus": 200,
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Enviada e indexada",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-11-07T22:57:01Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "userCanonical": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "crawledAs": "MOBILE"
+      }
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+      "checkedAt": "2026-11-08T18:55:48.414Z",
+      "method": "urlInspection.index.inspect",
+      "httpStatus": 200,
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Enviada e indexada",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-11-07T22:59:02Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+        "userCanonical": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+        "crawledAs": "MOBILE"
+      }
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hifu/",
+      "checkedAt": "2026-11-08T18:56:03.579Z",
+      "method": "urlInspection.index.inspect",
+      "httpStatus": 200,
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Enviada e indexada",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-11-07T22:59:02Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.lowcost-europa.eu/products/hifu/",
+        "userCanonical": "https://www.lowcost-europa.eu/products/hifu/",
+        "crawledAs": "MOBILE"
+      }
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "checkedAt": "2026-11-08T18:56:14.593Z",
+      "method": "urlInspection.index.inspect",
+      "httpStatus": 200,
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Enviada e indexada",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-11-08T13:52:54Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "userCanonical": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "crawledAs": "MOBILE"
+      }
+    }
+  ],
+  "limitations": [
+    "These read-only inspections did not request indexing or resubmit the sitemap.",
+    "API results concern the indexed version, not a Live URL test.",
+    "Six confirmations reconfirm the prior six-page Google baseline; they are not six newly indexed pages.",
+    "OAuth tokens, account identifiers, request headers, opaque inspection links and private data are intentionally excluded.",
+    "Interactive browser authorization is not an unattended API integration on the VPS."
+  ]
+}
