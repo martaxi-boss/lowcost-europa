@@ -1,5 +1,14 @@
 # Lowcost Europa — Project State
 
+## Authenticated Google API: six pages reconfirmed; sitemap pending — 8 November 2026, 18:56 Lisbon
+
+- **Google confirmed all six again:** the official URL Inspection API returned HTTP 200, PASS and **Enviada e indexada** for the homepage and all five categories. Every result reports successful fetching, allowed crawling/indexing, mobile crawler and matching Google/user WWW canonical. This reconfirms the earlier six-page baseline; it does not represent six newly indexed pages.
+- **New sitemap evidence:** the authenticated Sitemaps:list API returned HTTP 200 at 18:43 UTC, with **isPending=true**, warnings=0 and errors=0; lastSubmitted remains 00:35:17.963 UTC. No lastDownloaded, type or contents is returned. Google has not yet confirmed successful processing; the earlier fetch error is **not confirmed resolved**.
+- **Evidence:** [sanitized API observations](docs/operations/google-search-console-20261108-1856.json) and [interpretation/remaining work](docs/operations/international-search-20261108.md). Only read-only calls were made; no sitemap or URL was re-submitted. Tokens, account identifiers, opaque inspection links and private logs are excluded.
+- **Other engines still pending:** latest authenticated Bing baseline remains six pages Discovered but not crawled, sitemap Error/0; its later XML Live diagnostic and IndexNow dashboard displayed service errors, which do not establish site-fetch failure or a receipt regression. Yandex's read-only sitemap restriction, Brave category inclusion, Seznam inclusion and Yahoo/DuckDuckGo inclusion remain unconfirmed.
+- **Continuation:** the owner's latest instruction retains the same monitoring task for all agreed engines (Google, Bing, Yandex, Brave, Seznam, Yahoo, DuckDuckGo). Do not close it solely on Google/Bing while that expanded scope remains unconfirmed. No new objective application fault was identified. This change records evidence only and requires no application restart.
+
+
 ## Five Brave category receipts; IndexNow stable — 8 November 2026, 17:00 Lisbon
 
 - **New work completed:** each of the five existing category URLs was submitted once through Brave's official re-fetch form. Every submission displayed **Success / Thank you for your submission**. The homepage was not re-submitted. These are receipt confirmations, not category index-inclusion confirmations. Do not repeat them without a new technical reason.
