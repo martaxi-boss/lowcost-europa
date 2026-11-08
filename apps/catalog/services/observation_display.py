@@ -3,10 +3,9 @@ from datetime import timedelta
 from typing import Iterable
 
 from django.conf import settings
-from django.utils import timezone
-
 from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Trim
+from django.utils import timezone
 
 from apps.catalog.models import OfferObservation
 
