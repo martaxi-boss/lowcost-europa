@@ -1,5 +1,31 @@
 # International search discovery — 8 November 2026
 
+## Authenticated Google API readback — 8 November 2026, 18:43–18:56 Lisbon
+
+The owner completed Google authentication. Official Google APIs Explorer then returned authenticated results using only the Search Console read-only scope. This supplies new direct engine evidence after the earlier Search Console web-session persistence blocker; it does not establish a permanent unattended API connection on the VPS.
+
+**Sitemap still pending:** Sitemaps:list returned HTTP 200, isPending=true, warnings=0, errors=0 and lastSubmitted=2026-11-08T00:35:17.963Z for the existing canonical sitemap. No lastDownloaded, type or contents is returned. Google's [resource definition](https://developers.google.com/webmaster-tools/v1/sitemaps) says pending means not yet processed. Therefore zero errors/warnings in this response does not confirm successful processing or resolution of the earlier Couldn't fetch report. No resubmission occurred.
+
+**Six indexed versions reconfirmed:** the official [URL Inspection method](https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect) returned HTTP 200 and PASS / **Enviada e indexada** individually:
+
+| Page | Last Google crawl (UTC) |
+| --- | --- |
+| Homepage | 2026-11-07 22:53:01 |
+| Cavitação / RF / vacuum | 2026-11-07 22:55:00 |
+| Hydrodermoabrasão / aqua facial | 2026-11-07 22:57:01 |
+| Pressoterapia / vacuum / drenagem | 2026-11-07 22:59:02 |
+| HIFU | 2026-11-07 22:59:02 |
+| Diodo / laser / tatuagens | 2026-11-08 13:52:54 |
+
+All six results report robots ALLOWED, INDEXING_ALLOWED, page fetch SUCCESSFUL, MOBILE crawler and Google canonical equal to user canonical and the exact requested WWW URL. These are indexed-version inspections, not Live URL tests or indexing requests. They reconfirm the six-page baseline from earlier today. [Sanitized per-URL results and sitemap response](google-search-console-20261108-1856.json) preserve check times and the relevant engine fields only. No credentials, tokens, account identifiers, raw headers, opaque inspection links or private data are committed.
+
+**Other engines:** the latest authenticated Bing baseline remains six pages Discovered but not crawled and sitemap Error/0; homepage Live at 16:56 was indexable with zero SEO notices. At approximately 17:50 its XML Live diagnostic showed Failed to load insights again after one Re-try. Its IndexNow dashboard displayed zero together with two momentary-service-error messages. Neither display establishes a fresh origin fetch failure, zero accepted notifications or an IndexNow regression; the earlier read-only VPS evidence remains valid. Do not loop retries or re-submit. Public HTTPS sitemap/robots checks still passed without a reproduced origin fault.
+
+Yandex's sitemap tool remains restricted to read-only in the latest authenticated observation. Brave's five category re-fetch receipts and Seznam's homepage receipt remain submission evidence only; Yahoo/DuckDuckGo inclusion is unconfirmed. Continue the **same** task for all seven agreed engines following the owner's latest instruction. Final closure requires the original successful Google/Bing sitemap processing and Bing six-page confirmations plus confirmed completion of the expanded engine scope. Site-side eligibility and IndexNow receipts cannot force an engine's inclusion decision.
+
+This follow-up changes documentation only. No DNS/mail, HTTPS, catalogue, panel controls or runtime configuration was altered; no index request, sitemap re-submission or third-party message was sent. The interactive Google grant is not exported to the VPS. Browser observations and Actions→SSH alignment are not new Ferrari engine-job certifications.
+
+
 ## Five Brave category receipts; IndexNow stable — 8 November 2026, 17:00 Lisbon
 
 - **New work completed:** each of the five existing category URLs was submitted once through Brave's official re-fetch form. Every submission displayed **Success / Thank you for your submission**. The homepage was not re-submitted. These are receipt confirmations, not category index-inclusion confirmations. Do not repeat them without a new technical reason.
