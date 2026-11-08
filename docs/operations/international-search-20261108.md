@@ -1,5 +1,16 @@
 # International search discovery — 8 November 2026
 
+## Proven deployment interruption; graceful reload correction — 8 November 2026
+
+[Readiness evidence #42477175567](https://github.com/martaxi-boss/VPS/actions/runs/42477175567) confirms that the live application unit exactly matches source, CanReload=no, and NRestarts=0. All seven Lowcost connection-refused errors correlate by second with controlled stop/start events between 01:24 and 02:43. These are demonstrated deployment interruptions, not evidence of a current crash loop and not proof that they caused the later sitemap reports.
+
+The service now declares ExecReload using Gunicorn's HUP signal. For application-code updates with unchanged environment, runtime/dependencies and compatible schema, use `sudo systemctl reload lowcost-europa.service` after tests and the usual guarded checkout. Gunicorn keeps its listening master while replacing workers. Environment changes are not picked up by HUP and require a separately planned restart; this change does not make incompatible migrations or binary upgrades safe.
+
+Production acceptance must verify the existing unit before replacement, preserve a private rollback, run systemd unit verification, daemon-reload and one real reload under concurrent HTTPS requests to home/robots/sitemap, require zero failed samples and an unchanged master PID, and recheck private routes and configuration checksums. Until that rollout passes, treat this as source-only. Engine sitemap processing and index inclusion remain unresolved unless their own reports confirm a change.
+
+Further isolation: [TLS probe #42476901175](https://github.com/martaxi-boss/VPS/actions/runs/42476901175) passed TLS 1.2 and TLS 1.3 for home, robots and sitemap. The **actual negotiated HTTP version was 1.1** in every sample, even when HTTP/2 was requested. Earlier references to HTTP/2 flags must not be treated as proof of HTTP/2 support; HTTP/2 enablement was not made into a speculative indexing fix. [Default-port probe #42476988311](https://github.com/martaxi-boss/VPS/actions/runs/42476988311) shows identical indexing eligibility for canonical Host with and without explicit :443. The fresh Google settings page has no crawl-statistics data yet and reports no robots file in its aggregate view, while direct public robots requests work; that aggregate is not a demonstrated robots.txt transport fault.
+
+
 ## Fresh sitemap transport diagnosis and Bing Live regression — 8 November 2026, 11:34 Lisbon
 
 **New authenticated observation:** Bing Live URL tested the sitemap at 11:31 and the homepage at 11:33; both now report an inability to fetch and no indexability. This is a regression from the earlier successful homepage Live check. The separate homepage index report still says Discovered but not crawled. The XML sitemap's absence from the page index is not itself an error or a page-indexing objective.
