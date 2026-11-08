@@ -35,9 +35,11 @@ def _latest_fact_id(condition, *, require_currency=False):
     return Subquery(candidates.order_by("-observed_at", "-pk").values("pk")[:1])
 
 
-def observation_history_queryset():
+def observation_history_queryset(*, require_recent_price=None):
     """Load no more than five historical factual rows for each visible offer."""
-    if settings.PUBLIC_RECENT_PRICE_REQUIRED:
+    if require_recent_price is None:
+        require_recent_price = settings.PUBLIC_RECENT_PRICE_REQUIRED
+    if require_recent_price:
         # Keep public price rendering aligned with the exact evidence gate.
         # The latest non-EUR, zero or future observation is not a public price.
         as_of = timezone.now()
@@ -65,11 +67,15 @@ def observation_history_queryset():
     ).order_by("-observed_at", "-pk")
 
 
-def _has_valid_price(observation: OfferObservation) -> bool:
+def _has_valid_price(
+    observation: OfferObservation, *, require_recent_price=None
+) -> bool:
     currency = (observation.currency or "").strip()
     if observation.price is None or not currency:
         return False
-    if not settings.PUBLIC_RECENT_PRICE_REQUIRED:
+    if require_recent_price is None:
+        require_recent_price = settings.PUBLIC_RECENT_PRICE_REQUIRED
+    if not require_recent_price:
         return True
     as_of = timezone.now()
     return bool(
@@ -100,11 +106,16 @@ def _first_matching(
 
 
 def build_observation_display(
-    observations: Iterable[OfferObservation],
+    observations: Iterable[OfferObservation], *, require_recent_price=None
 ) -> PublicOfferObservationData:
     history = list(observations)
     return PublicOfferObservationData(
-        price_observation=_first_matching(history, _has_valid_price),
+        price_observation=_first_matching(
+            history,
+            lambda observation: _has_valid_price(
+                observation, require_recent_price=require_recent_price
+            ),
+        ),
         rating_observation=_first_matching(
             history,
             lambda observation: observation.evaluation_rate_percent is not None,

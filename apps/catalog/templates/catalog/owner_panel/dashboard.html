@@ -30,6 +30,14 @@
 .analytics-count{font-weight:800;color:#103c32}
 .analytics-link{overflow-wrap:anywhere;color:#103c32}
 .analytics-warning{font-weight:700;color:#8a4b14}
+.commercial-table-wrap{overflow-x:auto;border:1px solid #dce7e0;border-radius:10px;margin-top:12px}
+.commercial-table{border-collapse:collapse;width:100%;min-width:890px;font-size:.85rem;line-height:1.4}
+.commercial-table th,.commercial-table td{padding:11px 9px;border-bottom:1px solid #e3e9e4;text-align:left;vertical-align:top}
+.commercial-table th{background:#edf3ef;color:#223c2d;position:sticky;top:0}
+.commercial-table td small{display:block;color:#4f5952;margin-top:3px}
+.commercial-table td a{overflow-wrap:anywhere}
+.commercial-table tr:last-child td{border-bottom:0}
+.commercial-details summary{cursor:pointer;font-weight:700;padding:8px 0}
 code{overflow-wrap:anywhere}
 @media(max-width:450px){.source-grid{grid-template-columns:1fr}.chart-grid{gap:3px}.chart-label{font-size:.53rem}.analytics-intro{font-size:.94rem}}
 @media(min-width:700px){.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -89,6 +97,32 @@ code{overflow-wrap:anywhere}
     <p class="analytics-note">Tracking ID configurado neste processo:
       {% if affiliate_tracking_id %}<strong><code>{{ affiliate_tracking_id }}</code></strong>{% else %}<strong>Não disponível</strong>{% endif %}.
       Este identificador não prova a atribuição histórica de cada link curto nem confirma comissões.</p>
+  </section>
+
+  <section class="card" aria-label="Validação comercial individual" id="verificacao-comercial">
+    <h2 class="analytics-section-title">Validação comercial — oferta a oferta</h2>
+    <p class="analytics-section-subtitle">O preço confirmado recentemente, o preço histórico, a origem registada em revisão, o stock e o prazo são informações diferentes. Um armazém indicado na revisão editorial não comprova que a variante atual saia desse armazém; a API de afiliados também não confirma stock por SKU.</p>
+    <details class="commercial-details" id="auditoria-ofertas">
+      <summary>Consultar {{ commercial_evidence_rows|length }} ofertas selecionadas, incluindo as que estão bloqueadas</summary>
+      <p class="analytics-note">Dados da base de dados, atualizados à hora desta consulta. Não há acesso à AliExpress ao abrir este painel. Os preços podem mudar no vendedor. Para confirmar uma variante, use «Abrir anúncio real».</p>
+      <div class="commercial-table-wrap" role="region" aria-label="Tabela da verificação comercial" tabindex="0">
+        <table class="commercial-table">
+          <thead><tr><th scope="col">Oferta / categoria</th><th scope="col">Publicação</th><th scope="col">Preço EUR</th><th scope="col">Origem de envio</th><th scope="col">Stock</th><th scope="col">Entrega</th></tr></thead>
+          <tbody>
+            {% for row in commercial_evidence_rows %}
+            <tr>
+              <td><strong>{{ row.title|truncatechars:85 }}</strong><small>{{ row.family_name }}</small><small><a href="{% url 'owner-panel:family' row.family_slug %}?vista=auditoria">Ver ficha na área privada</a>{% if row.product_url %} · <a href="{{ row.product_url }}" target="_blank" rel="noopener noreferrer">Abrir anúncio real</a>{% endif %}</small></td>
+              <td>{{ row.publication }}</td>
+              <td>{% if row.price is not None %}<strong>{{ row.price }} EUR</strong>{% else %}Sem preço{% endif %}<small>{{ row.price_state }}</small>{% if row.price_at %}<small>{{ row.price_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+              <td>{{ row.origin }}{% if row.origin_at %}<small>Revisão: {{ row.origin_at|date:"d/m/Y H:i" }}</small>{% endif %}<small>Armazém da variante não certificado pela API</small></td>
+              <td>{{ row.availability }}{% if row.availability_at %}<small>Consulta: {{ row.availability_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+              <td>{{ row.delivery }}<small>{{ row.delivery_state }}</small>{% if row.delivery_at %}<small>Observação: {{ row.delivery_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+            </tr>
+            {% empty %}<tr><td colspan="6">Não há ofertas selecionadas para verificar.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
   </section>
 
   <section class="card" aria-label="Produtos mais clicados">

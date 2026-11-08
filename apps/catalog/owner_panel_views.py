@@ -30,6 +30,7 @@ from apps.catalog.services.candidate_approval import (
     revalidate_candidate,
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
+from apps.catalog.services.commercial_evidence import owner_commercial_evidence_rows
 from apps.catalog.services.manual_candidate_intake import (
     ManualCandidateIntakeError,
     intake_manual_aliexpress_candidate,
@@ -44,7 +45,9 @@ from apps.catalog.services.owner_editorial import (
     publish_offer_to_storefront,
 )
 from apps.catalog.services.public_eligibility import (
+    ALLOWED_SHIP_FROM_COUNTRIES,
     is_protocol_verified,
+    is_ship_from_verified,
     public_eligibility_q,
 )
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
@@ -93,7 +96,19 @@ def _decorate_offer(offer):
         .order_by("pk")
         .first()
     )
-    offer.observation_display = build_observation_display(offer.observation_history)
+    offer.observation_display = build_observation_display(
+        offer.observation_history, require_recent_price=False
+    )
+    offer.origin_verified = is_ship_from_verified(offer)
+    recent_at = timezone.now()
+    price = offer.observation_display.price_observation
+    offer.owner_price_recent = bool(
+        price
+        and price.price is not None
+        and price.price > 0
+        and (price.currency or "").strip().upper() == "EUR"
+        and recent_at - timedelta(hours=24) <= price.observed_at <= recent_at
+    )
     offer.protocol_fresh = is_protocol_verified(offer)
     offer.was_editorially_hidden = offer.editorial_events.filter(action="HIDE").exists()
     if not offer.is_active:
@@ -108,6 +123,8 @@ def _decorate_offer(offer):
         offer.owner_state_label = "Retirado da montra"
     elif offer.owner_hidden:
         offer.owner_state_label = "Aprovado fora da montra"
+    elif settings.PUBLIC_RECENT_PRICE_REQUIRED and not offer.owner_price_recent:
+        offer.owner_state_label = "Retida: preço EUR sem observação recente"
     else:
         offer.owner_state_label = "Na montra"
     return offer
@@ -292,8 +309,10 @@ def dashboard(request):
         public_eligibility_q(now)
     ).count()
     eligible_public_offers = eligible_queryset.count()
-    origin_without_individual_proof = eligible_queryset.filter(
-        Q(ship_from_country__isnull=True) | Q(ship_from_verified_at__isnull=True)
+    origin_without_individual_proof = eligible_queryset.exclude(
+        ship_from_country__in=ALLOWED_SHIP_FROM_COUNTRIES,
+        ship_from_verified_at__isnull=False,
+        ship_from_verified_at__lte=now,
     ).count()
 
     # Seller listing status is not the same as variant-level stock. Read the
@@ -431,6 +450,7 @@ def dashboard(request):
                 "daily_raw_clicks": daily_clicks,
                 "top_clicked_offers": top_clicked_offers,
                 "eligible_public_offers": eligible_public_offers,
+                "commercial_evidence_rows": owner_commercial_evidence_rows(as_of=now),
                 "origin_without_individual_proof": origin_without_individual_proof,
                 "latest_availability_unconfirmed": latest_availability_unconfirmed,
                 "current_price_unconfirmed": current_price_unconfirmed,
@@ -472,6 +492,7 @@ def family_manage(request, family_slug):
         "revalidar",
         "rejeitados",
         "nao-promovivel",
+        "auditoria",
     }
     if view not in allowed:
         view = "rever"
@@ -482,7 +503,7 @@ def family_manage(request, family_slug):
         .prefetch_related(
             Prefetch(
                 "approved_offer__observations",
-                queryset=observation_history_queryset(),
+                queryset=observation_history_queryset(require_recent_price=False),
                 to_attr="observation_history",
             )
         )
@@ -494,7 +515,7 @@ def family_manage(request, family_slug):
         .prefetch_related(
             Prefetch(
                 "offer__observations",
-                queryset=observation_history_queryset(),
+                queryset=observation_history_queryset(require_recent_price=False),
                 to_attr="observation_history",
             )
         )
@@ -533,6 +554,9 @@ def family_manage(request, family_slug):
     elif view == "retirados":
         shown_candidates = []
         shown_offers = [o for o in offers if o.owner_hidden and o.was_editorially_hidden]
+    elif view == "auditoria":
+        shown_candidates = []
+        shown_offers = offers
     elif view == "nao-promovivel":
         shown_candidates = []
         shown_offers = [

@@ -28,6 +28,7 @@ from apps.catalog.services.observation_display import (
 )
 from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
+    is_ship_from_verified,
     public_eligibility_q,
 )
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
@@ -120,6 +121,7 @@ def _prepare_offer(offer, family):
     offer.price_observation_old = bool(price and price.observed_at < cutoff)
     offer.logistics_observation_old = bool(logistics and logistics.observed_at < cutoff)
     offer.logistics_text = offer.observation_display.logistics_text
+    offer.owner_origin_verified = is_ship_from_verified(offer)
     offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
     offer.approved_candidate = (
         offer.approved_candidates_for_display[0] if offer.approved_candidates_for_display else None
@@ -284,9 +286,15 @@ def _owner_family_context(request, family):
     )
     rejected = [c for c in candidates if c.status == OfferCandidate.Status.REJECTED]
     approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
+    published_offer_ids = set(
+        OfferFamilyPlacement.objects.filter(product_family=family)
+        .filter(public_eligibility_q(prefix="offer__"))
+        .values_list("offer_id", flat=True)
+    )
     for candidate in approved:
         offer = candidate.approved_offer
         candidate.protocol_fresh = bool(offer and is_protocol_verified(offer))
+        candidate.origin_verified = bool(offer and is_ship_from_verified(offer))
         if not offer:
             candidate.owner_state_label = "Aprovado"
         elif not offer.is_active:
@@ -297,6 +305,8 @@ def _owner_family_context(request, family):
             candidate.owner_state_label = "Retirado da montra"
         elif offer.owner_hidden:
             candidate.owner_state_label = "Aprovado fora da montra"
+        elif offer.pk not in published_offer_ids:
+            candidate.owner_state_label = "Fora da montra — validar preço e promoção"
         else:
             candidate.owner_state_label = "Na montra"
 
