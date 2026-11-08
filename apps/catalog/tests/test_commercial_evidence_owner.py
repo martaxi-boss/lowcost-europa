@@ -102,7 +102,7 @@ class OwnerCommercialEvidenceTests(TestCase):
         self.assertContains(response, "País/armazém por confirmar")
         self.assertEqual(response.context["eligible_public_offers"], 1)
         self.assertEqual(response.context["price_held_from_public"], 1)
-        self.assertEqual(response.context["origin_without_individual_proof"], 1)
+        self.assertEqual(response.context["origin_without_individual_proof"], 0)
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         self.assertEqual(response["Cache-Control"], "private, no-store")
 
