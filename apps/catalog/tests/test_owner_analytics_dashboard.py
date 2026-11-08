@@ -82,7 +82,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["eligible_public_offers"], 1)
         self.assertEqual(response.context["origin_without_individual_proof"], 1)
         self.assertContains(response, "Origem individual por confirmar")
-        self.assertContains(response, "Isto não prova origem proibida")
+        self.assertContains(response, "Isso não significa origem proibida")
         self.offer.ship_from_country = "PL"
         self.offer.ship_from_verified_at = timezone.now()
         self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
@@ -131,8 +131,8 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["current_price_unconfirmed"], 1)
         self.assertEqual(response.context["delivery_days_unproven"], 1)
         self.assertContains(response, "UNKNOWN não significa esgotado")
-        self.assertContains(response, "o preço histórico pode estar disponível")
-        self.assertContains(response, "Não apresentar a promessa de entrega até 5 dias")
+        self.assertContains(response, "o histórico pode existir")
+        self.assertContains(response, "não deve prometer entrega em até 5 dias")
 
         OfferObservation.objects.create(
             offer=self.offer,
@@ -209,7 +209,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
 
         self.assertEqual(response.context["eligible_public_offers"], 0)
         self.assertEqual(response.context["visible_blocked_offers"], 1)
-        self.assertContains(response, "não passam o filtro público")
+        self.assertContains(response, "não passam os requisitos de publicação")
 
     def test_tracking_id_is_shown_to_owner_without_external_tracking_scripts(self):
         with patch.dict(os.environ, {"ALIEXPRESS_TRACKING_ID": "lowcost_europa"}):
