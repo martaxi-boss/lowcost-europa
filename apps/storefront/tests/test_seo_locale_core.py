@@ -105,7 +105,7 @@ class SeoLocaleCoreTests(TestCase):
     def test_safe_schema_only_for_public_indexable_pages(self):
         response = self.get_public("/es/")
         raw = response.content.decode()
-        payload = re.search(r'<script type="application/ld\\+json">(.*?)</script>', raw)
+        payload = re.search(r'<script type="application/ld\+json">(.*?)</script>', raw)
         self.assertIsNotNone(payload)
         data = json.loads(payload.group(1))
         self.assertEqual(data["@context"], "https://schema.org")
@@ -113,7 +113,7 @@ class SeoLocaleCoreTests(TestCase):
                          {"WebSite", "Organization"})
         product = self.get_public("/es/products/hifu/").content.decode()
         category_data = json.loads(
-            re.search(r'<script type="application/ld\\+json">(.*?)</script>', product).group(1)
+            re.search(r'<script type="application/ld\+json">(.*?)</script>', product).group(1)
         )
         self.assertEqual(category_data["@type"], "BreadcrumbList")
         self.assertEqual(category_data["itemListElement"][1]["item"],
