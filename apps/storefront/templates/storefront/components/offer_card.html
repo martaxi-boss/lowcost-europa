@@ -20,6 +20,16 @@
     </div>
     {% if placement and placement.selection_reason %}<div class="selection-reason"><strong>{{ "Porque está aqui"|ui_t }}</strong><p>{{ placement.selection_reason }}</p></div>{% endif %}
     <div class="offer-price-block"><p class="fact-label">{{ "Preço observado"|ui_t }}</p><p class="price">{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}{{ "Não disponível"|ui_t }}{% endif %}{% endwith %}</p>{% with obs=offer.observation_display.price_observation %}{% if obs %}<p class="meta">{{ "Observado em"|ui_t }} {{ obs.observed_at|date:"d/m/Y H:i" }} · {{ "pode mudar no parceiro"|ui_t }}</p>{% endif %}{% endwith %}{% if offer.price_observation_old %}<p class="fact-freshness-warning">{{ "Observação com mais de 7 dias. Confirme o preço atual no parceiro."|ui_t }}</p>{% endif %}</div>
+    {% if request.user.is_authenticated and request.user.is_staff and not owner_preview_public %}
+    <details class="offer-card__evidence" data-owner-commercial-evidence>
+      <summary>Verificação interna: origem, stock e entrega</summary>
+      <dl class="facts facts--secondary">
+        <div><dt>Origem de envio</dt><dd>{% if offer.owner_origin_verified %}{{ offer.ship_from_country }} — registada na revisão editorial de {{ offer.ship_from_verified_at|date:"d/m/Y H:i" }}. Confirmar o armazém da variante no vendedor.{% else %}País/armazém por confirmar. Não há prova individual suficiente.{% endif %}</dd></div>
+        <div><dt>Stock</dt><dd>Stock da variante não confirmado pela API afiliada. Verificar no anúncio real antes da compra.</dd></div>
+        <div><dt>Prazo</dt><dd>{% if offer.logistics_text %}{{ offer.logistics_text }}{% with obs=offer.observation_display.logistics_observation %}{% if obs %} · Observação {{ obs.observed_at|date:"d/m/Y H:i" }}{% endif %}{% endwith %}. Estimativa, não garantia.{% else %}Sem prazo numérico comprovado para a variante.{% endif %}</dd></div>
+      </dl>
+    </details>
+    {% endif %}
     <dl class="facts facts--primary">
       <div><dt>{{ "Logística observada"|ui_t }}</dt><dd>{{ offer.logistics_text|default:"Prazo não confirmado"|ui_t }}{% with obs=offer.observation_display.logistics_observation %}{% if obs %}<small class="fact-date">{{ "Observado em"|ui_t }} {{ obs.observed_at|date:"d/m/Y H:i" }}</small>{% endif %}{% endwith %}{% if offer.logistics_observation_old %}<small class="fact-freshness-warning">{{ "Observação com mais de 7 dias. Confirme o prazo no parceiro."|ui_t }}</small>{% endif %}</dd></div>
     </dl>
