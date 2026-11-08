@@ -1,0 +1,155 @@
+{
+  "checkedAt": "2026-11-08T19:11:55.676Z",
+  "timezone": "Europe/Lisbon (UTC+00:00 on this date)",
+  "authenticatedEngineReports": {
+    "googleSitemap": {
+      "checkedAt": "2026-11-08T19:07:20.055Z",
+      "method": "sitemaps.list",
+      "httpStatus": 200,
+      "path": "https://www.lowcost-europa.eu/sitemap.xml",
+      "lastSubmitted": "2026-11-08T00:35:17.963Z",
+      "isPending": true,
+      "isSitemapsIndex": false,
+      "warnings": "0",
+      "errors": "0",
+      "successfulProcessingConfirmed": false
+    },
+    "bing": {
+      "sitemap": {
+        "checkedAt": "2026-11-08T19:06:26.322Z",
+        "status": "Error",
+        "urlsDiscovered": 0
+      },
+      "urlInspections": [
+        {
+          "url": "https://www.lowcost-europa.eu/",
+          "checkedAt": "2026-11-08T19:06:57.121Z",
+          "status": "Discovered but not crawled",
+          "discoveredOn": "08 Nov 2026"
+        },
+        {
+          "url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+          "checkedAt": "2026-11-08T19:07:20.055Z",
+          "status": "Discovered but not crawled",
+          "discoveredOn": "08 Nov 2026"
+        },
+        {
+          "url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+          "checkedAt": "2026-11-08T19:07:40.916Z",
+          "status": "Discovered but not crawled",
+          "discoveredOn": "08 Nov 2026"
+        },
+        {
+          "url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+          "checkedAt": "2026-11-08T19:07:58.586Z",
+          "status": "Discovered but not crawled",
+          "discoveredOn": "08 Nov 2026"
+        },
+        {
+          "url": "https://www.lowcost-europa.eu/products/hifu/",
+          "checkedAt": "2026-11-08T19:08:18.017Z",
+          "status": "Discovered but not crawled",
+          "discoveredOn": "08 Nov 2026"
+        },
+        {
+          "url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+          "checkedAt": "2026-11-08T19:09:00.408Z",
+          "status": "Discovered but not crawled",
+          "discoveredOn": "08 Nov 2026"
+        }
+      ],
+      "indexNowDashboard": {
+        "countShown": 0,
+        "momentaryServiceErrors": 2,
+        "interpretation": "Unreliable UI count; does not supersede prior VPS HTTP 200 receipts."
+      }
+    },
+    "yandex": {
+      "sitemapReadOnly": true,
+      "addDisabled": true,
+      "searchablePagesTool": {
+        "notice": "Charts and export temporarily unavailable; data may be delayed or not updated.",
+        "latestChanges": "No changes to page indexing",
+        "allPagesDisabled": true
+      },
+      "indexInclusion": "unconfirmed"
+    }
+  },
+  "publicSearchResults": {
+    "brave": {
+      "evidenceType": "public_search_results",
+      "homepage": {
+        "checkedAt": "2026-11-08T19:10:10.486Z",
+        "query": "site:lowcost-europa.eu",
+        "resultPage": "https://search.brave.com/search?q=site%3Alowcost-europa.eu",
+        "url": "https://www.lowcost-europa.eu/",
+        "title": "Lowcost Europa | Professional beauty equipment"
+      },
+      "categories": {
+        "checkedAt": "2026-11-08T19:10:50.190Z",
+        "query": "site:lowcost-europa.eu/products/",
+        "resultPage": "https://search.brave.com/search?q=site%3Alowcost-europa.eu%2Fproducts%2F&source=web",
+        "results": [
+          {
+            "url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+            "title": "Cavitação + RF + Vacuum | Lowcost Europa",
+            "presentation": "separate search result, not a homepage sitelink"
+          },
+          {
+            "url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+            "title": "Microdermoabrasão / Hidrodermoabrasão / Multifunções faciais | Lowcost Europa",
+            "presentation": "separate search result, not a homepage sitelink"
+          },
+          {
+            "url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+            "title": "Pressoterapia / RF Tecar | Lowcost Europa",
+            "presentation": "separate search result, not a homepage sitelink"
+          },
+          {
+            "url": "https://www.lowcost-europa.eu/products/hifu/",
+            "title": "HIFU | Lowcost Europa",
+            "presentation": "separate search result, not a homepage sitelink"
+          },
+          {
+            "url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+            "title": "Diodo Laser / Remoção de tatuagens / Pigmentação | Lowcost Europa",
+            "presentation": "separate search result, not a homepage sitelink"
+          }
+        ]
+      }
+    },
+    "seznam": {
+      "evidenceType": "public_search_result",
+      "checkedAt": "2026-11-08T19:09:43.452Z",
+      "query": "site:lowcost-europa.eu",
+      "resultPage": "https://search.seznam.cz/?q=site%3Alowcost-europa.eu",
+      "results": [
+        {
+          "url": "https://www.lowcost-europa.eu/",
+          "title": "Lowcost Europa | Professional beauty equipment"
+        }
+      ],
+      "categories": "unconfirmed; focused products query displayed the homepage only"
+    },
+    "yahoo": {
+      "evidenceType": "public_search_observation",
+      "query": "site:lowcost-europa.eu",
+      "matchingDomainResultVisible": false,
+      "interpretation": "An isolated query does not prove complete absence from the index."
+    },
+    "duckduckgo": {
+      "evidenceType": "public_search_error",
+      "query": "site:lowcost-europa.eu",
+      "displayed": "Unexpected error. Please try again.",
+      "errorPage": "418.html",
+      "indexInclusion": "unknown"
+    }
+  },
+  "limitations": [
+    "Google's six indexed-version confirmations remain the earlier 18:50–18:56 authenticated API baseline; they were not repeated here.",
+    "Brave and Seznam evidence is the engines' public result display, not authenticated index reporting or a guarantee of permanence.",
+    "No sitemap or indexing submissions, API bypass, runtime changes or third-party messages occurred.",
+    "No new proof of an IndexNow regression; its service-error dashboard cannot establish zero receipts.",
+    "No new reproducible site fault was identified. The existing monitoring completion conditions remain unmet."
+  ]
+}
