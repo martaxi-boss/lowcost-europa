@@ -4,8 +4,20 @@ from django import template
 from django.utils.translation import get_language
 
 from apps.storefront.ui_translations import translate_ui
+from apps.storefront.seo_locales import family_page_url, home_page_url
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def family_seo_url(context, family):
+    request = context["request"]
+    return family_page_url(request, family.slug)
+
+
+@register.simple_tag(takes_context=True)
+def storefront_home_url(context):
+    return home_page_url(context["request"])
 
 
 @register.filter
