@@ -67,7 +67,7 @@ class OwnerLoginRateLimitTests(RateLimitTestMixin, TestCase):
             {"password": PASSWORD},
             REMOTE_ADDR="203.0.113.10",
         )
-        self.assertRedirects(response, reverse("storefront:home"))
+        self.assertRedirects(response, reverse("owner-panel:dashboard"))
         limiter = FileLoginRateLimiter()
         request = RequestFactory().post(login_url, REMOTE_ADDR="203.0.113.10")
         self.assertEqual(limiter.retry_after(source_token(request)), 0)
