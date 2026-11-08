@@ -1,4 +1,7 @@
-from django.db.models import Q
+from datetime import timedelta
+
+from django.conf import settings
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 ALLOWED_SHIP_FROM_COUNTRY_CHOICES = (
@@ -29,9 +32,15 @@ def is_ship_from_verified(offer, as_of=None):
     )
 
 
-def public_eligibility_q(as_of=None, prefix=""):
+def public_eligibility_q(as_of=None, prefix="", *, require_recent_price=None):
+    """Return the identical public gate for storefront, search and /go/.
+
+    Price freshness is opt-in outside production. An approved offer with an
+    expired price remains in editorial history and in the maintenance queue,
+    but cannot be advertised publicly as a current commercial listing.
+    """
     as_of = as_of or timezone.now()
-    return Q(
+    base_gate = Q(
         **{
             f"{prefix}is_active": True,
             f"{prefix}owner_hidden": False,
@@ -42,3 +51,22 @@ def public_eligibility_q(as_of=None, prefix=""):
             f"{prefix}protocol_verified_at__lte": as_of,
         }
     )
+
+    if require_recent_price is None:
+        require_recent_price = settings.PUBLIC_RECENT_PRICE_REQUIRED
+    if not require_recent_price:
+        return base_gate
+
+    # A new UNKNOWN stock observation must not erase independently observed
+    # price data. Equally, an old price must not count as current evidence.
+    # The condition is correlated with Offer (or placement.offer if prefixed).
+    from apps.catalog.models import OfferObservation
+
+    recent_positive_eur_price = OfferObservation.objects.filter(
+        offer_id=OuterRef(f"{prefix}pk"),
+        observed_at__gte=as_of - timedelta(hours=24),
+        observed_at__lte=as_of,
+        price__gt=0,
+        currency__iexact="EUR",
+    )
+    return base_gate & Q(Exists(recent_positive_eur_price))

@@ -3,6 +3,10 @@ from .base import env_bool, env_int, env_list
 
 DEBUG = False
 
+# A published offer must have an actual recent positive EUR price observation.
+# This guard does not claim stock, EU warehouse or five-day delivery certainty.
+PUBLIC_RECENT_PRICE_REQUIRED = env_bool("DJANGO_PUBLIC_RECENT_PRICE_REQUIRED", True)
+
 SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True

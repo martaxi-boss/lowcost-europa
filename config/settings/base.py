@@ -132,6 +132,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 PUBLIC_SITE_URL = env("DJANGO_PUBLIC_SITE_URL", "").rstrip("/")
 PUBLIC_INDEXING_ENABLED = env_bool("DJANGO_PUBLIC_INDEXING_ENABLED", False)
+# Development/test default keeps historic fixture semantics; production opts in.
+PUBLIC_RECENT_PRICE_REQUIRED = False
 INDEXNOW_KEY = env("DJANGO_INDEXNOW_KEY", "")
 PUBLIC_OPERATOR = read_public_operator(BASE_DIR / ".legal" / "operator.json")
 
