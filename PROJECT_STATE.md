@@ -1,5 +1,13 @@
 # Lowcost Europa — Project State
 
+## Sitemap diagnosis and Bing Live regression — 08/11/2026, 11:34 Lisbon (latest)
+
+- **Bing Live regression:** authenticated tests of sitemap at 11:31 and homepage at 11:33 now report unable to fetch / cannot be indexed. This supersedes the earlier successful homepage Live test; it is not confirmation that an indexed page was removed. The homepage index report remains Discovered but not crawled.
+- **Independent transport passes:** [public probe #42476080980](https://github.com/martaxi-boss/VPS/actions/runs/42476080980) received HTTP 200, valid TLS and the same valid 922-byte/11-URL XML in all twelve request variants. No production change or resubmission.
+- **Fresh correlation:** [server audit #42476188412](https://github.com/martaxi-boss/VPS/actions/runs/42476188412) found a DNS-forward/reverse verified Bing source receiving /sitemap.xml HTTP 200, 922 bytes, at 11:31:27. Logs are shared and lack the requested host, so this is time/path/size correlation, not definitive per-vhost attribution. No verified Google fetch is established by these samples.
+- **Unresolved:** the engine-reported fetch failure has no reproduced site-side cause yet. Google/Bing sitemap acceptance, Bing six-page index inclusion and Yandex's read-only sitemap service remain pending. Do not make speculative runtime changes. [Detailed limitations and evidence](docs/operations/international-search-20261108.md).
+
+
 ## Yandex ownership confirmed — 08/11/2026 (latest)
 
 - **Ownership confirmed by authenticated Yandex Webmaster:** Manage access shows the Owner role, verification by root HTML file and verification date 08/11/2026. The prior owner-action gate below is resolved. No verification value or account identifier is published here.

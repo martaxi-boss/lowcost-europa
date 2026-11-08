@@ -1,5 +1,18 @@
 # International search discovery — 8 November 2026
 
+## Fresh sitemap transport diagnosis and Bing Live regression — 8 November 2026, 11:34 Lisbon
+
+**New authenticated observation:** Bing Live URL tested the sitemap at 11:31 and the homepage at 11:33; both now report an inability to fetch and no indexability. This is a regression from the earlier successful homepage Live check. The separate homepage index report still says Discovered but not crawled. The XML sitemap's absence from the page index is not itself an error or a page-indexing objective.
+
+[Independent public probe #42476080980](https://github.com/martaxi-boss/VPS/actions/runs/42476080980) tested twelve combinations of plain/Google/Bing user-agent strings, requested HTTP modes and identity/gzip negotiation through normal public DNS and TLS. Every response was HTTP 200 with TLS validation 0, application/xml, identical 922-byte XML and eleven unique canonical WWW URLs. All XML parsed successfully. These are synthetic requests, not authenticated crawler fetches. The response did not advertise Content-Encoding, so this does not prove a compressed gzip payload; negotiated HTTP version was not recorded, so flags alone do not independently certify HTTP/2.
+
+[Sanitized server correlation #42476188412](https://github.com/martaxi-boss/VPS/actions/runs/42476188412), repeated after the homepage result in [#42476326926](https://github.com/martaxi-boss/VPS/actions/runs/42476326926), found a source verified by reverse DNS under search.msn.com and forward resolution receiving /sitemap.xml with HTTP 200 and 922 response bytes at 11:31:27 UTC. It coincides with the Bing Live test. However, the configured shared combined access log has no requested-host field: it cannot independently prove exact vhost attribution or which internal Bing pipeline consumed the response. Claimed Google user agents in these samples were not DNS-verified. No raw logs, source IPs, proof values or private identities were published.
+
+Google's authenticated sitemap detail still says it could not read the sitemap, last read 08/11/26, zero discovered. The inspected source paths, canonical host gate, robots route and privacy middleware did not reveal a reproduced sitemap fault. The user-agent compatibility and XML tests passed; no objective runtime correction was identified. The discrepancy is **unresolved**, not fixed, and neither the origin HTTP 200 nor the new Live failure establishes individual index inclusion or removal.
+
+The VPS remained at the previously aligned revision with a clean tracked worktree and valid/active Nginx/application checks. This investigation changed no site code, DNS, email, HTTPS, catalogue, panel controls or IndexNow state, and sent no sitemap/indexing resubmissions or messages to support. Temporary diagnostic workflows are removed after recording/alignment. Continue the existing task without creating duplicate submissions or treating this as completed indexing.
+
+
 ## Yandex ownership verified; sitemap service read-only — 8 November 2026 (latest)
 
 The owner completed the Yandex verification step. The authenticated **Manage access** page now shows **Owner**, verification method **File in root directory**, and verification date **08/11/2026**. This supersedes the pending owner-action statements in the preceding follow-up. The proof value and account identifier are intentionally omitted.
