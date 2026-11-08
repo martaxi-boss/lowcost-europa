@@ -286,9 +286,15 @@ def _owner_family_context(request, family):
     )
     rejected = [c for c in candidates if c.status == OfferCandidate.Status.REJECTED]
     approved = [c for c in candidates if c.status == OfferCandidate.Status.APPROVED]
+    published_offer_ids = set(
+        OfferFamilyPlacement.objects.filter(product_family=family)
+        .filter(public_eligibility_q(prefix="offer__"))
+        .values_list("offer_id", flat=True)
+    )
     for candidate in approved:
         offer = candidate.approved_offer
         candidate.protocol_fresh = bool(offer and is_protocol_verified(offer))
+        candidate.origin_verified = bool(offer and is_ship_from_verified(offer))
         if not offer:
             candidate.owner_state_label = "Aprovado"
         elif not offer.is_active:
@@ -299,6 +305,8 @@ def _owner_family_context(request, family):
             candidate.owner_state_label = "Retirado da montra"
         elif offer.owner_hidden:
             candidate.owner_state_label = "Aprovado fora da montra"
+        elif offer.pk not in published_offer_ids:
+            candidate.owner_state_label = "Fora da montra — validar preço e promoção"
         else:
             candidate.owner_state_label = "Na montra"
 
