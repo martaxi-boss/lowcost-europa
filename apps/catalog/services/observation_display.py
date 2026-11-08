@@ -1,5 +1,9 @@
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Iterable
+
+from django.conf import settings
+from django.utils import timezone
 
 from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Trim
@@ -34,9 +38,22 @@ def _latest_fact_id(condition, *, require_currency=False):
 
 def observation_history_queryset():
     """Load no more than five historical factual rows for each visible offer."""
-    price = _latest_fact_id(
-        Q(price__isnull=False, currency__isnull=False), require_currency=True
-    )
+    if settings.PUBLIC_RECENT_PRICE_REQUIRED:
+        # Keep public price rendering aligned with the exact evidence gate.
+        # The latest non-EUR, zero or future observation is not a public price.
+        as_of = timezone.now()
+        price = _latest_fact_id(
+            Q(
+                price__gt=0,
+                currency__iexact="EUR",
+                observed_at__gte=as_of - timedelta(hours=24),
+                observed_at__lte=as_of,
+            )
+        )
+    else:
+        price = _latest_fact_id(
+            Q(price__isnull=False, currency__isnull=False), require_currency=True
+        )
     rating = _latest_fact_id(Q(evaluation_rate_percent__isnull=False))
     sales = _latest_fact_id(Q(sales_count__isnull=False))
     commission = _latest_fact_id(Q(commission_rate__isnull=False))
@@ -50,7 +67,18 @@ def observation_history_queryset():
 
 
 def _has_valid_price(observation: OfferObservation) -> bool:
-    return observation.price is not None and bool((observation.currency or "").strip())
+    currency = (observation.currency or "").strip()
+    if observation.price is None or not currency:
+        return False
+    if not settings.PUBLIC_RECENT_PRICE_REQUIRED:
+        return True
+    as_of = timezone.now()
+    return bool(
+        observation.price > 0
+        and currency.upper() == "EUR"
+        and currency == observation.currency
+        and as_of - timedelta(hours=24) <= observation.observed_at <= as_of
+    )
 
 
 def _has_renderable_logistics(observation: OfferObservation) -> bool:
