@@ -164,12 +164,39 @@ code{overflow-wrap:anywhere}
         {% endif %}
       </article>
       <article class="source-card">
-        <h3>Google Search Console</h3>
-        <span class="source-status">Após domínio definitivo</span>
-        <p>Registo do domínio, sitemap, pesquisas e cliques orgânicos apenas quando autorizares o lançamento.</p>
+        <h3>Google Search Console — pesquisa orgânica</h3>
+        {% if google_search_report_payload %}
+          {% if google_search_report_fresh %}
+          <span class="source-status active">Métricas Google sincronizadas</span>
+          {% else %}
+          <span class="source-status">Dados Google desatualizados</span>
+          {% endif %}
+          <p>Fonte: propriedade <strong>lowcost-europa.eu</strong> no Search Console. Última consulta válida: <strong>{{ google_search_report.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Período: últimos 30 dias.</p>
+          <div class="counts">
+            <div class="count"><strong>Cliques da pesquisa Google</strong><br>{{ google_search_report_payload.clicks }}</div>
+            <div class="count"><strong>Impressões no Google</strong><br>{{ google_search_report_payload.impressions }}</div>
+            <div class="count"><strong>CTR orgânico</strong><br>{{ google_search_report_payload.ctr_percent }}%</div>
+            <div class="count"><strong>Posição média</strong><br>{% if google_search_report_payload.average_position %}{{ google_search_report_payload.average_position }}{% else %}—{% endif %}</div>
+          </div>
+          {% if google_search_report_payload.top_queries %}
+          <details class="report-details">
+            <summary>Principais pesquisas no Google</summary>
+            <ol class="report-lines">
+              {% for item in google_search_report_payload.top_queries %}
+              <li><strong>{{ item.query }}</strong>: {{ item.clicks }} cliques; {{ item.impressions }} impressões.</li>
+              {% endfor %}
+            </ol>
+          </details>
+          {% endif %}
+          <p>Os cliques Google são entradas a partir de pesquisas; não equivalem aos cliques de saída nos produtos. A Google pode ocultar pesquisas raras e os dados recentes podem ter atraso.</p>
+        {% else %}
+          <span class="source-status">Ligação de métricas pendente</span>
+          <p>O domínio já está verificado no Google Search Console. Falta autorizar a leitura automática desta propriedade na fonte de métricas do servidor. Até à primeira consulta comprovada, cliques e impressões ficam indisponíveis — nunca são apresentados como zero.</p>
+        {% endif %}
+        <p><a class="analytics-link" href="https://search.google.com/search-console/performance/search-analytics?resource_id=sc-domain%3Alowcost-europa.eu" target="_blank" rel="noopener noreferrer">Abrir desempenho no Google Search Console</a></p>
       </article>
     </div>
-    <p class="analytics-note">Resultados Meta, visitantes únicos e dados orgânicos estão indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Os cliques do site e as encomendas AliExpress são métricas distintas e não comprovam atribuição individual.</p>
+    <p class="analytics-note">Fontes sem autorização e dados confirmados permanecem indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Cliques de pesquisa Google, cliques de anúncios Meta, saídas para ofertas e encomendas AliExpress são métricas distintas, sem atribuição automática entre si.</p>
   </section>
 
   <section aria-label="Catálogo e filas">

@@ -379,6 +379,22 @@ def dashboard(request):
         and meta_report.checked_at <= now
         and now - meta_report.checked_at <= timedelta(hours=12)
     )
+    # Search Console data is a separate, verified organic Google source.
+    # GET never calls Google/Windsor and does not track new visitors.
+    google_search_report = ExternalMetricsSnapshot.objects.filter(
+        source="GOOGLE_SEARCH_CONSOLE"
+    ).first()
+    google_search_report_payload = (
+        google_search_report.payload
+        if google_search_report and isinstance(google_search_report.payload, dict)
+        and google_search_report.payload.get("property") == "sc-domain:lowcost-europa.eu"
+        else None
+    )
+    google_search_report_fresh = bool(
+        google_search_report_payload
+        and google_search_report.checked_at <= now
+        and now - google_search_report.checked_at <= timedelta(hours=48)
+    )
 
     return _private(
         render(
@@ -409,6 +425,9 @@ def dashboard(request):
                 "meta_report": meta_report,
                 "meta_report_payload": meta_report_payload,
                 "meta_report_fresh": meta_report_fresh,
+                "google_search_report": google_search_report,
+                "google_search_report_payload": google_search_report_payload,
+                "google_search_report_fresh": google_search_report_fresh,
             },
         )
     )

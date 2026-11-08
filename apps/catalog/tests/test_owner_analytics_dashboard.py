@@ -298,3 +298,79 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertFalse(response.context["affiliate_report_fresh"])
         self.assertContains(response, "Dados desatualizados")
         self.assertNotContains(response, "Consulta automática ativa")
+
+    def test_google_search_snapshot_is_separate_from_local_outbound_clicks(self):
+        now = timezone.now()
+        self._click_ago(1)
+        ExternalMetricsSnapshot.objects.create(
+            source="GOOGLE_SEARCH_CONSOLE",
+            period_start=now - timedelta(days=30),
+            period_end=now,
+            checked_at=now,
+            payload={
+                "property": "sc-domain:lowcost-europa.eu",
+                "clicks": 23,
+                "impressions": 480,
+                "ctr_percent": "4.79",
+                "average_position": "12.80",
+                "top_queries": [{"query": "lowcost europa", "clicks": 7, "impressions": 80}],
+            },
+        )
+        response = self.client.get(self.url)
+        self.assertTrue(response.context["google_search_report_fresh"])
+        self.assertEqual(response.context["google_search_report_payload"]["clicks"], 23)
+        self.assertEqual(response.context["recent_raw_clicks_total"], 1)
+        self.assertContains(response, "Métricas Google sincronizadas")
+        self.assertContains(response, "Cliques da pesquisa Google")
+        self.assertContains(response, "480")
+        self.assertContains(response, "lowcost europa")
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
+        self.assertNotContains(response, "gtag(")
+
+    def test_missing_or_stale_google_data_is_not_invented(self):
+        pending = self.client.get(self.url)
+        self.assertContains(pending, "Ligação de métricas pendente")
+        self.assertNotContains(pending, "Métricas Google sincronizadas")
+        now = timezone.now()
+        ExternalMetricsSnapshot.objects.create(
+            source="GOOGLE_SEARCH_CONSOLE",
+            period_start=now - timedelta(days=33),
+            period_end=now - timedelta(days=3),
+            checked_at=now - timedelta(hours=49),
+            payload={
+                "property": "sc-domain:lowcost-europa.eu",
+                "clicks": 3,
+                "impressions": 45,
+                "ctr_percent": "6.67",
+                "average_position": "16.25",
+                "top_queries": [],
+            },
+        )
+        stale = self.client.get(self.url)
+        self.assertFalse(stale.context["google_search_report_fresh"])
+        self.assertContains(stale, "Dados Google desatualizados")
+
+    def test_google_metrics_stay_owner_only_without_external_requests(self):
+        now = timezone.now()
+        ExternalMetricsSnapshot.objects.create(
+            source="GOOGLE_SEARCH_CONSOLE",
+            period_start=now - timedelta(days=30),
+            period_end=now,
+            checked_at=now,
+            payload={
+                "property": "sc-domain:lowcost-europa.eu",
+                "clicks": 4,
+                "impressions": 40,
+                "ctr_percent": "10.00",
+                "average_position": "8.50",
+                "top_queries": [],
+            },
+        )
+        with patch(
+            "apps.catalog.services.windsor_search_console_reporting._fetch_rows"
+        ) as external:
+            response = self.client.get(self.url)
+        external.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        self.client.logout()
+        self.assertEqual(self.client.get(self.url).status_code, 302)

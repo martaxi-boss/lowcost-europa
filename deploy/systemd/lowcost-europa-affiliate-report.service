@@ -1,5 +1,5 @@
 [Unit]
-Description=Lowcost Europa private read-only AliExpress and Meta report
+Description=Lowcost Europa private read-only AliExpress, Meta and Google Search Console reports
 After=network-online.target postgresql.service
 Wants=network-online.target
 
