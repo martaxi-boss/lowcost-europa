@@ -1,5 +1,9 @@
 # Lowcost Europa — Project State
 
+## Bing homepage quality follow-up — 2026-11-08 (source, rollout pending)
+
+- Bing live test allows indexing but identified a short homepage title and three empty category image alternatives. Source now uses a descriptive homepage title in the five existing languages, and meaningful localized category-image alt text. No URLs, robots, canonicals, DNS, email, private routes or catalog behavior changed. Existing CI/browser/security checks must pass before rollout. Search-engine sitemap processing and IndexNow key validation remain external pending states.
+
 ## Search recheck — six Google pages confirmed indexed, 2026-11-08 00:35–00:37 Lisbon
 
 - **Google confirmed individually:** homepage and all five categories show “O URL está no Google” / “A página está indexada”, HTTPS confirmed. This supersedes the earlier pending state for those six pages only. Institutional pages and other engines remain unconfirmed.
