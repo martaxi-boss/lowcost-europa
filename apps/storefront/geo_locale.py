@@ -17,6 +17,8 @@ from django.utils import translation
 from django.utils.cache import patch_vary_headers
 from maxminddb.errors import InvalidDatabaseError
 
+from apps.storefront.seo_locales import requested_seo_locale
+
 logger = logging.getLogger(__name__)
 
 COUNTRY_LANGUAGES = {
@@ -91,6 +93,12 @@ class EuropeCountryLocaleMiddleware(LocaleMiddleware):
 
     def process_request(self, request):
         super().process_request(request)
+        # Explicit SEO URLs must never vary with country, cookie or browser language.
+        forced = requested_seo_locale(request.path_info)
+        if forced:
+            translation.activate(forced)
+            request.LANGUAGE_CODE = translation.get_language()
+            return
         if not settings.GEO_LANGUAGE_ENABLED or not is_public_storefront_page(
             request.path_info
         ):
