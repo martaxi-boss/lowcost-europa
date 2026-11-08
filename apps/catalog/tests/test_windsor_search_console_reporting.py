@@ -42,8 +42,10 @@ class SearchConsoleReportTests(SimpleTestCase):
             requested.append(req.full_url)
             if "query" in req.full_url:
                 return _FakeResponse([
-                    {"account_id": EXPECTED_PROPERTY, "query": "lowcost europa", "clicks": 3, "impressions": 11},
-                    {"account_id": EXPECTED_PROPERTY, "query": "ofertas europa", "clicks": 1, "impressions": 3},
+                    {"account_id": EXPECTED_PROPERTY, "query": "lowcost europa",
+                     "clicks": 3, "impressions": 11},
+                    {"account_id": EXPECTED_PROPERTY, "query": "ofertas europa",
+                     "clicks": 1, "impressions": 3},
                 ])
             return _FakeResponse([
                 {"account_id": EXPECTED_PROPERTY, "clicks": 7, "impressions": 100, "position": 11.5}
@@ -59,14 +61,20 @@ class SearchConsoleReportTests(SimpleTestCase):
         self.assertEqual(report["average_position"], "11.50")
         self.assertEqual(report["top_queries"][0]["query"], "lowcost europa")
         self.assertEqual(len(requested), 2)
-        self.assertTrue(all("select_accounts=sc-domain%3Alowcost-europa.eu" in url for url in requested))
+        self.assertTrue(
+            all("select_accounts=sc-domain%3Alowcost-europa.eu" in url for url in requested)
+        )
         self.assertTrue(all("api_key=test-only-secret" in url for url in requested))
         self.assertEqual((end - start).days, 30)
 
     def test_missing_api_permission_never_yields_fictional_zero(self):
         with self.assertRaises(SearchConsoleNotConfigured):
-            collect_search_console_report(api_key="test-only", property_id="sc-domain:other.example")
-        with patch.dict("os.environ", {"WINDSOR_API_KEY": "", "GOOGLE_SEARCH_CONSOLE_PROPERTY": ""}):
+            collect_search_console_report(
+                api_key="test-only", property_id="sc-domain:other.example"
+            )
+        with patch.dict(
+            "os.environ", {"WINDSOR_API_KEY": "", "GOOGLE_SEARCH_CONSOLE_PROPERTY": ""}
+        ):
             with self.assertRaises(SearchConsoleNotConfigured):
                 collect_search_console_report()
 
