@@ -67,7 +67,7 @@ class OwnerPanelLoginTests(TestCase):
     def test_correct_password_creates_session_and_redirects(self):
         self.make_owner()
         response = self.client.post(reverse("owner-panel:login"), {"password": TEST_PASSWORD})
-        self.assertRedirects(response, reverse("storefront:home"))
+        self.assertRedirects(response, reverse("owner-panel:dashboard"))
         self.assertEqual(
             int(self.client.session["_auth_user_id"]),
             get_user_model().objects.get(username="lowcost-owner").pk,
@@ -89,7 +89,7 @@ class OwnerPanelLoginTests(TestCase):
             reverse("owner-panel:login"),
             {"password": TEST_PASSWORD, "next": "https://evil.example/steal"},
         )
-        self.assertRedirects(response, reverse("storefront:home"))
+        self.assertRedirects(response, reverse("owner-panel:dashboard"))
 
     def test_wrong_password_is_generic_and_not_reflected(self):
         self.make_owner()
