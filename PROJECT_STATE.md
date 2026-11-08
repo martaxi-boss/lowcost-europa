@@ -1,5 +1,14 @@
 # Lowcost Europa — Project State
 
+## Estado canónico e higienização — 08/11/2026 (atual)
+
+- **Domínio único de produção:** `https://www.lowcost-europa.eu`; raiz → WWW por HTTPS 301. DNS de Dynadot, correio e certificados oficiais permanecem ativos. O domínio de teste DuckDNS e os subdomínios `sslip.io` deixaram de fazer parte do Nginx, dos hosts Django e da renovação de certificados da Low Cost Europa.
+- **Código operacional:** branch GitHub `main` única, sem PR abertas. As 14 branches antigas foram eliminadas com proteção de SHA; as oito com trabalho próprio mantêm tags de arquivo `archive/lowcost-20261108/*`. Não reintroduzir branches de teste.
+- **QA:** [PR #220](https://github.com/martaxi-boss/lowcost-europa/pull/220) integrada, 778 testes PASS, 15 checks de browser WWW PASS, segurança PASS; capturas de provas antigas retiradas da árvore, sem eliminar testes atuais.
+- **VPS:** [higiene #42439717221](https://github.com/martaxi-boss/VPS/actions/runs/42439717221) PASS; 15 caches removidas e redução medida de 4352 KiB. Cinco categorias, sitemap, painel privado, indexação, Nginx e timers PASS. [Certificados antigos #42439829660](https://github.com/martaxi-boss/VPS/actions/runs/42439829660) removidos com prova de zero consumidores, certificado WWW e demais projetos preservados.
+- **Fonte de procedimentos:** [relatório final e manutenção segura](docs/ops/LOWCOST-HYGIENE-20261108.md). As secções antigas de migração DNS, staging e `noindex` deste ficheiro **são históricas e não autorizam restaurar configurações ultrapassadas**.
+- **Limite comercial:** a AliExpress ainda não certifica todos os SKUs, armazéns e prazos. Não inventar stock/disponibilidade nem garantias de entrega. O site público funciona tecnicamente, não há validação comercial integral.
+
 ## Bing homepage quality and IndexNow acceptance — 2026-11-08 00:46 Lisbon
 
 - **Deployed PR #212:** `f1c1a3a8d3e6336721a201301cd43a7a8ac50cd1`. Homepage title is descriptive in all five existing languages; category image alternatives are meaningful/localized. [Rollout #42431236626](https://github.com/martaxi-boss/VPS/actions/runs/42431236626) PASS: 9/9 homepage images have alt text, canonical/index-follow/HTTPS and private login routes preserved; no configuration changes.
