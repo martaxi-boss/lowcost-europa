@@ -1,5 +1,13 @@
 # Lowcost Europa — Project State
 
+## Brave six-page public presence and Seznam homepage confirmed — 8 November 2026, 19:11 Lisbon
+
+- **New public engine evidence:** Brave now displays the homepage and all five categories as separate search results. The category check used the focused products-path query; all five canonical URLs appeared as results in their own right, beyond the homepage sitelinks initially observed. Seznam now displays the canonical homepage as a search result; its five categories remain unconfirmed. These are direct observations of each engine's public results, not authenticated index reports or guarantees of permanent inclusion.
+- **Authenticated rechecks:** Google sitemap at 19:07 remains pending, zero errors/warnings, without successful-processing confirmation. Bing at 19:06–19:09 still reports sitemap Error/0 and all six pages Discovered but not crawled. Yandex still disables sitemap additions; its Searchable pages tool also warns that reports/data may be unavailable or delayed. No index inclusion is inferred there.
+- **Remaining:** Google/Bing sitemap processing, Bing six-page inclusion, Yandex inclusion, Seznam category inclusion and Yahoo/DuckDuckGo confirmation. Yahoo displayed no matching domain result in one public query; DuckDuckGo returned an unexpected-error page, leaving its state unknown.
+- **Evidence and preservation:** [sanitized observations](docs/operations/international-search-followup-20261108-1911.json). No new submissions, speculative changes or reproducible site fault; no new proof of IndexNow regression. Existing monitoring remains enabled. This is documentation only.
+
+
 ## Authenticated Google API: six pages reconfirmed; sitemap pending — 8 November 2026, 18:56 Lisbon
 
 - **Google confirmed all six again:** the official URL Inspection API returned HTTP 200, PASS and **Enviada e indexada** for the homepage and all five categories. Every result reports successful fetching, allowed crawling/indexing, mobile crawler and matching Google/user WWW canonical. This reconfirms the earlier six-page baseline; it does not represent six newly indexed pages.
