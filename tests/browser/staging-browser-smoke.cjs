@@ -5,7 +5,7 @@ const path = require('node:path');
 const { chromium } = require('playwright');
 
 // Public, read-only QA: no authentication, POST, purchases or /go/ visits.
-const origin = 'https://lowcost-europa.duckdns.org';
+const origin = 'https://www.lowcost-europa.eu';
 const out = path.resolve('qa-artifacts');
 const slugs = ['cavitacao-rf-vacuum-corpo',
   'hydrodermoabrasao-aqua-facial-multifuncoes',
@@ -25,7 +25,11 @@ const fail = (scope, err) => report.errors.push({
 async function guardChecks(context) {
   const robots = await context.request.get(origin + '/robots.txt', { timeout: 25000 });
   assert.equal(robots.status(), 200);
-  assert.match(await robots.text(), /Disallow:\s*\//i);
+  const directives = await robots.text();
+  assert.match(directives, /Allow:\s*\//i);
+  assert.match(directives, /Disallow:\s*\/painel\//i);
+  assert.match(directives, /Sitemap:\s*https:\/\/www\.lowcost-europa\.eu\/sitemap\.xml/i);
+  assert.doesNotMatch(directives, /^Disallow:\s*\/$/mi);
   const js = await context.request.get(
     origin + '/static/storefront/product-images.js', { timeout: 25000 });
   assert.equal(js.status(), 200);
@@ -34,7 +38,7 @@ async function guardChecks(context) {
     origin + '/painel/', { maxRedirects: 0, timeout: 25000 });
   assert.equal(owner.status(), 302, 'anonymous owner panel must redirect');
   report.checks.push({ scope: 'http', status: 'PASS',
-    robots: 'Disallow: /', imageJs: 200, anonymousOwner: 302 });
+    robots: 'public sitemap, protected owner', imageJs: 200, anonymousOwner: 302 });
 }
 
 async function photoChecks(page, scope) {
@@ -81,11 +85,19 @@ async function publicPage(page, item, device) {
     { waitUntil: 'domcontentloaded', timeout: 35000 });
   assert.ok(res, 'no response in ' + scope);
   assert.equal(res.status(), 200, 'HTTP 200: ' + scope);
-  assert.match(res.headers()['x-robots-tag'] || '', /noindex/i);
+  const mustBePrivate = item.name === 'search';
+  const xRobots = res.headers()['x-robots-tag'] || '';
+  if (mustBePrivate) assert.match(xRobots, /noindex/i);
+  else assert.doesNotMatch(xRobots, /noindex/i);
   assert.equal(await page.locator('main#conteudo').count(), 1);
   assert.equal(await page.locator('main h1').count(), 1);
-  assert.match(await page.locator('meta[name="robots"]').getAttribute('content'),
-    /noindex/i);
+  const metaRobots = await page.locator('meta[name="robots"]').getAttribute('content');
+  if (mustBePrivate) assert.match(metaRobots, /noindex/i);
+  else assert.match(metaRobots, /index,\s*follow/i);
+  if (!mustBePrivate) {
+    assert.equal(await page.locator('link[rel="canonical"]').count(), 1);
+    assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), origin + item.url);
+  }
   assert.equal(await page.locator('script[src*="product-images.js"]').count(), 1);
   const size = await page.evaluate(() =>
     ({ screen: innerWidth, full: document.documentElement.scrollWidth }));
