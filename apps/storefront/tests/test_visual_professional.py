@@ -84,7 +84,7 @@ class PublicLaunchIdentityTests(SimpleTestCase):
             nginx,
         )
         self.assertIn("location = /aliexpress/callback {", nginx)
-        self.assertEqual(nginx.count('add_header X-Robots-Tag "noindex, nofollow" always;'), 3)
+        self.assertEqual(nginx.count('add_header X-Robots-Tag "noindex, nofollow" always;'), 4)
         self.assertIn(
             "# DJANGO_PUBLIC_SITE_URL=https://www.lowcost-europa.eu",
             env_example,
