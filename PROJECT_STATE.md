@@ -1,5 +1,11 @@
 # Lowcost Europa — Project State
 
+## International search discovery — 2026-11-08 (rollout pending)
+
+- Bing property imported from Google Search Console after owner-authorized read-only access. Canonical WWW sitemap submitted; Bing currently reports Processing, zero URLs discovered. No index inclusion confirmed.
+- IndexNow source adds an hourly, locked, private fingerprint worker and an exact-host public proof route. It checks sitemap allowlist, 200, canonical and noindex before sending only changed/added/formerly public removed URLs to the official shared endpoint. No database migrations or DNS/email changes. HTTP 202 remains pending; only 200 advances accepted fingerprints.
+- Ten specific local tests pass. Production activation, external tests and final GitHub/VPS alignment remain pending until rollout evidence is recorded.
+
 ## Public technical launch and Google requests — 2026-11-07
 
 - **Application deployed:** `51bee8009492c3cd5855f4aae71de3597fd1965b` from PR #207. [Guarded VPS launch #42422451050](https://github.com/martaxi-boss/VPS/actions/runs/42422451050) PASS: PUBLIC_INDEXING_ENABLED=true, legal identity privately provisioned, Django/Nginx healthy, no migrations. Main CI #42422298302 passed 744 tests; Chromium #42422298343 and source audit #42422298429 passed.

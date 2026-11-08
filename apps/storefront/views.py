@@ -386,6 +386,17 @@ def whatsapp_contact(request):
     return HttpResponseRedirect(WHATSAPP_DESTINATION)
 
 
+@require_safe
+def indexnow_key(request, key):
+    # The protocol requires a public proof file; keep configuration out of source/logs.
+    if (not public_indexing_active(request) or not settings.INDEXNOW_KEY
+            or key != settings.INDEXNOW_KEY):
+        raise Http404
+    response = HttpResponse(key, content_type="text/plain; charset=utf-8")
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
 def robots_txt(request):
     if public_indexing_active(request):
         body = "User-agent: *\nAllow: /\n"

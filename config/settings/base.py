@@ -132,6 +132,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 PUBLIC_SITE_URL = env("DJANGO_PUBLIC_SITE_URL", "").rstrip("/")
 PUBLIC_INDEXING_ENABLED = env_bool("DJANGO_PUBLIC_INDEXING_ENABLED", False)
+INDEXNOW_KEY = env("DJANGO_INDEXNOW_KEY", "")
 PUBLIC_OPERATOR = read_public_operator(BASE_DIR / ".legal" / "operator.json")
 
 CATALOG_MAINTENANCE_BATCH_SIZE = env_int_range(
