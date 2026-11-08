@@ -7,6 +7,12 @@ No network calls, paid translation APIs or visitor IP geolocation.
 """
 
 UI_TRANSLATIONS = {
+  "Lowcost Europa | Equipamentos de estética profissional": {
+    "es": "Lowcost Europa | Equipos de estética profesional",
+    "en": "Lowcost Europa | Professional beauty equipment",
+    "fr": "Lowcost Europa | Équipements d’esthétique professionnelle",
+    "de": "Lowcost Europa | Professionelle Kosmetikgeräte"
+  },
   "Início": {
     "es": "Inicio",
     "en": "Home",

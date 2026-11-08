@@ -192,7 +192,10 @@ def home(request):
         "families": families,
         **_seo_context(
             request,
-            "Lowcost Europa",
+            translate_ui(
+                "Lowcost Europa | Equipamentos de estética profissional",
+                getattr(request, "LANGUAGE_CODE", "pt-pt"),
+            ),
             "Produtos selecionados com informação factual de preço, oferta e logística.",
         ),
     }
