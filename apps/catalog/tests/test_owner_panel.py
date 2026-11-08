@@ -97,7 +97,7 @@ class OwnerPanelLoginTests(TestCase):
         response = self.client.post(reverse("owner-panel:login"), {"password": submitted})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Palavra-passe incorreta.")
-        self.assertContains(response, "A mudança de domínio não alterou a palavra-passe")
+        self.assertNotContains(response, "lowcost-europa.duckdns.org")
         self.assertNotContains(response, submitted)
         self.assertNotContains(response, "lowcost-owner")
 
