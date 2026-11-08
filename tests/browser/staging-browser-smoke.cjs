@@ -157,7 +157,7 @@ async function publicPage(page, item, device) {
   if (device.mobile && item.name === 'home') {
     await page.locator('.nav-menu summary').click();
     assert.equal(await page.locator('.nav-menu').evaluate((el) => el.open), true);
-    await page.locator('.site-nav a').filter({ hasText: 'Produtos' }).click();
+    await page.locator('.nav-menu .site-nav a[href$="#familias"]').first().click();
     assert.match(page.url(), /#familias$/);
   }
   report.checks.push({ scope, status: 'PASS',
