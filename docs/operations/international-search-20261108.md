@@ -1,6 +1,21 @@
 # International search discovery — 8 November 2026
 
 
+
+## Latest verified update — 8 November 2026, 00:46 Lisbon
+
+**IndexNow now returns HTTP 200.** The live worker submitted all eleven public URLs, received acceptance and persisted the accepted fingerprints. Key verification is no longer pending. This replaces the earlier HTTP 202 observations; it still does not confirm individual search-engine index inclusion.
+
+Bing's previous homepage notices were corrected in [PR #212](https://github.com/martaxi-boss/lowcost-europa/pull/212): a descriptive title in the existing five languages and localized category image alternatives. The real Bing Live URL test at 00:46 explicitly returned **URL can be indexed by Bing** and **No SEO/GEO issues found**. The index report still says Discovered but not crawled; no Bing index inclusion is claimed.
+
+[Guarded rollout #42431236626](https://github.com/martaxi-boss/VPS/actions/runs/42431236626) PASS at application revision `f1c1a3a8d3e6336721a201301cd43a7a8ac50cd1`: all **9/9 homepage images** have alternatives, the descriptive localized title is live, canonical/index-follow/HTTPS remain correct, panel/admin still redirect privately to login, private environment and operator-file checksums unchanged, app and IndexNow timer active. No DNS/email, Nginx, certificate or database changes.
+
+Validation passed: [full CI #42431063213](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42431063213), [security audit #42431063206](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42431063206) and [four-viewport source browser QA #42431063222](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42431063222). Nine local presentation checks passed; the broader local language test suite could not start without PostgreSQL, so the database-backed validation was supplied by CI rather than claimed as a local pass.
+
+Google's six individually verified indexed URLs remain recorded below. The Google sitemap report was checked again and still reported Couldn't fetch / zero discovered; Bing's sitemap report still reported Error / zero discovered. Successful sitemap-report processing remains unresolved even though live fetches, authenticated Bing crawler access and IndexNow acceptance succeed. No additional sitemap or individual indexing requests were sent during this follow-up.
+
+Earlier sections below retain the chronological evidence and are superseded by this latest update where states differ.
+
 ## Verified update — 8 November 2026, approximately 00:35–00:37 Lisbon
 
 This update supersedes the earlier unconfirmed Google state. Each of the following URLs was inspected individually in the authenticated Google Search Console. Every inspection displayed **O URL está no Google** and **A página está indexada**, with HTTPS confirmed. This is actual Google index-inclusion confirmation for these six URLs, not merely successful submission.
