@@ -11,6 +11,8 @@
   <meta name="description" content="{{ meta_description|default:'Produtos selecionados com informação factual e transparência.' }}">
   <meta name="robots" content="{{ robots_directive|default:'noindex, nofollow' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  {% for language, url in seo_alternates %}<link rel="alternate" hreflang="{{ language }}" href="{{ url }}">{% endfor %}
+  {% if structured_data_json %}<script type="application/ld+json">{{ structured_data_json|safe }}</script>{% endif %}
   <meta property="og:title" content="{{ page_title|default:'Lowcost Europa' }}">
   <meta property="og:description" content="{{ meta_description|default:'Produtos selecionados com informação factual e transparência.' }}">
   <meta property="og:type" content="website">
@@ -28,12 +30,12 @@
   <a class="skip-link" href="#conteudo">{{ "Saltar para o conteúdo"|ui_t }}</a>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="{% url 'storefront:home' %}" aria-label="{{ "Lowcost Europa - início"|ui_t }}">
+      <a class="brand" href="{% storefront_home_url %}" aria-label="{{ "Lowcost Europa - início"|ui_t }}">
         <img class="brand-logo" src="{% static 'storefront/lowcost-europa-brand-main.webp' %}" alt="Lowcost Europa — Qualidade Europeia ao seu alcance" width="600" height="160">
       </a>
       <nav class="desktop-nav" aria-label="{{ "Navegação principal"|ui_t }}">
-        <a href="{% url 'storefront:home' %}">{{ "Início"|ui_t }}</a>
-        <a href="{% url 'storefront:home' %}#familias">{{ "Produtos"|ui_t }}</a>
+        <a href="{% storefront_home_url %}">{{ "Início"|ui_t }}</a>
+        <a href="{% storefront_home_url %}#familias">{{ "Produtos"|ui_t }}</a>
         <a href="{% url 'storefront:search' %}">{{ "Pesquisar"|ui_t }}</a>
         <a href="{% url 'storefront:como-funciona' %}">{{ "Como funciona"|ui_t }}</a>
         <a href="{% url 'storefront:afiliados' %}">{{ "Afiliados"|ui_t }}</a>
@@ -42,13 +44,13 @@
       <details class="nav-menu">
         <summary>{{ "Menu"|ui_t }}</summary>
         <nav class="site-nav" aria-label="{{ "Navegação mobile"|ui_t }}">
-          <a href="{% url 'storefront:home' %}">{{ "Início"|ui_t }}</a>
-          <a href="{% url 'storefront:home' %}#familias">{{ "Produtos"|ui_t }}</a>
+          <a href="{% storefront_home_url %}">{{ "Início"|ui_t }}</a>
+          <a href="{% storefront_home_url %}#familias">{{ "Produtos"|ui_t }}</a>
           <a href="{% url 'storefront:search' %}">{{ "Pesquisar"|ui_t }}</a>
           <a href="{% url 'storefront:como-funciona' %}">{{ "Como funciona"|ui_t }}</a>
           <a href="{% url 'storefront:afiliados' %}">{{ "Afiliados"|ui_t }}</a>
           <a href="{% url 'storefront:contacto' %}">{{ "Contacto"|ui_t }}</a>
-        {% if not geo_language_enabled %}
+        {% if not geo_language_enabled and not seo_locale_explicit %}
         <form class="locale-switch" method="post" action="{% url 'set_language' %}" aria-label="Idioma / Language">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -85,8 +87,8 @@
       <div>
         <p class="footer-title">{{ "Explorar"|ui_t }}</p>
         <nav class="footer-nav" aria-label="Explorar">
-          <a href="{% url 'storefront:home' %}">{{ "Início"|ui_t }}</a>
-          <a href="{% url 'storefront:home' %}#familias">{{ "Produtos"|ui_t }}</a>
+          <a href="{% storefront_home_url %}">{{ "Início"|ui_t }}</a>
+          <a href="{% storefront_home_url %}#familias">{{ "Produtos"|ui_t }}</a>
           <a href="{% url 'storefront:como-funciona' %}">{{ "Como funciona"|ui_t }}</a>
         </nav>
       </div>
@@ -100,7 +102,15 @@
         </nav>
       </div>
     </div>
-    <div class="container" id="idioma">        {% if not geo_language_enabled %}
+    {% if seo_alternates %}
+    <nav class="container" aria-label="Mercados disponíveis">
+      {% for language, url in seo_alternates %}
+        {% if language == "pt-PT" %}<a href="{{ url }}" lang="pt-PT">Portugal — Português</a>{% endif %}
+        {% if language == "es-ES" %}<a href="{{ url }}" lang="es-ES">España — Español</a>{% endif %}
+      {% endfor %}
+    </nav>
+    {% endif %}
+    <div class="container" id="idioma">        {% if not geo_language_enabled and not seo_locale_explicit %}
         <form class="locale-switch" method="post" action="{% url 'set_language' %}" aria-label="Idioma / Language">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
