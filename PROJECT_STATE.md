@@ -1,5 +1,14 @@
 # Lowcost Europa — Project State
 
+## Graceful reload deployed; Bing Live recovered — 8 November 2026, 13:42 UTC
+
+Seven upstream connection refusals were correlated by second with controlled application stop/start events. [PR #225](https://github.com/martaxi-boss/lowcost-europa/pull/225) adds the missing Gunicorn HUP reload handler. Its test and audit checks passed. [Guarded production rollout #42486100692](https://github.com/martaxi-boss/VPS/actions/runs/42486100692) deployed `4f59453306aeebbc37849f9face098f8a2133c50`: **75/75 HTTPS requests returned 200** across homepage, robots and sitemap during an actual reload; the listening master stayed unchanged and old workers were replaced. Private panel/admin routes retained login redirects and noindex/private headers; private environment, operator data and Nginx checksums stayed unchanged. The app and IndexNow timer remained active. This removes a demonstrated update interruption mechanism; it does not establish the cause of the engines' sitemap errors.
+
+**Authenticated Bing follow-up:** homepage Live URL at 13:42 again reports **URL can be indexed by Bing** and **No SEO/GEO issues found**, recovering from the 11:33 fetch failure. No causal claim is made from this timing. The homepage and all five category index inspections still report **Discovered but not crawled**; sitemap still **Error / 0 discovered**. No index request or sitemap resubmission was sent. Google currently redirects to its signed-out account chooser, so no fresh Google sitemap/index result is asserted; its earlier six confirmations remain historical evidence. Yandex's previously observed service-side read-only restriction is not reinterpreted as resolved.
+
+Production checks are GitHub Actions→SSH evidence, not a new Ferrari engine-job certification. The existing monitoring task must remain active; the completion conditions are unmet. Required rollback checkpoints and IndexNow state are retained; only temporary task workflows are removed.
+
+
 ## Sitemap diagnosis and Bing Live regression — 08/11/2026, 11:34 Lisbon (latest)
 
 - **Bing Live regression:** authenticated tests of sitemap at 11:31 and homepage at 11:33 now report unable to fetch / cannot be indexed. This supersedes the earlier successful homepage Live test; it is not confirmation that an indexed page was removed. The homepage index report remains Discovered but not crawled.
