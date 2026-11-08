@@ -9,6 +9,7 @@ WorkingDirectory=/srv/projects/lowcost-europa
 Environment=HOME=/srv/projects/lowcost-europa
 EnvironmentFile=/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env
 ExecStart=/srv/projects/lowcost-europa/.venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8001 --access-logfile - --error-logfile - config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
 Restart=on-failure
 RestartSec=3
 PrivateTmp=true
