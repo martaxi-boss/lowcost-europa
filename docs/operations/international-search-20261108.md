@@ -1,5 +1,26 @@
 # International search discovery — 8 November 2026
 
+## Brave six separate results; Seznam homepage appears — 8 November 2026, 19:06–19:11 Lisbon
+
+**New material progress:** the public Brave query for the domain showed the homepage and a separate Cavitação result, plus four category sitelinks. Sitelinks alone were not treated as individual index confirmation. A subsequent focused [products-path query](https://search.brave.com/search?q=site%3Alowcost-europa.eu%2Fproducts%2F&source=web) displayed **five separate category results**, each pointing at the exact canonical WWW URL. This confirms public search presence for the homepage and all five categories at the observation time. The [Seznam domain query](https://search.seznam.cz/?q=site%3Alowcost-europa.eu) now displays the canonical homepage, superseding the earlier receipt-only/unconfirmed state for that page. Its category inclusion remains unconfirmed; a focused products-path query displayed only the homepage.
+
+| Engine | Latest evidence | Scope and limit |
+| --- | --- | --- |
+| Google | Six indexed-version confirmations at 18:50–18:56, authenticated API | Historical six-page baseline retained; sitemap recheck at 19:07 still pending |
+| Brave | Public results at 19:10 | Homepage plus five separate category results; not an authenticated report or permanent guarantee |
+| Seznam | Public result at 19:09 | Homepage only; categories unconfirmed |
+| Bing | Authenticated six inspections at 19:06–19:09 | All Discovered but not crawled; sitemap Error / 0 discovered |
+| Yandex | Authenticated Webmaster tools | Sitemap read-only/Add disabled; Searchable pages data may be delayed or unavailable |
+| Yahoo | One public domain query | No matching domain link displayed; global absence not established |
+| DuckDuckGo | Public query returned an unexpected-error page, 418.html | Index inclusion unknown; not evidence of removal |
+
+Google's fresh Sitemaps:list response remains HTTP 200, isPending=true, errors=0, warnings=0 and unchanged lastSubmitted=00:35:17.963 UTC. No lastDownloaded/type/contents or successful-processing confirmation was returned. The six Google per-URL inspections were not repeated here.
+
+Bing's IndexNow dashboard still displays zero alongside two momentary-service-error messages. That unreliable UI count does not invalidate earlier accepted HTTP 200 notifications. There is no new demonstrated IndexNow regression. Yandex Searchable pages says charts/export are temporarily unavailable and data may not update or may be delayed; All pages is disabled. Its Latest changes row says No changes to page indexing, which cannot establish zero indexed pages from a complete fresh report.
+
+[Sanitized observations](international-search-followup-20261108-1911.json) record source type, check times, public queries, canonical result URLs and the remaining limits. An independent review agrees with the distinction between public presence and authenticated reporting, and found no new technical defect justifying a runtime change or submission. No sitemap/index request, restriction bypass or message to a third party was sent. No site/DNS/mail/HTTPS/catalogue/panel setting changed. Continue the same monitoring task; original sitemap/Bing completion conditions and the expanded engine scope are not yet satisfied. This evidence update is not a new Ferrari execution certification.
+
+
 ## Authenticated Google API readback — 8 November 2026, 18:43–18:56 Lisbon
 
 The owner completed Google authentication. Official Google APIs Explorer then returned authenticated results using only the Search Console read-only scope. This supplies new direct engine evidence after the earlier Search Console web-session persistence blocker; it does not establish a permanent unattended API connection on the VPS.
