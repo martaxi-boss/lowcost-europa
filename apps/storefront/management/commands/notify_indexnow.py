@@ -10,8 +10,9 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
-from xml.etree import ElementTree
 
+from defusedxml import ElementTree
+from defusedxml.common import DefusedXmlException
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
@@ -113,7 +114,8 @@ class Command(BaseCommand):
                 return
             try:
                 self.notify(base, directory, options["dry_run"])
-            except (HTTPError, URLError, OSError, ValueError, ElementTree.ParseError) as error:
+            except (HTTPError, URLError, OSError, ValueError, ElementTree.ParseError,
+                    DefusedXmlException) as error:
                 # Exception URLs can contain the verification key; never log them.
                 code = getattr(error, "code", "network_or_state")
                 raise CommandError(f"IndexNow failed ({code}); accepted state preserved") from None
