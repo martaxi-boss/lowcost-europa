@@ -37,7 +37,7 @@
                 {% if family.display_offer and family.display_offer.image_url %}
                   {% with image_url=family.display_offer.image_url %}
                     {% if image_url|slice:":8" == "https://" %}
-                      <img src="{{ image_url }}" alt="" width="420" height="320" loading="lazy" data-product-image>
+                      <img src="{{ image_url }}" alt="{{ family|family_label }}" width="420" height="320" loading="lazy" data-product-image>
                       <span class="image-fallback" data-image-fallback hidden>{{ "Imagem indisponível"|ui_t }}</span>
                       <span class="image-quality-note" data-image-quality hidden>{{ "Fotografia de baixa resolução"|ui_t }}</span>
                     {% else %}
