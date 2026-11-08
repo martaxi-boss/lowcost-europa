@@ -1,5 +1,13 @@
 # Lowcost Europa — Project State
 
+## Yandex ownership confirmed — 08/11/2026 (latest)
+
+- **Ownership confirmed by authenticated Yandex Webmaster:** Manage access shows the Owner role, verification by root HTML file and verification date 08/11/2026. The prior owner-action gate below is resolved. No verification value or account identifier is published here.
+- **New external blocker:** Yandex Sitemap files explicitly reports read-only mode while its engineers restore service; Add is disabled. No sitemap was submitted and no workaround or duplicate IndexNow request was attempted.
+- **Index inclusion remains unconfirmed in Yandex.** Ownership verification does not establish crawling or index inclusion. [Current authenticated observations](docs/operations/international-search-20261108.md).
+- This update is documentation only; the previously deployed proof and configuration remain in place. Google/Bing sitemap errors and the Bing six-page index confirmations remain pending.
+
+
 ## Search follow-up — 08/11/2026, 10:21 Lisbon
 
 - **New confirmed public result:** Brave displays the homepage; categories remain unconfirmed there. Seznam accepted the direct homepage submission; this is not index inclusion.

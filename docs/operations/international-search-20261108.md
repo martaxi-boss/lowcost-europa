@@ -1,5 +1,16 @@
 # International search discovery — 8 November 2026
 
+## Yandex ownership verified; sitemap service read-only — 8 November 2026 (latest)
+
+The owner completed the Yandex verification step. The authenticated **Manage access** page now shows **Owner**, verification method **File in root directory**, and verification date **08/11/2026**. This supersedes the pending owner-action statements in the preceding follow-up. The proof value and account identifier are intentionally omitted.
+
+The authenticated [Sitemap files page](https://webmaster.yandex.com/site/https:www.lowcost-europa.eu:443/indexing/sitemap/) explicitly states that the tool is in **read-only mode** and that files cannot currently be added or submitted for recrawling while Yandex engineers restore the service. The **Add** button is disabled. The interface links to [Yandex's service notice](https://yandex.ru/company/news/09-10-2026-01); that article was not independently inspected, so only the directly observed Webmaster restriction is asserted.
+
+No sitemap submission was attempted, no alternative API was used to bypass the restriction, and no repeated IndexNow request was sent. Ownership is verified; sitemap processing, crawl progress and index inclusion in Yandex remain unconfirmed. The existing public robots/sitemap and previously accepted shared IndexNow receipt are unchanged. Resume the normal sitemap tool when Yandex restores it; do not change the site, DNS or mail in response to this service-side blocker.
+
+This is an authenticated engine observation, distinct from the previously observed public Brave result and public site queries. The prior Google/Bing sitemap errors are unresolved. Monitoring must remain enabled because the required completion conditions are not met.
+
+
 ## Authenticated follow-up and Yandex proof — 8 November 2026, 10:21 Lisbon
 
 - **Brave public result:** a direct Brave `site:lowcost-europa.eu` query now displays the homepage, titled “Lowcost Europa | Professional beauty equipment”, linking to the apex URL. This is an observed public search result for the homepage only; no category inclusion or authenticated Brave index report is claimed.
