@@ -100,6 +100,15 @@ def _decorate_offer(offer):
         offer.observation_history, require_recent_price=False
     )
     offer.origin_verified = is_ship_from_verified(offer)
+    recent_at = timezone.now()
+    price = offer.observation_display.price_observation
+    offer.owner_price_recent = bool(
+        price
+        and price.price is not None
+        and price.price > 0
+        and (price.currency or "").strip().upper() == "EUR"
+        and recent_at - timedelta(hours=24) <= price.observed_at <= recent_at
+    )
     offer.protocol_fresh = is_protocol_verified(offer)
     offer.was_editorially_hidden = offer.editorial_events.filter(action="HIDE").exists()
     if not offer.is_active:
@@ -114,6 +123,8 @@ def _decorate_offer(offer):
         offer.owner_state_label = "Retirado da montra"
     elif offer.owner_hidden:
         offer.owner_state_label = "Aprovado fora da montra"
+    elif settings.PUBLIC_RECENT_PRICE_REQUIRED and not offer.owner_price_recent:
+        offer.owner_state_label = "Retida: preço EUR sem observação recente"
     else:
         offer.owner_state_label = "Na montra"
     return offer
