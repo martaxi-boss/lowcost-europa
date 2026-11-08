@@ -6,6 +6,12 @@ app_name = "storefront"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("pt/", views.locale_home, {"locale": "pt"}, name="home-pt"),
+    path("es/", views.locale_home, {"locale": "es"}, name="home-es"),
+    path("pt/products/<slug:slug>/", views.locale_product_family_detail,
+         {"locale": "pt"}, name="product-pt"),
+    path("es/products/<slug:slug>/", views.locale_product_family_detail,
+         {"locale": "es"}, name="product-es"),
     path("pesquisar/", views.search, name="search"),
     path(
         "como-funciona/",
