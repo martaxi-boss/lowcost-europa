@@ -1,10 +1,12 @@
 # Lowcost Europa — Project State
 
-## International search discovery — 2026-11-08 (rollout pending)
+## International search discovery — 2026-11-08
 
-- Bing property imported from Google Search Console after owner-authorized read-only access. Canonical WWW sitemap submitted; Bing currently reports Processing, zero URLs discovered. No index inclusion confirmed.
-- IndexNow source adds an hourly, locked, private fingerprint worker and an exact-host public proof route. It checks sitemap allowlist, 200, canonical and noindex before sending only changed/added/formerly public removed URLs to the official shared endpoint. No database migrations or DNS/email changes. HTTP 202 remains pending; only 200 advances accepted fingerprints.
-- Ten specific local tests pass. Production activation, external tests and final GitHub/VPS alignment remain pending until rollout evidence is recorded.
+- **Deployed:** PR #209, application revision `93c5dedcf0877eeff583b2863fe246d132c7225c`; 754 tests and security analysis PASS. Independent VPS checks #42428884310 and #42429109681 PASS. IndexNow timer active/enabled, private key proof HTTP 200, 11 public URLs received with HTTP 202 (key verification pending). Notifications are hourly and preserve pending state until HTTP 200; no index inclusion implied.
+- **Bing:** property imported from Google after owner-approved read-only access; six direct URL submissions confirmed (homepage + five categories). Sitemap initially failed with The page is not accessible despite independent HTTP 200/TLS checks; re-submitted once, latest observed Processing / zero discovered. No confirmed successful sitemap processing or indexed page.
+- **Other engines:** Brave homepage re-fetch submission accepted; DuckDuckGo and Seznam site queries showed no results, Yahoo no matching domain result. Yandex search and Brave status query required human verification. IndexNow shared receipt covers participants including Bing/Yandex/Seznam, without individual crawl/index confirmation.
+- **Preservation:** external audit passes 11 public pages, three private endpoints, three canonical redirects and five synthetic bot agents. Panel/admin still require login and noindex/private. DNS/email records, HTTPS, Nginx, catalog and database schema preserved.
+- **Evidence and limitations:** [international search report](docs/operations/international-search-20261108.md), [external HTTP evidence](docs/operations/international-public-audit-20261108.json). Pending engine processing is explicitly unresolved; do not declare indexing complete.
 
 ## Public technical launch and Google requests — 2026-11-07
 
