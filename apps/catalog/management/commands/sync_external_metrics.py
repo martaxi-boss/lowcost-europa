@@ -1,4 +1,4 @@
-"""Refresh both provider reports independently; keep each last-known-good snapshot."""
+"""Refresh each private provider report independently; keep last-known-good snapshots."""
 
 import os
 
@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    help = "Refresh AliExpress orders and, when authorized, Meta read-only insights."
+    help = "Refresh authorized AliExpress, Meta Ads and Google Search Console metrics."
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true")
@@ -35,6 +35,21 @@ class Command(BaseCommand):
             except CommandError:
                 failures.append("META")
                 self.stderr.write("META_REPORT=UNAVAILABLE")
+
+        # Search Console is opt-in. The Windsor key alone may belong to Meta.
+        # Do not query an unapproved Google property or infer zero clicks.
+        property_id = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY", "").strip()
+        if not property_id:
+            self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_PROPERTY_AUTHORIZATION")
+        elif property_id != "sc-domain:lowcost-europa.eu" or not has_windsor_key:
+            failures.append("GOOGLE_SEARCH_CONFIG")
+            self.stderr.write("GOOGLE_SEARCH_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
+        else:
+            try:
+                call_command("sync_google_search_console", *flags)
+            except CommandError:
+                failures.append("GOOGLE_SEARCH")
+                self.stderr.write("GOOGLE_SEARCH_REPORT=UNAVAILABLE")
 
         # Report partial failure to systemd without blocking successful
         # independent snapshots or hiding either provider's error.
