@@ -30,21 +30,21 @@ class OwnerCommercialEvidenceTests(TestCase):
         )
         self.stale = self.make_offer("historico")
         OfferObservation.objects.create(
-            offer=self.fresh, observed_at=self.now - timedelta(hours=2),
+            offer=self.fresh, destination_country="PT", observed_at=self.now - timedelta(hours=2),
             price=Decimal("125.00"), currency="EUR",
             delivery_days=4, availability=OfferObservation.Availability.UNKNOWN,
         )
         OfferObservation.objects.create(
-            offer=self.fresh, observed_at=self.now - timedelta(hours=1),
+            offer=self.fresh, destination_country="PT", observed_at=self.now - timedelta(hours=1),
             availability=OfferObservation.Availability.UNKNOWN,
         )
         OfferObservation.objects.create(
-            offer=self.stale, observed_at=self.now - timedelta(hours=48),
+            offer=self.stale, destination_country="PT", observed_at=self.now - timedelta(hours=48),
             price=Decimal("250.00"), currency="EUR",
             availability=OfferObservation.Availability.UNKNOWN,
         )
         OfferObservation.objects.create(
-            offer=self.stale, observed_at=self.now - timedelta(hours=2),
+            offer=self.stale, destination_country="PT", observed_at=self.now - timedelta(hours=2),
             availability=OfferObservation.Availability.UNKNOWN,
         )
 
@@ -132,6 +132,15 @@ class OwnerCommercialEvidenceTests(TestCase):
         )
         self.assertContains(staff, "Verificação interna: origem, stock e entrega")
         self.assertContains(staff, "registada na revisão editorial")
+
+    def test_delivery_for_other_country_is_not_evidence_for_portugal(self):
+        OfferObservation.objects.create(
+            offer=self.stale, destination_country="ES",
+            observed_at=self.now - timedelta(minutes=30),
+            delivery_days=2,
+        )
+        rows = owner_commercial_evidence_rows(as_of=self.now)
+        self.assertEqual(rows[1].delivery, "Prazo não confirmado")
 
     def test_future_origin_review_not_counted_as_proof(self):
         self.fresh.ship_from_verified_at = self.now + timedelta(days=2)
