@@ -1,3 +1,4 @@
+import json
 import logging
 import unicodedata
 from datetime import timedelta
@@ -34,6 +35,12 @@ from apps.catalog.services.public_eligibility import (
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 from apps.storefront.seo import PRIVATE_PATH_PREFIXES, public_indexing_active
+from apps.storefront.seo_locales import (
+    alternate_public_urls,
+    home_page_url,
+    localized_public_path,
+    requested_seo_locale,
+)
 from apps.storefront.ui_translations import translate_ui
 
 LEGACY_FAMILY_REDIRECTS = {
@@ -158,16 +165,69 @@ def _prepare_family(family):
 
 
 
-def _seo_context(request, page_title, meta_description):
+def _json_ld(data):
+    """Encode trusted schema values without allowing inline script injection."""
+    return (
+        json.dumps(data, ensure_ascii=True, separators=(",", ":"))
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+    )
+
+
+def _seo_context(request, page_title, meta_description, *, kind=None, category=None):
     path = request.path
     indexing_active = public_indexing_active(request)
     canonical_url = f"{settings.PUBLIC_SITE_URL}{path}" if indexing_active else None
     robots_directive = "index, follow" if indexing_active else "noindex, nofollow"
+    alternates = (
+        alternate_public_urls(path, settings.PUBLIC_SITE_URL)
+        if indexing_active and settings.LOCALE_SEO_ENABLED
+        else []
+    )
+    structured = None
+    if indexing_active and kind == "home":
+        structured = {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Organization",
+                    "name": "Lowcost Europa",
+                    "url": settings.PUBLIC_SITE_URL + "/",
+                },
+                {
+                    "@type": "WebSite",
+                    "name": "Lowcost Europa",
+                    "url": settings.PUBLIC_SITE_URL + "/",
+                },
+            ],
+        }
+    elif indexing_active and kind == "category" and category:
+        structured = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Lowcost Europa",
+                    "item": settings.PUBLIC_SITE_URL + home_page_url(request),
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": category,
+                    "item": canonical_url,
+                },
+            ],
+        }
     return {
         "page_title": page_title,
         "meta_description": meta_description,
         "canonical_url": canonical_url,
         "robots_directive": robots_directive,
+        "seo_alternates": alternates,
+        "structured_data_json": _json_ld(structured) if structured else None,
     }
 
 
@@ -176,6 +236,7 @@ def _render_storefront(request, template, context):
         static("storefront/lowcost-europa-brand-main.webp")
     )
     context["geo_language_enabled"] = settings.GEO_LANGUAGE_ENABLED
+    context["seo_locale_explicit"] = bool(requested_seo_locale(request.path_info))
     context["public_operator"] = settings.PUBLIC_OPERATOR
     response = render(request, template, context)
     if request.user.is_authenticated and request.user.is_staff:
@@ -198,10 +259,30 @@ def home(request):
                 "Lowcost Europa | Equipamentos de estética profissional",
                 getattr(request, "LANGUAGE_CODE", "pt-pt"),
             ),
-            "Produtos selecionados com informação factual de preço, oferta e logística.",
+            {
+                "pt-pt": "Explore equipamentos de estética profissional, preços observados e informação de entrega sem promessas não verificadas.",
+                "es": "Explora equipos de estética profesional, precios observados e información de entrega sin promesas no verificadas.",
+                "en": "Explore professional beauty equipment, observed prices and available delivery information.",
+                "fr": "Découvrez des équipements d’esthétique professionnelle, des prix observés et les informations de livraison disponibles.",
+                "de": "Entdecken Sie professionelle Kosmetikgeräte, beobachtete Preise und verfügbare Lieferinformationen.",
+            }.get(getattr(request, "LANGUAGE_CODE", "pt-pt"), "Equipamentos de estética profissional com informação factual."),
+            kind="home",
         ),
     }
     return _render_storefront(request, "storefront/home.html", context)
+
+
+def locale_home(request, locale):
+    """Reversible market launch: no indexed locale URL before QA activation."""
+    if not settings.LOCALE_SEO_ENABLED or locale not in {"pt", "es"}:
+        raise Http404
+    return home(request)
+
+
+def locale_product_family_detail(request, locale, slug):
+    if not settings.LOCALE_SEO_ENABLED or locale not in {"pt", "es"}:
+        raise Http404
+    return product_family_detail(request, slug)
 
 
 def _search_key(value):
@@ -373,13 +454,23 @@ def product_family_detail(request, slug):
         **_owner_family_context(request, family),
         **_seo_context(
             request,
-            f"{family.name} | Lowcost Europa",
-            f"Ofertas atuais e informação factual para {family.name}.",
+            f"{translate_ui(family.name, getattr(request, 'LANGUAGE_CODE', 'pt-pt'))} | Lowcost Europa",
+            (
+                f"Explora opciones y datos observados de {translate_ui(family.name, 'es')}. "
+                "Precios y disponibilidad sujetos a confirmación del vendedor."
+                if getattr(request, "LANGUAGE_CODE", "pt-pt") == "es"
+                else f"Compare ofertas e informação observada para {family.name}. "
+                     "Confirme preço e disponibilidade no parceiro."
+            ),
+            kind="category",
+            category=translate_ui(family.name, getattr(request, "LANGUAGE_CODE", "pt-pt")),
         ),
     }
     if family.status == ProductFamily.Status.RETIRED:
         context["robots_directive"] = "noindex, nofollow"
         context["canonical_url"] = None
+        context["seo_alternates"] = []
+        context["structured_data_json"] = None
     response = _render_storefront(request, "storefront/product_family_detail.html", context)
     if family.status == ProductFamily.Status.RETIRED:
         response["X-Robots-Tag"] = "noindex, nofollow"
@@ -431,12 +522,25 @@ def sitemap_xml(request):
         reverse("storefront:termos"),
         reverse("storefront:contacto"),
     ]
+    slugs = list(
+        ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
+        .order_by("slug").values_list("slug", flat=True)
+    )
     paths.extend(
         reverse("storefront:product-family-detail", kwargs={"slug": slug})
-        for slug in ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED)
-        .order_by("slug")
-        .values_list("slug", flat=True)
+        for slug in slugs
     )
+    if settings.LOCALE_SEO_ENABLED and public_indexing_active(request):
+        # Keep the existing 11 URLs and add only real, stable PT/ES pages.
+        for locale in ("pt", "es"):
+            paths.append(localized_public_path("/", locale))
+            paths.extend(
+                localized_public_path(
+                    reverse("storefront:product-family-detail", kwargs={"slug": slug}),
+                    locale,
+                )
+                for slug in slugs
+            )
     urls = "".join(f"<url><loc>{base_url}{path}</loc></url>" for path in paths)
     body = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
     return HttpResponse(body, content_type="application/xml")
