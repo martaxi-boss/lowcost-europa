@@ -1,105 +1,29 @@
-# Low Cost Europa — passagem segura para www.lowcost-europa.eu (Dynadot)
+# Domínio oficial — estado operacional (migração concluída)
 
-## Situação auditada em 07/11/2026
+**Atualizado em 08/11/2026.** Este documento substitui o roteiro de migração de 07/11; as instruções temporárias de emissão de certificados e de DNS estacionado estão obsoletas. O histórico está preservado nos commits Git anteriores.
 
-Relatório **read-only**: [VPS Actions #42405767220](https://github.com/martaxi-boss/VPS/actions/runs/42405767220).
+## Fonte operacional única
 
-- Novo domínio: **lowcost-europa.eu**, DNS autoritativo Dynadot `ns1.dyna-ns.net` / `ns2.dyna-ns.net`.
-- Registo A raiz e `www` atualmente `185.53.179.149` (estacionamento Dynadot).
-- VPS OVH já identificada/pinada: `146.59.145.3`. **Não** trocar servidores de nomes.
-- Registos de correio já publicados: MX `0 webhost.dynadot.com`, SPF,
-  DKIM e DMARC. **Nunca apagar/substituir** estes registos ao ligar o site.
-  A presença de DNS não certifica o envio e a receção reais de mensagens.
-- VPS `/srv/projects/lowcost-europa` no commit
-  `fefd5df92753382bb7ad191ee19e38b90d8167a3`; Django ativo,
-  Nginx `-t` PASS, DuckDNS antigo saudável. Falta novo vhost,
-  novo certificado, `DJANGO_ALLOWED_HOSTS` e URL canónica nova.
-- Indexação comercial e campanhas NÃO autorizadas. Preservar `noindex`.
+- URL pública e indexável: **https://www.lowcost-europa.eu**.
+- O domínio de raiz **https://lowcost-europa.eu** encaminha para o `www` com HTTPS.
+- O DNS e o serviço de email permanecem na **Dynadot**; o alojamento da aplicação é a VPS Ubuntu. Não configurar outro servidor DNS, Cloudflare, DDNS nem um segundo domínio público por automatismo.
+- O e-mail público é **geral@lowcost-europa.eu**; o encaminhamento para a caixa do proprietário é configuração privada e deve ser verificado funcionalmente, não deduzido da publicação de MX/SPF/DKIM/DMARC.
+- O Nginx atual de produção é o vhost canónico em `/etc/nginx/sites-enabled/lowcost-europa-eu.conf`; a fonte versionada é `deploy/nginx/lowcost-europa.eu.conf`.
+- As rotas `/painel/`, `/admin/`, `/ops/`, `/health/` e callbacks continuam protegidos. As páginas de montra têm indexação condicionada aos requisitos do código. Não apagar a regra de `/.well-known/acme-challenge/`, os certificados do domínio oficial, a renovação automática nem os registos de correio.
+- A manutenção do catálogo e do IndexNow é executada pelos timers próprios; IndexNow envia atualizações de páginas, não faz deteções de DNS.
 
-## Primeiro, no painel da Dynadot — intervenção na conta do proprietário
+## Higiene de configurações legadas
 
-No domínio `lowcost-europa.eu`: **My Domains → Manage Domains → Action →
-DNS Settings → Dynadot DNS**.
+O domínio de teste **lowcost-europa.duckdns.org** e os subdomínios de teste **sslip.io** não são origens canónicas. Qualquer desativação de vhosts ou certificados antigos exige inventário dos consumidores, backup reversível da configuração Nginx e leitura privada das referências no ambiente antes da alteração. Não confundir os nomes de outros projetos como `fadego.duckdns.org` ou `pink-iptv.duckdns.org` com o Low Cost Europa.
 
-| Secção | Nome | Tipo | Valor |
-|---|---|---|---|
-| Domain Record (sem escrever @) | raiz `lowcost-europa.eu` | A | `146.59.145.3` |
-| Subdomain Record | `www` | A | `146.59.145.3` |
+Não executar antigos testes que presumem `noindex` público ou usam DuckDNS. O teste browser atual aponta para o endereço `www` e verifica que as categorias permanecem indexáveis e que o painel é privado.
 
-**Editar/substituir** os dois A de estacionamento, não adicionar A
-conflituantes. Não criar AAAA sem o IPv6 da VPS validado.
-Não utilizar o Website Builder da Dynadot como destino do site.
+## Aceitação após cada alteração
 
-Guardar as alterações. Preservar integralmente os registos MX, TXT/SPF,
-`default._domainkey` (DKIM) e `_dmarc`. Não mudar nameservers nem
-introduzir Cloudflare. A propagação de DNS deve ser verificada a partir de
-resolvers externos e dos servidores autoritativos antes de qualquer emissão
-de certificado.
+1. Confirmar SHA do GitHub igual ao da pasta de produção, com árvore de trabalho limpa e sem migrações pendentes.
+2. `nginx -t` e certificado válido para `lowcost-europa.eu`/`www.lowcost-europa.eu`.
+3. Verificar 200 em `www`, redirecionamento 301 do domínio raiz, sitemap e robots públicos; `/painel/` anónimo mantém redirecionamento e `noindex`.
+4. Confirmar serviço Django, manutenção do catálogo, descoberta semanal, IndexNow e backups sem alterar dados comerciais.
+5. Preservar rollback privado limitado ao projeto; nunca fazer `apt autoremove` nem limpeza genérica da VPS.
 
-## Segundo, preparação segura na VPS (apenas quando o DNS estiver correto)
-
-A automatização deve ocorrer pelo fluxo auditado GitHub Actions → SSH,
-sem editar a ponte Ferrari, com backup prévio e verificação de host SSH
-pinado. Ficheiros de domínio pertencem ao repositório
-`/srv/projects/lowcost-europa`; a única integração exterior inevitável
-é a configuração Nginx/Let's Encrypt já existente.
-
-1. Confirmar os dois A para `146.59.145.3` e ausência de AAAA órfãos;
-   verificar que nada foi alterado no DNS de correio.
-2. Confirmar backup recente, revisão esperada e saúde do Nginx/Django.
-   Preservar as configurações Nginx e o ficheiro de ambiente atual em
-   backup privado antes de alterações.
-3. Usar *exclusivamente* `deploy/nginx/lowcost-europa.eu-acme.conf` para
-   um vhost **HTTP temporário**. Este ficheiro suporta
-   `/.well-known/acme-challenge/` via `/var/www/letsencrypt` e reencaminha
-   a restante navegação para DuckDNS até existir SSL. Nunca ativar o
-   ficheiro definitivo de HTTPS com certificados inexistentes.
-4. Após validar desafio HTTP de ambos os nomes, emitir certificado
-   Let's Encrypt com `certbot certonly --webroot`, o webroot existente
-   `/var/www/letsencrypt`, e os nomes
-   `lowcost-europa.eu` e `www.lowcost-europa.eu`.
-   Validar o SAN, a validade do certificado e a renovação automática.
-5. Atualizar somente o ambiente privado existente do projeto:
-   `DJANGO_ALLOWED_HOSTS` deve incluir o domínio raiz, `www` e
-   DuckDNS (sem perder localhost/hosts internos); `DJANGO_CSRF_TRUSTED_ORIGINS`
-   deve incluir as novas origens HTTPS; `DJANGO_PUBLIC_SITE_URL`
-   passa a `https://www.lowcost-europa.eu`. Manter
-   `DJANGO_PUBLIC_INDEXING_ENABLED=false`. Preservar restantes variáveis.
-6. Testar `django check --deploy` e serviço com os hosts novos.
-   Só **depois** substituir o vhost temporário por
-   `deploy/nginx/lowcost-europa.eu.conf`, verificando `nginx -t` antes
-   de recarregar. Não modificar o vhost DuckDNS nem outros projetos.
-7. Verificar HTTPS (certificado/cadeia), resposta 200 da raiz,
-   domínio raiz → `https://www.lowcost-europa.eu` (301), cinco categorias,
-   filtros e painel, IP→língua em cinco países e fallback inglês,
-   `X-Robots-Tag: noindex`, redirecionamentos de afiliado e saúde DuckDNS.
-8. Registar evidência de GitHub Actions, commit exato no VPS e estado limpo,
-   depois eliminar workflow temporário. Se falhar qualquer verificação,
-   repor configurações e ambiente anteriores e confirmar DuckDNS funcional.
-
-**Não** redirecionar DuckDNS para o domínio novo antes de o certificado e
-todos os fluxos estarem certificados. Não ativar indexação, marketing ou
-publicação comercial apenas por ter um domínio pago.
-
-## O que esta alteração NÃO faz
-
-- Não migra, recria nem configura a caixa `geral@lowcost-europa.eu`;
-  apenas **preserva** os registos DNS já existentes.
-- Não desloca o alojamento para a Dynadot: esta fornece DNS e correio;
-  o site continua a correr na VPS OVH.
-- Não adiciona Cloudflare, software global, fornecedor pago obrigatório
-  nem um segundo motor/coordenador.
-
-## Fonte para o painel Dynadot
-
-[Documentação oficial de DNS Dynadot](https://www.dynadot.com/pt/ajuda/pergunta/configurar-DNS).
-
-## Identidade institucional e correio para lançamento público
-
-- Website público canónico aprovado: **https://www.lowcost-europa.eu**. O domínio sem `www` deve redirecionar permanentemente para `www` **após ambos terem certificado TLS válido**.
-- Endereço **público** de contacto e privacidade: `geral@lowcost-europa.eu`, substituindo o endereço de teste antigo nas páginas e respetivos testes.
-- O destino Gmail para **reencaminhamento** é **privado e não pertence ao código, logs, site ou GitHub**. A propriedade da caixa e a opção de encaminhamento na Dynadot não podem ser verificadas a partir dos MX públicos.
-- Como o MX atual é `webhost.dynadot.com`, verificar em primeiro lugar se existe um plano `My Emails` com caixa `geral`. Nesse caso usar **Mailboxes → General Settings → Delivery Options → Forwarding** e confirmar no Gmail. Documentação: https://www.dynadot.com/help/question/set-up-email-forwarding
-- **ATENÇÃO**: no domínio com `Dynadot Email Hosting`, mudar diretamente para `Email Settings → Forwarding Email` pode **desligar o alojamento de e-mail existente**. Só usar encaminhamento do domínio depois de confirmar que não está ativo um plano de e-mail. Documentação: https://www.dynadot.com/help/question/email-forwarding
-- Verificar envio a `geral@lowcost-europa.eu` por um endereço **externo diferente do Gmail de destino**; confirmar a mensagem recebida e cabeçalhos. O encaminhamento gratuito recebe, mas não permite necessariamente enviar como `geral@...`.
-- Não ativar `DJANGO_PUBLIC_INDEXING_ENABLED=true` sem verificação comprovada de: DNS+TLS WWW/apex, envio/receção do e-mail, painel/login privado, páginas legais e identidade do operador, cinco categorias/ofertas atuais e sinalização de afiliados, língua por IP e conteúdo `noindex` pronto para levantamento. A ativação comercial e indexação são passos distintos.
+**Histórico e provas:** [migração certificada](https://github.com/martaxi-boss/VPS/actions/runs/42421004057), [preços e painel](https://github.com/martaxi-boss/VPS/actions/runs/42438124808). Certificação comercial de stock e origem do armazém continua distinta da operação técnica.
