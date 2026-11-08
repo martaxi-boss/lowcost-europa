@@ -283,6 +283,14 @@ def dashboard(request):
         family_placements__product_family__status__in=operational_statuses,
     ).distinct()
     eligible_queryset = visible_offers.filter(public_eligibility_q(now))
+    technical_eligible = visible_offers.filter(
+        public_eligibility_q(now, require_recent_price=False)
+    )
+    # Do not throw away owner-approved offers or their history if the last
+    # verifiable EUR price is older than 24 hours: keep them in review.
+    price_held_from_public = technical_eligible.exclude(
+        public_eligibility_q(now)
+    ).count()
     eligible_public_offers = eligible_queryset.count()
     origin_without_individual_proof = eligible_queryset.filter(
         Q(ship_from_country__isnull=True) | Q(ship_from_verified_at__isnull=True)
@@ -336,7 +344,20 @@ def dashboard(request):
         .order_by("product_family__name", "product_family__slug")
     )
     retired_pending_total = sum(row["total"] for row in retired_pending_by_family)
-    visible_blocked_offers = visible_offers.exclude(public_eligibility_q(now)).count()
+    # Technical/editorial inconsistencies are distinct from automatic
+    # temporary price holds. Keep both counts visible to the owner.
+    visible_blocked_offers = visible_offers.exclude(
+        public_eligibility_q(now, require_recent_price=False)
+    ).count()
+    promo_blocked_offers = visible_offers.exclude(
+        affiliate_url__startswith="https://",
+        affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+        affiliate_promotion_verified_at__isnull=False,
+    ).count()
+    protocol_blocked_offers = visible_offers.exclude(
+        protocol_verified_at__isnull=False,
+        protocol_verified_at__lte=now,
+    ).count()
     stale_public_by_family = dict(
         OfferFamilyPlacement.objects.filter(
             offer__is_active=True,
@@ -418,6 +439,10 @@ def dashboard(request):
                 "retired_pending_total": retired_pending_total,
                 "paused_discovery_families": paused_discovery_families,
                 "visible_blocked_offers": visible_blocked_offers,
+                "promo_blocked_offers": promo_blocked_offers,
+                "protocol_blocked_offers": protocol_blocked_offers,
+                "price_held_from_public": price_held_from_public,
+                "public_recent_price_required": settings.PUBLIC_RECENT_PRICE_REQUIRED,
                 "affiliate_tracking_id": os.environ.get("ALIEXPRESS_TRACKING_ID", "").strip(),
                 "owner_metrics_checked_at": now,
                 "affiliate_report": affiliate_report,
