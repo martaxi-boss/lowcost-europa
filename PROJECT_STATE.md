@@ -1,5 +1,14 @@
 # Lowcost Europa — Project State
 
+## Search follow-up — 08/11/2026, 10:21 Lisbon
+
+- **New confirmed public result:** Brave displays the homepage; categories remain unconfirmed there. Seznam accepted the direct homepage submission; this is not index inclusion.
+- **Yandex:** owner authentication/account creation completed, canonical property added, proof deployed privately via [PR #221](https://github.com/martaxi-boss/lowcost-europa/pull/221) and [VPS #42471054301](https://github.com/martaxi-boss/VPS/actions/runs/42471054301). **Owner must press Verify and accept the Webmaster agreement** before ownership, sitemap processing or indexing can be confirmed.
+- **Current checks:** Google session restored; authenticated Google sitemap remains “Não foi possível obter” / zero. Bing sitemap remains Error / zero; homepage plus five categories show Discovered but not crawled. No duplicate requests.
+- **IndexNow:** live dry run `public=11 changed=0 removed=0`, accepted state unchanged, no submission. 778 tests PASS; public routes, HTTPS and private-panel controls PASS.
+- **Deployed application/config revision:** `ffbacda4c5c166e204a0bf2b8d621099480c8f7e`; later documentation-only alignment does not change runtime behavior. DNS/email preserved. [Full current evidence](docs/operations/international-search-20261108.md).
+
+
 ## Estado canónico e higienização — 08/11/2026 (atual)
 
 - **Domínio único de produção:** `https://www.lowcost-europa.eu`; raiz → WWW por HTTPS 301. DNS de Dynadot, correio e certificados oficiais permanecem ativos. O domínio de teste DuckDNS e os subdomínios `sslip.io` deixaram de fazer parte do Nginx, dos hosts Django e da renovação de certificados da Low Cost Europa.

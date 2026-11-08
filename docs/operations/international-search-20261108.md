@@ -1,5 +1,19 @@
 # International search discovery — 8 November 2026
 
+## Authenticated follow-up and Yandex proof — 8 November 2026, 10:21 Lisbon
+
+- **Brave public result:** a direct Brave `site:lowcost-europa.eu` query now displays the homepage, titled “Lowcost Europa | Professional beauty equipment”, linking to the apex URL. This is an observed public search result for the homepage only; no category inclusion or authenticated Brave index report is claimed.
+- **Seznam:** its official direct add-URL form confirmed successful receipt of `https://www.lowcost-europa.eu/` after the owner-authorized CAPTCHA. This is submission acceptance, not indexing. A public site query still returned no results. No duplicate Seznam submission was sent.
+- **Google authentication restored:** the domain property's authenticated sitemap report still shows “Não foi possível obter” / zero discovered. No sitemap or per-page resubmission. The earlier six individually confirmed Google pages remain the historical baseline, not fresh individual inspections.
+- **Bing authenticated report:** sitemap still Error / zero discovered. Individual inspections in this follow-up showed the homepage and all five categories as Discovered but not crawled. The general explanatory text is not a newly demonstrated site-side fault.
+- **Yandex:** the owner completed Google authorization and account creation. The canonical WWW property is added. Its ownership proof is privately provisioned on the site, but **the Yandex Verify button has not been pressed**: that button explicitly accepts the Webmaster User Agreement and is left for the owner. Ownership, sitemap submission and index inclusion remain unconfirmed.
+- **Bounded change:** [PR #221](https://github.com/martaxi-boss/lowcost-europa/pull/221), deployed revision `ffbacda4c5c166e204a0bf2b8d621099480c8f7e`, adds only a narrowly matched public Yandex proof route in the existing Nginx vhost and updates the existing header-count test. Proof values, private configuration and legal identity are absent from Git history. No DNS/mail, TLS, Django application, catalogue or database change.
+- **Validation:** 778 tests PASS in [CI #42470658629](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42470658629); source audit [#42470658648](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42470658648) PASS. [Guarded VPS rollout #42471054301](https://github.com/martaxi-boss/VPS/actions/runs/42471054301) PASS: exact HTTPS proof content, six public pages, apex redirect, private panel/admin headers, unchanged private configuration, active app/IndexNow/TLS timers and clean tracked source.
+- **IndexNow current readback:** `INDEXNOW_DRY_RUN public=11 changed=0 removed=0`; accepted-state checksum unchanged. No endpoint submission was made. The previous HTTP 200 remains receipt evidence only.
+- **Recovery evidence:** the active vhost is a symlink into the tracked project configuration. The first preflight stopped safely on that path difference. A subsequent immediate fetch encountered a proven graceful-reload delay (404 followed later by 200); an ordering defect in the task's rollback script was corrected after [baseline recovery #42471001806](https://github.com/martaxi-boss/VPS/actions/runs/42471001806) PASS. The final rollout waits for that bounded reload transition. Private rollback checkpoints and the required public proof remain; temporary transport keys and plaintext transfer material were removed.
+- **Execution boundary:** this follow-up used the authenticated engine consoles and GitHub Actions→SSH. It is not a new Ferrari engine-job certification. Search-engine processing remains external; do not declare indexing complete or disable monitoring.
+
+
 
 
 ## Latest verified update — 8 November 2026, 00:46 Lisbon
