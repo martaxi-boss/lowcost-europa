@@ -1,5 +1,33 @@
 # International search discovery — 8 November 2026
 
+
+## Verified update — 8 November 2026, approximately 00:35–00:37 Lisbon
+
+This update supersedes the earlier unconfirmed Google state. Each of the following URLs was inspected individually in the authenticated Google Search Console. Every inspection displayed **O URL está no Google** and **A página está indexada**, with HTTPS confirmed. This is actual Google index-inclusion confirmation for these six URLs, not merely successful submission.
+
+| URL | Google confirmation |
+| --- | --- |
+| https://www.lowcost-europa.eu/ | Indexed |
+| https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/ | Indexed |
+| https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/ | Indexed |
+| https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/ | Indexed |
+| https://www.lowcost-europa.eu/products/hifu/ | Indexed |
+| https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/ | Indexed |
+
+These observations do not establish index inclusion for the five institutional sitemap pages or for any other engine.
+
+Bing's homepage inspection advanced from Not discovered to **Discovered but not crawled**, discovery dated 8 November 2026. Its Live URL test at 00:35 now says **URL can be indexed by Bing**. Its robots.txt Tester fetched the current rules and returned **Allowed** for the canonical sitemap. These are positive discovery/access results, not confirmation of Bing index inclusion. The live homepage test also reports a short title and three missing-alt notices; those quality/accessibility notices do not change the test's explicit indexability result and were not treated as crawl blockers.
+
+The Bing sitemap report still shows Error / zero discovered. Google's sitemap report still showed Couldn't fetch / zero discovered despite the six positive page inspections. The same valid sitemap was re-submitted to Google once in this recheck, and Google returned **Mapa do site enviado com êxito**. Successful processing of either sitemap report remains unconfirmed; the earlier per-page requests were not duplicated.
+
+[Independent server recheck #42430294495](https://github.com/martaxi-boss/VPS/actions/runs/42430294495) **PASS**: Google and Quad9 public DNS resolvers return the expected addresses; existing mail records were rechecked by the same workflow; site, timer, HTTPS and private operator permissions remain healthy. Server logs now show a **verified Bing crawler** receiving `/sitemap.xml` with HTTP 200 and robots.txt with HTTP 200. Verification used reverse DNS under `.search.msn.com` and forward resolution back to the source IP; IPs, keys and private log details are not published. This is evidence of an actual Bing request reaching the server, while its sitemap-report error remains unresolved.
+
+The IndexNow worker was run once more after the earlier verification interval. It again received **HTTP 202 for 11 URLs**, and accepted state remains pending. The proof file returns the correct contents with HTTP 200. No HTTP 200 IndexNow acceptance or per-participant index inclusion is claimed. Automatic hourly retries remain enabled.
+
+No application, DNS, mail, catalog, certificate or Nginx changes were needed during this recheck. The runtime revision remained `280fca9dd5ea1b99b734f33df78b8fdd985731e0` before this documentation update. The report is aligned back to the VPS with documentation-only changes; temporary task workflow removed afterwards.
+
+## Earlier initial-submission snapshot (00:22)
+
 ## Confirmed work
 
 The Google-verified domain was imported into Bing Webmaster Tools after the owner explicitly approved read-only Search Console access. The canonical sitemap is `https://www.lowcost-europa.eu/sitemap.xml`. Bing's URL Submission table confirms **six submitted URLs**: the homepage and all five current category pages, with quota reduced from 100 to 94. Submission is not index inclusion.

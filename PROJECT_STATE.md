@@ -1,5 +1,14 @@
 # Lowcost Europa — Project State
 
+## Search recheck — six Google pages confirmed indexed, 2026-11-08 00:35–00:37 Lisbon
+
+- **Google confirmed individually:** homepage and all five categories show “O URL está no Google” / “A página está indexada”, HTTPS confirmed. This supersedes the earlier pending state for those six pages only. Institutional pages and other engines remain unconfirmed.
+- **Bing:** homepage now Discovered but not crawled; Live URL says URL can be indexed by Bing; robots.txt Tester says sitemap Allowed. Sitemap report still Error / zero discovered. Verified Bing crawler access to the actual sitemap returned HTTP 200 (reverse DNS + forward match).
+- **IndexNow:** live recheck again HTTP 202 for eleven public URLs; key validation still pending. Timer and proof file healthy. No duplicate individual indexing requests.
+- **Google sitemap:** report still Couldn't fetch / zero discovered, re-submission accepted successfully. Per-page indexing confirmation remains valid independently of this report.
+- **Evidence/preservation:** [recheck #42430294495](https://github.com/martaxi-boss/VPS/actions/runs/42430294495) PASS; DNS/email, HTTPS, app, timer and private operator permissions preserved. No runtime code/configuration change in recheck. [Detailed current report](docs/operations/international-search-20261108.md).
+
+
 ## International search discovery — 2026-11-08
 
 - **Deployed:** PR #209, application revision `93c5dedcf0877eeff583b2863fe246d132c7225c`; 754 tests and security analysis PASS. Independent VPS checks #42428884310 and #42429109681 PASS. IndexNow timer active/enabled, private key proof HTTP 200, 11 public URLs received with HTTP 202 (key verification pending). Notifications are hourly and preserve pending state until HTTP 200; no index inclusion implied.
