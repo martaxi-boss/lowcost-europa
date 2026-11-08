@@ -1,0 +1,178 @@
+{
+  "time_utc": "2026-11-08T00:16:39.067169+00:00",
+  "sitemap": {
+    "status": 200,
+    "unique_urls": 11
+  },
+  "public": [
+    {
+      "url": "https://www.lowcost-europa.eu/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/como-funciona/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/como-funciona/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/afiliados/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/afiliados/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/privacidade/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/privacidade/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/termos/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/termos/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/contacto/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/contacto/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hifu/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/products/hifu/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+      "http": 200,
+      "canonical": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+      "robots": [
+        "index, follow"
+      ],
+      "noindex_header": false
+    }
+  ],
+  "private": [
+    {
+      "path": "/painel/",
+      "http": 302,
+      "robots": "noindex, nofollow",
+      "cache": "private, no-store"
+    },
+    {
+      "path": "/admin/",
+      "http": 302,
+      "robots": "noindex, nofollow",
+      "cache": "private, no-store"
+    },
+    {
+      "path": "/health/ready/",
+      "http": 200,
+      "robots": "noindex, nofollow",
+      "cache": "private, no-store"
+    }
+  ],
+  "redirects": [
+    {
+      "from": "http://lowcost-europa.eu/",
+      "http": 301,
+      "to": "https://www.lowcost-europa.eu/"
+    },
+    {
+      "from": "http://www.lowcost-europa.eu/",
+      "http": 301,
+      "to": "https://www.lowcost-europa.eu/"
+    },
+    {
+      "from": "https://lowcost-europa.eu/",
+      "http": 301,
+      "to": "https://www.lowcost-europa.eu/"
+    }
+  ],
+  "bots": [
+    {
+      "user_agent": "bingbot",
+      "http": 200,
+      "indexable": true,
+      "note": "synthetic user agent, not proof of an actual engine crawl"
+    },
+    {
+      "user_agent": "DuckDuckBot",
+      "http": 200,
+      "indexable": true,
+      "note": "synthetic user agent, not proof of an actual engine crawl"
+    },
+    {
+      "user_agent": "YandexBot",
+      "http": 200,
+      "indexable": true,
+      "note": "synthetic user agent, not proof of an actual engine crawl"
+    },
+    {
+      "user_agent": "SeznamBot",
+      "http": 200,
+      "indexable": true,
+      "note": "synthetic user agent, not proof of an actual engine crawl"
+    },
+    {
+      "user_agent": "Googlebot",
+      "http": 200,
+      "indexable": true,
+      "note": "synthetic user agent, not proof of an actual engine crawl"
+    }
+  ],
+  "robots_txt": "User-agent: *\nAllow: /\nDisallow: /painel/\nDisallow: /admin/\nDisallow: /ops/\nDisallow: /health/\nDisallow: /i18n/\nDisallow: /go/\nDisallow: /contactar/\nDisallow: /aliexpress/\nDisallow: /pesquisar/\nSitemap: https://www.lowcost-europa.eu/sitemap.xml\n"
+}
