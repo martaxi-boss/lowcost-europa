@@ -28,6 +28,7 @@ from apps.catalog.services.observation_display import (
 )
 from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
+    is_ship_from_verified,
     public_eligibility_q,
 )
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
@@ -120,6 +121,7 @@ def _prepare_offer(offer, family):
     offer.price_observation_old = bool(price and price.observed_at < cutoff)
     offer.logistics_observation_old = bool(logistics and logistics.observed_at < cutoff)
     offer.logistics_text = offer.observation_display.logistics_text
+    offer.owner_origin_verified = is_ship_from_verified(offer)
     offer.can_redirect = bool(family.status != ProductFamily.Status.RETIRED and offer.affiliate_url)
     offer.approved_candidate = (
         offer.approved_candidates_for_display[0] if offer.approved_candidates_for_display else None
