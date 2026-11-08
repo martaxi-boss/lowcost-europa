@@ -1,0 +1,96 @@
+name: Lowcost archive eight stale unmerged branches once
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lowcost-archive-stale-branches-once-20261108.yml'
+permissions:
+  contents: write
+  pull-requests: read
+concurrency:
+  group: lowcost-archive-stale-branches-20261108
+  cancel-in-progress: false
+jobs:
+  archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Require exactly the reviewed one-shot workflow change
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git diff --name-only HEAD^ HEAD)" == '.github/workflows/lowcost-archive-stale-branches-once-20261108.yml' ]]
+      - name: Archive unique heads as immutable tags before removing inactive refs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            if (owner !== 'martaxi-boss' || repo !== 'lowcost-europa')
+              throw new Error('Lowcost-only scope required');
+            const repoInfo = (await github.rest.repos.get({owner,repo})).data;
+            if (repoInfo.default_branch !== 'main')
+              throw new Error('Unexpected default branch');
+            const manifest = [
+              ['ad-render-ptpt-20261019', 'a9fa4758f1da9814e1ae612f14f907373659170c'],
+              ['builder/affiliate-promotion-message-classification-001', '17630c1403ebbb37fa618c2094c300791135fc9c'],
+              ['builder/phase5-full-regression-001', '3d90362a0adb00d2164019f7a584c707a66726e4'],
+              ['builder/pilot-aliexpress-redirect-safety-20261014', 'd5c1826874311b233ab8582b7f5221274f737273'],
+              ['builder/pilot-click-quality-ci-20261014', '6cef4f230a10baa1ac0ee1e2181d8a39722e563a'],
+              ['builder/storefront-image-trust-20261014', 'a9eed989905448af0c9c1f2bd79ce567d319c9c3'],
+              ['ops/lowcost-backups-jobs-canonical-20261104', '24f1a3f1b7504b85885b7145322bc8c99c069e20'],
+              ['ugc-skill-automation-20261019', '28ec4361e343e3f6a0ae75d0a5144ad13bc99a79'],
+            ];
+            const open = await github.paginate(
+              github.rest.pulls.list, {owner,repo,state:'open',per_page:100});
+            const reserved = new Set(open.filter(p=>p.head?.repo?.full_name===owner+'/'+repo)
+              .map(p=>p.head.ref));
+            let archived=0,removed=0,skipped=0;
+            for (const [branch,expected] of manifest) {
+              if (branch==='main' || branch.startsWith('archive/') || reserved.has(branch)) {
+                core.warning('Preserved protected or open branch '+branch);
+                skipped++;continue;
+              }
+              const br = await github.rest.repos.getBranch({owner,repo,branch});
+              const current=br.data.commit.sha;
+              if (br.data.protected || current!==expected) {
+                core.warning('Preserved changed/protected branch '+branch);
+                skipped++;continue;
+              }
+              const tag='archive/lowcost-20261108/'+branch.replaceAll('/','-');
+              let exists;
+              try {
+                exists=(await github.rest.git.getRef({owner,repo,ref:'tags/'+tag})).data.object.sha;
+              } catch(e) {
+                if(e.status!==404)throw e;
+                await github.rest.git.createRef({
+                  owner,repo,ref:'refs/tags/'+tag,sha:expected
+                });
+                exists=(await github.rest.git.getRef({owner,repo,ref:'tags/'+tag})).data.object.sha;
+              }
+              if (exists!==expected) {
+                core.warning('Archive tag collision; not deleting '+branch);
+                skipped++;continue;
+              }
+              archived++;
+              const result=await exec.getExecOutput('git',[
+                'push','--force-with-lease=refs/heads/'+branch+':'+expected,
+                'origin',':refs/heads/'+branch
+              ],{ignoreReturnCode:true,silent:true});
+              if(result.exitCode!==0) {
+                core.warning('Lease guarded delete failed; preserved '+branch);
+                skipped++;continue;
+              }
+              removed++;
+              core.info('LOWCOST_ARCHIVED_AND_REMOVED '+branch+' => '+tag);
+            }
+            core.info('LOWCOST_ARCHIVE_BRANCH_SUMMARY archived='+archived+
+              ' removed='+removed+' skipped='+skipped);
+            await core.summary.addHeading('Lowcost archived stale GitHub branches')
+              .addRaw('Archived tags: '+archived+'; deleted exact-leased refs: '+
+                removed+'; preserved/skipped: '+skipped)
+              .write();
