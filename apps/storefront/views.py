@@ -260,12 +260,30 @@ def home(request):
                 getattr(request, "LANGUAGE_CODE", "pt-pt"),
             ),
             {
-                "pt-pt": "Explore equipamentos de estética profissional, preços observados e informação de entrega sem promessas não verificadas.",
-                "es": "Explora equipos de estética profesional, precios observados e información de entrega sin promesas no verificadas.",
-                "en": "Explore professional beauty equipment, observed prices and available delivery information.",
-                "fr": "Découvrez des équipements d’esthétique professionnelle, des prix observés et les informations de livraison disponibles.",
-                "de": "Entdecken Sie professionelle Kosmetikgeräte, beobachtete Preise und verfügbare Lieferinformationen.",
-            }.get(getattr(request, "LANGUAGE_CODE", "pt-pt"), "Equipamentos de estética profissional com informação factual."),
+                "pt-pt": (
+                    "Explore equipamentos de estética profissional, preços observados "
+                    "e informação de entrega sem promessas não verificadas."
+                ),
+                "es": (
+                    "Explora equipos de estética profesional, precios observados "
+                    "e información de entrega sin promesas no verificadas."
+                ),
+                "en": (
+                    "Explore professional beauty equipment, observed prices "
+                    "and available delivery information."
+                ),
+                "fr": (
+                    "Découvrez des équipements d’esthétique professionnelle, "
+                    "des prix observés et les informations de livraison disponibles."
+                ),
+                "de": (
+                    "Entdecken Sie professionelle Kosmetikgeräte, beobachtete "
+                    "Preise und verfügbare Lieferinformationen."
+                ),
+            }.get(
+                getattr(request, "LANGUAGE_CODE", "pt-pt"),
+                "Equipamentos de estética profissional com informação factual.",
+            ),
             kind="home",
         ),
     }
@@ -454,7 +472,10 @@ def product_family_detail(request, slug):
         **_owner_family_context(request, family),
         **_seo_context(
             request,
-            f"{translate_ui(family.name, getattr(request, 'LANGUAGE_CODE', 'pt-pt'))} | Lowcost Europa",
+            (
+                f"{translate_ui(family.name, getattr(request, 'LANGUAGE_CODE', 'pt-pt'))} "
+                "| Lowcost Europa"
+            ),
             (
                 f"Explora opciones y datos observados de {translate_ui(family.name, 'es')}. "
                 "Precios y disponibilidad sujetos a confirmación del vendedor."
