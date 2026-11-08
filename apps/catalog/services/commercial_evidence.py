@@ -82,7 +82,8 @@ def owner_commercial_evidence_rows(*, as_of=None):
         offer_id=OuterRef("pk"), observed_at__lte=as_of
     ).order_by("-observed_at", "-pk")
     eur_price = newest.filter(price__gt=0, currency__iexact="EUR")
-    delivery = newest.filter(
+    # Do not display an estimate for Spain or an unknown destination as PT.
+    delivery = newest.filter(destination_country="PT").filter(
         Q(search_delivery_days__gt=0) | Q(delivery_days__gt=0)
     )
     offers = (
