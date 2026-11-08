@@ -1,8 +1,12 @@
 # Lowcost Europa — Project State
 
-## Bing homepage quality follow-up — 2026-11-08 (source, rollout pending)
+## Bing homepage quality and IndexNow acceptance — 2026-11-08 00:46 Lisbon
 
-- Bing live test allows indexing but identified a short homepage title and three empty category image alternatives. Source now uses a descriptive homepage title in the five existing languages, and meaningful localized category-image alt text. No URLs, robots, canonicals, DNS, email, private routes or catalog behavior changed. Existing CI/browser/security checks must pass before rollout. Search-engine sitemap processing and IndexNow key validation remain external pending states.
+- **Deployed PR #212:** `f1c1a3a8d3e6336721a201301cd43a7a8ac50cd1`. Homepage title is descriptive in all five existing languages; category image alternatives are meaningful/localized. [Rollout #42431236626](https://github.com/martaxi-boss/VPS/actions/runs/42431236626) PASS: 9/9 homepage images have alt text, canonical/index-follow/HTTPS and private login routes preserved; no configuration changes.
+- **Bing live confirmation at 00:46:** URL can be indexed by Bing; **No SEO/GEO issues found**, replacing the previous two notices. This is live eligibility, not Bing index inclusion; the homepage remains Discovered but not crawled in the index report.
+- **IndexNow resolved:** live submission returned **HTTP 200**, all eleven URLs received and key accepted. This supersedes the earlier HTTP 202/key-pending state. Index inclusion by individual participants is still unconfirmed.
+- **Validation:** CI #42431063213, security #42431063206 and four-viewport source browser QA #42431063222 PASS; nine focused presentation tests passed locally. The broader local language tests lacked PostgreSQL; CI provided the database-backed full validation.
+- **Remaining:** Google confirms the six inspected URLs indexed (details below); sitemap reports still show fetch errors despite real successful access. No repeat sitemap or individual indexing requests in this follow-up. [Current evidence](docs/operations/international-search-20261108.md).
 
 ## Search recheck — six Google pages confirmed indexed, 2026-11-08 00:35–00:37 Lisbon
 
