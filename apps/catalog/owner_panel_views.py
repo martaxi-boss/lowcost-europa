@@ -177,7 +177,8 @@ def owner_login(request):
         )
         else ""
     )
-    destination = safe_next or reverse("storefront:home")
+    # A direct Owner login should open the private dashboard, not the public shop.
+    destination = safe_next or reverse("owner-panel:dashboard")
     if request.user.is_authenticated and request.user.is_staff:
         return _private(redirect(destination))
     error = ""
