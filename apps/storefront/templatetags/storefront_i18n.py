@@ -3,8 +3,8 @@
 from django import template
 from django.utils.translation import get_language
 
-from apps.storefront.ui_translations import translate_ui
 from apps.storefront.seo_locales import family_page_url, home_page_url
+from apps.storefront.ui_translations import translate_ui
 
 register = template.Library()
 
