@@ -122,6 +122,8 @@ LANGUAGE_COOKIE_SECURE = not DEBUG
 
 # Opt in only after the local, attributed MMDB has been provisioned on the VPS.
 GEO_LANGUAGE_ENABLED = env_bool("DJANGO_GEO_LANGUAGE_ENABLED", False)
+# Release gate: enable only after explicit PT/ES crawl QA on the real host.
+LOCALE_SEO_ENABLED = env_bool("DJANGO_LOCALE_SEO_ENABLED", False)
 GEO_LANGUAGE_COUNTRY_DB = BASE_DIR / ".geoip" / "dbip-country-lite.mmdb"
 TIME_ZONE = "Europe/Lisbon"
 USE_I18N = True

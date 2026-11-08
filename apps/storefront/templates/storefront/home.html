@@ -32,7 +32,7 @@
       {% if families %}
         <div class="hero-showcase__grid">
           {% for family in families|slice:":3" %}
-            <a class="showcase-tile{% if forloop.first %} showcase-tile--primary{% endif %}" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Explorar {{ family|family_label }}">
+            <a class="showcase-tile{% if forloop.first %} showcase-tile--primary{% endif %}" href="{% family_seo_url family %}" aria-label="Explorar {{ family|family_label }}">
               <div class="showcase-tile__media">
                 {% if family.display_offer and family.display_offer.image_url %}
                   {% with image_url=family.display_offer.image_url %}
@@ -70,7 +70,7 @@
     {% if families %}
       <nav class="family-index family-index--compact" aria-label="{{ "Famílias de produtos"|ui_t }}">
         {% for family in families %}
-          <a href="{% url 'storefront:product-family-detail' family.slug %}"><span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span><span>{{ family|family_label }}</span><span aria-hidden="true">↗</span></a>
+          <a href="{% family_seo_url family %}"><span class="family-index__number">{{ forloop.counter|stringformat:"02d" }}</span><span>{{ family|family_label }}</span><span aria-hidden="true">↗</span></a>
         {% endfor %}
       </nav>
     {% endif %}

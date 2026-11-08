@@ -18,7 +18,8 @@ from django.core.management.base import BaseCommand, CommandError
 
 ENDPOINT = "https://api.indexnow.org/indexnow"
 PUBLIC_PATH = re.compile(
-    r"^/(?:|como-funciona/|afiliados/|privacidade/|termos/|contacto/|products/[a-z0-9-]+/)$"
+    r"^/(?:|como-funciona/|afiliados/|privacidade/|termos/|contacto/|"
+    r"products/[a-z0-9-]+/|(?:pt|es)/(?:|products/[a-z0-9-]+/))$"
 )
 CSRF_INPUT = re.compile(r'<input\b[^>]*\bname=[\"\']csrfmiddlewaretoken[\"\'][^>]*>', re.I)
 

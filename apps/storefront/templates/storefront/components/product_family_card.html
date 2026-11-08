@@ -1,6 +1,6 @@
 {% load storefront_i18n %}
 <article class="product-card{% if not family.display_offer %} product-card--empty{% endif %}">
-  <a class="product-card__media-link" href="{% url 'storefront:product-family-detail' family.slug %}" aria-label="Ver seleção de {{ family|family_label }}">
+  <a class="product-card__media-link" href="{% family_seo_url family %}" aria-label="Ver seleção de {{ family|family_label }}">
     {% if family.display_offer and family.display_offer.image_url %}
       {% with image_url=family.display_offer.image_url %}
         {% if image_url|slice:":8" == "https://" %}
@@ -15,7 +15,7 @@
   </a>
   <div class="product-card__body">
     <div class="card-topline"><span class="badge">{% if family.display_offer %}Seleção editorial{% else %}{{ family.public_status }}{% endif %}</span><span class="card-kicker">{{ "Especialidade"|ui_t }} {{ family.display_order|stringformat:"02d" }}</span></div>
-    <h3><a href="{% url 'storefront:product-family-detail' family.slug %}">{{ family|family_label }}</a></h3>
+    <h3><a href="{% family_seo_url family %}">{{ family|family_label }}</a></h3>
     {% if family.display_offer %}
       <p class="category-orientation">{{ "Consulte opções publicadas e compare preço e logística observados."|ui_t }}</p>
       <div class="family-card__facts">
@@ -25,6 +25,6 @@
     {% else %}
       <p class="category-orientation"><strong>{{ "Seleção em preparação."|ui_t }}</strong> {{ "Ainda estamos a validar opções para esta categoria."|ui_t }}</p>
     {% endif %}
-    <div class="card-actions"><a class="button button--secondary button--full" href="{% url 'storefront:product-family-detail' family.slug %}">{{ "Explorar equipamentos"|ui_t }} <span aria-hidden="true">→</span></a>{% if request.user.is_authenticated and request.user.is_staff %}<a class="owner-family-manage-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">{{ "Gerir"|ui_t }}</a>{% endif %}</div>
+    <div class="card-actions"><a class="button button--secondary button--full" href="{% family_seo_url family %}">{{ "Explorar equipamentos"|ui_t }} <span aria-hidden="true">→</span></a>{% if request.user.is_authenticated and request.user.is_staff %}<a class="owner-family-manage-link" href="{% family_seo_url family %}?gestao=montra#gestao-owner">{{ "Gerir"|ui_t }}</a>{% endif %}</div>
   </div>
 </article>
