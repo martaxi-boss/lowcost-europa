@@ -451,6 +451,9 @@ def dashboard(request):
                 "top_clicked_offers": top_clicked_offers,
                 "eligible_public_offers": eligible_public_offers,
                 "commercial_evidence_rows": owner_commercial_evidence_rows(as_of=now),
+                "commercial_evidence_es_rows": owner_commercial_evidence_rows(
+                    as_of=now, country="ES"
+                ),
                 "origin_without_individual_proof": origin_without_individual_proof,
                 "latest_availability_unconfirmed": latest_availability_unconfirmed,
                 "current_price_unconfirmed": current_price_unconfirmed,

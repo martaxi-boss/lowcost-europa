@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 
 from django.conf import settings
-from django.db.models import F, Max
+from django.db.models import F, Max, Q
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
@@ -172,7 +172,10 @@ def select_maintenance_batch(batch_size):
         return []
     active = (
         Offer.objects.filter(source=Offer.Source.ALIEXPRESS, is_active=True)
-        .annotate(last_check=Max("observations__observed_at"))
+        .annotate(last_check=Max(
+            "observations__observed_at",
+            filter=~Q(observations__destination_country="ES"),
+        ))
     )
     oldest_first = (F("last_check").asc(nulls_first=True), "pk")
     if batch_size <= 2:

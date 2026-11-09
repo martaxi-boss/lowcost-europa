@@ -25,7 +25,9 @@ class PublicOfferObservationData:
 
 def _latest_fact_id(condition, *, require_currency=False):
     """Select the latest observation for one fact and offer."""
-    candidates = OfferObservation.objects.filter(offer_id=OuterRef("offer_id")).filter(
+    candidates = OfferObservation.objects.filter(offer_id=OuterRef("offer_id")).exclude(
+        destination_country="ES"
+    ).filter(
         condition
     )
     if require_currency:
@@ -108,7 +110,9 @@ def _first_matching(
 def build_observation_display(
     observations: Iterable[OfferObservation], *, require_recent_price=None
 ) -> PublicOfferObservationData:
-    history = list(observations)
+    # Spanish observations are private market evidence, never a replacement for
+    # the existing Portuguese storefront's price/logistics or publication gate.
+    history = [item for item in observations if item.destination_country != "ES"]
     return PublicOfferObservationData(
         price_observation=_first_matching(
             history,

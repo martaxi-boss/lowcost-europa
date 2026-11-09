@@ -151,3 +151,17 @@ class OwnerCommercialEvidenceTests(TestCase):
         response = self.client.get(reverse("owner-panel:dashboard"))
         self.assertEqual(response.context["origin_without_individual_proof"], 1)
         self.assertContains(response, "País/armazém por confirmar")
+
+    def test_es_table_never_fills_missing_price_from_portugal(self):
+        rows = owner_commercial_evidence_rows(as_of=self.now, country="ES")
+        self.assertIsNone(rows[0].price)
+        self.assertIsNone(rows[0].delivery_at)
+        OfferObservation.objects.create(
+            offer=self.fresh, destination_country="ES", price=Decimal("90.00"),
+            currency="EUR", observed_at=self.now - timedelta(minutes=1),
+        )
+        pt = owner_commercial_evidence_rows(as_of=self.now)
+        es = owner_commercial_evidence_rows(as_of=self.now, country="ES")
+        self.assertEqual(pt[0].price, Decimal("125.00"))
+        self.assertEqual(es[0].price, Decimal("90.00"))
+        self.assertEqual(es[0].delivery, "Prazo não confirmado")
