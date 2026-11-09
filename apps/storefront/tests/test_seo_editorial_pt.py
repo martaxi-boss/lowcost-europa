@@ -6,7 +6,11 @@ facts must remain unchanged. SEO copy is not a source of live SKU evidence.
 from django.test import TestCase, override_settings
 
 from apps.catalog.models import ProductFamily
-from apps.storefront.seo_editorial import PT_CATEGORY_GUIDES, guide_for_category
+from apps.storefront.seo_editorial import (
+    ES_CATEGORY_GUIDES,
+    PT_CATEGORY_GUIDES,
+    guide_for_category,
+)
 
 BASE = "https://www.example.test"
 FAMILIES = {
@@ -60,14 +64,15 @@ class PortugueseSeoGuideTests(TestCase):
     def test_spanish_page_has_no_untranslated_portuguese_guide(self):
         page = self.get_page("/es/products/hifu/")
         self.assertEqual(page.status_code, 200)
-        self.assertIsNone(page.context["family_seo_guide"])
+        self.assertEqual(page.context["family_seo_guide"], ES_CATEGORY_GUIDES["hifu"])
+        self.assertContains(page, "Guía de compra para España")
         self.assertNotContains(page, "Guia de compra para Portugal")
         self.assertContains(page, 'hreflang="pt-PT"')
         self.assertContains(page, 'hreflang="es-ES"')
 
     def test_no_guessed_guide_for_unknown_family_or_language(self):
         self.assertIsNone(guide_for_category("categoria-inexistente", "pt-pt"))
-        self.assertIsNone(guide_for_category("hifu", "es"))
+        self.assertEqual(guide_for_category("hifu", "es-ES"), ES_CATEGORY_GUIDES["hifu"])
         self.assertIsNone(guide_for_category("hifu", "en"))
         self.assertEqual(guide_for_category("hifu", "pt-PT"), PT_CATEGORY_GUIDES["hifu"])
 
@@ -79,3 +84,26 @@ class PortugueseSeoGuideTests(TestCase):
         self.assertEqual(page.status_code, 200)
         self.assertEqual(page.context["canonical_url"], BASE + "/products/hifu/")
         self.assertIn("HIFU", page.context["page_title"])
+
+    def test_spanish_guides_are_distinct_and_keep_market_and_url_boundaries(self):
+        self.assertEqual(set(ES_CATEGORY_GUIDES), set(FAMILIES))
+        self.assertEqual(len({g["title"] for g in ES_CATEGORY_GUIDES.values()}), 5)
+        self.assertEqual(len({g["description"] for g in ES_CATEGORY_GUIDES.values()}), 5)
+        for slug, guide in ES_CATEGORY_GUIDES.items():
+            with self.subTest(slug=slug):
+                page = self.get_page(f"/es/products/{slug}/")
+                self.assertEqual(page.status_code, 200)
+                self.assertEqual(page.context["page_title"], guide["title"])
+                self.assertEqual(page.context["meta_description"], guide["description"])
+                self.assertEqual(page.context["canonical_url"], f"{BASE}/es/products/{slug}/")
+                self.assertContains(page, guide["heading"])
+                self.assertContains(page, "Guía de compra para España")
+                self.assertContains(page, "El precio, las existencias, la entrega")
+                self.assertNotContains(page, "Guia de compra para Portugal")
+                self.assertNotContains(page, "Antes de escolher uma oferta")
+                for check in guide["checks"]:
+                    self.assertContains(page, check)
+                self.assertContains(page, 'hreflang="pt-PT"')
+                self.assertContains(page, 'hreflang="es-ES"')
+                self.assertContains(page, 'href="/es/#familias"')
+                self.assertNotContains(page, 'itemtype="https://schema.org/Offer"')
