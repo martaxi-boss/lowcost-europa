@@ -18,11 +18,15 @@ const pages = [
   { name: 'home-es', url: '/es/' },
 ].concat(
   slugs.map((name) => ({ name, url: '/products/' + name + '/' })),
-  [
-    { name: 'hifu-pt', url: '/pt/products/hifu/' },
-    { name: 'hifu-es', url: '/es/products/hifu/' },
-    { name: 'search', url: '/pesquisar/?q=HIFU' },
-  ]);
+  ['pt', 'es'].flatMap((locale) =>
+    slugs.map((slug) => ({
+      name: locale + '-' + slug,
+      url: '/' + locale + '/products/' + slug + '/',
+    }))),
+  ['como-funciona', 'afiliados', 'privacidade', 'termos', 'contacto'].map(
+    (name) => ({ name, url: '/' + name + '/' })),
+  [{ name: 'search', url: '/pesquisar/?q=HIFU' }]
+);
 const devices = [{ name: 'desktop', width: 1440, height: 900, mobile: false },
   { name: 'mobile-emulated', width: 390, height: 844, mobile: true }];
 const report = { origin, when: new Date().toISOString(), checks: [], errors: [], warnings: [] };
@@ -54,6 +58,9 @@ async function guardChecks(context) {
   assert.ok(urls.includes(origin + '/es/products/hifu/'));
   assert.ok(urls.includes(origin + '/pt/products/hifu/'));
   assert.ok(urls.every(url => url.startsWith(origin + '/')));
+  const allIndexedPaths = pages.filter(p => p.name !== 'search').map(p => origin + p.url);
+  assert.deepEqual(new Set(urls), new Set(allIndexedPaths),
+    'every sitemap URL must have a matching browser QA route');
 
   const js = await context.request.get(
     origin + '/static/storefront/product-images.js', { timeout: 25000 });
@@ -124,16 +131,23 @@ async function publicPage(page, item, device) {
   if (!mustBePrivate) {
     assert.equal(await page.locator('link[rel="canonical"]').count(), 1);
     assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), origin + item.url);
-    const pathRoot = item.url.replace(/^\/(pt|es)(?=\/)/, '') || '/';
-    const alternates = {
-      'pt-PT': origin + '/pt' + pathRoot,
-      'es-ES': origin + '/es' + pathRoot,
-      'x-default': origin + pathRoot,
-    };
-    for (const [lang, target] of Object.entries(alternates)) {
-      const link = page.locator('link[rel="alternate"][hreflang="' + lang + '"]');
-      assert.equal(await link.count(), 1, 'unique hreflang ' + lang + ': ' + scope);
-      assert.equal(await link.getAttribute('href'), target);
+    const familyOrHome = item.url === '/' || /^\/(pt|es)\/$/.test(item.url)
+      || /^\/(?:(?:pt|es)\/)?products\/[a-z0-9-]+\/$/.test(item.url);
+    if (familyOrHome) {
+      const pathRoot = item.url.replace(/^\/(pt|es)(?=\/)/, '') || '/';
+      const alternates = {
+        'pt-PT': origin + '/pt' + pathRoot,
+        'es-ES': origin + '/es' + pathRoot,
+        'x-default': origin + pathRoot,
+      };
+      for (const [lang, target] of Object.entries(alternates)) {
+        const link = page.locator('link[rel="alternate"][hreflang="' + lang + '"]');
+        assert.equal(await link.count(), 1, 'unique hreflang ' + lang + ': ' + scope);
+        assert.equal(await link.getAttribute('href'), target);
+      }
+    } else {
+      assert.equal(await page.locator('link[rel="alternate"][hreflang]').count(), 0,
+        'institutional page must not invent localized equivalents');
     }
   }
   if (item.url.startsWith('/es/'))

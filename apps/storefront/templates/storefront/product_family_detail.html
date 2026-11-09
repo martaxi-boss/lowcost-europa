@@ -4,6 +4,11 @@
 <section class="detail-hero">
   <div class="container detail-hero__inner">
     <div>
+      <nav class="category-breadcrumb" aria-label="{% if request.LANGUAGE_CODE == 'es' %}Ruta de navegación{% else %}Percurso da página{% endif %}">
+        <a href="{% storefront_home_url %}">{% if request.LANGUAGE_CODE == 'es' %}Inicio{% else %}Início{% endif %}</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{{ family|family_label }}</span>
+      </nav>
       <a class="back-link" href="{% storefront_home_url %}#familias">{{ "← Voltar às categorias"|ui_t }}</a>
       <p class="eyebrow">{{ "Categoria"|ui_t }} {{ family.display_order|stringformat:"02d" }}</p>
       <div class="detail-title-row"><h1>{{ family|family_label }}</h1><span class="badge">{% if family.display_offer %}{{ "Seleção editorial"|ui_t }}{% else %}{{ family.public_status }}{% endif %}</span></div>
@@ -63,6 +68,22 @@
       {% endfor %}
     </ul>
     <p>{{ "Estes critérios ajudam a comparar ofertas, mas não certificam características de um modelo específico. Preço, stock, entrega e condições finais devem ser confirmados junto do parceiro."|ui_t }}</p>
+  </div>
+</section>
+{% endif %}
+
+{% if related_families %}
+<section class="section section--surface" aria-labelledby="outras-especialidades-titulo">
+  <div class="container">
+    <div class="section-heading">
+      <h2 id="outras-especialidades-titulo">{% if request.LANGUAGE_CODE == "es" %}Otras especialidades para comparar{% else %}Outras especialidades para comparar{% endif %}</h2>
+      <p class="section-intro">{% if request.LANGUAGE_CODE == "es" %}Explora otras tecnologías antes de elegir el equipo. Cada categoría tiene criterios propios.{% else %}Explore outras tecnologias antes de escolher o equipamento. Cada categoria tem critérios próprios.{% endif %}</p>
+    </div>
+    <nav class="family-index related-families-nav" aria-label="{% if request.LANGUAGE_CODE == 'es' %}Otras categorías profesionales{% else %}Outras categorias profissionais{% endif %}">
+      {% for related in related_families %}
+      <a href="{% family_seo_url related %}"><span>{{ related|family_label }}</span><span aria-hidden="true">→</span></a>
+      {% endfor %}
+    </nav>
   </div>
 </section>
 {% endif %}
