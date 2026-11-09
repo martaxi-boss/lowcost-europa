@@ -31,7 +31,7 @@ termos de pesquisa ou indexação. A interface distingue explicitamente os dados
 - O agregador de biblioteca padrão
   `apps/catalog/services/search_referral_metrics.py` lê o log exclusivo
   e respetivas cópias rotativas, aplica filtros de segurança e gera apenas
-  `private/metrics/search-referrers.json` com permissão 0600, dentro da
+  `.local-metrics/search-referrers.json` com permissão 0600, dentro da
   pasta do projeto.
 - A vista existente `/painel/` lê o agregado validado, desde que o ficheiro
   exista, esteja recente e pertença ao domínio correto; caso contrário mostra
