@@ -5,6 +5,7 @@ from django.utils import timezone
 from apps.catalog.models import OfferCandidate, ProductFamily
 from apps.catalog.services.deep_discovery import DeepDiscoveryResult, discover_family_deep
 from apps.catalog.services.family_profiles import get_family_profile
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
 from apps.integrations.aliexpress.client import AliExpressClient
 from apps.integrations.aliexpress.exceptions import (
     AliExpressAuthenticationError,
@@ -112,6 +113,17 @@ def run_weekly_discovery(*, client=None):
     results = []
 
     for pending_before, _order, family in families:
+        if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+            # Owner-curated Cavitation is explicitly excluded from discovery.
+            # Keep the legacy queue only as historical data, never replenish it.
+            results.append(
+                WeeklyFamilyResult(
+                    family_slug=family.slug,
+                    pending_before=pending_before,
+                    pending_after=pending_before,
+                )
+            )
+            continue
         if pending_before >= PENDING_CAP_PER_FAMILY:
             results.append(
                 WeeklyFamilyResult(
