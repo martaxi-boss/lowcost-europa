@@ -2,6 +2,7 @@
 
 import json
 from datetime import timedelta
+from io import StringIO
 from unittest.mock import patch
 from urllib.error import HTTPError
 
@@ -12,6 +13,7 @@ from django.utils import timezone
 from apps.catalog.models import ExternalMetricsSnapshot
 from apps.catalog.services.windsor_search_console_reporting import (
     EXPECTED_PROPERTY,
+    SearchConsoleAwaitingData,
     SearchConsoleNotConfigured,
     SearchConsoleReportError,
     collect_search_console_report,
@@ -123,6 +125,21 @@ class SearchConsoleReportTests(SimpleTestCase):
 
 
 class SearchConsoleSnapshotCommandTests(TestCase):
+    def test_awaiting_first_google_data_preserves_last_good_report(self):
+        now = timezone.now()
+        ExternalMetricsSnapshot.objects.create(
+            source="GOOGLE_SEARCH_CONSOLE", period_start=now - timedelta(days=30),
+            period_end=now, payload={"property": EXPECTED_PROPERTY, "clicks": 4},
+        )
+        output = StringIO()
+        with patch(
+            "apps.catalog.management.commands.sync_google_search_console.collect_search_console_report",
+            side_effect=SearchConsoleAwaitingData("awaiting_first_data"),
+        ):
+            call_command("sync_google_search_console", stdout=output)
+        self.assertIn("AWAITING_DATA", output.getvalue())
+        self.assertEqual(ExternalMetricsSnapshot.objects.get().payload["clicks"], 4)
+
     def test_real_response_is_saved_as_private_snapshot(self):
         now = timezone.now()
         sample = {

@@ -13,7 +13,7 @@ class EditorialStorefrontTests(SimpleTestCase):
             self.template("components/product_family_card.html"),
             self.template("product_family_detail.html"),
         ):
-            self.assertIn("{% if family.display_offer %}Seleção editorial", template)
+            self.assertIn('{% if family.display_offer %}{{ "Seleção editorial"|ui_t }}', template)
             self.assertIn("{% else %}{{ family.public_status }}{% endif %}", template)
 
     def test_offer_information_is_clear_and_factual(self):
@@ -31,7 +31,12 @@ class EditorialStorefrontTests(SimpleTestCase):
 
     def test_missing_photo_does_not_claim_published_family_is_in_preparation(self):
         card = self.template("components/product_family_card.html")
-        self.assertEqual(card.count("Imagem indisponível{% else %}Seleção em preparação"), 2)
+        self.assertEqual(
+            card.count(
+                '{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}'
+            ),
+            2,
+        )
 
     def test_mobile_categories_have_real_scrollable_region(self):
         home = self.template("home.html")

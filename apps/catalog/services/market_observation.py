@@ -11,14 +11,15 @@ from apps.catalog.services.offer_maintenance import (
 )
 from apps.catalog.services.public_eligibility import public_eligibility_q
 from apps.integrations.aliexpress.client import AliExpressClient
-from apps.integrations.aliexpress.exceptions import AliExpressError
+from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressResponseError
 
 
 def observe_market_offers(*, country, limit=5, persist=False, client=None):
     if country not in {"PT", "ES"} or not 1 <= limit <= 5:
         raise ValueError("Market must be PT/ES and limit must be between 1 and 5")
     result = {"country": country, "selected": 0, "attempts": 0, "persisted": 0,
-              "eur_prices": 0, "listing_signals": 0, "numeric_delivery": 0}
+              "eur_prices": 0, "listing_signals": 0, "numeric_delivery": 0,
+              "response_unconfirmed": 0}
     with maintenance_run_lock():
         offers = list(
             Offer.objects.filter(
@@ -36,10 +37,23 @@ def observe_market_offers(*, country, limit=5, persist=False, client=None):
         for offer in offers:
             result["attempts"] += 1
             # The existing client enforces the shared cadence, retries and
-            # breaker. Any API/rate-limit/runtime failure stops this batch.
-            detail = client.get_product_detail(
-                offer.external_product_id, country=country, currency="EUR"
-            )
+            # breaker. Authentication/API/rate/runtime failures stop the batch.
+            try:
+                detail = client.get_product_detail(
+                    offer.external_product_id, country=country, currency="EUR"
+                )
+            except AliExpressResponseError:
+                # No usable detail is not proof of stock, withdrawal or price.
+                # Preserve the actual unsuccessful check so one unsupported
+                # listing does not starve all other offers in this market.
+                OfferObservation.objects.create(
+                    offer=offer, destination_country=country,
+                    observed_at=timezone.now(),
+                    availability=OfferObservation.Availability.UNKNOWN,
+                )
+                result["persisted"] += 1
+                result["response_unconfirmed"] += 1
+                continue
             if (detail.product_id != offer.external_product_id
                     or detail.destination_country != country
                     or not (detail.title or detail.product_url)):

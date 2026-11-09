@@ -23,3 +23,9 @@ Google sitemap UI still reports unable to fetch, 0 discovered. Bing sitemap deta
 Local targeted SQLite: 13 tests passed (market isolation, no publication/link mutations, dry-run, mismatched market, rate-limit abort, PT rotation and private evidence). Ruff all-source passed. PostgreSQL full CI, browser QA, guarded backup/deploy and independent production readback are required before claiming deployment. See PR checks and issue #206 for subsequent evidence.
 
 Website edits and GitHub administration are ChatGPT Work/GitHub operations; they are not a new Ferrari executor certification. Existing Ferrari/SSH architecture is unchanged.
+
+## Live response follow-up
+
+The first bounded ES collection stopped at an official detail response without a usable product identifier (VPS run 42539031847); no stock, price or withdrawal was inferred. An unusable product response is now persisted as a timestamped UNKNOWN check with no price/delivery, allowing the other offers in the same maximum-five batch to be checked and avoiding repeated selection starvation. Authentication, API, rate-limit and runtime errors still abort; mismatched identity/destination still aborts without fabricated details. One regression tests an unsupported listing followed by a valid listing. Spanish fixed price/editorial/comparison labels and numeric logistics phrases were corrected without translating seller titles or changing factual values.
+
+The configured VPS readback (42539349046) confirmed the exact failure was an empty summary, not missing property or credentials. The Google sync now reports AWAITING_DATA without writing fake zero metrics or replacing a last-known-good snapshot; real authentication/provider errors still fail. All seven existing app/maintenance/report/offsite timers were active. An existing raw-template assertion was adapted for the translated editorial badge.
