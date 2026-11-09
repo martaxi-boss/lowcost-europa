@@ -52,6 +52,7 @@ class ProductFamily(models.Model):
 class Offer(models.Model):
     class Source(models.TextChoices):
         ALIEXPRESS = "ALIEXPRESS", "AliExpress"
+        ALIEXPRESS_OWNER = "ALIEXPRESS_OWNER", "AliExpress"
 
     class EquipmentType(models.TextChoices):
         UNKNOWN = "UNKNOWN", "Unknown"
@@ -107,7 +108,7 @@ class Offer(models.Model):
                 name="catalog_offer_external_id_not_blank",
             ),
             models.CheckConstraint(
-                condition=Q(source__in=["ALIEXPRESS"]),
+                condition=Q(source__in=["ALIEXPRESS", "ALIEXPRESS_OWNER"]),
                 name="catalog_offer_source_valid",
             ),
             models.CheckConstraint(
