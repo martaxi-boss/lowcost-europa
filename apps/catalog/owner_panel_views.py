@@ -409,17 +409,6 @@ def dashboard(request):
         and affiliate_report.checked_at <= now
         and now - affiliate_report.checked_at <= timedelta(hours=12)
     )
-    meta_report = ExternalMetricsSnapshot.objects.filter(source="META").first()
-    meta_report_payload = (
-        meta_report.payload
-        if meta_report and isinstance(meta_report.payload, dict)
-        else None
-    )
-    meta_report_fresh = bool(
-        meta_report_payload
-        and meta_report.checked_at <= now
-        and now - meta_report.checked_at <= timedelta(hours=12)
-    )
     # Search Console data is a separate, verified organic Google source.
     # GET never calls Google/Windsor and does not track new visitors.
     google_search_report = ExternalMetricsSnapshot.objects.filter(
@@ -514,9 +503,6 @@ def dashboard(request):
                 "affiliate_report": affiliate_report,
                 "affiliate_report_payload": affiliate_report_payload,
                 "affiliate_report_fresh": affiliate_report_fresh,
-                "meta_report": meta_report,
-                "meta_report_payload": meta_report_payload,
-                "meta_report_fresh": meta_report_fresh,
                 "google_search_report": google_search_report,
                 "google_search_configured": google_search_configured,
                 "engine_comparison_rows": engine_comparison_rows,

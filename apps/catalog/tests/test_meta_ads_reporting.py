@@ -100,76 +100,50 @@ class MetaAdsReportTests(TestCase):
 
 
 class MetaCommandTests(TestCase):
-    def test_meta_snapshot_written_idempotently_only_when_verified(self):
-        result = {"spend": "15.00", "clicks": 3}
-        with (
-            patch.dict(
-                os.environ, {"META_ACCESS_TOKEN": "fake-test-direct", "WINDSOR_API_KEY": ""}
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_meta_ads.collect_meta_ads_report",
-                return_value=(result, NOW - timedelta(days=30), NOW),
-            ),
-        ):
-            call_command("sync_meta_ads", stdout=StringIO())
-            call_command("sync_meta_ads", stdout=StringIO())
-        saved = ExternalMetricsSnapshot.objects.get(source="META")
-        self.assertEqual(saved.payload["spend"], "15.00")
-        self.assertEqual(ExternalMetricsSnapshot.objects.count(), 1)
-
-    def test_failed_meta_sync_does_not_overwrite_previous_data(self):
-        ExternalMetricsSnapshot.objects.create(
-            source="META",
-            period_start=NOW - timedelta(days=30),
-            period_end=NOW,
-            checked_at=NOW,
-            payload={"spend": "19.00"},
-        )
-        with (
-            patch.dict(
-                os.environ, {"META_ACCESS_TOKEN": "fake-test-direct", "WINDSOR_API_KEY": ""}
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_meta_ads.collect_meta_ads_report",
-                side_effect=MetaAdsReportError("token expired"),
-            ),
-        ):
-            with self.assertRaises(CommandError):
-                call_command("sync_meta_ads", stdout=StringIO())
-        self.assertEqual(
-            ExternalMetricsSnapshot.objects.get(source="META").payload["spend"], "19.00"
-        )
-
-    def test_combined_sync_skips_meta_without_vps_credential(self):
-        with (
-            patch.dict(
-                os.environ,
-                {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""},
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_external_metrics.call_command"
-            ) as child_command,
-        ):
-            call_command("sync_external_metrics", "--dry-run", stdout=StringIO())
-        self.assertEqual(child_command.call_count, 1)
-        self.assertEqual(child_command.call_args.args[0], "sync_affiliate_orders")
-
-    def test_partial_meta_configuration_is_rejected(self):
+    def test_direct_meta_sync_is_disabled_even_with_historical_credentials(self):
         with (
             patch.dict(
                 os.environ,
                 {
-                    "META_ACCESS_TOKEN": "test-only",
-                    "META_AD_ACCOUNT_ID": "",
-                    "WINDSOR_API_KEY": "",
-                }
+                    "META_ACCESS_TOKEN": "test-token",
+                    "META_AD_ACCOUNT_ID": ACCOUNT,
+                    "WINDSOR_API_KEY": "test-windsor-key",
+                },
             ),
-            patch("apps.catalog.management.commands.sync_external_metrics.call_command"),
+            patch("apps.catalog.services.meta_ads_reporting.collect_meta_ads_report") as graph,
+            patch(
+                "apps.catalog.services.windsor_meta_ads_reporting."
+                "collect_windsor_meta_ads_report"
+            ) as windsor,
         ):
-            with self.assertRaises(CommandError):
-                call_command("sync_external_metrics", stdout=StringIO())
+            with self.assertRaisesRegex(CommandError, "META_REPORT=DISABLED_BY_OWNER"):
+                call_command("sync_meta_ads", stdout=StringIO())
+        graph.assert_not_called()
+        windsor.assert_not_called()
+        self.assertFalse(ExternalMetricsSnapshot.objects.filter(source="META").exists())
 
-    def test_ali_failure_cannot_block_meta_refresh(self):
+    def test_combined_sync_never_calls_meta_even_if_old_credentials_exist(self):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "META_ACCESS_TOKEN": "test-token",
+                    "META_AD_ACCOUNT_ID": ACCOUNT,
+                    "WINDSOR_API_KEY": "test-windsor-key",
+                    "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+                },
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_external_metrics.call_command"
+            ) as provider,
+        ):
+            call_command("sync_external_metrics", "--dry-run", stdout=StringIO())
+        self.assertEqual(
+            [call.args[0] for call in provider.call_args_list],
+            ["sync_affiliate_orders", "sync_google_search_console"],
+        )
+
+    def test_ali_failure_does_not_trigger_meta_and_google_can_still_run(self):
         executed = []
 
         def provider(name, *args):
@@ -180,144 +154,11 @@ class MetaCommandTests(TestCase):
         with (
             patch.dict(
                 os.environ,
-                {"META_ACCESS_TOKEN": "test-only", "META_AD_ACCOUNT_ID": ACCOUNT},
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_external_metrics.call_command",
-                side_effect=provider,
-            ),
-        ):
-            with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=ALIEXPRESS"):
-                call_command("sync_external_metrics", stderr=StringIO())
-
-        self.assertEqual(executed, ["sync_affiliate_orders", "sync_meta_ads"])
-
-    def test_meta_failure_cannot_block_ali_refresh(self):
-        executed = []
-
-        def provider(name, *args):
-            executed.append(name)
-            if name == "sync_meta_ads":
-                raise CommandError("test-only expired token")
-
-        with (
-            patch.dict(
-                os.environ,
-                {"META_ACCESS_TOKEN": "test-only", "META_AD_ACCOUNT_ID": ACCOUNT},
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_external_metrics.call_command",
-                side_effect=provider,
-            ),
-        ):
-            with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=META"):
-                call_command("sync_external_metrics", stderr=StringIO())
-
-        self.assertEqual(executed, ["sync_affiliate_orders", "sync_meta_ads"])
-
-    def test_no_meta_credentials_cannot_block_failed_ali_diagnostic(self):
-        executed = []
-
-        def provider(name, *args):
-            executed.append(name)
-            raise CommandError("test-only source outage")
-
-        with (
-            patch.dict(
-                os.environ,
-                {"META_ACCESS_TOKEN": "", "META_AD_ACCOUNT_ID": "", "WINDSOR_API_KEY": ""},
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_external_metrics.call_command",
-                side_effect=provider,
-            ),
-        ):
-            output = StringIO()
-            with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=ALIEXPRESS"):
-                call_command(
-                    "sync_external_metrics",
-                    "--dry-run",
-                    stdout=output,
-                    stderr=StringIO(),
-                )
-
-        self.assertEqual(executed, ["sync_affiliate_orders"])
-        self.assertIn("AWAITING_SERVER_AUTHORIZATION", output.getvalue())
-
-    def test_windsor_key_runs_meta_step_with_no_graph_token(self):
-        with (
-            patch.dict(
-                os.environ,
                 {
-                    "META_ACCESS_TOKEN": "",
-                    "WINDSOR_API_KEY": "fake-test-only",
+                    "META_ACCESS_TOKEN": "test-token",
                     "META_AD_ACCOUNT_ID": ACCOUNT,
-                },
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_external_metrics.call_command"
-            ) as child_command,
-        ):
-            call_command("sync_external_metrics", "--dry-run", stdout=StringIO())
-        self.assertEqual(child_command.call_count, 2)
-        self.assertEqual(child_command.call_args_list[0].args[0], "sync_affiliate_orders")
-        self.assertEqual(child_command.call_args_list[1].args[0], "sync_meta_ads")
-
-    def test_sync_meta_uses_windsor_when_no_graph_token(self):
-        summary = {"source": "META", "provider": "WINDSOR", "spend": "0.00"}
-        with (
-            patch.dict(
-                os.environ, {"META_ACCESS_TOKEN": "", "WINDSOR_API_KEY": "fake-test-only"}
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_meta_ads.collect_windsor_meta_ads_report",
-                return_value=(summary, NOW - timedelta(days=30), NOW),
-            ) as windsor,
-            patch(
-                "apps.catalog.management.commands.sync_meta_ads.collect_meta_ads_report"
-            ) as graph,
-        ):
-            call_command("sync_meta_ads", stdout=StringIO())
-        windsor.assert_called_once_with()
-        graph.assert_not_called()
-        self.assertEqual(
-            ExternalMetricsSnapshot.objects.get(source="META").payload["provider"], "WINDSOR"
-        )
-
-    def test_direct_meta_token_is_preferred_over_windsor(self):
-        summary = {"source": "META", "spend": "1.00"}
-        with (
-            patch.dict(
-                os.environ,
-                {"META_ACCESS_TOKEN": "fake-direct-token", "WINDSOR_API_KEY": "fake-windsor"},
-            ),
-            patch(
-                "apps.catalog.management.commands.sync_meta_ads.collect_meta_ads_report",
-                return_value=(summary, NOW - timedelta(days=30), NOW),
-            ) as graph,
-            patch(
-                "apps.catalog.management.commands.sync_meta_ads.collect_windsor_meta_ads_report"
-            ) as windsor,
-        ):
-            call_command("sync_meta_ads", "--dry-run", stdout=StringIO())
-        graph.assert_called_once_with()
-        windsor.assert_not_called()
-
-    def test_windsor_meta_can_sync_even_when_aliexpress_is_unavailable(self):
-        executed = []
-
-        def provider(name, *args):
-            executed.append(name)
-            if name == "sync_affiliate_orders":
-                raise CommandError("test-only AliExpress outage")
-
-        with (
-            patch.dict(
-                os.environ,
-                {
-                    "META_ACCESS_TOKEN": "",
-                    "WINDSOR_API_KEY": "fake-test-only",
-                    "META_AD_ACCOUNT_ID": ACCOUNT,
+                    "WINDSOR_API_KEY": "test-windsor-key",
+                    "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
                 },
             ),
             patch(
@@ -326,9 +167,34 @@ class MetaCommandTests(TestCase):
             ),
         ):
             with self.assertRaisesRegex(CommandError, "EXTERNAL_METRICS_FAILED=ALIEXPRESS"):
-                call_command(
-                    "sync_external_metrics",
-                    stdout=StringIO(),
-                    stderr=StringIO(),
-                )
-        self.assertEqual(executed, ["sync_affiliate_orders", "sync_meta_ads"])
+                call_command("sync_external_metrics", stderr=StringIO())
+        self.assertEqual(executed, ["sync_affiliate_orders", "sync_google_search_console"])
+
+    def test_google_failure_is_reported_without_meta_interference(self):
+        executed = []
+
+        def provider(name, *args):
+            executed.append(name)
+            if name == "sync_google_search_console":
+                raise CommandError("test-only Google unavailable")
+
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "META_ACCESS_TOKEN": "test-token",
+                    "META_AD_ACCOUNT_ID": ACCOUNT,
+                    "WINDSOR_API_KEY": "test-windsor-key",
+                    "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+                },
+            ),
+            patch(
+                "apps.catalog.management.commands.sync_external_metrics.call_command",
+                side_effect=provider,
+            ),
+        ):
+            with self.assertRaisesRegex(
+                CommandError, "EXTERNAL_METRICS_FAILED=GOOGLE_SEARCH"
+            ):
+                call_command("sync_external_metrics", stderr=StringIO())
+        self.assertEqual(executed, ["sync_affiliate_orders", "sync_google_search_console"])

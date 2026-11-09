@@ -230,7 +230,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             response = self.client.get(self.url)
 
         self.assertNotContains(response, "<code>lowcost_europa</code>", html=False)
-        self.assertContains(response, "Autorização da VPS necessária")
+        self.assertNotContains(response, "Autorização da VPS necessária")
         self.assertNotContains(response, "googletagmanager.com")
         self.assertNotContains(response, "fbq(")
         self.assertNotContains(response, "gtag(")
@@ -243,7 +243,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "Cliques para parceiros")
         self.assertContains(response, "Evolução — 14 dias")
         self.assertContains(response, "Motores de pesquisa — desempenho")
-        self.assertContains(response, "Meta Ads")
+        self.assertNotContains(response, "Meta Ads")
         self.assertContains(response, "Google Search Console")
         self.assertContains(response, "VER LOJA")
         for forbidden in (
@@ -268,6 +268,31 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(store, "Aprovados")
         self.assertContains(store, "Retirados")
         self.assertContains(store, "Revalidação")
+
+    def test_old_meta_snapshot_never_renders_or_leaks_into_summary(self):
+        now = timezone.now()
+        ExternalMetricsSnapshot.objects.create(
+            source="META",
+            period_start=now - timedelta(days=30),
+            period_end=now,
+            checked_at=now,
+            payload={
+                "account_name": "UNAUTHORIZED_OLD_ADVERTISER",
+                "spend": "25.22",
+                "clicks": 382,
+            },
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Meta Ads")
+        self.assertNotContains(response, "UNAUTHORIZED_OLD_ADVERTISER")
+        self.assertNotContains(response, "25.22")
+        self.assertNotContains(response, "382")
+        self.assertNotIn("meta_report_payload", response.context)
+        self.assertContains(response, "Google Search Console")
+        self.assertContains(response, "AliExpress")
+        self.assertContains(response, "Motores de pesquisa")
+        self.assertTrue(ExternalMetricsSnapshot.objects.filter(source="META").exists())
 
     def test_unauthorised_users_cannot_open_metrics(self):
         self.client.logout()
@@ -321,7 +346,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "Consulta automática ativa")
         self.assertContains(response, "4.50 USD")
         self.assertContains(response, "lowcost_europa")
-        self.assertContains(response, "Autorização da VPS necessária")
+        self.assertNotContains(response, "Autorização da VPS necessária")
         self.assertEqual(response["Cache-Control"], "private, no-store")
 
     def test_stale_report_is_explicit_not_live(self):

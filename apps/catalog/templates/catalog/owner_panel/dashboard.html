@@ -47,7 +47,7 @@
 </nav>
 <main class="owner-wrap" id="resumo-metricas">
   <h1>Resumo de métricas</h1>
-  <p class="analytics-intro">Cliques registados, desempenho dos motores de pesquisa, publicidade Meta e resultados dos parceiros. Dados reais e fontes identificadas, sem misturar visitas, cliques e vendas.</p>
+  <p class="analytics-intro">Cliques registados, desempenho dos motores de pesquisa, resultados das pesquisas e dos parceiros. Dados reais e fontes identificadas, sem misturar visitas, cliques e vendas.</p>
 
   <section class="card" aria-label="Atividade de encaminhamentos">
     <h2 class="analytics-section-title">Cliques para parceiros</h2>
@@ -101,35 +101,13 @@
   </section>
 
   <section class="card" aria-label="Integrações de tráfego, publicidade e vendas">
-    <h2 class="analytics-section-title">Meta, Google e comissões</h2>
-    <p class="analytics-section-subtitle">Resultados de publicidade, pesquisa e parceiros apresentados por origem. Onde não houver dados confirmados, a indicação é «indisponível» ou «a aguardar».</p>
+    <h2 class="analytics-section-title">Google e comissões</h2>
+    <p class="analytics-section-subtitle">Resultados de pesquisa e parceiros apresentados por origem. Onde não houver dados confirmados, a indicação é «indisponível» ou «a aguardar».</p>
     <div class="source-grid">
       <article class="source-card">
         <h3>Visitas e interações</h3>
         <span class="source-status">A ativar no lançamento</span>
         <p>Google Analytics 4: páginas visitadas e interações após o domínio definitivo e as verificações de privacidade.</p>
-      </article>
-      <article class="source-card">
-        <h3>Meta Ads</h3>
-        {% if meta_report_payload %}
-          {% if meta_report_fresh %}
-          <span class="source-status active">Métricas oficiais sincronizadas</span>
-          {% else %}
-          <span class="source-status">Dados Meta desatualizados</span>
-          {% endif %}
-          <p>Conta publicitária: <strong>{{ meta_report_payload.account_name }}</strong>. Última leitura: {{ meta_report.checked_at|date:"d/m/Y H:i" }} (Portugal).</p>
-          <div class="counts">
-            <div class="count"><strong>Gasto (30 dias)</strong><br>{{ meta_report_payload.spend }} {{ meta_report_payload.currency }}</div>
-            <div class="count"><strong>Cliques anúncios</strong><br>{{ meta_report_payload.clicks }}</div>
-            <div class="count"><strong>Impressões</strong><br>{{ meta_report_payload.impressions }}</div>
-            <div class="count"><strong>Alcance</strong><br>{{ meta_report_payload.reach }}</div>
-            {% if meta_report_payload.link_clicks is not None %}<div class="count"><strong>Cliques em links</strong><br>{{ meta_report_payload.link_clicks }}</div>{% endif %}
-          </div>
-          <p>Cliques Meta não equivalem a visitas, compras ou comissões.</p>
-        {% else %}
-          <span class="source-status">Autorização da VPS necessária</span>
-          <p>As métricas são lidas da conta publicitária responsável pelos anúncios, que pode ter nome diferente da página Facebook Low Cost Europa. A ligação exige acesso de leitura validado na VPS.</p>
-        {% endif %}
       </article>
       <article class="source-card">
         <h3>AliExpress — encomendas e comissões</h3>
@@ -201,7 +179,7 @@
         <p><a class="analytics-link" href="https://search.google.com/search-console/performance/search-analytics?resource_id=sc-domain%3Alowcost-europa.eu" target="_blank" rel="noopener noreferrer">Abrir desempenho no Google Search Console</a></p>
       </article>
     </div>
-    <p class="analytics-note">Fontes sem autorização e dados confirmados permanecem indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Cliques de pesquisa Google, cliques de anúncios Meta, saídas para ofertas e encomendas AliExpress são métricas distintas, sem atribuição automática entre si.</p>
+    <p class="analytics-note">Fontes sem autorização e dados confirmados permanecem indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Cliques de pesquisa Google, saídas para ofertas e encomendas AliExpress são métricas distintas, sem atribuição automática entre si.</p>
   </section>
 
 </main>

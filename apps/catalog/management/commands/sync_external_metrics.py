@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    help = "Refresh authorized AliExpress, Meta Ads and Google Search Console metrics."
+    help = "Refresh authorized AliExpress and Google Search Console metrics."
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true")
@@ -21,23 +21,9 @@ class Command(BaseCommand):
             failures.append("ALIEXPRESS")
             self.stderr.write("ALIEXPRESS_REPORT=UNAVAILABLE")
 
-        has_graph_token = bool(os.environ.get("META_ACCESS_TOKEN"))
+        # Meta advertising was disconnected by the owner. Never sync it here.
         has_windsor_key = bool(os.environ.get("WINDSOR_API_KEY"))
-        has_account = bool(os.environ.get("META_AD_ACCOUNT_ID"))
-        if has_account != (has_graph_token or has_windsor_key):
-            failures.append("META_CONFIG")
-            self.stderr.write("META_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
-        elif not has_account:
-            self.stdout.write("META_REPORT=AWAITING_SERVER_AUTHORIZATION")
-        else:
-            try:
-                call_command("sync_meta_ads", *flags)
-            except CommandError:
-                failures.append("META")
-                self.stderr.write("META_REPORT=UNAVAILABLE")
-
-        # Search Console is opt-in. The Windsor key alone may belong to Meta.
-        # Do not query an unapproved Google property or infer zero clicks.
+        # Search Console uses the independent site property and must remain active.
         property_id = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY", "").strip()
         if not property_id:
             self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_PROPERTY_AUTHORIZATION")
