@@ -137,6 +137,23 @@ class RankingReadinessPtEsTests(TestCase):
             self.assertNotIn('"InStock"', json.dumps(data))
             self.assertNotIn('"Offer"', json.dumps(data))
 
+
+    def test_home_and_search_use_the_same_verified_es_price(self):
+        offer = self.make_offer()
+        self.observe(offer, "PT", "120.00", 2)
+        self.observe(offer, "ES", "145.00", 1)
+        for path in ("/es/", "/pesquisar/?q=HIFU"):
+            with self.subTest(path=path):
+                response = self.get_public(path)
+                self.assertEqual(response.status_code, 200)
+                # The localized home uses Spanish evidence; the unprefixed
+                # search still correctly uses PT evidence.
+                value = "145.00" if path == "/es/" else "120.00"
+                self.assertContains(response, f'data-price="{value}"')
+        homepage = self.get_public("/pt/")
+        self.assertContains(homepage, 'data-price="120.00"')
+        self.assertNotContains(homepage, 'data-price="145.00"')
+
     def test_es_price_old_or_missing_falls_back_to_labelled_pt_reference(self):
         offer = self.make_offer()
         self.observe(offer, "PT", "120.00", 2)
