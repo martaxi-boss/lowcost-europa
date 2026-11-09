@@ -340,12 +340,17 @@ class OwnerStorefrontNavigationTests(TestCase):
         family_url = reverse("storefront:product-family-detail", args=[self.family.slug])
         self.assertContains(response, f"{family_url}?gestao=montra#gestao-owner")
 
-    def test_panel_summary_links_to_real_storefront_family(self):
+    def test_metric_summary_links_to_storefront_with_management_preserved(self):
         self.client.force_login(self.staff)
         response = self.client.get(reverse("owner-panel:dashboard"))
+        self.assertContains(response, "Resumo de métricas")
         self.assertContains(response, "VER LOJA")
+        self.assertNotContains(response, "Gestão por categoria")
         family_url = reverse("storefront:product-family-detail", args=[self.family.slug])
-        self.assertContains(response, f"{family_url}?gestao=montra#gestao-owner")
+        managed = self.client.get(f"{family_url}?gestao=montra")
+        self.assertContains(managed, "Gestão ativa")
+        self.assertContains(managed, "A rever")
+        self.assertContains(managed, "Aprovados")
 
 
 class StorefrontOwnerModeMobileStructureTests(TestCase):

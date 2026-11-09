@@ -31,10 +31,10 @@ class OwnerSearchEngineComparisonTests(TestCase):
         )
         self.assertTrue(all(row["clicks"] is None for row in rows))
         self.assertTrue(all(row["impressions"] is None for row in rows))
-        self.assertContains(response, "Motores de pesquisa — Portugal em primeiro lugar")
+        self.assertContains(response, "Motores de pesquisa — desempenho")
         self.assertContains(response, "indisponível")
         self.assertContains(response, "não apenas a Portugal")
-        self.assertContains(response, "não recolhe aqui novos dados dos visitantes")
+        self.assertContains(response, "não recolhe novos dados dos visitantes")
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
 
