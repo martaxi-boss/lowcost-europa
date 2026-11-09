@@ -440,7 +440,7 @@ def dashboard(request):
         == "sc-domain:lowcost-europa.eu"
     )
     search_referrers = read_private_report(
-        settings.BASE_DIR / "private" / "metrics" / "search-referrers.json",
+        settings.BASE_DIR / ".local-metrics" / "search-referrers.json",
         now=now,
     )
 

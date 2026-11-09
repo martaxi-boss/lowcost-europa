@@ -56,3 +56,6 @@ Thumbs.db
 
 # Private IndexNow proof configuration and accepted content fingerprints
 /.indexnow/
+
+# App-user-only local SEO aggregate, outside the public WWW root
+/.local-metrics/
