@@ -13,7 +13,18 @@ class Migration(migrations.Migration):
                 max_length=30,
                 choices=[
                     ("ALIEXPRESS", "AliExpress"),
-                    ("ALIEXPRESS_OWNER", "AliExpress — link manual do proprietário"),
+                    ("ALIEXPRESS_OWNER", "AliExpress"),
+                ],
+            ),
+        ),
+        migrations.AlterField(
+            model_name="offercandidate",
+            name="source",
+            field=models.CharField(
+                max_length=30,
+                choices=[
+                    ("ALIEXPRESS", "AliExpress"),
+                    ("ALIEXPRESS_OWNER", "AliExpress"),
                 ],
             ),
         ),
