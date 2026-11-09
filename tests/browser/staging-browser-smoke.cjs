@@ -4,16 +4,25 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require('playwright');
 
-// Public, read-only QA: no authentication, POST, purchases or /go/ visits.
+// Public, read-only QA: no authentication, purchases or GET /go/ visits.
+// HEAD /go/ checks routing only. The Django click counter records GET exclusively.
 const origin = 'https://www.lowcost-europa.eu';
 const out = path.resolve('qa-artifacts');
 const slugs = ['cavitacao-rf-vacuum-corpo',
   'hydrodermoabrasao-aqua-facial-multifuncoes',
   'pressoterapia-vacuum-drenagem', 'hifu',
   'diodo-laser-remocao-tatuagens-pigmentacao'];
-const pages = [{ name: 'home', url: '/' }].concat(
+const pages = [
+  { name: 'home', url: '/' },
+  { name: 'home-pt', url: '/pt/' },
+  { name: 'home-es', url: '/es/' },
+].concat(
   slugs.map((name) => ({ name, url: '/products/' + name + '/' })),
-  [{ name: 'search', url: '/pesquisar/?q=HIFU' }]);
+  [
+    { name: 'hifu-pt', url: '/pt/products/hifu/' },
+    { name: 'hifu-es', url: '/es/products/hifu/' },
+    { name: 'search', url: '/pesquisar/?q=HIFU' },
+  ]);
 const devices = [{ name: 'desktop', width: 1440, height: 900, mobile: false },
   { name: 'mobile-emulated', width: 390, height: 844, mobile: true }];
 const report = { origin, when: new Date().toISOString(), checks: [], errors: [], warnings: [] };
@@ -30,6 +39,22 @@ async function guardChecks(context) {
   assert.match(directives, /Disallow:\s*\/painel\//i);
   assert.match(directives, /Sitemap:\s*https:\/\/www\.lowcost-europa\.eu\/sitemap\.xml/i);
   assert.doesNotMatch(directives, /^Disallow:\s*\/$/mi);
+  const sitemap = await context.request.get(
+    origin + '/sitemap.xml', { timeout: 25000 });
+  const sitemapText = await context.request.get(
+    origin + '/sitemap.txt', { timeout: 25000 });
+  assert.equal(sitemap.status(), 200);
+  assert.equal(sitemapText.status(), 200);
+  const xml = await sitemap.text();
+  const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+  const textUrls = (await sitemapText.text()).trim().split(/\r?\n/);
+  assert.equal(urls.length, 23, '23 canonical PT/ES URLs');
+  assert.equal(new Set(urls).size, 23, 'no duplicate sitemap entries');
+  assert.deepEqual(urls, textUrls, 'XML and TXT sitemap must agree');
+  assert.ok(urls.includes(origin + '/es/products/hifu/'));
+  assert.ok(urls.includes(origin + '/pt/products/hifu/'));
+  assert.ok(urls.every(url => url.startsWith(origin + '/')));
+
   const js = await context.request.get(
     origin + '/static/storefront/product-images.js', { timeout: 25000 });
   assert.equal(js.status(), 200);
@@ -37,6 +62,8 @@ async function guardChecks(context) {
   const owner = await context.request.get(
     origin + '/painel/', { maxRedirects: 0, timeout: 25000 });
   assert.equal(owner.status(), 302, 'anonymous owner panel must redirect');
+  assert.match(owner.headers()['x-robots-tag'] || '', /noindex/i);
+  assert.match(owner.headers()['cache-control'] || '', /private/i);
   report.checks.push({ scope: 'http', status: 'PASS',
     robots: 'public sitemap, protected owner', imageJs: 200, anonymousOwner: 302 });
 }
@@ -97,7 +124,22 @@ async function publicPage(page, item, device) {
   if (!mustBePrivate) {
     assert.equal(await page.locator('link[rel="canonical"]').count(), 1);
     assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), origin + item.url);
+    const pathRoot = item.url.replace(/^\/(pt|es)(?=\/)/, '') || '/';
+    const alternates = {
+      'pt-PT': origin + '/pt' + pathRoot,
+      'es-ES': origin + '/es' + pathRoot,
+      'x-default': origin + pathRoot,
+    };
+    for (const [lang, target] of Object.entries(alternates)) {
+      const link = page.locator('link[rel="alternate"][hreflang="' + lang + '"]');
+      assert.equal(await link.count(), 1, 'unique hreflang ' + lang + ': ' + scope);
+      assert.equal(await link.getAttribute('href'), target);
+    }
   }
+  if (item.url.startsWith('/es/'))
+    assert.equal(await page.locator('html').getAttribute('lang'), 'es');
+  if (item.url.startsWith('/pt/'))
+    assert.equal(await page.locator('html').getAttribute('lang'), 'pt-pt');
   assert.equal(await page.locator('script[src*="product-images.js"]').count(), 1);
   const size = await page.evaluate(() =>
     ({ screen: innerWidth, full: document.documentElement.scrollWidth }));
@@ -107,6 +149,23 @@ async function publicPage(page, item, device) {
     (els) => els.map((el) => el.getAttribute('href')));
   assert.ok(links.every((href) => /^\/go\/\d+\/$/.test(href)),
     'unexpected affiliate URL in ' + scope);
+  if (!device.mobile && item.name === 'hifu') {
+    // Never follow a redirect or generate a production GET click during QA.
+    for (const href of [...new Set(links)].slice(0, 3)) {
+      const probe = await page.context().request.head(origin + href, {
+        maxRedirects: 0, timeout: 20000,
+      });
+      assert.equal(probe.status(), 302, 'eligible partner route: ' + scope);
+      const destination = new URL(probe.headers().location || '');
+      assert.equal(destination.protocol, 'https:');
+      assert.ok(destination.hostname.includes('.'), 'partner host is present');
+      assert.match(probe.headers()['x-robots-tag'] || '', /noindex/i);
+      assert.match(probe.headers()['cache-control'] || '', /private/i);
+    }
+    report.checks.push({ scope: 'affiliate-head-readonly', status: 'PASS',
+      checked: [...new Set(links)].slice(0, 3).length,
+      clickMethod: 'HEAD (Django click counter records GET only)' });
+  }
   const photos = await photoChecks(page, scope);
   // html uses smooth scrolling: force the real initial viewport before capturing.
   await page.evaluate(() => {
@@ -117,7 +176,7 @@ async function publicPage(page, item, device) {
   await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 5000 });
   await page.screenshot({ path: path.join(out, item.name + '-' + device.name + '.png'),
     fullPage: true, animations: 'disabled' });
-  if (item.name === 'home') {
+  if (['home', 'home-pt', 'home-es'].includes(item.name)) {
     const finder = page.locator('.search-form--hero input[name="q"]');
     assert.equal(await finder.count(), 1, 'global search present on home');
     assert.equal(await finder.isVisible(), true, 'home search accessible');
