@@ -52,7 +52,7 @@ class ProductFamily(models.Model):
 class Offer(models.Model):
     class Source(models.TextChoices):
         ALIEXPRESS = "ALIEXPRESS", "AliExpress"
-        ALIEXPRESS_OWNER = "ALIEXPRESS_OWNER", "AliExpress — link manual do proprietário"
+        ALIEXPRESS_OWNER = "ALIEXPRESS_OWNER", "AliExpress"
 
     class EquipmentType(models.TextChoices):
         UNKNOWN = "UNKNOWN", "Unknown"
