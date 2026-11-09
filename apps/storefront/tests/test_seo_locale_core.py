@@ -169,3 +169,15 @@ class SeoLocaleCoreTests(TestCase):
             self.assertNotIn(b"/es/", response.content)
         response = self.client.get("/sitemap.txt", HTTP_HOST="other.example.test", secure=True)
         self.assertIn("noindex", response["X-Robots-Tag"])
+
+    def test_robots_advertises_both_sitemaps_only_on_public_indexable_host(self):
+        response = self.get_public("/robots.txt")
+        self.assertContains(response, f"Sitemap: {BASE}/sitemap.xml\n")
+        self.assertContains(response, f"Sitemap: {BASE}/sitemap.txt\n")
+        self.assertContains(response, "Disallow: /painel/")
+        with override_settings(PUBLIC_INDEXING_ENABLED=False):
+            blocked = self.get_public("/robots.txt")
+            self.assertContains(blocked, "Disallow: /")
+            self.assertNotContains(blocked, "Sitemap:")
+        other = self.client.get("/robots.txt", HTTP_HOST="other.example.test", secure=True)
+        self.assertNotContains(other, "Sitemap:")

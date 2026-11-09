@@ -54,15 +54,15 @@
 {% if family_seo_guide %}
 <section class="section" aria-labelledby="guia-compra-categoria">
   <div class="container prose">
-    <p class="eyebrow">Guia de compra para Portugal</p>
+    <p class="eyebrow">{{ "Guia de compra para Portugal"|ui_t }}</p>
     <h2 id="guia-compra-categoria">{{ family_seo_guide.heading }}</h2>
-    <p>Antes de escolher uma oferta, confirme estes pontos sobre o equipamento anunciado:</p>
+    <p>{{ "Antes de escolher uma oferta, confirme estes pontos sobre o equipamento anunciado:"|ui_t }}</p>
     <ul>
       {% for check in family_seo_guide.checks %}
         <li>{{ check }}</li>
       {% endfor %}
     </ul>
-    <p>Estes critérios ajudam a comparar ofertas, mas não certificam características de um modelo específico. Preço, stock, entrega e condições finais devem ser confirmados junto do parceiro.</p>
+    <p>{{ "Estes critérios ajudam a comparar ofertas, mas não certificam características de um modelo específico. Preço, stock, entrega e condições finais devem ser confirmados junto do parceiro."|ui_t }}</p>
   </div>
 </section>
 {% endif %}

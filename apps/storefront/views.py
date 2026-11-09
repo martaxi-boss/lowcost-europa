@@ -539,6 +539,7 @@ def robots_txt(request):
         body += "".join(f"Disallow: {path}\n" for path in PRIVATE_PATH_PREFIXES)
         body += "Disallow: /pesquisar/\n"
         body += f"Sitemap: {settings.PUBLIC_SITE_URL}{reverse('storefront:sitemap')}\n"
+        body += f"Sitemap: {settings.PUBLIC_SITE_URL}{reverse('storefront:sitemap-text')}\n"
     else:
         body = "User-agent: *\nDisallow: /\n"
     return HttpResponse(body, content_type="text/plain; charset=utf-8")

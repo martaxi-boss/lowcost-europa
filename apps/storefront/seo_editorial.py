@@ -1,9 +1,9 @@
-"""Useful Portuguese buyer guidance for the five existing public category URLs.
+"""Reviewed Portuguese and Spanish buyer guidance for the five existing public category URLs.
 
 This is editorial decision support, not a product review or an offer assertion.
 Do not infer the price, stock, shipping origin, warranty or capabilities of any
 individual seller/SKU from these category-level questions. Do not create new
-URLs or duplicate buyer guides for untranslated languages.
+URLs or show buyer guides in languages without reviewed translations.
 """
 
 PT_CATEGORY_GUIDES = {
@@ -120,8 +120,160 @@ PT_CATEGORY_GUIDES = {
 }
 
 
+ES_CATEGORY_GUIDES = {
+    "cavitacao-rf-vacuum-corpo": {
+        "title": "Máquinas de Cavitación y Radiofrecuencia | Lowcost Europa",
+        "description": (
+            "Compara máquinas de cavitación, radiofrecuencia y vacío: funciones "
+            "incluidas, accesorios y condiciones del vendedor antes de comprar."
+        ),
+        "heading": "Cómo comparar máquinas de cavitación y radiofrecuencia",
+        "intro": (
+            "La cavitación, la radiofrecuencia y el vacío pueden aparecer en un "
+            "mismo anuncio, pero eso no confirma que todas las funciones estén "
+            "incluidas en cada equipo. Consulta la configuración de la oferta "
+            "concreta."
+        ),
+        "checks": (
+            (
+                "Funciones: identifica en la ficha del modelo las tecnologías "
+                "incluidas y si pueden utilizarse de forma independiente."
+            ),
+            (
+                "Aplicadores: confirma los cabezales, accesorios y consumibles "
+                "suministrados, así como la disponibilidad de recambios."
+            ),
+            (
+                "Servicio posventa: revisa la documentación, la asistencia y las "
+                "condiciones de devolución directamente con el vendedor."
+            ),
+        ),
+    },
+    "hydrodermoabrasao-aqua-facial-multifuncoes": {
+        "title": "Hidrodermoabrasión y Aqua Facial | Lowcost Europa",
+        "description": (
+            "Explora equipos Aqua Facial e hidrodermoabrasión. Compara cabezales, "
+            "consumibles, limpieza y asistencia antes de consultar la oferta del "
+            "socio."
+        ),
+        "heading": "Qué comprobar en un equipo Aqua Facial",
+        "intro": (
+            "Los anuncios de hidrodermoabrasión, Aqua Facial y equipos multifunción "
+            "pueden incluir accesorios distintos. La denominación comercial, por sí "
+            "sola, no confirma el contenido del paquete."
+        ),
+        "checks": (
+            (
+                "Cabezales y consumibles: comprueba cuáles se incluyen con el "
+                "equipo y cuáles requieren compra por separado o reposición "
+                "frecuente."
+            ),
+            (
+                "Limpieza: consulta en el manual las instrucciones de limpieza, "
+                "mantenimiento y sustitución de componentes del modelo concreto."
+            ),
+            (
+                "Compatibilidad: compara las referencias de los accesorios, las "
+                "condiciones de asistencia y los costes totales indicados por el "
+                "vendedor."
+            ),
+        ),
+    },
+    "pressoterapia-vacuum-drenagem": {
+        "title": "Equipos de Presoterapia y RF Tecar | Lowcost Europa",
+        "description": (
+            "Compara equipos de presoterapia y radiofrecuencia Tecar. Identifica la "
+            "tecnología de cada oferta, sus accesorios y la asistencia del "
+            "vendedor."
+        ),
+        "heading": "Presoterapia y RF Tecar: diferencias que debes confirmar",
+        "intro": (
+            "La presoterapia y la radiofrecuencia Tecar son tecnologías distintas. "
+            "Esta familia del catálogo puede mostrar opciones diferentes; confirma "
+            "la función de cada equipo antes de comparar precios."
+        ),
+        "checks": (
+            (
+                "Tipo de equipo: identifica si la oferta corresponde a "
+                "presoterapia, radiofrecuencia Tecar u otra configuración "
+                "documentada."
+            ),
+            (
+                "Componentes: confirma los accesorios y aplicadores incluidos, los "
+                "tamaños, la compatibilidad y los recambios."
+            ),
+            (
+                "Uso profesional: revisa la documentación del fabricante, los "
+                "requisitos de funcionamiento y el soporte ofrecido por el "
+                "vendedor."
+            ),
+        ),
+    },
+    "hifu": {
+        "title": "HIFU Profesional: Máquinas y Guía | Lowcost Europa",
+        "description": (
+            "Compara equipos HIFU profesionales: cartuchos, documentación, "
+            "asistencia y precios observados. Confirma los detalles de cada modelo "
+            "con el socio."
+        ),
+        "heading": "Cómo evaluar una máquina HIFU profesional",
+        "intro": (
+            "Las máquinas anunciadas como HIFU pueden tener configuraciones y "
+            "accesorios distintos. Compara el modelo exacto y su documentación, sin "
+            "dar por hecho que los cartuchos de otros fabricantes sean compatibles."
+        ),
+        "checks": (
+            (
+                "Cartuchos y aplicadores: confirma los componentes incluidos, las "
+                "referencias compatibles y el coste de reposición."
+            ),
+            (
+                "Documentación técnica: revisa los manuales, los requisitos de "
+                "formación y las condiciones de mantenimiento antes de elegir."
+            ),
+            (
+                "Condiciones reales: consulta directamente con el socio el precio "
+                "final, la garantía, la disponibilidad y la entrega para España."
+            ),
+        ),
+    },
+    "diodo-laser-remocao-tatuagens-pigmentacao": {
+        "title": "Láser de Diodo y Eliminación de Pigmentos | Lowcost Europa",
+        "description": (
+            "Explora equipos láser de diodo y eliminación de pigmentos. Distingue "
+            "sus finalidades y confirma especificaciones, formación y condiciones "
+            "del proveedor."
+        ),
+        "heading": "El láser de diodo y la eliminación de pigmentos no son equivalentes",
+        "intro": (
+            "Los equipos destinados a la depilación con láser de diodo y los "
+            "utilizados para eliminar pigmentos o tatuajes tienen finalidades "
+            "distintas. El nombre de esta categoría no garantiza que un aparato "
+            "realice ambas funciones."
+        ),
+        "checks": (
+            (
+                "Finalidad: confirma en la ficha técnica del equipo la aplicación "
+                "indicada por el fabricante para el modelo anunciado."
+            ),
+            (
+                "Requisitos de seguridad: revisa la documentación aplicable, los "
+                "requisitos profesionales y la formación necesaria para utilizarlo."
+            ),
+            (
+                "Asistencia y compra: compara componentes, consumibles, soporte "
+                "técnico y condiciones contractuales del vendedor."
+            ),
+        ),
+    },
+}
+
+
 def guide_for_category(slug, language):
-    """Only PT content for the initial Portuguese SEO market."""
-    if str(language).lower().replace("_", "-") not in {"pt", "pt-pt"}:
-        return None
-    return PT_CATEGORY_GUIDES.get(slug)
+    """Return reviewed category copy only for the two supported SEO markets."""
+    language = str(language).lower().replace("_", "-")
+    if language in {"pt", "pt-pt"}:
+        return PT_CATEGORY_GUIDES.get(slug)
+    if language in {"es", "es-es"}:
+        return ES_CATEGORY_GUIDES.get(slug)
+    return None
