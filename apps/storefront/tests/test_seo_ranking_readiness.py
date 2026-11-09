@@ -129,7 +129,7 @@ class RankingReadinessPtEsTests(TestCase):
         self.assertNotContains(pt, "Precio en EUR observado para España")
         # No schema.org Product/Offer/InStock claims on affiliate category pages.
         markup = re.findall(
-            r'<script type="application/ld\\+json">(.*?)</script>',
+            r'<script type="application/ld\+json">(.*?)</script>',
             es.content.decode(), re.S
         )
         for raw in markup:
