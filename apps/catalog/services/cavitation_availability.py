@@ -72,7 +72,11 @@ def _record_check(offer_id, status, now):
     """Lock each offer and commit only the availability observation or hide flag."""
     with transaction.atomic():
         offer = Offer.objects.select_for_update().get(pk=offer_id)
-        if offer.source != Offer.Source.ALIEXPRESS_OWNER or offer.owner_hidden or not offer.is_active:
+        if (
+            offer.source != Offer.Source.ALIEXPRESS_OWNER
+            or offer.owner_hidden
+            or not offer.is_active
+        ):
             return "SKIPPED"
         if not offer.family_placements.filter(
             product_family__slug=MANUAL_ONLY_FAMILY_SLUG
