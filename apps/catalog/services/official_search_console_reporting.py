@@ -22,7 +22,7 @@ from apps.catalog.services.windsor_search_console_reporting import (
     _nonnegative_int,
 )
 
-TOKEN_URL = "https://oauth2.googleapis.com/token"
+OAUTH_ENDPOINT = "https://oauth2.googleapis.com/token"
 SEARCH_URL = "https://www.googleapis.com/webmasters/v3/sites/"
 MAX_RESPONSE_BYTES = 262144
 
@@ -56,7 +56,7 @@ def _oauth_access_token(*, client_id, client_secret, refresh_token, opener):
     }).encode("utf-8")
     payload = _read_json(
         request.Request(
-            TOKEN_URL,
+            OAUTH_ENDPOINT,
             data=encoded,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             method="POST",
