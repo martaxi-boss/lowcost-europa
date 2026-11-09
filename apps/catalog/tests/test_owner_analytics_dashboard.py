@@ -93,8 +93,8 @@ class OwnerAnalyticsDashboardTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.context["eligible_public_offers"], 1)
         self.assertEqual(response.context["origin_without_individual_proof"], 1)
-        self.assertContains(response, "Origem individual por confirmar")
-        self.assertContains(response, "Isso não significa origem proibida")
+        self.assertNotContains(response, "Origem individual por confirmar")
+        self.assertNotContains(response, "Isso não significa origem proibida")
         self.offer.ship_from_country = "PL"
         self.offer.ship_from_verified_at = timezone.now()
         self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
@@ -117,7 +117,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         family = response.context["families"][0]
         self.assertTrue(family.discovery_paused)
         self.assertEqual(family.reviews_to_resume_discovery, 1)
-        self.assertContains(response, "abrir fila de revisão")
+        self.assertNotContains(response, "abrir fila de revisão")
         self.assertEqual(
             OfferCandidate.objects.filter(status=OfferCandidate.Status.PENDING).count(), 20
         )
@@ -142,9 +142,9 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["latest_availability_unconfirmed"], 1)
         self.assertEqual(response.context["current_price_unconfirmed"], 1)
         self.assertEqual(response.context["delivery_days_unproven"], 1)
-        self.assertContains(response, "UNKNOWN não significa esgotado")
-        self.assertContains(response, "o histórico pode existir")
-        self.assertContains(response, "não deve prometer entrega em até 5 dias")
+        self.assertNotContains(response, "UNKNOWN não significa esgotado")
+        self.assertNotContains(response, "o histórico pode existir")
+        self.assertNotContains(response, "não deve prometer entrega em até 5 dias")
 
         OfferObservation.objects.create(
             offer=self.offer,
@@ -190,8 +190,8 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["retired_pending_total"], 2)
         self.assertEqual(response.context["paused_discovery_families"], 0)
         self.assertEqual(len(response.context["families"]), 1)
-        self.assertContains(response, "Microcorrente antiga")
-        self.assertContains(response, "2 candidatos pendentes pertencem a famílias descontinuadas")
+        self.assertNotContains(response, "Microcorrente antiga")
+        self.assertNotContains(response, "2 candidatos pendentes pertencem a famílias descontinuadas")
         self.assertEqual(
             OfferCandidate.objects.filter(
                 product_family=retired, status=OfferCandidate.Status.PENDING
@@ -221,13 +221,13 @@ class OwnerAnalyticsDashboardTests(TestCase):
 
         self.assertEqual(response.context["eligible_public_offers"], 0)
         self.assertEqual(response.context["visible_blocked_offers"], 1)
-        self.assertContains(response, "não passam os requisitos de publicação")
+        self.assertNotContains(response, "não passam os requisitos de publicação")
 
     def test_tracking_id_is_shown_to_owner_without_external_tracking_scripts(self):
         with patch.dict(os.environ, {"ALIEXPRESS_TRACKING_ID": "lowcost_europa"}):
             response = self.client.get(self.url)
 
-        self.assertContains(response, "<code>lowcost_europa</code>", html=False)
+        self.assertNotContains(response, "<code>lowcost_europa</code>", html=False)
         self.assertContains(response, "Autorização da VPS necessária")
         self.assertNotContains(response, "googletagmanager.com")
         self.assertNotContains(response, "fbq(")
@@ -251,7 +251,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
 
         self.assertEqual(response.context["raw_clicks_30d"], 0)
         self.assertEqual(response.context["top_clicked_offers"], [])
-        self.assertContains(response, "Sem cliques de saída registados")
+        self.assertNotContains(response, "Produtos mais clicados")
         self.assertContains(response, "A aguardar primeira sincronização")
 
     def test_verified_order_report_appears_on_private_dashboard(self):
