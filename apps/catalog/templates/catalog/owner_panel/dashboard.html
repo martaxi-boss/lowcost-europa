@@ -96,8 +96,32 @@
         </tbody>
       </table>
     </div>
-    <p class="analytics-note engine-note">Sem dados confirmados, o sinal «—» significa <strong>indisponível</strong>, não zero. Ainda não é possível classificar qual motor traz mais tráfego: a única fonte de cliques de pesquisa ligada é a Google, e os seus primeiros dados ainda podem estar em processamento. O relatório Google refere-se ao domínio inteiro, não apenas a Portugal. Para uma comparação futura entre motores será necessária uma medição de origem de visitas com critérios de privacidade adequados ou relatórios equivalentes e verificados.</p>
+    <p class="analytics-note engine-note">Sem dados confirmados, o sinal «—» significa <strong>indisponível</strong>, não zero. Ainda não é possível classificar qual motor traz mais tráfego: a única fonte de cliques de pesquisa ligada é a Google, e os seus primeiros dados ainda podem estar em processamento. O relatório Google refere-se ao domínio inteiro, não apenas a Portugal. Abaixo encontra-se uma medição separada de pedidos com Referer identificado. Não deve ser confundida com cliques oficiais de pesquisa.</p>
     <p class="analytics-note">A indexação ou aceitação de URLs pelo IndexNow não demonstra cliques, visitas, vendas ou posicionamento. Este painel não recolhe novos dados dos visitantes.</p>
+  </section>
+
+  <section class="card" aria-label="Pesquisa — tráfego observado no servidor">
+    <h2 class="analytics-section-title">Chegadas da pesquisa — observação do servidor</h2>
+    <p class="analytics-section-subtitle">Medição local e gratuita, sem serviços de terceiros, cookies ou pixels adicionais. Fonte: cabeçalho Referer dos pedidos HTTP observados pelo Nginx.</p>
+    {% if search_referrers %}
+      <span class="source-status active">Relatório local atualizado</span>
+      <p>Janela: últimos 7 dias nos registos disponíveis. Última recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal).</p>
+      <p><strong>{{ search_referrers.total }} pedidos de páginas com origem de pesquisa declarada</strong></p>
+      <div class="commercial-table-wrap" role="region" aria-label="Pedidos observados por motor" tabindex="0">
+        <table class="commercial-table engine-table">
+          <thead><tr><th scope="col">Motor de origem</th><th scope="col">Pedidos observados</th></tr></thead>
+          <tbody>
+          {% for item in search_referrers.rows %}
+            <tr><th scope="row">{{ item.name }}</th><td>{{ item.requests }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <span class="source-status">A aguardar os primeiros registos locais verificados</span>
+      <p>Este relatório só aparece quando o servidor fornecer observações válidas. Não se apresentam números estimados.</p>
+    {% endif %}
+    <p class="analytics-note">Estes valores contam pedidos HTTP, não visitantes únicos nem cliques, impressões, palavras-chave ou posições oficiais do Search Console. O Referer pode estar ausente, ser omitido pelo navegador ou falsificado; os dados dependem da retenção dos logs.</p>
   </section>
 
   <section class="card" aria-label="Integrações de tráfego, publicidade e vendas">
