@@ -132,7 +132,7 @@ async function publicPage(page, item, device) {
     assert.equal(await page.locator('link[rel="canonical"]').count(), 1);
     assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), origin + item.url);
     const familyOrHome = item.url === '/' || /^\/(pt|es)\/$/.test(item.url)
-      || /^\/(pt|es\/)?products\/[a-z0-9-]+\/$/.test(item.url);
+      || /^\/(?:(?:pt|es)\/)?products\/[a-z0-9-]+\/$/.test(item.url);
     if (familyOrHome) {
       const pathRoot = item.url.replace(/^\/(pt|es)(?=\/)/, '') || '/';
       const alternates = {
