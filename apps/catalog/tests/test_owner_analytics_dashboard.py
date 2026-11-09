@@ -234,6 +234,39 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertNotContains(response, "gtag(")
         self.assertNotContains(response, "ALIEXPRESS_APP_SECRET")
 
+    def test_summary_has_only_metrics_and_existing_store_management_is_unchanged(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Resumo de métricas")
+        self.assertContains(response, "Cliques para parceiros")
+        self.assertContains(response, "Evolução — 14 dias")
+        self.assertContains(response, "Motores de pesquisa — desempenho")
+        self.assertContains(response, "Meta Ads")
+        self.assertContains(response, "Google Search Console")
+        self.assertContains(response, "VER LOJA")
+        for forbidden in (
+            "Validação comercial — oferta a oferta",
+            "Consultar 77 ofertas",
+            "Produtos mais clicados",
+            "Links de afiliado e montra",
+            "Gestão por categoria",
+            "A rever",
+            "Retirados",
+            "Selecionadas mas não publicadas",
+        ):
+            self.assertNotContains(response, forbidden)
+
+        store = self.client.get(
+            reverse("storefront:product-family-detail", args=[self.family.slug])
+            + "?gestao=rever"
+        )
+        self.assertEqual(store.status_code, 200)
+        self.assertContains(store, "Gestão ativa")
+        self.assertContains(store, "A rever")
+        self.assertContains(store, "Aprovados")
+        self.assertContains(store, "Retirados")
+        self.assertContains(store, "Revalidação")
+
     def test_unauthorised_users_cannot_open_metrics(self):
         self.client.logout()
         response = self.client.get(self.url)
