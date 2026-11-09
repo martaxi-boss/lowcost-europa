@@ -5,8 +5,13 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/closed-pr-branch-hygiene.yml'
-  pull_request_target:
-    types: [closed]
+  # pull_request_target did not initialize on this repository; use only
+  # trusted main-branch CI completions, never a fork's pull-request code.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  schedule:
+    - cron: '43 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -19,7 +24,11 @@ concurrency:
 
 jobs:
   tidy:
-    if: github.event_name != 'pull_request_target' || github.event.pull_request.merged == true
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
