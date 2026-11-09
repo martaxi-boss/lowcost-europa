@@ -1,9 +1,9 @@
 """Ranking-readiness SEO: real links and market-scoped evidence, no invented offers."""
 
-from datetime import timedelta
-from decimal import Decimal
 import json
 import re
+from datetime import timedelta
+from decimal import Decimal
 
 from django.test import TestCase, override_settings
 from django.utils import timezone
