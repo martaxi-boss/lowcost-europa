@@ -1,0 +1,12 @@
+[Unit]
+Description=Lowcost Europa manual Cavitation offer unavailability monitor
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=le001_1789265592
+WorkingDirectory=/srv/projects/lowcost-europa
+EnvironmentFile=/srv/projects/lowcost-europa/private/systemd-env/lowcost-europa.env
+ExecStart=/srv/projects/lowcost-europa/.venv/bin/python manage.py monitor_cavitation_availability --batch-size 5
+PrivateTmp=true
+NoNewPrivileges=true
