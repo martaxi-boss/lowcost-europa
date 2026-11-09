@@ -66,6 +66,24 @@ class OwnerAnalyticsDashboardTests(TestCase):
         )
         return click
 
+    def test_private_search_referrer_counts_are_not_search_console_data(self):
+        report = {
+            "checked_at": timezone.now(),
+            "total": 3,
+            "rows": [{"name": "Google", "requests": 2},
+                     {"name": "Bing", "requests": 1}],
+        }
+        with patch(
+            "apps.catalog.owner_panel_views.read_private_report", return_value=report
+        ):
+            response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Chegadas da pesquisa")
+        self.assertContains(response, "3 pedidos de páginas")
+        self.assertEqual(response.context["search_referrers"]["total"], 3)
+        self.assertFalse(response.context["google_search_report_payload"])
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+
     def test_metrics_are_real_outbound_clicks_not_sales_or_unique_visitors(self):
         self._click_ago(0.1)
         self._click_ago(3)
