@@ -159,6 +159,29 @@ async function publicPage(page, item, device) {
     ({ screen: innerWidth, full: document.documentElement.scrollWidth }));
   assert.ok(size.full - size.screen <= 12,
     'horizontal overflow ' + (size.full - size.screen) + 'px in ' + scope);
+  // Verify the *published* ranking improvement, not just the branch HTML.
+  const categoryPath = item.url.match(/^\/(?:(pt|es)\/)?products\/([a-z0-9-]+)\/$/);
+  if (categoryPath) {
+    const locale = categoryPath[1] || '';
+    const slug = categoryPath[2];
+    const prefix = locale ? '/' + locale + '/products/' : '/products/';
+    const expectedSiblings = slugs.filter((name) => name !== slug)
+      .map((name) => prefix + name + '/');
+    const related = page.locator('nav.related-families-nav');
+    assert.equal(await related.count(), 1, 'related-category navigation: ' + scope);
+    const siblingLinks = await related.locator('a[href]').evaluateAll(
+      (nodes) => nodes.map((node) => node.getAttribute('href')));
+    assert.equal(new Set(siblingLinks).size, 4, 'four distinct related links: ' + scope);
+    assert.deepEqual(new Set(siblingLinks), new Set(expectedSiblings),
+      'correct PT/ES cross-links and no self-links: ' + scope);
+    const trail = page.locator('nav.category-breadcrumb');
+    assert.equal(await trail.count(), 1, 'visible breadcrumb: ' + scope);
+    assert.equal(await trail.locator('a').first().getAttribute('href'),
+      locale ? '/' + locale + '/' : '/', 'breadcrumb market: ' + scope);
+    assert.equal(await trail.locator('[aria-current="page"]').count(), 1);
+    report.checks.push({ scope: scope + ':ranking-navigation', status: 'PASS',
+      related: siblingLinks.length, market: locale || 'base' });
+  }
   const links = await page.locator('a[href*="/go/"]').evaluateAll(
     (els) => els.map((el) => el.getAttribute('href')));
   assert.ok(links.every((href) => /^\/go\/\d+\/$/.test(href)),
