@@ -39,6 +39,7 @@ from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
 )
+from apps.catalog.services.search_referral_metrics import read_private_report
 from apps.catalog.services.owner_editorial import (
     OwnerEditorialError,
     hide_offer_from_storefront,
