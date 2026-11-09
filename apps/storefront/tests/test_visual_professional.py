@@ -32,7 +32,9 @@ class EditorialStorefrontTests(SimpleTestCase):
     def test_missing_photo_does_not_claim_published_family_is_in_preparation(self):
         card = self.template("components/product_family_card.html")
         self.assertEqual(
-            card.count('{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}'),
+            card.count(
+                '{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}'
+            ),
             2,
         )
 
