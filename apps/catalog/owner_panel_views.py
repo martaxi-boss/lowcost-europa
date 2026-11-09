@@ -31,11 +31,11 @@ from apps.catalog.services.candidate_approval import (
 )
 from apps.catalog.services.candidate_move import CandidateMoveError, move_candidate_to_family
 from apps.catalog.services.commercial_evidence import owner_commercial_evidence_rows
-from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
 from apps.catalog.services.manual_candidate_intake import (
     ManualCandidateIntakeError,
     intake_manual_aliexpress_candidate,
 )
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
