@@ -425,8 +425,16 @@ def dashboard(request):
         and google_search_report.checked_at <= now
         and now - google_search_report.checked_at <= timedelta(hours=48)
     )
+    google_search_provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
+    google_provider_auth = (
+        bool(os.environ.get("WINDSOR_API_KEY")) if google_search_provider == "WINDSOR"
+        else all(os.environ.get(key) for key in (
+            "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
+            "GOOGLE_OAUTH_REFRESH_TOKEN",
+        )) if google_search_provider == "GOOGLE_OFFICIAL" else False
+    )
     google_search_configured = bool(
-        os.environ.get("WINDSOR_API_KEY")
+        google_provider_auth
         and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
         == "sc-domain:lowcost-europa.eu"
     )
