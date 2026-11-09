@@ -3,7 +3,7 @@ Description=Check manual Cavitation items for confirmed unavailability every 2 h
 
 [Timer]
 OnBootSec=45min
-OnUnitActiveSec=2h
+OnCalendar=*-*-* 00/2:00:00
 RandomizedDelaySec=15min
 Persistent=true
 Unit=lowcost-europa-cavitation-availability.service
