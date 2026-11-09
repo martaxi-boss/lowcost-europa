@@ -60,7 +60,19 @@
     <div class="offer-cta">
       <button class="compare-toggle" type="button" data-compare-toggle aria-pressed="false" aria-label="{{ 'Adicionar'|ui_t }} {{ offer.title|default:'equipamento' }} {{ 'à comparação'|ui_t }}" hidden>{{ "+ Comparar equipamento"|ui_t }}</button>
       {% if offer.can_redirect %}
-        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}" rel="sponsored nofollow">{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
+        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}" target="_blank" rel="sponsored nofollow noopener">{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
+        {% if offer.source == "ALIEXPRESS_OWNER" %}
+        <details class="offer-browser-help" data-affiliate-copy>
+          <summary>{{ "Não abriu no navegador? Copiar link original"|ui_t }}</summary>
+          <p class="meta">{{ "Se o telemóvel abrir a aplicação AliExpress, copie o link original e cole-o no Chrome ou Safari."|ui_t }}</p>
+          <label for="affiliate-original-{{ offer.pk }}">{{ "Link de afiliado original"|ui_t }}</label>
+          <input id="affiliate-original-{{ offer.pk }}" type="url" readonly autocomplete="off" spellcheck="false" value="{{ offer.affiliate_url }}" data-affiliate-copy-value>
+          <button class="button button--secondary" type="button" data-affiliate-copy-button
+                  data-copy-success="{{ 'Link copiado. Cole-o no Chrome ou Safari.'|ui_t }}"
+                  data-copy-failure="{{ 'Selecione o link acima e copie-o manualmente.'|ui_t }}">{{ "Copiar link original"|ui_t }}</button>
+          <p class="meta" role="status" aria-live="polite" data-affiliate-copy-status></p>
+        </details>
+        {% endif %}
         <p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>
       {% else %}
         <button class="button button--large" type="button" disabled aria-disabled="true">{{ "Oferta indisponível"|ui_t }}</button><p class="meta">{{ "Esta oferta não está disponível para encaminhamento neste momento."|ui_t }}</p>
