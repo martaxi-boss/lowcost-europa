@@ -1,4 +1,23 @@
 {% if owner_mode %}
+{% if owner_manual_only %}
+<section class="owner-family-tools" id="gestao-owner" aria-labelledby="owner-family-title">
+  <div class="container">
+    {% if owner_error %}<p class="owner-message owner-message--error">{{ owner_error }}</p>{% endif %}
+    {% if owner_notice %}<p class="owner-message owner-message--notice">{{ owner_notice }}</p>{% endif %}
+    <div class="owner-family-tools__heading">
+      <div>
+        <p class="eyebrow">Gestão manual</p>
+        <h2 id="owner-family-title">Montra Cavitação</h2>
+        <p class="owner-all-clear">{{ owner_storefront_count }} produtos publicados com os teus links. Podes eliminá-los individualmente nos cartões acima; a disponibilidade é verificada à parte.</p>
+      </div>
+      <a class="owner-preview-link" href="{{ owner_preview_url }}">Ver como cliente</a>
+    </div>
+    <nav class="owner-management-tabs" aria-label="Gestão da montra">
+      <span class="active">MONTRA <span>{{ owner_storefront_count }}</span></span>
+    </nav>
+  </div>
+</section>
+{% else %}
 <section class="owner-family-tools" id="gestao-owner" aria-labelledby="owner-family-title">
   <div class="container">
     {% if owner_error %}<p class="owner-message owner-message--error">{{ owner_error }}</p>{% endif %}
@@ -67,4 +86,5 @@
     {% endif %}
   </div>
 </section>
+{% endif %}
 {% endif %}
