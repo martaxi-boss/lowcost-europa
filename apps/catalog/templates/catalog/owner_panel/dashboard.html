@@ -61,6 +61,18 @@
     <p class="analytics-note"><strong>Cliques brutos nos últimos 7 dias:</strong> <strong>{{ recent_raw_clicks_total }}</strong> encaminhamentos registados. Estes números não representam visitantes únicos, compras ou comissões. Uma oferta presente em duas categorias pode contar em ambas; não some os subtotais das categorias.</p>
   </section>
 
+  <section class="card" aria-label="Cobertura de validação comercial Portugal e Espanha">
+    <h2 class="analytics-section-title">Prontidão comercial — Portugal e Espanha</h2>
+    <p class="analytics-section-subtitle">Indicadores calculados com a informação atual do catálogo, sem presumir stock por variante, armazém específico ou entrega garantida.</p>
+    <div class="metrics-grid">
+      <div class="metric"><span class="metric-label">Portugal — ofertas com preço EUR recente</span><strong class="metric-value">{{ eligible_public_offers }}</strong><span class="metric-hint">Elegíveis pela regra portuguesa, até 24 horas</span></div>
+      <div class="metric"><span class="metric-label">Ofertas retidas por preço antigo</span><strong class="metric-value">{{ price_held_from_public }}</strong><span class="metric-hint">Aguardam nova observação de preço</span></div>
+      <div class="metric"><span class="metric-label">Espanha — preço EUR próprio observado</span><strong class="metric-value">{{ es_recent_price_coverage }} / {{ eligible_public_offers }}</strong><span class="metric-hint">Evidência específica ES, nas últimas 24 horas</span></div>
+      <div class="metric"><span class="metric-label">Ofertas sem origem individual registada</span><strong class="metric-value">{{ origin_without_individual_proof }}</strong><span class="metric-hint">Não confirma o armazém do vendedor</span></div>
+    </div>
+    <p class="analytics-note">A elegibilidade da montra usa a referência de preço para Portugal. O número espanhol é apenas cobertura de observações de preço para Espanha, não confirma o custo final, a disponibilidade da variante nem o prazo de entrega. Confirme essas condições no parceiro antes de anunciar promessas comerciais.</p>
+  </section>
+
   <section class="card" aria-label="Evolução diária dos cliques">
     <h2 class="analytics-section-title">Evolução — 14 dias</h2>
     <p class="analytics-section-subtitle">Contagem diária de cliques de saída, na hora de Portugal. As datas sem cliques aparecem a zero.</p>
@@ -129,9 +141,15 @@
     <p class="analytics-section-subtitle">Resultados de pesquisa e parceiros apresentados por origem. Onde não houver dados confirmados, a indicação é «indisponível» ou «a aguardar».</p>
     <div class="source-grid">
       <article class="source-card">
-        <h3>Visitas e interações</h3>
-        <span class="source-status">A ativar no lançamento</span>
-        <p>Google Analytics 4: páginas visitadas e interações após o domínio definitivo e as verificações de privacidade.</p>
+        <h3>Origem da pesquisa — contador próprio</h3>
+        {% if search_referrers %}
+          <span class="source-status active">Relatório local ativo</span>
+          <p>Última observação: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong>. Foram identificados <strong>{{ search_referrers.total }}</strong> pedidos de páginas com origem de pesquisa declarada nos registos disponíveis. Detalhe por motor acima.</p>
+        {% else %}
+          <span class="source-status">Recolha local indisponível</span>
+          <p>A aguardar o próximo relatório validado do servidor. Não são estimados pedidos nem visitantes.</p>
+        {% endif %}
+        <p>Sem serviços externos, cookies de medição ou pixels adicionais. Não mede visitantes únicos nem compras atribuídas.</p>
       </article>
       <article class="source-card">
         <h3>AliExpress — encomendas e comissões</h3>

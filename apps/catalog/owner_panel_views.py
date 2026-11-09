@@ -315,6 +315,19 @@ def dashboard(request):
         ship_from_verified_at__isnull=False,
         ship_from_verified_at__lte=now,
     ).count()
+    # Spanish price coverage is separate from the Portuguese publication
+    # gate; never present a PT observation as a verified ES price.
+    recent_es_eur_price = OfferObservation.objects.filter(
+        offer_id=OuterRef("pk"),
+        destination_country="ES",
+        observed_at__gte=now - timedelta(hours=24),
+        observed_at__lte=now,
+        price__gt=0,
+        currency__iexact="EUR",
+    )
+    es_recent_price_coverage = eligible_queryset.filter(
+        Exists(recent_es_eur_price)
+    ).count()
 
     # Seller listing status is not the same as variant-level stock. Read the
     # newest observation for availability, but keep historical price evidence
@@ -501,6 +514,7 @@ def dashboard(request):
                     as_of=now, country="ES"
                 ),
                 "origin_without_individual_proof": origin_without_individual_proof,
+                "es_recent_price_coverage": es_recent_price_coverage,
                 "latest_availability_unconfirmed": latest_availability_unconfirmed,
                 "current_price_unconfirmed": current_price_unconfirmed,
                 "delivery_days_unproven": delivery_days_unproven,

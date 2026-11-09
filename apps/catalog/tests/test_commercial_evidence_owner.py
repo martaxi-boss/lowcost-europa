@@ -103,8 +103,26 @@ class OwnerCommercialEvidenceTests(TestCase):
         self.assertEqual(response.context["eligible_public_offers"], 1)
         self.assertEqual(response.context["price_held_from_public"], 1)
         self.assertEqual(response.context["origin_without_individual_proof"], 0)
+        self.assertEqual(response.context["es_recent_price_coverage"], 0)
+        self.assertContains(response, "Prontidão comercial — Portugal e Espanha")
+        self.assertContains(response, "Espanha — preço EUR próprio observado")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         self.assertEqual(response["Cache-Control"], "private, no-store")
+
+    def test_es_price_observation_is_counted_only_when_specific_and_recent(self):
+        self.client.force_login(self.owner)
+        dashboard = reverse("owner-panel:dashboard")
+        response = self.client.get(dashboard)
+        self.assertEqual(response.context["eligible_public_offers"], 1)
+        self.assertEqual(response.context["es_recent_price_coverage"], 0)
+        OfferObservation.objects.create(
+            offer=self.fresh, destination_country="ES",
+            observed_at=self.now - timedelta(minutes=45),
+            price=Decimal("140.00"), currency="EUR",
+        )
+        response = self.client.get(dashboard)
+        self.assertEqual(response.context["eligible_public_offers"], 1)
+        self.assertEqual(response.context["es_recent_price_coverage"], 1)
 
     def test_historical_price_remains_visible_in_private_audit_not_public(self):
         self.client.force_login(self.owner)
