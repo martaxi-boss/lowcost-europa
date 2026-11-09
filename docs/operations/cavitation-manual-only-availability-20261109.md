@@ -27,7 +27,7 @@ As outras quatro categorias mantêm a lógica e painel anteriores.
 ## Único automatismo permitido: indisponibilidade
 
 O serviço privado `lowcost-europa-cavitation-availability.service` corre
-através do timer do projeto a cada ~2 horas (com atraso aleatório até 15 min).
+através de um horário systemd calendar explícito, nas horas UTC pares (com atraso aleatório de até 15 min).
 Verifica **no máximo 5** ofertas manuais/publicadas por execução em ordem
 da verificação mais antiga (17 produtos = cobertura rotativa).
 Usa exclusivamente o método AliExpress de **detalhes** do produto; nunca
