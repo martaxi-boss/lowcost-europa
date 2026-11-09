@@ -542,14 +542,14 @@ class OwnerPanelCatalogTests(TestCase):
     def test_dashboard_shows_operational_families_and_correct_counts(self):
         response = self.client.get(reverse("owner-panel:dashboard"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.family.name)
+        self.assertNotContains(response, self.family.name)
         self.assertNotContains(response, self.retired.name)
-        self.assertContains(response, "A rever")
-        self.assertContains(response, "Na montra")
-        self.assertContains(response, "Aprovados")
-        self.assertContains(response, "Retirados")
-        self.assertContains(response, "Rejeitados")
-        self.assertContains(response, "Revalidação necessária")
+        self.assertNotContains(response, "A rever")
+        self.assertNotContains(response, "Na montra")
+        self.assertNotContains(response, "Aprovados")
+        self.assertNotContains(response, "Retirados")
+        self.assertNotContains(response, "Rejeitados")
+        self.assertNotContains(response, "Revalidação necessária")
         counts = response.context["families"][0].owner_counts
         self.assertEqual(
             counts,
