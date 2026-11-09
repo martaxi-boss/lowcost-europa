@@ -2,7 +2,8 @@
 
 import json
 import os
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime
+from datetime import timezone as dt_timezone
 from io import StringIO
 from unittest.mock import patch
 from urllib.error import HTTPError
