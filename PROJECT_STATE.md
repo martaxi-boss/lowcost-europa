@@ -1,5 +1,19 @@
 # Lowcost Europa — Project State
 
+## PT/ES SEO implementation published — 9 November 2026
+
+**This implementation round is deployed and verified. Sitemap delivery is successful; full index inclusion and ranking gains remain external outcomes to measure.**
+
+- [PR #248](https://github.com/martaxi-boss/lowcost-europa/pull/248), application `f8a2165604c1a8eee015f1d5ff7a4626ce431e74`, [protected VPS rollout #42638965557](https://github.com/martaxi-boss/VPS/actions/runs/42638965557) PASS.
+- Five ES categories now have reviewed Spanish buyer guides and distinct titles/descriptions, matching the existing five PT guides. Shared guide labels/caveats are localized; the ES category links back to its own locale. No efficacy/stock/price/delivery/guarantee claims or new URLs were introduced.
+- Public robots.txt now advertises **both** the original XML and the text sitemap processed by Google. Both still contain the same 23 URLs and their content hashes are unchanged. The Google text sitemap Success/23 baseline below remains valid; the old XML report error does not cancel that success.
+- Validation: [CI #42638623744](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42638623744), **795 tests PASS**; [audit #42638619220](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42638619220) PASS; [source browser #42638620025](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42638620025), **18 checks PASS**, four widths with synthetic data.
+- Real production readback: ten PT/ES guides, exact titles/descriptions, canonical/hreflang, locale navigation, public sitemap discovery, private routes, unchanged private environment, service and six timers PASS. Backup checksum and rollback preserved. Live browser inspection confirmed the Spanish HIFU guide and continued explicit labeling of PT reference prices.
+- **Google URL Inspection:** `/es/products/hifu/` was still unknown/not indexed when inspected. After publication, a single request returned **Indexação solicitada** and the priority-crawl-queue message. This is request acceptance, not index inclusion. Other pages were not individually re-requested during this round; the successful sitemap covers all 23.
+- Windsor Search Console query for 2–8 November with date/page/click/impression/CTR/position fields returned **zero rows**. There is no usable performance baseline from that query, not proof of zero traffic. Do not fabricate a zero snapshot, measured ranking uplift, or complete index inclusion.
+- Scope preserved: no catalog/link/market-evidence mutation, new dependency, migration, paid service, DNS/TLS/Nginx edit or recurring task. Temporary rollout workflow removed and evidence retained. Work used GitHub/SSH and authenticated browser, not a new Ferrari engine-job certification.
+- [Current PT/ES SEO operating reference](docs/operations/seo-pt-es-core-20261108.md) replaces its obsolete pre-deployment gates. Next work is driven by actual search/indexing/conversion observations, with PT/ES focus. This documentation-only closeout needs no restart.
+
 ## Google sitemap delivery resolved with text format — 9 November 2026
 
 **Google has successfully read the alternative sitemap and discovered all 23 URLs.** This supersedes the earlier unresolved-delivery status below.

@@ -1,65 +1,67 @@
-# Core SEO PT/ES — preparação controlada (08/11/2026)
+# SEO Portugal/Espanha — estado publicado (09/11/2026)
 
-## Estado e integridade
+Esta referência substitui a preparação de 08/11. A versão operacional atual é
+`f8a2165604c1a8eee015f1d5ff7a4626ce431e74`, publicada e verificada na
+[VPS #42638965557](https://github.com/martaxi-boss/VPS/actions/runs/42638965557).
 
-Esta alteração é **código em revisão**, não uma certificação de implementação na VPS.
-As seis páginas comerciais indexadas no Google conservam os respetivos URLs e
-canonicals originais. Os endereços `/pt/`, `/es/`, `/pt/products/<slug>/` e
-`/es/products/<slug>/` são explicitamente opt-in, inicialmente 404.
-Não se faz qualquer redirecionamento GeoIP de motores ou pessoas.
+## Implementado
 
-## Cinco pontos
+- Cinco categorias PT e cinco categorias ES com títulos, descrições e guias de
+  compra próprios. As mensagens fixas do guia espanhol estão traduzidas.
+- 23 URLs públicas estáveis; canonicals autorreferentes e alternates recíprocos
+  pt-PT, es-ES e x-default. Navegação de categoria/página inicial preserva PT/ES.
+- `/sitemap.txt` processado pelo Google: **Sucesso, 23 páginas descobertas,
+  última leitura 09/11/2026**. O XML mantém a mesma lista; a sua linha antiga
+  ainda mostra erro no Search Console. O processamento em texto resolve a
+  entrega das URLs sem provar a causa da falha do XML.
+- Robots anuncia os dois formatos somente no anfitrião público com indexação
+  ativa. Pesquisa, painel, administração e encaminhamentos continuam excluídos.
+- Schema WebSite/Organization e BreadcrumbList existentes mantidos. Nenhum
+  Product/Offer/Review/Rating, preço, stock ou prazo foi fabricado.
+- Propriedade de domínio e propriedade URL-prefix WWW verificadas no Google.
+  A conexão Windsor para sc-domain:lowcost-europa.eu está confirmada.
 
-1. **Segurança / GitHub / VPS:** usar PR com CI, verificar versão operacional, serviços,
-   backups/offsite, TLS, `main` e rollback antes da implantação. A `main`
-   carece de uma regra administrativa de proteção; a capacidade de criar PR
-   não equivale a capacidade de gerir Settings > Rules > Rulesets. Não apagar
-   backups, certificados nem histórico. Rollout só no projeto `lowcost-europa`.
-2. **PT/ES:** URLs estáveis e independentes da localização do IP, referências
-   recíprocas `hreflang="pt-PT"`, `"es-ES"` e `"x-default"`; canonicals
-   autorreferentes. A raiz e as cinco categorias atuais conservam a sua
-   indexação prévia. O sitemap passa de 11 para 23 URLs **apenas após ativação**.
-   URLs de operações, checkout externo e pesquisa nunca entram no sitemap.
-3. **Estrutura / confiança:** WebSite + Organization básicos na homepage;
-   BreadcrumbList nas categorias publicadas. Não publicar schema Product,
-   Offer, Review, Ratings, preço atual, stock, entrega ou armazém sem evidência
-   por SKU e conteúdo correspondente. Títulos e descrições da montra ganham
-   variantes PT/ES. Navegação de página inicial/categorias mantém o idioma.
-   Não inventar novas categorias para obter volume.
-4. **Medição:** o painel já possui leitor de dados Search Console através do
-   Windsor.ai; a conexão OAuth da propriedade `sc-domain:lowcost-europa.eu`
-   **ainda não está comprovada**. Somente após o titular autenticar e
-   o conector confirmar a propriedade, executar o sincronizador `--dry-run`,
-   permitir snapshots no ambiente privado e verificar cliques, impressões,
-   CTR e posição verdadeiros. Não confundir com cliques afiliados.
-5. **Expansão:** estabilizar PT/ES com dados reais de pesquisa e conversão antes
-   de abrir FR/DE/EN. O catálogo de traduções existente pode ser reutilizado
-   quando houver conteúdo completo e QA por mercado; nunca gerar páginas
-   vazias, traduções parciais ou landing pages em massa.
+## Validação comprovada
 
-## Porta operacional
+[PR #248](https://github.com/martaxi-boss/lowcost-europa/pull/248):
+[CI #42638623744](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42638623744),
+**795 testes PASS**; [auditoria #42638619220](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42638619220)
+PASS; [browser fonte #42638620025](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42638620025),
+**18 verificações PASS**, quatro larguras e dados sintéticos.
 
-1. Exigir CI, testes unitários específicos, revisão de fonte, migrações sem
-   diferenças e QA Playwright em dispositivo mobile emulado + desktop.
-2. Verificar na VPS SHA, worktree sem alterações, saúde da BD, Nginx, backups,
-   espaço livre e certificados. Fazer backup/rollback privado e não expor
-   segredos no GitHub.
-3. Implantar por SHA com o **processo autorizado existente**; a nova variável
-   `DJANGO_LOCALE_SEO_ENABLED=true` requer ambiente de produção atualizado
-   e restart **protegido**, pois HUP não relê variáveis de ambiente.
-4. Comparar 11 URLs originais, os 12 novos URLs, 200, canonicals exatos,
-   3 alternates por página, `<html lang>`, rastreabilidade, robots, JSON-LD,
-   pesquisa, painel privado, `/go/`, cinco categorias, 404 com flag desligada,
-   TLS e redirecionamentos raiz/WWW. Testar browsers com IP de PT e ES;
-   as páginas explícitas devem ignorar GeoIP e cookies.
-5. Validar a sitemap final e o estado IndexNow antes/depois; não fazer envios
-   duplicados de páginas antigas. O IndexNow existente poderá notificar apenas
-   URLs novos/alterados na próxima execução natural.
-6. Conferir novamente métricas em Search Console/Bing **sem** prometer
-   indexação imediata ou rankings. Se qualquer porta falhar, regressar à
-   configuração anterior, mantendo URLs originais e backups.
+Produção: backup com checksum/rollback preservados; 10 guias e metadados PT/ES,
+canonicals/hreflang, navegação no idioma, robots, XML/TXT inalterados com
+23 URLs, rotas privadas, segredo preservado, serviço e seis timers PASS.
+Inspeção do navegador na categoria HIFU espanhola confirmou o guia e o título
+publicados. O browser sintético não certifica dispositivos físicos nem todas
+as interações comerciais em produção.
 
-O serviço de DNS, e-mail na Dynadot, domínio canónico WWW, propriedade do
-Search Console, chaves IndexNow, dados comerciais e outros projetos não fazem
-parte da alteração. A ativação externa e a proteção da `main` exigem
-autorização/controlo administrativo no respetivo fornecedor.
+Sem migrações, novos pacotes, serviços pagos, novas tarefas recorrentes,
+alterações DNS/TLS/Nginx, catálogo, links afiliados ou regras de publicação.
+Workflow temporário de rollout removido; execuções preservadas.
+
+## Medição e trabalho seguinte
+
+A consulta Windsor de 02 a 08/11 devolveu **zero linhas**. Isto é ausência de
+dados utilizáveis, não prova de zero cliques/impressões ou melhoria do ranking.
+O painel deve continuar a distinguir configuração, AWAITING_DATA e resultados
+efetivamente recebidos, sem criar snapshots fictícios.
+
+Acompanhar no Search Console páginas indexadas, impressões, cliques, CTR,
+posição, consultas e país para os URLs PT/ES. Comparar a data de publicação
+com dados posteriores quando existirem. Descoberta de 23 URLs, pedido de
+indexação e inclusão efetiva no índice são estados diferentes.
+
+O SEO técnico/editorial desta ronda está publicado; a indexação de todas as
+páginas e a subida de posições continuam por comprovar. Não tratar a conclusão
+da ronda como ranking garantido ou como fim de todo o trabalho SEO.
+
+## Limites comerciais e expansão
+
+Nas páginas ES, os dados PT continuam identificados como referência, sem
+confirmar preços, stock ou entrega ES por inferência. Os guias são apoio de
+comparação, não prova de características, eficácia ou condições de um SKU.
+
+Manter foco PT/ES. Expansão FR/DE/EN e criação massiva de páginas não são parte
+desta ronda; novas prioridades devem partir de dados reais e utilidade para
+quem compara equipamentos.
