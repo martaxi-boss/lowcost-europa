@@ -972,3 +972,14 @@ body { background: var(--bg); }
 .site-nav .locale-switch { padding: 10px 12px; border-top: 1px solid var(--border); }
 .site-footer .locale-switch { padding-top: 21px; border-top: 1px solid rgba(255,255,255,.13); }
 .site-footer .locale-switch label { color: #d2dfdb; }
+
+/* Owner-provided AliExpress URL stays visible and copyable in embedded browsers. */
+.offer-browser-help { margin-top: 12px; padding: 10px 12px; border: 1px solid #d2e3d8; border-radius: 11px; background: #f5faf6; }
+.offer-browser-help summary { cursor: pointer; color: #174f40; font-size: .82rem; font-weight: 740; }
+.offer-browser-help summary:focus-visible { outline: 3px solid #2d796a; outline-offset: 2px; }
+.offer-browser-help .meta { margin: 9px 0; }
+.offer-browser-help label { display: block; margin: 12px 0 5px; color: #24483d; font-size: .8rem; font-weight: 720; }
+.offer-browser-help input { width: 100%; min-width: 0; min-height: 44px; padding: 9px 10px; border: 1px solid #a7b9af; border-radius: 8px; background: white; color: #17392e; font: inherit; font-size: .84rem; }
+.offer-browser-help input:focus-visible { outline: 3px solid #2d796a; outline-offset: 2px; }
+.offer-browser-help .button { width: 100%; margin-top: 9px; cursor: pointer; }
+.offer-browser-help [data-affiliate-copy-status]:empty { display: none; }
