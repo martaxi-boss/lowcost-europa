@@ -9,7 +9,13 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.catalog.models import Offer, OfferClick, OfferFamilyPlacement, OfferObservation, ProductFamily
+from apps.catalog.models import (
+    Offer,
+    OfferClick,
+    OfferFamilyPlacement,
+    OfferObservation,
+    ProductFamily,
+)
 from apps.catalog.services.offer_maintenance import select_maintenance_batch
 from apps.catalog.services.public_eligibility import public_eligibility_q
 
@@ -177,8 +183,12 @@ class OwnerAffiliateDirectPublishTests(TestCase):
                 source=Offer.Source.ALIEXPRESS, external_product_id=f"bulk-{n}"
             )
             OfferFamilyPlacement.objects.create(offer=offer, product_family=self.family)
-        self.assertEqual(OfferFamilyPlacement.objects.filter(product_family=self.family).count(), 20)
+        self.assertEqual(
+            OfferFamilyPlacement.objects.filter(product_family=self.family).count(), 20
+        )
         with self.assertRaises(CommandError):
             self.publish()
-        self.assertEqual(OfferFamilyPlacement.objects.filter(product_family=self.family).count(), 20)
+        self.assertEqual(
+            OfferFamilyPlacement.objects.filter(product_family=self.family).count(), 20
+        )
         self.assertFalse(Offer.objects.filter(source=Offer.Source.ALIEXPRESS_OWNER).exists())
