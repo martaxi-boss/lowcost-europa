@@ -1,10 +1,15 @@
 """Read-only Search Console performance sync into the private owner snapshot."""
 
+import os
+
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
 from apps.catalog.models import ExternalMetricsSnapshot
+from apps.catalog.services.official_search_console_reporting import (
+    collect_official_search_console_report,
+)
 from apps.catalog.services.windsor_search_console_reporting import (
     SearchConsoleAwaitingData,
     SearchConsoleReportError,
@@ -13,14 +18,22 @@ from apps.catalog.services.windsor_search_console_reporting import (
 
 
 class Command(BaseCommand):
-    help = "Fetch official Google organic clicks and impressions through authorized Windsor.ai."
+    help = "Sync verified Search Console metrics from the selected authorized provider."
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
+        provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
+        if provider not in {"WINDSOR", "GOOGLE_OFFICIAL"}:
+            raise CommandError("GOOGLE_SEARCH_REPORT=INVALID_PROVIDER")
+        collector = (
+            collect_official_search_console_report
+            if provider == "GOOGLE_OFFICIAL"
+            else collect_search_console_report
+        )
         try:
-            report, period_start, period_end = collect_search_console_report()
+            report, period_start, period_end = collector()
         except SearchConsoleAwaitingData:
             self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_DATA")
             return
