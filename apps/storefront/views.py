@@ -35,6 +35,7 @@ from apps.catalog.services.public_eligibility import (
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 from apps.storefront.seo import PRIVATE_PATH_PREFIXES, public_indexing_active
+from apps.storefront.seo_editorial import guide_for_category
 from apps.storefront.seo_locales import (
     alternate_public_urls,
     home_page_url,
@@ -467,22 +468,32 @@ def product_family_detail(request, slug):
         return redirect("storefront:product-family-detail", slug=redirect_slug)
     family = get_object_or_404(_family_queryset(), slug=slug)
     _prepare_family(family)
+    language = getattr(request, "LANGUAGE_CODE", "pt-pt")
+    guide = guide_for_category(family.slug, language)
+    page_title = (
+        guide["title"]
+        if guide
+        else f"{translate_ui(family.name, language)} | Lowcost Europa"
+    )
+    meta_description = (
+        guide["description"]
+        if guide
+        else (
+            f"Explora opciones y datos observados de {translate_ui(family.name, 'es')}. "
+            "Precios y disponibilidad sujetos a confirmación del vendedor."
+            if language == "es"
+            else f"Compare ofertas e informação observada para {family.name}. "
+                 "Confirme preço e disponibilidade no parceiro."
+        )
+    )
     context = {
         "family": family,
+        "family_seo_guide": guide,
         **_owner_family_context(request, family),
         **_seo_context(
             request,
-            (
-                f"{translate_ui(family.name, getattr(request, 'LANGUAGE_CODE', 'pt-pt'))} "
-                "| Lowcost Europa"
-            ),
-            (
-                f"Explora opciones y datos observados de {translate_ui(family.name, 'es')}. "
-                "Precios y disponibilidad sujetos a confirmación del vendedor."
-                if getattr(request, "LANGUAGE_CODE", "pt-pt") == "es"
-                else f"Compare ofertas e informação observada para {family.name}. "
-                     "Confirme preço e disponibilidade no parceiro."
-            ),
+            page_title,
+            meta_description,
             kind="category",
             category=translate_ui(family.name, getattr(request, "LANGUAGE_CODE", "pt-pt")),
         ),
