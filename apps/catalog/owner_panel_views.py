@@ -436,6 +436,49 @@ def dashboard(request):
         and google_search_report.checked_at <= now
         and now - google_search_report.checked_at <= timedelta(hours=48)
     )
+    google_search_configured = bool(
+        os.environ.get("WINDSOR_API_KEY")
+        and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
+        == "sc-domain:lowcost-europa.eu"
+    )
+    # Comparar motores exige cliques medidos na mesma origem e período.
+    # Search Console só mede Google; não inventar números para outros motores.
+    # Não recolher aqui IP, sessões, referers ou novos dados de visitantes.
+    google_status = (
+        "Métricas sincronizadas" if google_search_report_fresh
+        else "Relatório desatualizado" if google_search_report_payload
+        else "A aguardar primeiros dados" if google_search_configured
+        else "Ligação de métricas pendente"
+    )
+    engine_comparison_rows = [
+        {
+            "name": "Google",
+            "clicks": (
+                google_search_report_payload.get("clicks")
+                if google_search_report_payload else None
+            ),
+            "impressions": (
+                google_search_report_payload.get("impressions")
+                if google_search_report_payload else None
+            ),
+            "source": "Search Console (todo o domínio)",
+            "status": google_status,
+            "checked_at": (
+                google_search_report.checked_at if google_search_report_payload else None
+            ),
+        },
+        *[
+            {
+                "name": name,
+                "clicks": None,
+                "impressions": None,
+                "source": "Sem fonte de cliques ligada",
+                "status": "A aguardar integração",
+                "checked_at": None,
+            }
+            for name in ("Bing", "Yahoo", "DuckDuckGo", "Brave", "Seznam", "Yandex")
+        ],
+    ]
 
     return _private(
         render(
@@ -475,11 +518,8 @@ def dashboard(request):
                 "meta_report_payload": meta_report_payload,
                 "meta_report_fresh": meta_report_fresh,
                 "google_search_report": google_search_report,
-                "google_search_configured": bool(
-                    os.environ.get("WINDSOR_API_KEY")
-                    and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
-                    == "sc-domain:lowcost-europa.eu"
-                ),
+                "google_search_configured": google_search_configured,
+                "engine_comparison_rows": engine_comparison_rows,
                 "google_search_report_payload": google_search_report_payload,
                 "google_search_report_fresh": google_search_report_fresh,
             },
