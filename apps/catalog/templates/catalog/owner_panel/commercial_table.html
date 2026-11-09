@@ -1,0 +1,17 @@
+      <div class="commercial-table-wrap" role="region" aria-label="Tabela da verificação comercial {{ evidence_market }}" tabindex="0">
+        <table class="commercial-table">
+          <thead><tr><th scope="col">Oferta / categoria</th><th scope="col">Publicação</th><th scope="col">Preço EUR</th><th scope="col">Origem de envio</th><th scope="col">Stock</th><th scope="col">Entrega</th></tr></thead>
+          <tbody>
+            {% for row in evidence_rows %}
+            <tr>
+              <td><strong>{{ row.title|truncatechars:85 }}</strong><small>{{ row.family_name }}</small><small><a href="{% url 'owner-panel:family' row.family_slug %}?vista=auditoria">Ver ficha na área privada</a>{% if row.product_url %} · <a href="{{ row.product_url }}" target="_blank" rel="noopener noreferrer">Abrir anúncio real</a>{% endif %}</small></td>
+              <td>{{ row.publication }}</td>
+              <td>{% if row.price is not None %}<strong>{{ row.price }} EUR</strong>{% else %}Sem preço{% endif %}<small>{{ row.price_state }}</small>{% if row.price_at %}<small>{{ row.price_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+              <td>{{ row.origin }}{% if row.origin_at %}<small>Revisão: {{ row.origin_at|date:"d/m/Y H:i" }}</small>{% endif %}<small>Armazém da variante não certificado pela API</small></td>
+              <td>{{ row.availability }}{% if row.availability_at %}<small>Consulta: {{ row.availability_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+              <td>{{ row.delivery }}<small>{{ row.delivery_state }}</small>{% if row.delivery_at %}<small>Observação: {{ row.delivery_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+            </tr>
+            {% empty %}<tr><td colspan="6">Não há ofertas selecionadas para verificar.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>

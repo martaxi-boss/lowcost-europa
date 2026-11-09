@@ -7,6 +7,9 @@ No network calls, paid translation APIs or visitor IP geolocation.
 """
 
 UI_TRANSLATIONS = {
+  "Dados de referência para Portugal; preço e entrega para Espanha não confirmados.": {
+    "es": "Datos de referencia para Portugal; precio y entrega para España no confirmados."
+  },
   "Lowcost Europa | Equipamentos de estética profissional": {
     "es": "Lowcost Europa | Equipos de estética profesional",
     "en": "Lowcost Europa | Professional beauty equipment",

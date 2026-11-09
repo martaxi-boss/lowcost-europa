@@ -68,5 +68,5 @@ def public_eligibility_q(as_of=None, prefix="", *, require_recent_price=None):
         observed_at__lte=as_of,
         price__gt=0,
         currency__iexact="EUR",
-    )
+    ).exclude(destination_country="ES")
     return base_gate & Q(Exists(recent_positive_eur_price))

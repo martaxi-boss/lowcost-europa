@@ -62,9 +62,11 @@ def _delivery_label(search_days, detail_days):
     return "Prazo não confirmado"
 
 
-def owner_commercial_evidence_rows(*, as_of=None):
+def owner_commercial_evidence_rows(*, as_of=None, country="PT"):
     """One bounded DB query per fact; no N+1 and no external requests."""
     as_of = as_of or timezone.now()
+    if country not in {"PT", "ES"}:
+        raise ValueError("Unsupported evidence market")
     active = Offer.objects.filter(
         is_active=True,
         owner_hidden=False,
@@ -81,9 +83,13 @@ def owner_commercial_evidence_rows(*, as_of=None):
     newest = OfferObservation.objects.filter(
         offer_id=OuterRef("pk"), observed_at__lte=as_of
     ).order_by("-observed_at", "-pk")
+    newest = (
+        newest.filter(destination_country="ES") if country == "ES"
+        else newest.exclude(destination_country="ES")
+    )
     eur_price = newest.filter(price__gt=0, currency__iexact="EUR")
     # Do not display an estimate for Spain or an unknown destination as PT.
-    delivery = newest.filter(destination_country="PT").filter(
+    delivery = newest.filter(destination_country=country).filter(
         Q(search_delivery_days__gt=0) | Q(delivery_days__gt=0)
     )
     offers = (

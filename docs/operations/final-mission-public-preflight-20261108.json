@@ -1,0 +1,378 @@
+{
+  "checked_at": "2026-11-09T00:00:47.863008+00:00",
+  "scope": "anonymous HTTPS GET, no submission",
+  "sitemap_count": 23,
+  "pages": [
+    {
+      "url": "https://www.lowcost-europa.eu/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/",
+        "es-ES": "https://www.lowcost-europa.eu/es/",
+        "x-default": "https://www.lowcost-europa.eu/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/como-funciona/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/como-funciona/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/como-funciona/"
+      ],
+      "hreflang": {},
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/afiliados/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/afiliados/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/afiliados/"
+      ],
+      "hreflang": {},
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/privacidade/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/privacidade/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/privacidade/"
+      ],
+      "hreflang": {},
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/termos/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/termos/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/termos/"
+      ],
+      "hreflang": {},
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/contacto/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/contacto/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/contacto/"
+      ],
+      "hreflang": {},
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/cavitacao-rf-vacuum-corpo/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/cavitacao-rf-vacuum-corpo/",
+        "x-default": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "x-default": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hifu/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/products/hifu/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/products/hifu/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/hifu/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/hifu/",
+        "x-default": "https://www.lowcost-europa.eu/products/hifu/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "x-default": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/pressoterapia-vacuum-drenagem/",
+        "x-default": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "en"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pt/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/pt/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/pt/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/",
+        "es-ES": "https://www.lowcost-europa.eu/es/",
+        "x-default": "https://www.lowcost-europa.eu/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "pt-pt"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pt/products/cavitacao-rf-vacuum-corpo/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/pt/products/cavitacao-rf-vacuum-corpo/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/pt/products/cavitacao-rf-vacuum-corpo/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/cavitacao-rf-vacuum-corpo/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/cavitacao-rf-vacuum-corpo/",
+        "x-default": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "pt-pt"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "x-default": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "pt-pt"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pt/products/hifu/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/pt/products/hifu/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/pt/products/hifu/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/hifu/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/hifu/",
+        "x-default": "https://www.lowcost-europa.eu/products/hifu/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "pt-pt"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pt/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/pt/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/pt/products/hydrodermoabrasao-aqua-facial-multifuncoes/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "x-default": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "pt-pt"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/pressoterapia-vacuum-drenagem/",
+        "x-default": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "pt-pt"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/es/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/es/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/es/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/",
+        "es-ES": "https://www.lowcost-europa.eu/es/",
+        "x-default": "https://www.lowcost-europa.eu/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "es"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/es/products/cavitacao-rf-vacuum-corpo/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/es/products/cavitacao-rf-vacuum-corpo/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/es/products/cavitacao-rf-vacuum-corpo/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/cavitacao-rf-vacuum-corpo/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/cavitacao-rf-vacuum-corpo/",
+        "x-default": "https://www.lowcost-europa.eu/products/cavitacao-rf-vacuum-corpo/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "es"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/es/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/es/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/es/products/diodo-laser-remocao-tatuagens-pigmentacao/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/diodo-laser-remocao-tatuagens-pigmentacao/",
+        "x-default": "https://www.lowcost-europa.eu/products/diodo-laser-remocao-tatuagens-pigmentacao/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "es"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/es/products/hifu/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/es/products/hifu/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/es/products/hifu/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/hifu/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/hifu/",
+        "x-default": "https://www.lowcost-europa.eu/products/hifu/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "es"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/es/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/es/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/es/products/hydrodermoabrasao-aqua-facial-multifuncoes/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/hydrodermoabrasao-aqua-facial-multifuncoes/",
+        "x-default": "https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "es"
+    },
+    {
+      "url": "https://www.lowcost-europa.eu/es/products/pressoterapia-vacuum-drenagem/",
+      "http": 200,
+      "final_url": "https://www.lowcost-europa.eu/es/products/pressoterapia-vacuum-drenagem/",
+      "canonical": [
+        "https://www.lowcost-europa.eu/es/products/pressoterapia-vacuum-drenagem/"
+      ],
+      "hreflang": {
+        "pt-PT": "https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/",
+        "es-ES": "https://www.lowcost-europa.eu/es/products/pressoterapia-vacuum-drenagem/",
+        "x-default": "https://www.lowcost-europa.eu/products/pressoterapia-vacuum-drenagem/"
+      },
+      "robots": [
+        "index, follow"
+      ],
+      "lang": "es"
+    }
+  ]
+}

@@ -105,23 +105,11 @@ code{overflow-wrap:anywhere}
     <details class="commercial-details" id="auditoria-ofertas">
       <summary>Consultar {{ commercial_evidence_rows|length }} ofertas selecionadas, incluindo as que estão bloqueadas</summary>
       <p class="analytics-note">Dados da base de dados, atualizados à hora desta consulta. Não há acesso à AliExpress ao abrir este painel. Os preços podem mudar no vendedor. Para confirmar uma variante, use «Abrir anúncio real».</p>
-      <div class="commercial-table-wrap" role="region" aria-label="Tabela da verificação comercial" tabindex="0">
-        <table class="commercial-table">
-          <thead><tr><th scope="col">Oferta / categoria</th><th scope="col">Publicação</th><th scope="col">Preço EUR</th><th scope="col">Origem de envio</th><th scope="col">Stock</th><th scope="col">Entrega</th></tr></thead>
-          <tbody>
-            {% for row in commercial_evidence_rows %}
-            <tr>
-              <td><strong>{{ row.title|truncatechars:85 }}</strong><small>{{ row.family_name }}</small><small><a href="{% url 'owner-panel:family' row.family_slug %}?vista=auditoria">Ver ficha na área privada</a>{% if row.product_url %} · <a href="{{ row.product_url }}" target="_blank" rel="noopener noreferrer">Abrir anúncio real</a>{% endif %}</small></td>
-              <td>{{ row.publication }}</td>
-              <td>{% if row.price is not None %}<strong>{{ row.price }} EUR</strong>{% else %}Sem preço{% endif %}<small>{{ row.price_state }}</small>{% if row.price_at %}<small>{{ row.price_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
-              <td>{{ row.origin }}{% if row.origin_at %}<small>Revisão: {{ row.origin_at|date:"d/m/Y H:i" }}</small>{% endif %}<small>Armazém da variante não certificado pela API</small></td>
-              <td>{{ row.availability }}{% if row.availability_at %}<small>Consulta: {{ row.availability_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
-              <td>{{ row.delivery }}<small>{{ row.delivery_state }}</small>{% if row.delivery_at %}<small>Observação: {{ row.delivery_at|date:"d/m/Y H:i" }}</small>{% endif %}</td>
-            </tr>
-            {% empty %}<tr><td colspan="6">Não há ofertas selecionadas para verificar.</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <h3>Portugal — observações PT e histórico sem destino</h3>
+      {% include "catalog/owner_panel/commercial_table.html" with evidence_rows=commercial_evidence_rows evidence_market="PT" %}
+      <h3>Espanha — apenas observações com destino ES</h3>
+      <p class="analytics-note">Um preço de Portugal nunca preenche esta tabela. Publicação e origem editorial são estados gerais, não aprovação para Espanha. Stock por SKU, armazém atual e prazo permanecem não confirmados quando o fornecedor não fornece prova.</p>
+      {% include "catalog/owner_panel/commercial_table.html" with evidence_rows=commercial_evidence_es_rows evidence_market="ES" %}
     </details>
   </section>
 
