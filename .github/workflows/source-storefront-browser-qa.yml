@@ -8,6 +8,10 @@ on:
       - 'apps/storefront/templates/**'
       - 'apps/storefront/static/**'
       - 'tests/browser/source-storefront-qa.cjs'
+      - 'apps/storefront/views.py'
+      - 'apps/storefront/seo.py'
+      - 'apps/storefront/seo_locales.py'
+      - 'apps/catalog/services/public_eligibility.py'
       - 'tests/browser/seed-source-storefront-qa.py'
   push:
     branches: [main]
@@ -16,6 +20,10 @@ on:
       - 'apps/storefront/templates/**'
       - 'apps/storefront/static/**'
       - 'tests/browser/source-storefront-qa.cjs'
+      - 'apps/storefront/views.py'
+      - 'apps/storefront/seo.py'
+      - 'apps/storefront/seo_locales.py'
+      - 'apps/catalog/services/public_eligibility.py'
       - 'tests/browser/seed-source-storefront-qa.py'
   workflow_dispatch:
 

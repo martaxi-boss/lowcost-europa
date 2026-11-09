@@ -7,11 +7,17 @@ on:
     paths:
       - '.github/workflows/staging-browser-qa.yml'
       - 'tests/browser/staging-browser-smoke.cjs'
+      - 'apps/storefront/seo.py'
+      - 'apps/storefront/seo_locales.py'
+      - 'apps/catalog/services/public_eligibility.py'
   push:
     branches: [main]
     paths:
       - '.github/workflows/staging-browser-qa.yml'
       - 'tests/browser/staging-browser-smoke.cjs'
+      - 'apps/storefront/seo.py'
+      - 'apps/storefront/seo_locales.py'
+      - 'apps/catalog/services/public_eligibility.py'
 
 permissions:
   contents: read
