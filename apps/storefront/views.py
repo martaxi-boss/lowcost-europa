@@ -29,6 +29,7 @@ from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
 )
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
 from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
     is_ship_from_verified,
@@ -405,6 +406,18 @@ def _owner_family_context(request, family):
         }
     if family.status == ProductFamily.Status.RETIRED:
         return {"owner_mode": True, "owner_active_tab": "montra"}
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        # The Owner sees exactly the manual montra and delete controls.
+        # Do not fetch legacy review/approval queues for this category.
+        return {
+            "owner_mode": True,
+            "owner_manual_only": True,
+            "owner_active_tab": "montra",
+            "owner_storefront_count": len(family.public_placements),
+            "owner_preview_url": f"{request.path}?owner_preview=public",
+            "owner_error": request.session.pop("owner_panel_error", ""),
+            "owner_notice": request.session.pop("owner_panel_notice", ""),
+        }
 
     active_tab = request.GET.get("gestao", "montra")
     allowed_tabs = {"montra", "rever", "aprovados", "retirados", "revalidar", "rejeitados"}
