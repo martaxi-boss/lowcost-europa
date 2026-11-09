@@ -9,6 +9,9 @@ No network calls, paid translation APIs or visitor IP geolocation.
 import re
 
 UI_TRANSLATIONS = {
+  "Guia de compra para Portugal": {"es": "Guía de compra para España"},
+  "Antes de escolher uma oferta, confirme estes pontos sobre o equipamento anunciado:": {"es": "Antes de elegir una oferta, confirma estos puntos sobre el equipo anunciado:"},
+  "Estes critérios ajudam a comparar ofertas, mas não certificam características de um modelo específico. Preço, stock, entrega e condições finais devem ser confirmados junto do parceiro.": {"es": "Estos criterios ayudan a comparar ofertas, pero no certifican las características de un modelo concreto. El precio, las existencias, la entrega y las condiciones finales deben confirmarse con el socio."},
   "Ver seleção de": {"es": "Ver selección de"},
   "pode mudar no parceiro": {"es": "puede cambiar en el socio"},
   "Adicionar": {"es": "Añadir"},
