@@ -109,6 +109,10 @@ class PublicRecentPriceGateTests(TestCase):
         self.assertEqual(result.context["eligible_public_offers"], 0)
         self.assertEqual(result.context["visible_blocked_offers"], 0)
         self.assertEqual(result.context["price_held_from_public"], 1)
-        self.assertContains(result, "fora da montra")
-        self.assertContains(result, "históricos e a aprovação editorial")
+        self.assertNotContains(result, "fora da montra")
+        self.assertNotContains(result, "históricos e a aprovação editorial")
+        managed = self.client.get(
+            reverse("owner-panel:family", args=[self.family.slug]) + "?vista=auditoria"
+        )
+        self.assertContains(managed, "Retida: preço EUR sem observação recente")
         self.assertEqual(result["X-Robots-Tag"], "noindex, nofollow")
