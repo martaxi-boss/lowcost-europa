@@ -172,8 +172,8 @@ class SeoLocaleCoreTests(TestCase):
 
     def test_robots_advertises_both_sitemaps_only_on_public_indexable_host(self):
         response = self.get_public("/robots.txt")
-        self.assertContains(response, f"Sitemap: {BASE}/sitemap.xml\\n")
-        self.assertContains(response, f"Sitemap: {BASE}/sitemap.txt\\n")
+        self.assertContains(response, f"Sitemap: {BASE}/sitemap.xml\n")
+        self.assertContains(response, f"Sitemap: {BASE}/sitemap.txt\n")
         self.assertContains(response, "Disallow: /painel/")
         with override_settings(PUBLIC_INDEXING_ENABLED=False):
             blocked = self.get_public("/robots.txt")
