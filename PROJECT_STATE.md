@@ -1,5 +1,20 @@
 # Lowcost Europa — Project State
 
+## GitHub/VPS alignment audit — 9 November 2026, 14:34–14:35 Lisbon
+
+**Audit completed; no functional source/configuration mismatch or HTTP blocker reproduced. Google sitemap processing remains unresolved.**
+
+[Real VPS and independent GitHub-runner audit #42635910916](https://github.com/martaxi-boss/VPS/actions/runs/42635910916) completed successfully:
+- VPS application SHA `0f47a0a6d22343979352adaecaae25228d0ce3e7`; compared against GitHub `02b5e9132c7d45ea63135aceab97e393bbf91dea`. Tracked working tree clean; only `PROJECT_STATE.md` differs. Executable trees `apps/config/deploy/requirements/manage.py` match. Documentation-only descendants do not require a restart.
+- Actual application process is active and its working directory is `/srv/projects/lowcost-europa`. The Nginx enabled configuration resolves to the tracked `deploy/nginx/lowcost-europa.eu.conf`, byte-identical; Nginx configuration test passes. Expected three server declarations; no Google-specific match, GeoIP, proxy-protocol or limit_req directives found in the configuration snapshot.
+- Two independent HTTP matrices, one from the VPS and one from the GitHub runner, each tested seven sitemap profiles (default, PT/ES/FR Accept-Language, gzip acceptance, claimed Googlebot and claimed Google-InspectionTool). Every profile returned HTTP 200, 23 unique URLs and the same XML SHA-256 `db918094c963189fba30c6908c897eccd197857441d5ae6f6c3c3d97649982a6`. User-agent profiles are compatibility tests, not proof of actual crawler visits.
+- All 23 sitemap targets were tested independently from each location: HTTP 200 without redirect, matching canonical and no detected meta noindex. Both summaries: `distinct_xml_hashes=1, failures=[], tested_urls=23`.
+- Previous transport/log audit [#42634428350](https://github.com/martaxi-boss/VPS/actions/runs/42634428350) validated TLS and public robots; no host-scoped sitemap/robots errors in the bounded log sample. Shared combined access logs lack Host and cannot independently attribute all candidate crawler requests to this vhost. Verified Google inspection traffic is not evidence that the ordinary sitemap crawler has processed the XML.
+- **URL-prefix experiment completed after explicit owner approval:** property `https://www.lowcost-europa.eu/` was automatically verified using existing domain proof, without DNS edits. Domain property retained. The prefix report already displayed the same sitemap error before submission. One submission was accepted, but one subsequent reload still showed unknown type / couldn't fetch / zero discovered. This did not resolve the issue and does not prove a domain-property-specific fault.
+- Google host crawl stats showed both apex/WWW without problems, 37 requests and 488 ms average, but last update 7 November; this is historical reporting, not current health proof. Manual actions: no problem detected.
+- **Conclusion and limits:** tested source, active paths, vhost and public delivery are aligned. No demonstrated defect justifies a speculative site/DNS/TLS change. The cause of Google's separate processing failure is still undetermined; do not describe it as resolved, a confirmed Google bug, or a server failure. No further submission was made during this alignment audit.
+- Operational audit used GitHub Actions and the existing SSH connection; no new Ferrari engine job, installation, runtime deployment, database write or restart. Temporary diagnostic workflow removed after completion; run evidence retained.
+
 ## Authenticated Google sitemap follow-up — 9 November 2026, 14:15–14:16 Lisbon
 
 This supersedes the signed-out/CAPTCHA access limitation and the pending-only Google processing description below.
