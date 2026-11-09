@@ -9,6 +9,12 @@ No network calls, paid translation APIs or visitor IP geolocation.
 import re
 
 UI_TRANSLATIONS = {
+  "Preço EUR observado para Espanha; confirme stock e entrega no vendedor.": {
+    "es": "Precio en EUR observado para España; confirma existencias y entrega con el vendedor.",
+    "en": "EUR price observed for Spain; confirm stock and delivery with the seller.",
+    "fr": "Prix EUR observé pour l'Espagne ; confirmez le stock et la livraison auprès du vendeur.",
+    "de": "Für Spanien beobachteter EUR-Preis; Bestand und Lieferung beim Verkäufer bestätigen.",
+  },
   "Guia de compra para Portugal": {"es": "Guía de compra para España"},
   "Antes de escolher uma oferta, confirme estes pontos sobre o equipamento anunciado:": {"es": "Antes de elegir una oferta, confirma estos puntos sobre el equipo anunciado:"},
   "Estes critérios ajudam a comparar ofertas, mas não certificam características de um modelo específico. Preço, stock, entrega e condições finais devem ser confirmados junto do parceiro.": {"es": "Estos criterios ayudan a comparar ofertas, pero no certifican las características de un modelo concreto. El precio, las existencias, la entrega y las condiciones finales deben confirmarse con el socio."},
