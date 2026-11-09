@@ -25,6 +25,7 @@ urlpatterns = [
     path("contacto/", views.institutional_page, {"page": "contacto"}, name="contacto"),
     path("contactar/whatsapp/", views.whatsapp_contact, name="whatsapp-contact"),
     path("sitemap.xml", views.sitemap_xml, name="sitemap"),
+    path("sitemap.txt", views.sitemap_txt, name="sitemap-text"),
     path("robots.txt", views.robots_txt, name="robots"),
     re_path(r"^indexnow-(?P<key>[a-f0-9]{32})\.txt$", views.indexnow_key, name="indexnow-key"),
     path("products/<slug:slug>/", views.product_family_detail, name="product-family-detail"),

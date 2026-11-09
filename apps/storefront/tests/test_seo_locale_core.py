@@ -138,3 +138,34 @@ class SeoLocaleCoreTests(TestCase):
         self.assertNotContains(response, 'hreflang="es-ES"')
         self.assertNotContains(response, 'application/ld+json')
         self.assertNotContains(self.get_public("/sitemap.xml"), "/es/products/hifu/")
+
+    def test_text_sitemap_matches_xml_and_omits_retired_and_private_urls(self):
+        ProductFamily.objects.filter(slug="hifu").update(status=ProductFamily.Status.RETIRED)
+        xml_urls = re.findall(r"<loc>([^<]+)</loc>",
+                              self.get_public("/sitemap.xml").content.decode())
+        response = self.get_public("/sitemap.txt")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/plain; charset=utf-8")
+        urls = response.content.decode("utf-8").splitlines()
+        self.assertEqual(urls, xml_urls)
+        self.assertEqual(len(urls), 20)
+        self.assertEqual(len(set(urls)), len(urls))
+        self.assertNotIn("noindex", response.get("X-Robots-Tag", ""))
+        self.assertTrue(all(url.startswith(BASE + "/") for url in urls))
+        self.assertTrue(all("/hifu/" not in url and "/painel/" not in url for url in urls))
+        head = self.client.head("/sitemap.txt", HTTP_HOST="www.example.test", secure=True)
+        self.assertEqual(head.status_code, 200)
+        self.assertEqual(head.content, b"")
+        self.assertEqual(self.client.post("/sitemap.txt", HTTP_HOST="www.example.test",
+                                         secure=True).status_code, 405)
+
+    def test_text_sitemap_keeps_indexing_and_locale_gates(self):
+        with override_settings(LOCALE_SEO_ENABLED=False):
+            self.assertEqual(len(self.get_public("/sitemap.txt").content.splitlines()), 11)
+        with override_settings(PUBLIC_INDEXING_ENABLED=False):
+            response = self.get_public("/sitemap.txt")
+            self.assertIn("noindex", response["X-Robots-Tag"])
+            self.assertNotIn(b"/pt/", response.content)
+            self.assertNotIn(b"/es/", response.content)
+        response = self.client.get("/sitemap.txt", HTTP_HOST="other.example.test", secure=True)
+        self.assertIn("noindex", response["X-Robots-Tag"])

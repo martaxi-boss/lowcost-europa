@@ -544,7 +544,7 @@ def robots_txt(request):
     return HttpResponse(body, content_type="text/plain; charset=utf-8")
 
 
-def sitemap_xml(request):
+def _sitemap_urls(request):
     base_url = settings.PUBLIC_SITE_URL or request.build_absolute_uri("/").rstrip("/")
     paths = [
         reverse("storefront:home"),
@@ -573,9 +573,20 @@ def sitemap_xml(request):
                 )
                 for slug in slugs
             )
-    urls = "".join(f"<url><loc>{base_url}{path}</loc></url>" for path in paths)
+    return [f"{base_url}{path}" for path in paths]
+
+
+def sitemap_xml(request):
+    urls = "".join(f"<url><loc>{url}</loc></url>" for url in _sitemap_urls(request))
     body = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
     return HttpResponse(body, content_type="application/xml")
+
+
+@require_safe
+def sitemap_txt(request):
+    """Alternative Google-supported format using the same public URL source."""
+    return HttpResponse("\n".join(_sitemap_urls(request)) + "\n",
+                        content_type="text/plain; charset=utf-8")
 
 
 def _should_record_offer_click(request):
