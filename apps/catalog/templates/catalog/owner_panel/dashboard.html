@@ -212,8 +212,13 @@ code{overflow-wrap:anywhere}
           {% endif %}
           <p>Os cliques Google são entradas a partir de pesquisas; não equivalem aos cliques de saída nos produtos. A Google pode ocultar pesquisas raras e os dados recentes podem ter atraso.</p>
         {% else %}
+          {% if google_search_configured %}
+          <span class="source-status">Leitura configurada — a aguardar dados</span>
+          <p>A leitura da propriedade lowcost-europa.eu está configurada no servidor. Ainda não existe um relatório verificável para apresentar. A ausência de dados não significa zero cliques ou impressões. Consulte o estado de processamento no Search Console.</p>
+          {% else %}
           <span class="source-status">Ligação de métricas pendente</span>
           <p>O domínio já está verificado no Google Search Console. Falta autorizar a leitura automática desta propriedade na fonte de métricas do servidor. Até à primeira consulta comprovada, cliques e impressões ficam indisponíveis — nunca são apresentados como zero.</p>
+          {% endif %}
         {% endif %}
         <p><a class="analytics-link" href="https://search.google.com/search-console/performance/search-analytics?resource_id=sc-domain%3Alowcost-europa.eu" target="_blank" rel="noopener noreferrer">Abrir desempenho no Google Search Console</a></p>
       </article>
