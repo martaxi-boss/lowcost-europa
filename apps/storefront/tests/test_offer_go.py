@@ -32,6 +32,43 @@ class OfferGoTests(TestCase):
         self.assertEqual(response["Location"], self.offer.affiliate_url)
         self.assertEqual(OfferClick.objects.filter(offer=self.offer).count(), 1)
 
+    def test_owner_link_is_identical_for_android_ios_and_desktop(self):
+        self.offer.source = Offer.Source.ALIEXPRESS_OWNER
+        self.offer.affiliate_url = "https://s.click.aliexpress.com/e/_OwnerLinkFixture"
+        self.offer.affiliate_promotion_status = Offer.AffiliatePromotionStatus.UNKNOWN
+        self.offer.affiliate_promotion_verified_at = None
+        self.offer.save(update_fields=[
+            "source", "affiliate_url", "affiliate_promotion_status",
+            "affiliate_promotion_verified_at",
+        ])
+        agents = (
+            "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Safari/604.1",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0",
+        )
+        with patch(
+            "apps.integrations.aliexpress.client.AliExpressClient.generate_affiliate_link"
+        ) as generator:
+            for agent in agents:
+                with self.subTest(user_agent=agent):
+                    response = self.client.get(self.url, HTTP_USER_AGENT=agent)
+                    self.assertEqual(response.status_code, 302)
+                    self.assertEqual(response["Location"], self.offer.affiliate_url)
+                    self.assertEqual(response["Cache-Control"], "private, no-store")
+            generator.assert_not_called()
+
+        response = self.client.get(
+            reverse("storefront:product-family-detail", args=[self.family.slug]),
+            HTTP_USER_AGENT=agents[0],
+        )
+        self.assertContains(response, 'target="_blank" rel="sponsored nofollow noopener"')
+        self.assertContains(response, 'data-affiliate-copy')
+        self.assertContains(
+            response,
+            'value="https://s.click.aliexpress.com/e/_OwnerLinkFixture"',
+        )
+        self.assertContains(response, 'data-affiliate-copy-button')
+
     def test_each_valid_request_creates_separate_click(self):
         self.client.get(self.url)
         self.client.get(self.url)
