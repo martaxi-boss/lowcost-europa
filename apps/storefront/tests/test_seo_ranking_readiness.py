@@ -138,21 +138,20 @@ class RankingReadinessPtEsTests(TestCase):
             self.assertNotIn('"Offer"', json.dumps(data))
 
 
-    def test_home_and_search_use_the_same_verified_es_price(self):
+    def test_home_and_search_keep_their_market_price_boundary(self):
         offer = self.make_offer()
         self.observe(offer, "PT", "120.00", 2)
         self.observe(offer, "ES", "145.00", 1)
-        for path in ("/es/", "/pesquisar/?q=HIFU"):
-            with self.subTest(path=path):
-                response = self.get_public(path)
-                self.assertEqual(response.status_code, 200)
-                # The localized home uses Spanish evidence; the unprefixed
-                # search still correctly uses PT evidence.
-                value = "145.00" if path == "/es/" else "120.00"
-                self.assertContains(response, f'data-price="{value}"')
-        homepage = self.get_public("/pt/")
-        self.assertContains(homepage, 'data-price="120.00"')
-        self.assertNotContains(homepage, 'data-price="145.00"')
+        es_home = self.get_public("/es/")
+        pt_home = self.get_public("/pt/")
+        self.assertContains(es_home, "145,00 EUR")
+        self.assertNotContains(es_home, "120,00 EUR")
+        self.assertContains(pt_home, "120,00 EUR")
+        self.assertNotContains(pt_home, "145,00 EUR")
+        pt_search = self.get_public("/pesquisar/?q=HIFU")
+        self.assertEqual(pt_search.status_code, 200)
+        self.assertContains(pt_search, 'data-price="120.00" data-currency="EUR"')
+        self.assertNotContains(pt_search, 'data-price="145.00"')
 
     def test_es_price_old_or_missing_falls_back_to_labelled_pt_reference(self):
         offer = self.make_offer()
