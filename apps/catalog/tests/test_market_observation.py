@@ -14,7 +14,11 @@ from apps.catalog.services.observation_display import (
 )
 from apps.catalog.services.offer_maintenance import select_maintenance_batch
 from apps.catalog.services.public_eligibility import public_eligibility_q
-from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
+from apps.integrations.aliexpress.exceptions import (
+    AliExpressError,
+    AliExpressRateLimitError,
+    AliExpressResponseError,
+)
 from apps.integrations.aliexpress.types import AliExpressProduct
 
 
@@ -99,3 +103,26 @@ class MarketObservationTests(TestCase):
             with self.assertRaises(ValueError):
                 observe_market_offers(country=country, limit=limit, client=self.client_api)
         self.client_api.get_product_detail.assert_not_called()
+
+    def test_unusable_supplier_response_is_unknown_without_starving_next_offer(self):
+        second = Offer.objects.create(
+            source=Offer.Source.ALIEXPRESS, external_product_id="market-second",
+            affiliate_url=self.offer.affiliate_url,
+            affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
+            affiliate_promotion_verified_at=timezone.now(),
+            protocol_verified_at=timezone.now(), is_active=True, owner_hidden=False,
+        )
+        self.client_api.get_product_detail.side_effect = [
+            AliExpressResponseError("Missing required product identifier"),
+            replace(self.client_api.get_product_detail.return_value, product_id="market-second"),
+        ]
+        result = observe_market_offers(country="ES", limit=2, persist=True, client=self.client_api)
+        self.assertEqual(result["attempts"], 2)
+        self.assertEqual(result["response_unconfirmed"], 1)
+        self.assertEqual(result["eur_prices"], 1)
+        unknown = OfferObservation.objects.get(offer=self.offer, destination_country="ES")
+        self.assertIsNone(unknown.price)
+        self.assertIsNone(unknown.delivery_days)
+        self.assertEqual(unknown.availability, OfferObservation.Availability.UNKNOWN)
+        self.assertEqual(OfferObservation.objects.get(offer=second).price, Decimal("95.00"))
+        self.client_api.generate_affiliate_link.assert_not_called()

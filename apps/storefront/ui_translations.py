@@ -6,7 +6,13 @@ product titles and observations are never machine-translated or overwritten.
 No network calls, paid translation APIs or visitor IP geolocation.
 """
 
+import re
+
 UI_TRANSLATIONS = {
+  "pode mudar no parceiro": {"es": "puede cambiar en el socio"},
+  "Adicionar": {"es": "Añadir"},
+  "à comparação": {"es": "a la comparación"},
+  "As fontes apresentam estimativas diferentes": {"es": "Las fuentes muestran estimaciones diferentes"},
   "Dados de referência para Portugal; preço e entrega para Espanha não confirmados.": {
     "es": "Datos de referencia para Portugal; precio y entrega para España no confirmados."
   },
@@ -1528,4 +1534,14 @@ def translate_ui(value, language):
     language = str(language or "pt-pt").lower().split("-")[0]
     if language == "pt":
         return value
+    if language == "es":
+        patterns = (
+            (r"Estimativa indicada pela pesquisa: ([0-9]+) dias", "Estimación indicada en la búsqueda: {} días"),
+            (r"Estimativa indicada no detalhe: ([0-9]+) dias", "Estimación indicada en el detalle: {} días"),
+            (r"Pesquisa e detalhe indicaram ([0-9]+) dias", "La búsqueda y el detalle indicaron {} días"),
+        )
+        for pattern, translated in patterns:
+            match = re.fullmatch(pattern, str(value))
+            if match:
+                return translated.format(match.group(1))
     return UI_TRANSLATIONS.get(str(value), {}).get(language, value)
