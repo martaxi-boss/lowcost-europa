@@ -22,6 +22,18 @@ from apps.catalog.models import (
 
 
 class OwnerAnalyticsDashboardTests(TestCase):
+    def test_configured_property_without_report_is_waiting_for_data_not_fake_metrics(self):
+        self.client.force_login(self.owner)
+        with patch.dict(os.environ, {
+            "WINDSOR_API_KEY": "test-only",
+            "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+        }):
+            response = self.client.get(reverse("owner-panel:dashboard"))
+        self.assertContains(response, "Leitura configurada — a aguardar dados")
+        self.assertNotContains(response, "Falta autorizar a leitura automática")
+        self.assertFalse(response.context["google_search_report_payload"])
+        self.assertFalse(ExternalMetricsSnapshot.objects.exists())
+
     def setUp(self):
         self.owner = get_user_model().objects.create_user(
             username="owner-analytics",

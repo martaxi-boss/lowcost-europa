@@ -475,6 +475,11 @@ def dashboard(request):
                 "meta_report_payload": meta_report_payload,
                 "meta_report_fresh": meta_report_fresh,
                 "google_search_report": google_search_report,
+                "google_search_configured": bool(
+                    os.environ.get("WINDSOR_API_KEY")
+                    and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
+                    == "sc-domain:lowcost-europa.eu"
+                ),
                 "google_search_report_payload": google_search_report_payload,
                 "google_search_report_fresh": google_search_report_fresh,
             },
