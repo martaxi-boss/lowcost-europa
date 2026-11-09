@@ -91,8 +91,15 @@ def _fetch_rows(params, *, opener):
 
 
 def _verify_property(row, property_id):
+    """Windsor returns the GSC domain as account_id, without sc-domain: prefix.
+
+    Keep the configured Google property identifier for select_accounts, but
+    allow only the exact domain that this owner authorized in returned rows.
+    Never accept subdomains, URLs, or similarly named unrelated sites.
+    """
     identity = str(row.get("account_id") or "").strip()
-    if identity != property_id:
+    allowed = {property_id, property_id.removeprefix("sc-domain:")}
+    if identity not in allowed:
         raise SearchConsoleReportError("search_console_property_mismatch")
 
 

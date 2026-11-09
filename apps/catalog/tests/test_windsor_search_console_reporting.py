@@ -69,6 +69,50 @@ class SearchConsoleReportTests(SimpleTestCase):
         self.assertTrue(all("api_key=test-only-secret" in url for url in requested))
         self.assertEqual((end - start).days, 30)
 
+    def test_windsor_domain_account_id_is_verified_and_keeps_canonical_property(self):
+        """Live Windsor response uses the bare site as account_id."""
+        seen = []
+
+        def opener(req, timeout):
+            seen.append(req.full_url)
+            if "account_id%2Cquery%2C" in req.full_url:
+                return _FakeResponse([])
+            return _FakeResponse([
+                {"account_id": "lowcost-europa.eu", "clicks": 0,
+                 "impressions": 0, "position": None},
+            ])
+
+        report, _, _ = collect_search_console_report(
+            api_key="test-only-secret", property_id=EXPECTED_PROPERTY,
+            opener=opener,
+        )
+        self.assertEqual(report["property"], EXPECTED_PROPERTY)
+        self.assertEqual(report["clicks"], 0)
+        self.assertEqual(report["impressions"], 0)
+        self.assertIsNone(report["average_position"])
+        self.assertEqual(report["top_queries"], [])
+        self.assertEqual(len(seen), 2)
+
+    def test_similar_or_unrelated_site_ids_remain_forbidden(self):
+        for identity in (
+            "other.example",
+            "shop.lowcost-europa.eu",
+            "lowcost-europa.eu.evil.example",
+            "https://lowcost-europa.eu/",
+        ):
+            with self.subTest(identity=identity):
+                with self.assertRaisesRegex(
+                    SearchConsoleReportError, "property_mismatch"
+                ):
+                    collect_search_console_report(
+                        api_key="test-only-secret",
+                        property_id=EXPECTED_PROPERTY,
+                        opener=lambda req, timeout: _FakeResponse([
+                            {"account_id": identity, "clicks": 1,
+                             "impressions": 7, "position": 12},
+                        ]),
+                    )
+
     def test_missing_api_permission_never_yields_fictional_zero(self):
         with self.assertRaises(SearchConsoleNotConfigured):
             collect_search_console_report(
