@@ -1,5 +1,25 @@
 # Lowcost Europa — Project State
 
+## Google sitemap delivery resolved with text format — 9 November 2026
+
+**Google has successfully read the alternative sitemap and discovered all 23 URLs.** This supersedes the earlier unresolved-delivery status below.
+
+| Search Console field | Authenticated observed value |
+| --- | --- |
+| Property | `https://www.lowcost-europa.eu/` (URL-prefix) |
+| Sitemap | `/sitemap.txt` |
+| Type | Sitemap |
+| Submitted / Last read | 09/11/2026 / 09/11/2026 |
+| Status | **Sucesso** |
+| Discovered pages / videos | **23 / 0** |
+
+- **Implemented and deployed:** [PR #246](https://github.com/martaxi-boss/lowcost-europa/pull/246), application `0cd0267d7c7bdfd325f30cc530d8bf537804653f`, [protected VPS rollout #42637158569](https://github.com/martaxi-boss/VPS/actions/runs/42637158569) PASS. Text and XML use one shared source of public URLs. No manual duplicate list, dependencies, migrations or recurring tasks.
+- **Production verification:** 23 matching unique URLs, 1374 UTF-8 bytes, text SHA-256 `5b8e1907b8f6fd188e59df0360ce7ae69c7e17a970b7a702964e818ef4a7c560`; GET/HEAD 200; old XML hash unchanged; PT/ES pages, private routes, unchanged private environment, app and six timers PASS. Backup validated before activation and rollback preserved.
+- **Code validation:** [CI #42636910681](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42636910681) and [audit #42636910597](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42636910597) PASS. Regression tests cover XML/text parity, retired categories, GET/HEAD, rejected POST and host/indexing/locale privacy gates.
+- **Authenticated acceptance:** text sitemap submitted once in the URL-prefix property. Google first acknowledged submission, then the actual table showed **Sucesso**, type Sitemap, last read 9 November and 23 discovered pages. This is processing confirmation, beyond the submission receipt. [Open the verified property report](https://search.google.com/search-console/sitemaps?resource_id=https%3A%2F%2Fwww.lowcost-europa.eu%2F).
+- **Remaining distinction:** the old XML row still shows couldn't fetch / unknown / 0. The precise cause of that XML/address-specific failure is not proven; changing both format and address does not isolate it. The successful text sitemap supplies the same pages through an officially supported format, so XML report repair is no longer a blocker to sitemap delivery. **23 discovered pages does not mean 23 indexed pages or improved rankings.**
+- **Hygiene and execution boundary:** temporary rollout workflow removed, logs preserved, no DNS/TLS/Nginx/robots edits. Work used GitHub Actions/SSH and authenticated Search Console; no new Ferrari engine-job certification. This final state update is documentation only and requires no restart.
+
 ## GitHub/VPS alignment audit — 9 November 2026, 14:34–14:35 Lisbon
 
 **Audit completed; no functional source/configuration mismatch or HTTP blocker reproduced. Google sitemap processing remains unresolved.**
