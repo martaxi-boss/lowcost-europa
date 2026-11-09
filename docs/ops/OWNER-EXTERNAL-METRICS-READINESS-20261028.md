@@ -1,42 +1,32 @@
-# Low Cost Europa — monitorização de encomendas e publicidade no painel privado
+# Low Cost Europa — reporting privado sem Meta Ads
 
-## Âmbito e dados verificados
+## Estado atual e limite
 
-A função `/painel/` continua protegida por login de administrador e apresenta apenas agregados verificados. Sem scripts no site público, pixels Meta, cookies novos, indexação Google, alteração de campanha ou publicação de produtos.
+A decisão do proprietário em 09/11/2026 foi **retirar integralmente o Meta Ads do projeto Low Cost Europa**, incluindo dados herdados da conta publicitária «Sérgio Almeida». Não configurar uma conta Meta de substituição automaticamente.
 
-**AliExpress:** consulta oficial `aliexpress.affiliate.order.list` para a conta já configurada, dois estados documentados (`Payment Completed` e `Buyer Confirmed Receipt`), até 30 dias. O método devolve `resp_code=405` para uma pesquisa vazia; aceitar como **sem resultados** apenas quando a mensagem indicar ausência de resultados. Erros, payloads incompletos e limites de paginação interrompem a sincronização. Não produzir totais parciais. A consulta distingue `lowcost_europa`, `default`, `meus_links` e outros IDs, inclusive para links manuais.
+O painel `/painel/` é privado: apenas métricas de saída para parceiros, pesquisa Google (quando disponíveis) e informação de comissões da AliExpress. A gestão de ofertas permanece na Loja, não no Resumo.
 
-**Comissão:** fonte é AliExpress. Valores apresentados são **estimativas**, nunca dinheiro liquidado; agrupados por moeda de liquidação, sem conversão artificial. Inteiros monetários devolvidos pelo fornecedor representam unidades mínimas (centavos); decimais/string decimais representam unidades monetárias. Compras com `FullRefund`/`Antispam`/`Invalid` não contam para totais positivos. Identificadores de encomendas só são usados em memória para deduplicação; a base de dados guarda um único JSON agregado e datas, sem identificação de comprador, moradas ou artigos individuais. O clique de saída na loja não comprova compra atribuída.
+## Fontes autorizadas
 
-**Meta:** adaptador read-only Graph Marketing API `v26.0` (preferencial) ou via API do Windsor.ai com a conta Meta já autorizada, relatório de conta para gastar/impressões/cliques/alcance. A conta e a moeda são confirmadas por uma consulta autenticada antes de admitir insights. A credencial de servidor tem de dispor de `ads_read` e acesso à conta exata. Requer `META_AD_ACCOUNT_ID` e **uma** das credenciais `META_ACCESS_TOKEN` ou `WINDSOR_API_KEY` no ficheiro de segredos VPS preexistente, nunca no GitHub; os tokens nunca são passados à página nem aos logs. Embora exista uma ligação no Windsor.ai/ChatGPT, **essa sessão não disponibiliza automaticamente credenciais persistentes ao servidor**. Sem ambas as variáveis, o comando deixa a fonte Meta pendente e não inventa gastos iguais a zero.
+- **AliExpress:** a consulta oficial de encomendas por Tracking ID conserva os controlos de deduplicação, estados, moeda e exclusões; comissões são estimativas, nunca dinheiro recebido.
+- **Google Search Console:** propriedade `sc-domain:lowcost-europa.eu`, através do conector Windsor.ai da conta autorizada pelo proprietário; a existência da ligação não garante ainda linhas de dados. Apenas relatório verificável entra no painel.
+- **Meta/Facebook Ads:** fonte **desligada por decisão do proprietário**. O comando `sync_meta_ads` permanece como bloqueio de compatibilidade e falha sempre com `META_REPORT=DISABLED_BY_OWNER`, sem chamadas externas. O comando agregado `sync_external_metrics` nunca chama Meta.
 
-## Operação
+## Higienização de configurações e dados
 
-- `python manage.py sync_affiliate_orders --days 30 --dry-run`: diagnostica a AliExpress sem escrever na base.
-- `python manage.py sync_meta_ads --dry-run`: só com token Meta presente e validado.
-- `python manage.py sync_external_metrics --dry-run`: testa ambas (Meta sem credenciais é saltado com aviso explícito).
-- `python manage.py sync_external_metrics`: atualiza os agregados após consulta completa.
-- Unidade `lowcost-europa-affiliate-report.service` e timer de seis em seis horas, no mesmo servidor e com o mesmo utilizador restrito que já opera Lowcost Europa. São tarefas systemd simples, não novos motores, MCPs, containers ou servidores.
+- `META_AD_ACCOUNT_ID` e `META_ACCESS_TOKEN` **não pertencem** ao ambiente privado Low Cost Europa; eliminá-los do ficheiro existente com backup e rollback, sem revelar valores em logs.
+- Não remover `WINDSOR_API_KEY` indiscriminadamente, pois é a credencial de servidor utilizada pelo Search Console. A credencial existente pode corresponder à conta Windsor antiga: confirmar a origem da chave antes de trocar para a nova conta, e nunca colocar a chave no chat ou GitHub.
+- A migração `0021_purge_disconnected_meta_snapshot` remove **só** a linha `ExternalMetricsSnapshot(source="META")`. Não afeta `GOOGLE_SEARCH_CONSOLE`, `ALIEXPRESS`, produtos ou cliques locais. Fazer cópia PostgreSQL verificada antes de migrar; os backups históricos conservam a informação até ao fim da retenção.
+- Revogar um conector na conta Windsor antiga é uma operação separada de administração de conta, que requer confirmação do fornecedor. Não confundir com apagar contas ou campanhas na própria plataforma Meta.
 
-## Regras de segurança e falha
+## Segurança e operação
 
-1. Verificar backup local e offsite, código exato e migrações antes de instalar a tabela agregada.
-2. Alterar/arrancar apenas serviço e timer **Low Cost Europa**, sem tocar nos outros projetos.
-3. A página `/painel/` nunca faz chamadas externas nem provoca compras ou cliques de teste.
-4. Erro de API não sobrescreve a última consulta bem-sucedida; o Resumo marca como **desatualizados** valores com mais de 12 horas.
-5. Informações Meta e AliExpress não são somadas entre si nem convertidas em receita atribuída aos anúncios.
-6. Não guardar tokens em logs, documentação, GitHub ou resultados CI.
-7. Se a fonte Meta requerer novo consentimento, a autorização deve ocorrer nos canais oficiais da plataforma e o segredo ser guardado diretamente na VPS.
-8. Indexação, domínio definitivo, Google Analytics e publicidade comercial ficam fora do âmbito desta tarefa.
+1. Validar `main`, estado do serviço e backup/rollback do projeto.
+2. Efetuar apenas deploy Low Cost Europa pelos mecanismos autenticados e autorizados; nunca alterar outros projetos da VPS.
+3. Aplicar migrações depois do backup, limpar configuração Meta e confirmar reinício/reload do serviço.
+4. Verificar painel sem referências a anúncios, nomes de anunciantes ou dados Meta; testar que o comando Meta falha fechado.
+5. Manter `sync_external_metrics` com fontes AliExpress e Google, separado de cliques locais. Qualquer erro não gera zeros inventados.
+6. Confirmar HTTP público, proteção de `/painel/`, timers e métricas existentes.
+7. Não publicar segredos, chaves, tokens ou dados da conta externa em relatórios públicos.
 
-## Testes
-
-Testes unitários verificam `405` vazio vs falha, bloqueio de resultados incompletos, deduplicação, diversidade de Tracking IDs e moedas, exclusão de reembolsos, persistência atómica, ausência de API em GET, dados desatualizados, permissão da área privada e credenciais Meta ausentes.
-
-### Opção Windsor.ai já ligada no ChatGPT
-
-A conta Meta `LOW COST` está associada ao Windsor.ai. Para sincronização automática fora do ChatGPT basta uma chave de API **da própria conta Windsor.ai** e o ID exato da conta de anúncios, guardados apenas no cofre da VPS. Em Windsor.ai, abrir **Settings → API Access**, localizar a chave e autorizar o seu armazenamento no cofre existente; nunca a enviar por chat. Não é necessário criar uma aplicação Meta adicional. A conta precisa manter-se autorizada no Windsor.ai.
-
-O conector de Windsor requer `api_key` num **URL HTTPS** (não aceita cabeçalhos de autorização). O código usa exclusivamente o endpoint de leitura `connectors.windsor.ai/facebook`, valida a identidade da conta antes de obter dados e **não regista URLs nem mensagens brutas de exceção**. Os segredos nunca são apresentados na interface nem em logs. Cada consulta fica limitada à conta selecionada com `select_accounts`. Se a ligação ao fornecedor for interrompida, o último relatório válido permanece e passa a ser marcado como desatualizado após 12 horas.
-
-No painel, **«Autorização da VPS necessária»** permanece visível enquanto o servidor não obtiver dados reais. Não lançar campanhas, recolher eventos públicos ou alterar orçamento nesta fase.
+Este documento substitui as instruções antigas de ativação Meta de 28/10/2026.
