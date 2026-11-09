@@ -1,5 +1,35 @@
 # Lowcost Europa — Project State
 
+## Missão final PT/ES — correções implantadas e dependências externas identificadas
+
+Este é o estado mais recente; as secções seguintes são fotografias históricas e não podem repor bloqueios já resolvidos.
+
+- **Produção:** código `8d1752c0f3dee38fc3dc3c8f0bd1c067d5f2f858`, [deploy protegido #42539922392](https://github.com/martaxi-boss/VPS/actions/runs/42539922392) e [postflight independente #42540028628](https://github.com/martaxi-boss/VPS/actions/runs/42540028628) PASS. Backup PostgreSQL novo validado por checksum, checkpoints privados e rollback preservados. A primeira tentativa da missão provou rollback automático; a implantação final usou reload gracioso. Sem migrações/dependências novas, DNS, certificados, email ou alterações a outros projetos.
+- **Governação encerrada:** ruleset ativo [26818755](https://github.com/martaxi-boss/lowcost-europa/rules/26818755), aplicado à main: bloquear eliminação/force-push, exigir PR e o check real `test` de GitHub Actions (integration 15368), zero revisores obrigatórios. Sem bypass automático. PRs #232, #233 e #234 passaram pelos checks e foram integradas. `audit` e `source-browser` são checks existentes com triggers por caminhos; exigir estes nomes globalmente sem alterar os triggers bloquearia PRs documentais.
+- **Google/Windsor:** OAuth concluído pelo titular para `sc-domain:lowcost-europa.eu`, confirmado pelo conector. Definição não secreta da propriedade ativada na ENV existente; chave privada Windsor preservada. A API do próprio servidor devolve resumo vazio, e o painel Google também informa dados em processamento. O sync emite `GOOGLE_SEARCH_REPORT=AWAITING_DATA`, preserva o último relatório e não grava zeros fictícios. Painel privado distingue configuração de dados disponíveis; GET sem chamadas externas. A conta Windsor está em trial até 19/11/2026; não foi subscrito um plano pago.
+- **Prova comercial:** 77 ofertas na tabela privada; 52 elegíveis tecnicamente antes do filtro de preço, das quais 45 cumprem o preço recente e podem aparecer na montra. Dessas 45, quatro têm origem individual registada editorialmente e 41 não têm essa prova. Revisão editorial não certifica armazém atual. Cinco ofertas já têm preço EUR ES no painel; o lote final de cinco consultas guardou quatro preços e um controlo UNKNOWN, além de observação válida anterior. Zero sinais de stock e zero prazos numéricos ES no lote. Não apresentar preços PT como preços ES: dados de referência PT identificados na homepage e nos cartões, ES separado na área privada. A recolha não alterou nenhum campo Offer, link, aprovação ou publicação (digest antes/depois PASS).
+- **Limites do fornecedor:** detalhe sem identificador utilizável fica UNKNOWN, sem preço/prazo inventados. Recolha explícita limitada a cinco ofertas existentes, com cliente/cadência/lock/backoff atuais. Falhas de autenticação, API, rate-limit, runtime ou identidade divergente continuam a interromper. Observações ES não substituem preços PT, não reativam ofertas retidas por preço antigo e não adiam a manutenção PT. Sem tarefa recorrente nova, novos produtos ou links afiliados.
+- **Testes:** [CI #42539750102](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42539750102), 797 testes PASS; [segurança #42539750116](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42539750116) PASS; [browser #42539750108](https://github.com/martaxi-boss/lowcost-europa/actions/runs/42539750108), 18 verificações PASS em dados sintéticos. Produção HTTPS: 23 URLs, canonicals e 18 páginas de conteúdo com hreflang PT/ES/x-default PASS, rotas privadas 302/noindex/private. Painel staff renderizado com os dados reais em processo na VPS; não é aprovação humana por login no navegador. Avisos HSTS de subdomínios/preload preexistentes não foram alterados nesta missão.
+- **Operação:** aplicação, manutenção, relatórios, IndexNow, backup local, backup externo e health externo com timers ativos. Serviços de relatório, IndexNow e backup externo/health com Result=success/ExecMainStatus=0. Checksum de backup validado; nenhum novo ensaio de restauro foi realizado nesta missão.
+- **IndexNow:** 23 URLs aceites preservadas; postflight dry-run `public=23 changed=13 removed=0`, sem envio manual. Diferenças posteriores de conteúdo são tratadas pelo timer existente. Recibo não significa indexação.
+
+### Indexação observada nos painéis e resultados públicos
+
+| Motor/serviço | Prova efetiva e limite |
+|---|---|
+| Google | Homepage reconfirmada indexada. /pt/ e /es/ ainda desconhecidas no índice; /es/ Live disponível/indexável. As cinco categorias antigas tinham confirmação anterior, não foram todas reinspecionadas nesta ronda. Sitemap ainda não foi possível obter/0; relatórios de desempenho e páginas em processamento. As restantes URLs novas não têm inclusão confirmada. |
+| Bing | Homepage descoberta, não rastreada; sitemap Error/0, Bingbot unable to access. Teste Live terminou com erro do próprio inspetor, sem nova prova de falha HTTP do site. |
+| Yahoo | Sem resultado do domínio na consulta pública desta ronda; inclusão não confirmada. |
+| DuckDuckGo | Erro público 5401; inclusão desconhecida. |
+| Brave | Homepage e cinco categorias visíveis, incluindo sitelinks; não é relatório autenticado de todas as URLs PT/ES. |
+| Seznam | Homepage visível; categorias e páginas PT/ES sem inclusão confirmada. |
+| Yandex | Ferramenta de sitemap em modo só leitura, Add desativado, relatórios atrasados; inclusão não confirmada. |
+
+URL publicada, submetida, descoberta, rastreada e indexada são estados diferentes. Não houve nova submissão de sitemap/URL ou reenvio manual de IndexNow nesta missão. Nenhuma falha atual de XML/robots/canonical/HTTPS foi reproduzida que justifique alterar DNS ou transportes. Processamento dos motores, primeiras métricas e prova logística por SKU permanecem dependências externas, não sucesso fabricado.
+
+[Registo operacional e provas adicionais: issue #206](https://github.com/martaxi-boss/lowcost-europa/issues/206). Esta atualização é documental; a sincronização final de HEAD e a remoção dos três workflows temporários são registadas nessa issue. O código/produção foi operado por Work/GitHub Actions e SSH existente, não como nova certificação de job Ferrari. BOOTSTRAP Ferrari consultado; arquitetura preservada. Expansão além de Portugal/Espanha e implementação do Core de Ranking SEO não foram iniciadas.
+
+
 ## Brave six-page public presence and Seznam homepage confirmed — 8 November 2026, 19:11 Lisbon
 
 - **New public engine evidence:** Brave now displays the homepage and all five categories as separate search results. The category check used the focused products-path query; all five canonical URLs appeared as results in their own right, beyond the homepage sitelinks initially observed. Seznam now displays the canonical homepage as a search result; its five categories remain unconfirmed. These are direct observations of each engine's public results, not authenticated index reports or guarantees of permanent inclusion.
