@@ -45,12 +45,22 @@ def public_eligibility_q(as_of=None, prefix="", *, require_recent_price=None):
             f"{prefix}is_active": True,
             f"{prefix}owner_hidden": False,
             f"{prefix}affiliate_url__startswith": "https://",
-            f"{prefix}affiliate_promotion_status": "ELIGIBLE",
-            f"{prefix}affiliate_promotion_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__isnull": False,
             f"{prefix}protocol_verified_at__lte": as_of,
         }
     )
+    # Owner-supplied affiliate URLs are never regenerated through AliExpress API.
+    # Their provenance is the explicit, manual Owner submission, not an API
+    # claim that the product is commission-eligible.
+    manually_supplied = Q(**{f"{prefix}source": "ALIEXPRESS_OWNER"})
+    api_verified = Q(
+        **{
+            f"{prefix}source": "ALIEXPRESS",
+            f"{prefix}affiliate_promotion_status": "ELIGIBLE",
+            f"{prefix}affiliate_promotion_verified_at__isnull": False,
+        }
+    )
+    base_gate &= manually_supplied | api_verified
 
     if require_recent_price is None:
         require_recent_price = settings.PUBLIC_RECENT_PRICE_REQUIRED
@@ -69,4 +79,6 @@ def public_eligibility_q(as_of=None, prefix="", *, require_recent_price=None):
         price__gt=0,
         currency__iexact="EUR",
     ).exclude(destination_country="ES")
-    return base_gate & Q(Exists(recent_positive_eur_price))
+    # Manual listings remain published after prices age; the observed date is
+    # shown to users, who must confirm the current amount with the vendor.
+    return base_gate & (manually_supplied | Q(Exists(recent_positive_eur_price)))
