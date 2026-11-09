@@ -93,7 +93,10 @@ class Command(BaseCommand):
                 product_family=family
             )
             existing_count = placements.count()
-            if not options["replace_family"] and existing_count >= MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY:
+            if (
+                not options["replace_family"]
+                and existing_count >= MAX_PUBLIC_ELIGIBLE_OFFERS_PER_FAMILY
+            ):
                 raise CommandError("A montra já atingiu o limite de 20 produtos.")
 
             offer = Offer.objects.select_for_update().filter(
