@@ -1,5 +1,16 @@
 # Lowcost Europa — Project State
 
+## Authenticated Google sitemap follow-up — 9 November 2026, 14:15–14:16 Lisbon
+
+This supersedes the signed-out/CAPTCHA access limitation and the pending-only Google processing description below.
+
+- **Authentication restored by the owner.** The domain property was opened successfully in Google Search Console; no credentials or security codes are retained in this repository.
+- **Current Sitemaps report:** `https://www.lowcost-europa.eu/sitemap.xml` shows **Não foi possível obter**, unknown type, submission date 09/11/2026 and 0 discovered pages. Its detail says **Não foi possível ler o mapa do site**, displays last read 09/11/26 and offers no more specific cause. The submission date was already present on arrival; no new submission was performed in this check and its origin is not inferred.
+- **Public XML:** opening the report's own “ABRIR MAPA DO SITE” action loaded the canonical HTTPS XML in the same browser. It displays the sitemap namespace and 23 URL entries, including the original pages and PT/ES variants. No XML parse-error screen or login requirement appeared.
+- **Fresh Google Live URL test of that exact sitemap, 14:15:57:** “O URL está disponível para a Google”; smartphone inspection tool; crawl allowed **Sim**; page fetch **Com êxito**; indexing allowed **Sim**. This is Google's direct fetch test, not a user-agent simulation. Per [Google's sitemap troubleshooting guidance](https://support.google.com/webmasters/answer/7451001), a successful Live URL page fetch tests Googlebot availability. It does not certify the separate sitemap processor, 23 discovered pages, or index inclusion; an XML sitemap need not itself be a search result.
+- **Conclusion:** access succeeded in this live test while the Sitemaps processing report still fails. The underlying cause of that discrepancy remains unconfirmed; do not label it resolved, attribute it to cache, or change XML/DNS/TLS/robots speculatively. No sitemap resubmission, request to index the XML, manual IndexNow send, deployment or service restart occurred.
+- **Preservation:** the six historical indexed-page confirmations and Bing Success/23 baseline remain as recorded below. The SEO report's corrected count remains **1 service + 6 timers**. This follow-up used the authenticated browser and GitHub, not a new Ferrari engine job.
+
 ## SEO publication and sitemap report correction — 9 November 2026
 
 - **Latest verified application deployment:** `0f47a0a6d22343979352adaecaae25228d0ce3e7`, [VPS run #42629757550](https://github.com/martaxi-boss/VPS/actions/runs/42629757550), completed successfully at 13:56 UTC/Lisbon. Actual log output confirms backup checksum, five PT guides over public HTTPS, ES language isolation, canonical/hreflang metadata, XML sitemap with 23 unique URLs, private routes, unchanged private environment and clean tracked source. These supersede the older application SHA below.
