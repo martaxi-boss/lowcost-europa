@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.catalog.models import ExternalMetricsSnapshot
 from apps.catalog.services.windsor_search_console_reporting import (
+    SearchConsoleAwaitingData,
     SearchConsoleReportError,
     collect_search_console_report,
 )
@@ -20,6 +21,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             report, period_start, period_end = collect_search_console_report()
+        except SearchConsoleAwaitingData:
+            self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_DATA")
+            return
         except SearchConsoleReportError as exc:
             # Do not leak provider URLs (Windsor's api_key is in the URL).
             raise CommandError(

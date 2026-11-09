@@ -9,6 +9,7 @@ No network calls, paid translation APIs or visitor IP geolocation.
 import re
 
 UI_TRANSLATIONS = {
+  "Ver seleção de": {"es": "Ver selección de"},
   "pode mudar no parceiro": {"es": "puede cambiar en el socio"},
   "Adicionar": {"es": "Añadir"},
   "à comparação": {"es": "a la comparación"},

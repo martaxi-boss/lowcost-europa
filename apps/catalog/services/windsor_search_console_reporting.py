@@ -22,6 +22,10 @@ class SearchConsoleNotConfigured(SearchConsoleReportError):
     pass
 
 
+class SearchConsoleAwaitingData(SearchConsoleReportError):
+    """A successful provider request returned no rows; never a numeric zero report."""
+
+
 SEARCH_CONSOLE_URL = "https://connectors.windsor.ai/searchconsole"
 EXPECTED_PROPERTY = "sc-domain:lowcost-europa.eu"
 MAX_RESPONSE_BYTES = 262144
@@ -116,6 +120,8 @@ def collect_search_console_report(
         {**base, "fields": "account_id,clicks,impressions,position"},
         opener=opener,
     )
+    if not summary_rows:
+        raise SearchConsoleAwaitingData("awaiting_first_data")
     if len(summary_rows) != 1:
         raise SearchConsoleReportError("search_console_summary_not_verified")
     summary = summary_rows[0]
