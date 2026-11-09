@@ -22,12 +22,19 @@ class Command(BaseCommand):
             self.stderr.write("ALIEXPRESS_REPORT=UNAVAILABLE")
 
         # Meta advertising was disconnected by the owner. Never sync it here.
-        has_windsor_key = bool(os.environ.get("WINDSOR_API_KEY"))
+        provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
+        has_provider_auth = (
+            bool(os.environ.get("WINDSOR_API_KEY")) if provider == "WINDSOR"
+            else all(os.environ.get(key) for key in (
+                "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
+                "GOOGLE_OAUTH_REFRESH_TOKEN",
+            )) if provider == "GOOGLE_OFFICIAL" else False
+        )
         # Search Console uses the independent site property and must remain active.
         property_id = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY", "").strip()
         if not property_id:
             self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_PROPERTY_AUTHORIZATION")
-        elif property_id != "sc-domain:lowcost-europa.eu" or not has_windsor_key:
+        elif property_id != "sc-domain:lowcost-europa.eu" or not has_provider_auth:
             failures.append("GOOGLE_SEARCH_CONFIG")
             self.stderr.write("GOOGLE_SEARCH_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
         else:
