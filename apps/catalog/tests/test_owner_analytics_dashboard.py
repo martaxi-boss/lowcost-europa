@@ -191,7 +191,9 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["paused_discovery_families"], 0)
         self.assertEqual(len(response.context["families"]), 1)
         self.assertNotContains(response, "Microcorrente antiga")
-        self.assertNotContains(response, "2 candidatos pendentes pertencem a famílias descontinuadas")
+        self.assertNotContains(
+            response, "2 candidatos pendentes pertencem a famílias descontinuadas"
+        )
         self.assertEqual(
             OfferCandidate.objects.filter(
                 product_family=retired, status=OfferCandidate.Status.PENDING
