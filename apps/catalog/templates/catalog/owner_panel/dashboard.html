@@ -1,5 +1,5 @@
 {% extends "catalog/owner_panel/base.html" %}
-{% block title %}Estatísticas e gestão | Lowcost Europa{% endblock %}
+{% block title %}Resumo de métricas | Lowcost Europa{% endblock %}
 {% block owner_extra_head %}
 <style>
 .analytics-intro{color:#424842;margin-top:-4px;line-height:1.55}
@@ -24,12 +24,7 @@
 .source-card p{margin:6px 0 0;font-size:.84rem;color:#4b554d;line-height:1.5}
 .source-status{font-size:.78rem;font-weight:800;color:#76551a;background:#fcf4df;border-radius:999px;padding:4px 8px;display:inline-block}
 .source-status.active{background:#e2f3e8;color:#145b35}.report-details{margin-top:12px}.report-details summary{cursor:pointer;font-weight:700;padding:10px 0}.report-lines{margin:8px 0 4px;padding-left:16px;font-size:.85rem}.report-lines li{margin:5px 0;line-height:1.5}
-.analytics-list{padding-left:20px;margin-bottom:0}
-.analytics-list li{padding:7px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere}
-.analytics-list li:last-child{border-bottom:0}
-.analytics-count{font-weight:800;color:#103c32}
 .analytics-link{overflow-wrap:anywhere;color:#103c32}
-.analytics-warning{font-weight:700;color:#8a4b14}
 .commercial-table-wrap{overflow-x:auto;border:1px solid #dce7e0;border-radius:10px;margin-top:12px}
 .commercial-table{border-collapse:collapse;width:100%;min-width:890px;font-size:.85rem;line-height:1.4}
 .commercial-table th,.commercial-table td{padding:11px 9px;border-bottom:1px solid #e3e9e4;text-align:left;vertical-align:top}
@@ -40,8 +35,6 @@
 .commercial-table.engine-table{min-width:620px}
 .engine-note{margin:12px 0 0;border-left:3px solid #dce7e0;padding-left:12px}
 
-.commercial-details summary{cursor:pointer;font-weight:700;padding:8px 0}
-code{overflow-wrap:anywhere}
 @media(max-width:450px){.source-grid{grid-template-columns:1fr}.chart-grid{gap:3px}.chart-label{font-size:.53rem}.analytics-intro{font-size:.94rem}}
 @media(min-width:700px){.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
@@ -52,9 +45,9 @@ code{overflow-wrap:anywhere}
   <a href="{% url 'storefront:home' %}">VER LOJA</a>
   <form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form>
 </nav>
-<main class="owner-wrap" id="familias">
-  <h1>Estatísticas e gestão</h1>
-  <p class="analytics-intro">Resumo privado do catálogo e da atividade comercial. Os dados do site e os dados de plataformas externas são apresentados em separado.</p>
+<main class="owner-wrap" id="resumo-metricas">
+  <h1>Resumo de métricas</h1>
+  <p class="analytics-intro">Cliques registados, desempenho dos motores de pesquisa, publicidade Meta e resultados dos parceiros. Dados reais e fontes identificadas, sem misturar visitas, cliques e vendas.</p>
 
   <section class="card" aria-label="Atividade de encaminhamentos">
     <h2 class="analytics-section-title">Cliques para parceiros</h2>
@@ -82,52 +75,9 @@ code{overflow-wrap:anywhere}
     </div>
   </section>
 
-  <section class="card" aria-label="Estado dos links publicados">
-    <h2 class="analytics-section-title">Links de afiliado e montra</h2>
-    <div class="metrics-grid">
-      <div class="metric"><span class="metric-label">Ofertas públicas elegíveis</span><strong class="metric-value">{{ eligible_public_offers }}</strong><span class="metric-hint">Com link e verificações técnicas</span></div>
-      <div class="metric"><span class="metric-label">Selecionadas mas não publicadas</span><strong class="metric-value">{{ visible_blocked_offers }}</strong><span class="metric-hint">Não passam o filtro de publicação</span></div>
-      <div class="metric"><span class="metric-label">Origem individual por confirmar</span><strong class="metric-value">{{ origin_without_individual_proof }}</strong><span class="metric-hint">Das ofertas elegíveis, sem país e data comprovados individualmente</span></div>
-      <div class="metric"><span class="metric-label">Disponibilidade atual sem prova</span><strong class="metric-value">{{ latest_availability_unconfirmed }}</strong><span class="metric-hint">Última observação UNKNOWN ou inexistente; não significa esgotado</span></div>
-      <div class="metric">{% if public_recent_price_required %}<span class="metric-label">Retidas: preço EUR sem observação recente</span><strong class="metric-value">{{ price_held_from_public }}</strong><span class="metric-hint">Fora da montra até haver preço positivo observado há menos de 24 h</span>{% else %}<span class="metric-label">Preço sem confirmação em 24 h</span><strong class="metric-value">{{ current_price_unconfirmed }}</strong><span class="metric-hint">Histórico preservado; observação recente indisponível</span>{% endif %}</div>
-      <div class="metric"><span class="metric-label">Sem prazo numérico observado</span><strong class="metric-value">{{ delivery_days_unproven }}</strong><span class="metric-hint">Sem prova de prazo de entrega, muito menos garantia de até 5 dias</span></div>
-    </div>
-    {% if visible_blocked_offers %}<p class="analytics-warning">{{ visible_blocked_offers }} ofertas selecionadas não passam os requisitos de publicação: {{ promo_blocked_offers }} sem elegibilidade de promoção afiliada e {{ protocol_blocked_offers }} sem verificação editorial inicial (as causas podem sobrepor-se). Não são apresentadas na montra.</p>{% endif %}
-    {% if origin_without_individual_proof %}<p class="analytics-warning">A origem individual de envio ainda não foi comprovada para {{ origin_without_individual_proof }} ofertas públicas. Isso não significa origem proibida; não anunciar armazém europeu sem prova da variante e do vendedor.</p>{% endif %}
-    {% if latest_availability_unconfirmed %}<p class="analytics-warning">A API afiliada não comprova o stock das variantes de {{ latest_availability_unconfirmed }} ofertas que cumprem o filtro de publicação. UNKNOWN não significa esgotado; confirmar a variante no parceiro antes da compra.</p>{% endif %}
-    {% if public_recent_price_required and price_held_from_public %}<p class="analytics-warning">{{ price_held_from_public }} ofertas estão automaticamente fora da montra e não permitem cliques de saída por falta de preço EUR positivo observado nas últimas 24 horas. Os preços históricos e a aprovação editorial continuam guardados; voltarão a ser elegíveis quando a manutenção obtiver nova prova.</p>{% elif current_price_unconfirmed %}<p class="analytics-warning">Existem {{ current_price_unconfirmed }} ofertas sem preço observado nas últimas 24 horas; o histórico pode existir, mas deve ser reconfirmado no vendedor.</p>{% endif %}
-    {% if delivery_days_unproven %}<p class="analytics-warning">Para {{ delivery_days_unproven }} ofertas públicas não existe prazo numérico no histórico. A loja não deve prometer entrega em até 5 dias sem evidência atual do vendedor.</p>{% endif %}
-    <p class="analytics-note">Tracking ID configurado neste processo:
-      {% if affiliate_tracking_id %}<strong><code>{{ affiliate_tracking_id }}</code></strong>{% else %}<strong>Não disponível</strong>{% endif %}.
-      Este identificador não prova a atribuição histórica de cada link curto nem confirma comissões.</p>
-  </section>
-
-  <section class="card" aria-label="Validação comercial individual" id="verificacao-comercial">
-    <h2 class="analytics-section-title">Validação comercial — oferta a oferta</h2>
-    <p class="analytics-section-subtitle">O preço confirmado recentemente, o preço histórico, a origem registada em revisão, o stock e o prazo são informações diferentes. Um armazém indicado na revisão editorial não comprova que a variante atual saia desse armazém; a API de afiliados também não confirma stock por SKU.</p>
-    <details class="commercial-details" id="auditoria-ofertas">
-      <summary>Consultar {{ commercial_evidence_rows|length }} ofertas selecionadas, incluindo as que estão bloqueadas</summary>
-      <p class="analytics-note">Dados da base de dados, atualizados à hora desta consulta. Não há acesso à AliExpress ao abrir este painel. Os preços podem mudar no vendedor. Para confirmar uma variante, use «Abrir anúncio real».</p>
-      <h3>Portugal — observações PT e histórico sem destino</h3>
-      {% include "catalog/owner_panel/commercial_table.html" with evidence_rows=commercial_evidence_rows evidence_market="PT" %}
-      <h3>Espanha — apenas observações com destino ES</h3>
-      <p class="analytics-note">Um preço de Portugal nunca preenche esta tabela. Publicação e origem editorial são estados gerais, não aprovação para Espanha. Stock por SKU, armazém atual e prazo permanecem não confirmados quando o fornecedor não fornece prova.</p>
-      {% include "catalog/owner_panel/commercial_table.html" with evidence_rows=commercial_evidence_es_rows evidence_market="ES" %}
-    </details>
-  </section>
-
-  <section class="card" aria-label="Produtos mais clicados">
-    <h2 class="analytics-section-title">Produtos mais clicados (7 dias)</h2>
-    {% if top_clicked_offers %}
-    <ol class="analytics-list">{% for item in top_clicked_offers %}
-      <li><span>{{ item.offer__title|default:"Produto sem título"|truncatechars:75 }}</span> — <span class="analytics-count">{{ item.total }} cliques</span></li>
-    {% endfor %}</ol>
-    {% else %}<p class="analytics-note">Sem cliques de saída registados neste período.</p>{% endif %}
-  </section>
-
   <section class="card" aria-label="Comparativo de motores de pesquisa">
-    <h2 class="analytics-section-title">Motores de pesquisa — Portugal em primeiro lugar</h2>
-    <p class="analytics-section-subtitle">Aqui pode comparar os motores que trazem pessoas à Low Cost Europa. Os cliques de pesquisa, as visitas ao site e os cliques nos produtos são medidas diferentes.</p>
+    <h2 class="analytics-section-title">Motores de pesquisa — desempenho</h2>
+    <p class="analytics-section-subtitle">Comparação das fontes de pesquisa, quando existirem métricas verificadas. Os cliques de pesquisa não equivalem a visitas nem a saídas para parceiros.</p>
     <div class="commercial-table-wrap" role="region" aria-label="Tabela de métricas dos motores de pesquisa" tabindex="0">
       <table class="commercial-table engine-table">
         <thead><tr><th scope="col">Motor</th><th scope="col">Cliques de pesquisa</th><th scope="col">Impressões</th><th scope="col">Estado e origem</th></tr></thead>
@@ -147,12 +97,12 @@ code{overflow-wrap:anywhere}
       </table>
     </div>
     <p class="analytics-note engine-note">Sem dados confirmados, o sinal «—» significa <strong>indisponível</strong>, não zero. Ainda não é possível classificar qual motor traz mais tráfego: a única fonte de cliques de pesquisa ligada é a Google, e os seus primeiros dados ainda podem estar em processamento. O relatório Google refere-se ao domínio inteiro, não apenas a Portugal. Para uma comparação futura entre motores será necessária uma medição de origem de visitas com critérios de privacidade adequados ou relatórios equivalentes e verificados.</p>
-    <p class="analytics-note">A indexação ou aceitação de URLs pelo IndexNow não demonstra cliques, visitas, vendas ou posicionamento. O painel não recolhe aqui novos dados dos visitantes.</p>
+    <p class="analytics-note">A indexação ou aceitação de URLs pelo IndexNow não demonstra cliques, visitas, vendas ou posicionamento. Este painel não recolhe novos dados dos visitantes.</p>
   </section>
 
   <section class="card" aria-label="Integrações de tráfego, publicidade e vendas">
-    <h2 class="analytics-section-title">Tráfego, publicidade e vendas</h2>
-    <p class="analytics-section-subtitle">Cada fonte é apresentada com o estado real da ligação. A ligação às encomendas não exige lançar já o site nem ativar a indexação.</p>
+    <h2 class="analytics-section-title">Meta, Google e comissões</h2>
+    <p class="analytics-section-subtitle">Resultados de publicidade, pesquisa e parceiros apresentados por origem. Onde não houver dados confirmados, a indicação é «indisponível» ou «a aguardar».</p>
     <div class="source-grid">
       <article class="source-card">
         <h3>Visitas e interações</h3>
@@ -254,35 +204,5 @@ code{overflow-wrap:anywhere}
     <p class="analytics-note">Fontes sem autorização e dados confirmados permanecem indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Cliques de pesquisa Google, cliques de anúncios Meta, saídas para ofertas e encomendas AliExpress são métricas distintas, sem atribuição automática entre si.</p>
   </section>
 
-  <section aria-label="Catálogo e filas">
-    <h2>Gestão por categoria</h2>
-    <p class="analytics-note">A gestão diária dos produtos continua na própria montra.</p>
-    {% if paused_discovery_families %}<p class="analytics-warning">{{ paused_discovery_families }} categorias com descoberta semanal em pausa por excesso de candidatos pendentes. A revisão exige decisão humana; nenhum produto será aprovado nem rejeitado automaticamente.</p>{% endif %}
-    {% if retired_pending_total %}
-      <p class="analytics-warning">{{ retired_pending_total }} candidatos pendentes pertencem a famílias descontinuadas e não entram nas filas das cinco categorias atuais. Mantêm-se guardados para revisão manual; nenhuma decisão foi tomada automaticamente.</p>
-      <ul class="analytics-list">
-      {% for group in retired_pending_by_family %}
-        <li><strong>{{ group.product_family__name }}</strong> (descontinuada): {{ group.total }} candidato{{ group.total|pluralize }} pendente{{ group.total|pluralize }}.</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-    {% for family in families %}
-    <a class="card analytics-link" href="{% url 'storefront:product-family-detail' family.slug %}?gestao=montra#gestao-owner">
-      <h2>{{ family.name }}</h2>
-      <div class="counts">
-        <div class="count"><strong>Cliques brutos (7 dias)</strong><br>{{ family.recent_raw_clicks }}</div>
-        <div class="count"><strong>Ofertas na montra sem observação recente (7 dias)</strong><br>{{ family.stale_public_offers }}</div>
-        <div class="count"><strong>A rever</strong><br>{{ family.owner_counts.pending }}</div>
-        <div class="count"><strong>Na montra</strong><br>{{ family.owner_counts.storefront }}</div>
-        <div class="count"><strong>Aprovados</strong><br>{{ family.owner_counts.approved }}</div>
-        <div class="count"><strong>Retirados</strong><br>{{ family.owner_counts.hidden }}</div>
-        <div class="count"><strong>Rejeitados</strong><br>{{ family.owner_counts.rejected }}</div>
-        <div class="count"><strong>Revalidação necessária</strong><br>{{ family.owner_counts.review_required }}</div>
-        <div class="count"><strong>Não elegível promoção</strong><br>{{ family.owner_counts.promotion_ineligible }}</div>
-      </div>
-    </a>
-    {% if family.discovery_paused %}<p class="analytics-warning">Pesquisa semanal em pausa nesta categoria. Rever pelo menos {{ family.reviews_to_resume_discovery }} candidatos para retomar: <a href="{% url 'storefront:product-family-detail' family.slug %}?gestao=rever&amp;ordem=antigos#gestao-owner">abrir fila de revisão</a>.</p>{% endif %}
-    {% empty %}<div class="empty">Não existem famílias operacionais.</div>{% endfor %}
-  </section>
 </main>
 {% endblock %}
