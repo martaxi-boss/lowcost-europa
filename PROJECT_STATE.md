@@ -1,5 +1,14 @@
 # Lowcost Europa — Project State
 
+## Search follow-up — 9 November 2026, 07:14–07:17 Lisbon
+
+- **Bing sitemap resolved at the reporting level:** authenticated Sitemaps now shows Success, 23 URLs discovered, zero errors/warnings; displayed last submit/crawl 9 November. No submission made in this run. This supersedes the older Error/0 entry below.
+- **Bing page inclusion remains pending:** homepage and all five original categories separately reinspected: Discovered but not crawled, discovery 8 November. Sitemap processing is not page indexing.
+- **Google fresh check blocked by signed-out session:** APIs Explorer with only webmasters.readonly reached a signed-out account chooser; no new authenticated report. Retain prior six-page index confirmations and unresolved pending sitemap baseline. No login/CAPTCHA retries, token export or expanded scope.
+- **Other engines:** Yandex sitemap still read-only/Add disabled; Seznam categories unconfirmed; Yahoo query inconclusive; DuckDuckGo error 5401. Brave six-page baseline retained; no new confirmation claimed.
+- **Preservation:** no runtime/site/DNS/mail/HTTPS/catalogue/panel change, duplicate submission or manual IndexNow send. Same monitoring task remains active; completion conditions unmet. [Detailed observations](docs/operations/international-search-20261108.md).
+
+
 ## Missão final PT/ES — correções implantadas e dependências externas identificadas
 
 Este é o estado mais recente; as secções seguintes são fotografias históricas e não podem repor bloqueios já resolvidos.

@@ -1,5 +1,18 @@
 # International search discovery — 8 November 2026
 
+## Bing sitemap processing confirmed — 9 November 2026, 07:14–07:17 Lisbon
+
+**Material change, authenticated Bing report:** the canonical sitemap https://www.lowcost-europa.eu/sitemap.xml now reports **Success**, **23 URLs discovered**, zero sitemap errors and zero warnings. The dashboard displays last submit and last crawl as 11/9/2026 (9 November). This supersedes Error/0 for Bing sitemap processing. It does not establish page index inclusion. No submission was made during this check; the displayed submission date differs from the older baseline and its cause was not investigated or attributed.
+
+**Per-page Bing checks:** homepage, Cavitação, Hydrodermoabrasão, Pressoterapia, HIFU and Diodo were inspected separately via Bing Index. All remain **Discovered but not crawled**, discovered 8 November. No Request indexing action was used.
+
+**Google access boundary:** official APIs Explorer was configured for sc-domain:lowcost-europa.eu with only webmasters.readonly (write scope and API key disabled). Execute reached the Google account chooser, where the available accounts were signed out. No authenticated response was obtained, no credential/token exported and no login/CAPTCHA cycle attempted. The 8 November 18:43–19:07 pending sitemap responses and six indexed confirmations remain historical evidence; no new Google resolution or regression is inferred. Secure browser authentication is required for a fresh authenticated Google check in an interactive session.
+
+**Other engines:** authenticated Yandex Sitemap files still explicitly read-only with Add disabled; no submission. Seznam products-path public query still returns only the homepage, with categories unconfirmed. Yahoo domain query displayed no matching domain link; this is not proof of global absence. DuckDuckGo returned 418.html / error 5401, leaving inclusion unknown. Brave six-page public baseline is retained, with no re-fetch or submission. A new read-only Brave search navigation was stopped by automatic approval review as a perceived repeat of the confirmed check; it was not retried or bypassed.
+
+This run made no site/runtime/DNS/mail/HTTPS/catalogue/panel changes, manual IndexNow sends or messages to third parties. Latest PROJECT_STATE.md was read first: the site has since expanded to 23 public URLs; older 11-URL snapshots are historical, not a current inventory. No new objective site fault was reproduced. Monitoring remains necessary for Google sitemap processing, Bing six-page inclusion and remaining agreed engines. This browser follow-up is not a Ferrari engine-job certification.
+
+
 ## Brave six separate results; Seznam homepage appears — 8 November 2026, 19:06–19:11 Lisbon
 
 **New material progress:** the public Brave query for the domain showed the homepage and a separate Cavitação result, plus four category sitelinks. Sitelinks alone were not treated as individual index confirmation. A subsequent focused [products-path query](https://search.brave.com/search?q=site%3Alowcost-europa.eu%2Fproducts%2F&source=web) displayed **five separate category results**, each pointing at the exact canonical WWW URL. This confirms public search presence for the homepage and all five categories at the observation time. The [Seznam domain query](https://search.seznam.cz/?q=site%3Alowcost-europa.eu) now displays the canonical homepage, superseding the earlier receipt-only/unconfirmed state for that page. Its category inclusion remains unconfirmed; a focused products-path query displayed only the homepage.
