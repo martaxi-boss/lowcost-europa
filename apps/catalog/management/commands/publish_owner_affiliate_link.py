@@ -7,6 +7,7 @@ historical OfferClick/Offer/Order records required for reporting.
 """
 
 import hashlib
+from datetime import timedelta
 from decimal import Decimal
 from urllib.parse import urlsplit
 
@@ -131,7 +132,7 @@ class Command(BaseCommand):
 
             if not OfferObservation.objects.filter(
                 offer=offer,
-                observed_at__gte=now - timezone.timedelta(minutes=1),
+                observed_at__gte=now - timedelta(minutes=1),
                 destination_country="PT",
             ).exists():
                 OfferObservation.objects.create(
