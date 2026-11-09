@@ -39,7 +39,6 @@ from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
 )
-from apps.catalog.services.search_referral_metrics import read_private_report
 from apps.catalog.services.owner_editorial import (
     OwnerEditorialError,
     hide_offer_from_storefront,
@@ -51,6 +50,7 @@ from apps.catalog.services.public_eligibility import (
     is_ship_from_verified,
     public_eligibility_q,
 )
+from apps.catalog.services.search_referral_metrics import read_private_report
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
@@ -439,6 +439,11 @@ def dashboard(request):
         and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
         == "sc-domain:lowcost-europa.eu"
     )
+    search_referrers = read_private_report(
+        settings.BASE_DIR / "private" / "metrics" / "search-referrers.json",
+        now=now,
+    )
+
     # Comparar motores exige cliques medidos na mesma origem e período.
     # Search Console só mede Google; não inventar números para outros motores.
     # Não recolher aqui IP, sessões, referers ou novos dados de visitantes.
@@ -515,6 +520,7 @@ def dashboard(request):
                 "google_search_report": google_search_report,
                 "google_search_configured": google_search_configured,
                 "engine_comparison_rows": engine_comparison_rows,
+                "search_referrers": search_referrers,
                 "google_search_report_payload": google_search_report_payload,
                 "google_search_report_fresh": google_search_report_fresh,
             },
