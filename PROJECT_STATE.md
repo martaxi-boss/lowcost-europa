@@ -1,6 +1,6 @@
 # Lowcost Europa — Project State
 
-## Search follow-up — 9 November 2026, 07:14–07:25 Lisbon
+## Search follow-up — 9 November 2026, 07:14–07:17 Lisbon
 
 - **Bing sitemap resolved at the reporting level:** authenticated Sitemaps now shows Success, 23 URLs discovered, zero errors/warnings; displayed last submit/crawl 9 November. No submission made in this run. This supersedes the older Error/0 entry below.
 - **Bing page inclusion remains pending:** homepage and all five original categories separately reinspected: Discovered but not crawled, discovery 8 November. Sitemap processing is not page indexing.
