@@ -14,6 +14,12 @@ class CatalogMaintenanceSystemdPolicyTests(SimpleTestCase):
         ).read_text()
         cls.web_service = (root / "deploy/systemd/lowcost-europa.service").read_text()
         cls.tmpfiles = (root / "deploy/tmpfiles.d/lowcost-europa.conf").read_text()
+        cls.cavitation_timer = (
+            root / "deploy/systemd/lowcost-europa-cavitation-availability.timer"
+        ).read_text()
+        cls.cavitation_service = (
+            root / "deploy/systemd/lowcost-europa-cavitation-availability.service"
+        ).read_text()
 
     def test_hourly_timer_policy_is_versioned(self):
         self.assertIn("OnBootSec=15min", self.timer)
@@ -35,3 +41,15 @@ class CatalogMaintenanceSystemdPolicyTests(SimpleTestCase):
     def test_private_tmp_is_preserved_for_web_and_maintenance(self):
         self.assertIn("PrivateTmp=true", self.web_service)
         self.assertIn("PrivateTmp=true", self.service)
+
+    def test_manual_cavitation_availability_has_isolated_schedule(self):
+        self.assertIn("OnUnitActiveSec=2h", self.cavitation_timer)
+        self.assertIn("RandomizedDelaySec=15min", self.cavitation_timer)
+        self.assertIn("Persistent=true", self.cavitation_timer)
+        self.assertIn(
+            "manage.py monitor_cavitation_availability --batch-size 5",
+            self.cavitation_service,
+        )
+        self.assertIn("PrivateTmp=true", self.cavitation_service)
+        self.assertNotIn("generate_affiliate", self.cavitation_service)
+        self.assertNotIn("run_weekly_discovery", self.cavitation_service)
