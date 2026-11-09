@@ -1,6 +1,6 @@
 # International search discovery — 8 November 2026
 
-## Bing sitemap processing confirmed — 9 November 2026, 07:14–07:25 Lisbon
+## Bing sitemap processing confirmed — 9 November 2026, 07:14–07:17 Lisbon
 
 **Material change, authenticated Bing report:** the canonical sitemap https://www.lowcost-europa.eu/sitemap.xml now reports **Success**, **23 URLs discovered**, zero sitemap errors and zero warnings. The dashboard displays last submit and last crawl as 11/9/2026 (9 November). This supersedes Error/0 for Bing sitemap processing. It does not establish page index inclusion. No submission was made during this check; the displayed submission date differs from the older baseline and its cause was not investigated or attributed.
 
