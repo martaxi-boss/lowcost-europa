@@ -70,6 +70,27 @@ async function main() {
       assert.equal(res.status(), 200);
       await verify(page, "detail", width);
       assert.equal(await page.locator("[data-offer-card]").count(), 4);
+      const mainLink = page.locator('.offer-cta a[href^="/go/"]').first();
+      assert.equal(await mainLink.getAttribute("target"), "_blank",
+        "External offer link requests a new browser tab without changing /go/");
+      assert.match(await mainLink.getAttribute("rel"), /noopener/);
+      assert.equal(await page.locator("[data-affiliate-copy]").count(), 1,
+        "Only Owner-supplied links expose the original URL to copy");
+      if (width === 390) {
+        const copyPanel = page.locator("[data-affiliate-copy]").first();
+        await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
+        await copyPanel.locator("summary").click();
+        const exact = "https://s.click.aliexpress.com/e/_OwnerBrowserFixture";
+        assert.equal(await copyPanel.locator("[data-affiliate-copy-value]").inputValue(),
+          exact, "Owner URL must not be regenerated or normalized");
+        await copyPanel.locator("[data-affiliate-copy-button]").click();
+        assert.match(await copyPanel.locator("[data-affiliate-copy-status]").innerText(),
+          /copiado/i);
+        assert.equal(await page.evaluate(() => navigator.clipboard.readText()), exact,
+          "Clipboard must contain the exact original Owner short link");
+        await copyPanel.locator("summary").click();
+        report.checks.push({ page: "owner-affiliate-mobile-copy", width, status: "PASS" });
+      }
       assert.equal(await page.locator(".whatsapp-float").isVisible(), !mobile,
         "Fixed contact button must not obscure mobile product filters");
       assert.equal(await page.locator("[data-compare-dock]").isVisible(), false);
@@ -87,6 +108,10 @@ async function main() {
       assert.match(await page.locator("[data-compare-dock-count]").innerText(), /3 de 3/);
       await controls.nth(3).click();
       assert.equal(await page.locator("[data-compare-results] article").count(), 3);
+      assert.equal(
+        await page.locator(".compare-panel__actions a").first().getAttribute("target"),
+        "_blank", "Compare CTA must also request a new tab"
+      );
       assert.match(await page.locator("[data-compare-message]").innerText(),
         /Limite de três/);
       await page.locator("[data-compare-show]").click();
