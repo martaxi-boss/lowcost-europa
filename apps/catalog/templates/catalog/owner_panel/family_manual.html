@@ -1,0 +1,42 @@
+{% extends "catalog/owner_panel/base.html" %}
+{% block title %}Montra Cavitação | Lowcost Europa{% endblock %}
+{% block body %}
+<nav class="owner-top">
+  <span class="brand">LOWCOST EUROPA</span>
+  <a href="{% url 'storefront:product-family-detail' family.slug %}">VER MONTRA</a>
+  <form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form>
+</nav>
+<main class="owner-wrap" id="montra-cavitacao">
+  <h1>{{ family.name }}</h1>
+  <p>Montra manual. Só os links de afiliado que forneceste são publicados aqui.</p>
+  <p>A verificação de indisponibilidade funciona automaticamente; não gera links nem acrescenta produtos.</p>
+  {% if owner_error %}<div class="message error">{{ owner_error }}</div>{% endif %}
+  {% if owner_notice %}<div class="message notice">{{ owner_notice }}</div>{% endif %}
+  <div class="counts">
+    <div class="count"><strong>Na montra</strong><br>{{ offers|length }} / 20</div>
+  </div>
+  <nav class="tabs" aria-label="Gestão da montra"><span class="active">MONTRA</span></nav>
+  {% for offer in offers %}
+    <article class="product" data-manual-owner-offer="{{ offer.pk }}">
+      {% if offer.image_url %}<img src="{{ offer.image_url }}" alt="" loading="lazy">{% endif %}
+      <div>
+        <p class="state">Publicado com o teu link manual</p>
+        <h2>{{ offer.title|default:"Produto sem título" }}</h2>
+        <p>Produto AliExpress: {{ offer.external_product_id }}</p>
+      </div>
+      <div class="actions">
+        <details class="manual-delete-confirm">
+          <summary>ELIMINAR DA MONTRA</summary>
+          <p>Este produto deixa de aparecer no site e o botão de compra deixa de funcionar. O histórico é preservado.</p>
+          <form method="post" action="{% url 'owner-panel:offer-hide' family.slug offer.pk %}">
+            {% csrf_token %}
+            <button class="danger" type="submit">CONFIRMAR ELIMINAÇÃO</button>
+          </form>
+        </details>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty">Esta montra está vazia. Apenas publicamos produtos através dos teus links de afiliado manuais.</div>
+  {% endfor %}
+</main>
+{% endblock %}

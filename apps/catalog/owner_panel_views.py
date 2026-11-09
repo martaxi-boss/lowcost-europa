@@ -35,6 +35,7 @@ from apps.catalog.services.manual_candidate_intake import (
     ManualCandidateIntakeError,
     intake_manual_aliexpress_candidate,
 )
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
@@ -546,6 +547,30 @@ def family_manage(request, family_slug):
     family = _family_or_404(family_slug)
     if family.status == ProductFamily.Status.RETIRED:
         return _private(HttpResponseForbidden("Acesso negado."))
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        # No pending/approved/rejected/automatic candidate controls.
+        offers = list(
+            Offer.objects.filter(
+                source=Offer.Source.ALIEXPRESS_OWNER,
+                is_active=True,
+                owner_hidden=False,
+                family_placements__product_family=family,
+            )
+            .filter(public_eligibility_q())
+            .order_by("family_placements__display_order", "pk")
+        )
+        return _private(
+            render(
+                request,
+                "catalog/owner_panel/family_manual.html",
+                {
+                    "family": family,
+                    "offers": offers,
+                    "owner_error": request.session.pop("owner_panel_error", ""),
+                    "owner_notice": request.session.pop("owner_panel_notice", ""),
+                },
+            )
+        )
     view = request.GET.get("vista", "rever")
     allowed = {
         "rever",
@@ -658,6 +683,8 @@ def family_manage(request, family_slug):
 @_owner_staff_required
 def manual_candidate_intake(request, family_slug):
     family = _family_or_404(family_slug)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Cavitação é uma montra exclusivamente manual."))
     if family.status == ProductFamily.Status.RETIRED:
         return _private(HttpResponseForbidden("Acesso negado."))
     product_url = request.POST.get("product_url", "").strip()
@@ -706,6 +733,8 @@ def _safe_next(request):
 
 
 def _return_family(family, view="rever", request=None):
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        view = "montra"
     if request is not None:
         next_url = _safe_next(request)
         if next_url:
@@ -730,6 +759,8 @@ def _moved_candidate_view(candidate):
 @_owner_staff_required
 def candidate_approve(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Cavitação é uma montra exclusivamente manual."))
     candidate = _candidate_or_404(family, candidate_id)
     try:
         approve_candidate(candidate, user=request.user)
@@ -748,6 +779,8 @@ def candidate_approve(request, family_slug, candidate_id):
 @_owner_staff_required
 def candidate_reject(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Cavitação é uma montra exclusivamente manual."))
     candidate = _candidate_or_404(family, candidate_id)
     try:
         reject_candidate(
@@ -765,11 +798,15 @@ def candidate_reject(request, family_slug, candidate_id):
 @_owner_staff_required
 def candidate_move(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Cavitação é uma montra exclusivamente manual."))
     candidate = _candidate_or_404(family, candidate_id)
     target = get_object_or_404(
         ProductFamily.objects.exclude(status=ProductFamily.Status.RETIRED),
         pk=request.POST.get("target_family"),
     )
+    if target.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Esta categoria recebe apenas links manuais."))
     try:
         moved, _ = move_candidate_to_family(candidate, target_family=target, user=request.user)
         moved = OfferCandidate.objects.select_related("approved_offer", "product_family").get(
@@ -785,6 +822,8 @@ def candidate_move(request, family_slug, candidate_id):
 @_owner_staff_required
 def candidate_revalidate(request, family_slug, candidate_id):
     family = _family_or_404(family_slug)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Cavitação é uma montra exclusivamente manual."))
     candidate = _candidate_or_404(family, candidate_id)
     try:
         revalidate_candidate(candidate, user=request.user)
@@ -805,18 +844,29 @@ def candidate_revalidate(request, family_slug, candidate_id):
 def offer_hide(request, family_slug, offer_id):
     family = _family_or_404(family_slug)
     offer = _offer_or_404(family, offer_id)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG and offer.source != Offer.Source.ALIEXPRESS_OWNER:
+        return _private(HttpResponseForbidden("Só podes gerir produtos manuais nesta montra."))
     try:
         hide_offer_from_storefront(offer, user=request.user)
-        request.session["owner_panel_notice"] = "Oferta retirada da montra."
+        request.session["owner_panel_notice"] = (
+            "Produto eliminado da montra." if family.slug == MANUAL_ONLY_FAMILY_SLUG
+            else "Oferta retirada da montra."
+        )
     except OwnerEditorialError as exc:
         request.session["owner_panel_error"] = str(exc)
-    return _return_family(family, "retirados", request)
+    return _return_family(
+        family,
+        "montra" if family.slug == MANUAL_ONLY_FAMILY_SLUG else "retirados",
+        request,
+    )
 
 
 @require_POST
 @_owner_staff_required
 def offer_publish(request, family_slug, offer_id):
     family = _family_or_404(family_slug)
+    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+        return _private(HttpResponseForbidden("Cavitação é uma montra exclusivamente manual."))
     offer = _offer_or_404(family, offer_id)
     try:
         publish_offer_to_storefront(offer, family=family, user=request.user)
