@@ -129,9 +129,15 @@
     <p class="analytics-section-subtitle">Resultados de pesquisa e parceiros apresentados por origem. Onde não houver dados confirmados, a indicação é «indisponível» ou «a aguardar».</p>
     <div class="source-grid">
       <article class="source-card">
-        <h3>Visitas e interações</h3>
-        <span class="source-status">A ativar no lançamento</span>
-        <p>Google Analytics 4: páginas visitadas e interações após o domínio definitivo e as verificações de privacidade.</p>
+        <h3>Origem da pesquisa — contador próprio</h3>
+        {% if search_referrers %}
+          <span class="source-status active">Relatório local ativo</span>
+          <p>Última observação: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong>. Foram identificados <strong>{{ search_referrers.total }}</strong> pedidos de páginas com origem de pesquisa declarada nos registos disponíveis. Detalhe por motor acima.</p>
+        {% else %}
+          <span class="source-status">Recolha local indisponível</span>
+          <p>A aguardar o próximo relatório validado do servidor. Não são estimados pedidos nem visitantes.</p>
+        {% endif %}
+        <p>Sem serviços externos, cookies de medição ou pixels adicionais. Não mede visitantes únicos nem compras atribuídas.</p>
       </article>
       <article class="source-card">
         <h3>AliExpress — encomendas e comissões</h3>
