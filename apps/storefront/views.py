@@ -20,8 +20,8 @@ from apps.catalog.models import (
     Offer,
     OfferCandidate,
     OfferClick,
-    OfferObservation,
     OfferFamilyPlacement,
+    OfferObservation,
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
