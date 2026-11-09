@@ -35,12 +35,20 @@ def seed():
         for rank in range(1, offers + 1):
             count += 1
             offer = Offer.objects.create(
-                source=Offer.Source.ALIEXPRESS,
+                source=(
+                    Offer.Source.ALIEXPRESS_OWNER
+                    if index == 1 and rank == 1
+                    else Offer.Source.ALIEXPRESS
+                ),
                 external_product_id=f"browser-qa-{index}-{rank}",
                 product_family=family,
                 title=f"{name} - equipamento demonstrativo {rank}",
                 image_url="",  # Honest placeholder: no supplier photo fabricated.
-                affiliate_url=f"https://affiliate.example.test/qa-{index}-{rank}",
+                affiliate_url=(
+                    "https://s.click.aliexpress.com/e/_OwnerBrowserFixture"
+                    if index == 1 and rank == 1
+                    else f"https://affiliate.example.test/qa-{index}-{rank}"
+                ),
                 affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
                 affiliate_promotion_verified_at=now,
                 ship_from_country="PL",
