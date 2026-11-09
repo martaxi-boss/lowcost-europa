@@ -96,7 +96,7 @@ class StorefrontViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HIFU Professional")
         self.assertContains(response, "7D HIFU Professional Machine")
-        self.assertContains(response, 'rel="sponsored nofollow"')
+        self.assertContains(response, 'target="_blank" rel="sponsored nofollow noopener"')
         self.assertContains(response, "199,90 EUR")
         self.assertContains(response, "Estimativa indicada pela pesquisa: 5 dias")
 

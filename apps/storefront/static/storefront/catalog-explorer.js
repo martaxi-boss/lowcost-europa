@@ -62,6 +62,36 @@
     return element;
   }
 
+  // A visitor may be inside an Android/iOS in-app browser with no address bar.
+  // Copy the exact Owner URL already in the rendered form; never regenerate it.
+  document.querySelectorAll("[data-affiliate-copy-button]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const root = button.closest("[data-affiliate-copy]");
+      const input = root?.querySelector("[data-affiliate-copy-value]");
+      const status = root?.querySelector("[data-affiliate-copy-status]");
+      if (!input || !status) return;
+      let copied = false;
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(input.value);
+          copied = true;
+        } catch {
+          // Some embedded browsers disable Clipboard API access.
+        }
+      }
+      if (!copied) {
+        input.focus();
+        input.select();
+        try {
+          copied = document.execCommand("copy");
+        } catch {
+          // The selected text remains available for a manual long-press copy.
+        }
+      }
+      status.textContent = copied ? button.dataset.copySuccess : button.dataset.copyFailure;
+    });
+  });
+
   document.querySelectorAll("[data-catalog-explorer]").forEach((root) => {
     const cards = Array.from(root.querySelectorAll("[data-offer-card]"));
     const controls = root.querySelector("[data-explorer-controls]");
@@ -164,6 +194,8 @@
         if (href && /^\/go\/\d+\/$/.test(href)) {
           const link = document.createElement("a");
           link.href = href;
+          link.target = "_blank";
+          link.rel = "sponsored nofollow noopener";
           link.textContent = uiT("Ver no AliExpress") + " ↗";
           link.className = "button button--secondary";
           actions.appendChild(link);

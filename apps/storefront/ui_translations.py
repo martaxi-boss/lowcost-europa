@@ -9,6 +9,12 @@ No network calls, paid translation APIs or visitor IP geolocation.
 import re
 
 UI_TRANSLATIONS = {
+  "Não abriu no navegador? Copiar link original": {"es":"¿No se abre en el navegador? Copiar enlace original","en":"Not opening in your browser? Copy original link","fr":"Le navigateur ne s'ouvre pas ? Copier le lien original","de":"Öffnet sich der Browser nicht? Originallink kopieren"},
+  "Se o telemóvel abrir a aplicação AliExpress, copie o link original e cole-o no Chrome ou Safari.": {"es":"Si el móvil abre la aplicación AliExpress, copia el enlace original y pégalo en Chrome o Safari.","en":"If your phone opens the AliExpress app, copy the original link and paste it into Chrome or Safari.","fr":"Si votre téléphone ouvre l’application AliExpress, copiez le lien original et collez-le dans Chrome ou Safari.","de":"Wenn dein Handy die AliExpress-App öffnet, kopiere den Originallink und füge ihn in Chrome oder Safari ein."},
+  "Link de afiliado original": {"es":"Enlace de afiliado original","en":"Original affiliate link","fr":"Lien d'affiliation original","de":"Ursprünglicher Affiliate-Link"},
+  "Copiar link original": {"es":"Copiar enlace original","en":"Copy original link","fr":"Copier le lien original","de":"Originallink kopieren"},
+  "Link copiado. Cole-o no Chrome ou Safari.": {"es":"Enlace copiado. Pégalo en Chrome o Safari.","en":"Link copied. Paste it into Chrome or Safari.","fr":"Lien copié. Collez-le dans Chrome ou Safari.","de":"Link kopiert. Füge ihn in Chrome oder Safari ein."},
+  "Selecione o link acima e copie-o manualmente.": {"es":"Selecciona el enlace de arriba y cópialo manualmente.","en":"Select the link above and copy it manually.","fr":"Sélectionnez le lien ci-dessus et copiez-le manuellement.","de":"Wähle den Link oben aus und kopiere ihn manuell."},
   "Preço EUR observado para Espanha; confirme stock e entrega no vendedor.": {
     "es": "Precio en EUR observado para España; confirma existencias y entrega con el vendedor.",
     "en": "EUR price observed for Spain; confirm stock and delivery with the seller.",
