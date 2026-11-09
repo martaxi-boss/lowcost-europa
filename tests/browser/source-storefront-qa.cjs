@@ -84,6 +84,8 @@ async function main() {
         assert.equal(await copyPanel.locator("[data-affiliate-copy-value]").inputValue(),
           exact, "Owner URL must not be regenerated or normalized");
         await copyPanel.locator("[data-affiliate-copy-button]").click();
+        // Clipboard API is asynchronous; wait for the visible status announcement.
+        await copyPanel.locator("[data-affiliate-copy-status]").waitFor({ state: "visible" });
         assert.match(await copyPanel.locator("[data-affiliate-copy-status]").innerText(),
           /copiado/i);
         assert.equal(await page.evaluate(() => navigator.clipboard.readText()), exact,
