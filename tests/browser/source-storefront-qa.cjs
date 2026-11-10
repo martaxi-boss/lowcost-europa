@@ -191,9 +191,10 @@ async function main() {
       const sourceTitle = await page.locator("[data-offer-card]").first()
         .locator(".offer-title").innerText();
       const sourceGoUrl = await mainLink.getAttribute("href");
-      const offerMatch = /^\\/go\\/(\\d+)\\/$/.exec(sourceGoUrl || "");
-      assert.ok(offerMatch, "Source offer must expose the existing /go/<id>/ URL");
-      res = await page.goto(origin + "/oferta/" + offerMatch[1] + "/",
+      const sourceOfferId = (sourceGoUrl || "").split("/")[2];
+      assert.ok(/^[0-9]+$/.test(sourceOfferId || ""),
+        "Source offer must expose an existing numeric /go/<id>/ URL");
+      res = await page.goto(origin + "/oferta/" + sourceOfferId + "/",
         { waitUntil: "networkidle" });
       assert.equal(res.status(), 200, "One-product landing must load on " + width + "px");
       await verify(page, "promo-landing-mobile-desktop-pilot", width);
