@@ -105,9 +105,8 @@ async function main() {
           + "\nAliExpress ID: " + productId;
         assert.deepEqual(await page.evaluate(() => window.__capturedShare), {
           title: productTitle + " | Low Cost Europa",
-          text: description,
-          url: exact,
-        }, "Mobile share must identify the correct product while keeping the original URL");
+          text: description + "\n" + exact,
+        }, "Mobile share must send a single text payload with product identity and exact original URL, not a URL field");
         assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
           /enviados para partilha/i);
         await page.evaluate(() => {
