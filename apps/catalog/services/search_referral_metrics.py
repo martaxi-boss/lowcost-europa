@@ -12,9 +12,10 @@ import os
 import re
 import tempfile
 from collections import Counter
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
+from zoneinfo import ZoneInfo
 
 SOURCE = "NGINX_REFERRER"
 LOG_NAME = "lowcost-europa.access.log"
@@ -56,6 +57,55 @@ def _engine(referer):
     if host == "yandex.ru" or host.endswith(".yandex.ru"):
         return "Yandex"
     return None
+
+
+
+def _meta_origin(request_line, referer):
+    """Classify a public-page arrival, never identifying a person or sale.
+
+    A Facebook/Instagram Referer, Meta UTM or fbclid is an indication of
+    origin, NOT a confirmed paid-ad click. Only explicit paid UTM media are
+    flagged as tagged campaigns.
+    """
+    parts = request_line.split(" ", 2)
+    if len(parts) < 2:
+        return None
+    try:
+        query = parse_qs(urlsplit(parts[1]).query)
+        referer_url = urlsplit(referer)
+        host = (referer_url.hostname or "").lower().rstrip(".")
+        if referer_url.scheme not in {"http", "https"}:
+            host = ""
+    except ValueError:
+        return None
+
+    def first(key):
+        return str(query.get(key, [""])[0]).lower().strip()
+
+    utm_source = first("utm_source")
+    if utm_source in {"facebook", "fb", "fb_ads", "facebook_ads"}:
+        origin = "facebook"
+    elif utm_source in {"instagram", "ig", "instagram_ads"}:
+        origin = "instagram"
+    elif utm_source in {"meta", "meta_ads"}:
+        origin = "unspecified"
+    elif host == "facebook.com" or host.endswith(".facebook.com") or (
+        host == "fb.com" or host.endswith(".fb.com")
+    ):
+        origin = "facebook"
+    elif host == "instagram.com" or host.endswith(".instagram.com"):
+        origin = "instagram"
+    elif first("fbclid") or first("igshid"):
+        origin = "unspecified"
+    else:
+        return None
+
+    paid_media = {"paid", "paid_social", "paidsocial", "cpc", "ppc", "ads", "meta_ads"}
+    paid_tagged = first("utm_medium") in paid_media and utm_source in {
+        "facebook", "fb", "fb_ads", "facebook_ads", "instagram", "ig",
+        "instagram_ads", "meta", "meta_ads",
+    }
+    return origin, paid_tagged
 
 
 def _public_page(request_path):
@@ -103,6 +153,9 @@ def summarize_logs(directory, *, now=None):
     start = now - timedelta(days=7)
     files = _log_files(Path(directory))
     counts = Counter()
+    meta_counts = Counter()
+    meta_daily = Counter()
+    meta_paid_tagged = 0
     parsed_entries = 0
     total_lines = 0
     first_observed = None
@@ -137,10 +190,35 @@ def summarize_logs(directory, *, now=None):
                 engine = _engine(match.group("referer"))
                 if engine:
                     counts[engine] += 1
+                meta = _meta_origin(match.group("request"), match.group("referer"))
+                if meta:
+                    origin, paid_tagged = meta
+                    meta_counts[origin] += 1
+                    meta_daily[stamp.astimezone(ZoneInfo("Europe/Lisbon")).date().isoformat()] += 1
+                    if paid_tagged:
+                        meta_paid_tagged += 1
     if parsed_entries == 0:
         raise ValueError("nginx_no_valid_recent_entries")
+    today = now.astimezone(ZoneInfo("Europe/Lisbon")).date()
+    daily = [
+        {
+            "date": (today - timedelta(days=offset)).isoformat(),
+            "requests": meta_daily[(today - timedelta(days=offset)).isoformat()],
+        }
+        for offset in range(7, -1, -1)
+    ]
     return {
-        "schema": 1,
+        "schema": 2,
+        "meta": {
+            "total": sum(meta_counts.values()),
+            "facebook": meta_counts["facebook"],
+            "instagram": meta_counts["instagram"],
+            "unspecified": meta_counts["unspecified"],
+            "paid_tagged": meta_paid_tagged,
+            "today": meta_daily[today.isoformat()],
+            "yesterday": meta_daily[(today - timedelta(days=1)).isoformat()],
+            "daily": daily,
+        },
         "source": SOURCE,
         "domain": "www.lowcost-europa.eu",
         "checked_at": now.isoformat(),
@@ -183,7 +261,7 @@ def read_private_report(path, *, now=None):
         now = now or datetime.now(timezone.utc)
         if checked.tzinfo is None or not timedelta(0) <= now - checked <= timedelta(hours=48):
             return None
-        if data.get("schema") != 1 or data.get("source") != SOURCE:
+        if data.get("schema") not in (1, 2) or data.get("source") != SOURCE:
             return None
         if data.get("domain") != "www.lowcost-europa.eu":
             return None
@@ -197,10 +275,42 @@ def read_private_report(path, *, now=None):
         total = data.get("observed_public_search_requests")
         if not isinstance(total, int) or total != sum(rows[x] for x in ENGINES):
             return None
+        meta = None
+        if data["schema"] == 2:
+            meta = data.get("meta")
+            if not isinstance(meta, dict):
+                return None
+            integer_fields = ("total", "facebook", "instagram", "unspecified",
+                              "paid_tagged", "today", "yesterday")
+            if any(type(meta.get(key)) is not int or not 0 <= meta[key] <= 2_000_000
+                   for key in integer_fields):
+                return None
+            if meta["total"] != (meta["facebook"] + meta["instagram"]
+                                 + meta["unspecified"]):
+                return None
+            if meta["paid_tagged"] > meta["total"]:
+                return None
+            daily = meta.get("daily")
+            if not isinstance(daily, list) or len(daily) != 8:
+                return None
+            if any(not isinstance(day, dict)
+                   or not isinstance(day.get("date"), str)
+                   or type(day.get("requests")) is not int
+                   or not 0 <= day["requests"] <= 2_000_000
+                   for day in daily):
+                return None
+            dates = [date.fromisoformat(day["date"]) for day in daily]
+            if (dates != sorted(set(dates))
+                    or sum(day["requests"] for day in daily) != meta["total"]):
+                return None
+            if (meta["today"] != daily[-1]["requests"]
+                    or meta["yesterday"] != daily[-2]["requests"]):
+                return None
         return {
             "checked_at": checked,
             "total": total,
             "rows": [{"name": key, "requests": rows[key]} for key in ENGINES],
+            "meta": meta,
         }
     except (ValueError, OSError, KeyError, TypeError, json.JSONDecodeError, OverflowError):
         return None

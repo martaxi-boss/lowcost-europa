@@ -110,6 +110,30 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
 
+    def test_owner_sees_meta_local_counts_not_old_meta_account(self):
+        report = {
+            "checked_at": timezone.now(),
+            "total": 0,
+            "rows": [{"name": "Google", "requests": 0}],
+            "meta": {
+                "total": 4, "facebook": 2, "instagram": 1, "unspecified": 1,
+                "paid_tagged": 1, "today": 3, "yesterday": 1,
+                "daily": [{"date": "2026-11-10", "requests": 3}],
+            },
+        }
+        self._click_ago(0.01)
+        with patch(
+            "apps.catalog.owner_panel_views.read_private_report", return_value=report
+        ):
+            response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Chegadas da Meta — contador próprio")
+        self.assertContains(response, "Campanhas identificadas por UTM pago")
+        self.assertEqual(response.context["search_referrers"]["meta"]["total"], 4)
+        self.assertEqual(response.context["raw_clicks_today"], 1)
+        self.assertNotContains(response, "Meta Ads")
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+
     def test_missing_individual_origin_is_visible_only_as_owner_warning(self):
         response = self.client.get(self.url)
         self.assertEqual(response.context["eligible_public_offers"], 1)

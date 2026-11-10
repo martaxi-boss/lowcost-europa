@@ -281,6 +281,9 @@ def dashboard(request):
         .annotate(total=Count("id"))
         .values_list("local_day", "total")
     )
+    local_today = timezone.localdate(now)
+    clicks_today = counts_by_day.get(local_today, 0)
+    clicks_yesterday = counts_by_day.get(local_today - timedelta(days=1), 0)
     chart_max = max([1, *counts_by_day.values()])
     daily_clicks = []
     for day_offset in range(14):
@@ -506,6 +509,8 @@ def dashboard(request):
                 "recent_raw_clicks_total": recent_clicks_total,
                 "previous_raw_clicks_total": previous_clicks_total,
                 "raw_clicks_24h": clicks_24h,
+                "raw_clicks_today": clicks_today,
+                "raw_clicks_yesterday": clicks_yesterday,
                 "raw_clicks_30d": clicks_30d,
                 "daily_raw_clicks": daily_clicks,
                 "top_clicked_offers": top_clicked_offers,

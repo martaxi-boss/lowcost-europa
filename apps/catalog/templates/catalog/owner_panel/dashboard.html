@@ -53,6 +53,8 @@
     <h2 class="analytics-section-title">Cliques para parceiros</h2>
     <p class="analytics-section-subtitle">Cliques brutos registados pelo Low Cost Europa quando alguém utiliza o botão de saída para uma oferta.</p>
     <div class="metrics-grid">
+      <div class="metric"><span class="metric-label">Hoje — saídas para parceiros</span><strong class="metric-value">{{ raw_clicks_today }}</strong><span class="metric-hint">Dia de Portugal, até agora</span></div>
+      <div class="metric"><span class="metric-label">Ontem — saídas para parceiros</span><strong class="metric-value">{{ raw_clicks_yesterday }}</strong><span class="metric-hint">Dia de Portugal completo</span></div>
       <div class="metric"><span class="metric-label">Últimas 24 horas</span><strong class="metric-value">{{ raw_clicks_24h }}</strong><span class="metric-hint">Saídas registadas</span></div>
       <div class="metric"><span class="metric-label">Últimos 7 dias</span><strong class="metric-value">{{ recent_raw_clicks_total }}</strong><span class="metric-hint">Saídas registadas</span></div>
       <div class="metric"><span class="metric-label">7 dias anteriores</span><strong class="metric-value">{{ previous_raw_clicks_total }}</strong><span class="metric-hint">Período comparativo</span></div>
@@ -134,6 +136,36 @@
       <p>Este relatório só aparece quando o servidor fornecer observações válidas. Não se apresentam números estimados.</p>
     {% endif %}
     <p class="analytics-note">Estes valores contam pedidos HTTP, não visitantes únicos nem cliques, impressões, palavras-chave ou posições oficiais do Search Console. O Referer pode estar ausente, ser omitido pelo navegador ou falsificado; os dados dependem da retenção dos logs.</p>
+  </section>
+
+  <section class="card" aria-label="Chegadas locais provenientes da Meta">
+    <h2 class="analytics-section-title">Chegadas da Meta — contador próprio</h2>
+    <p class="analytics-section-subtitle">Facebook e Instagram nos registos locais do Nginx, sem Windsor.ai, Pixel ou cookies novos.</p>
+    {% if search_referrers and search_referrers.meta %}
+      <span class="source-status active">Relatório local atualizado</span>
+      <p class="analytics-note">Recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Últimos 7 dias nos registos disponíveis.</p>
+      <div class="metrics-grid">
+        <div class="metric"><span class="metric-label">Hoje — Meta</span><strong class="metric-value">{{ search_referrers.meta.today }}</strong><span class="metric-hint">Pedidos observados até à recolha</span></div>
+        <div class="metric"><span class="metric-label">Ontem — Meta</span><strong class="metric-value">{{ search_referrers.meta.yesterday }}</strong><span class="metric-hint">Pedidos observados</span></div>
+        <div class="metric"><span class="metric-label">Últimos 7 dias — Meta</span><strong class="metric-value">{{ search_referrers.meta.total }}</strong><span class="metric-hint">Facebook, Instagram e origem Meta sem identificação</span></div>
+        <div class="metric"><span class="metric-label">Campanhas identificadas por UTM pago</span><strong class="metric-value">{{ search_referrers.meta.paid_tagged }}</strong><span class="metric-hint">Subconjunto, não cliques faturados pela Meta</span></div>
+      </div>
+      <p class="analytics-note">Origem observada: Facebook {{ search_referrers.meta.facebook }}, Instagram {{ search_referrers.meta.instagram }}, Meta não especificada {{ search_referrers.meta.unspecified }}. Estes valores não contam visitantes únicos nem provam campanhas pagas, vendas ou comissões.</p>
+      <div class="commercial-table-wrap" role="region" aria-label="Chegadas da Meta por dia" tabindex="0">
+        <table class="commercial-table engine-table">
+          <thead><tr><th scope="col">Dia (Portugal)</th><th scope="col">Pedidos observados</th></tr></thead>
+          <tbody>
+            {% for day in search_referrers.meta.daily %}
+            <tr><th scope="row">{{ day.date }}</th><td>{{ day.requests }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <span class="source-status">Medição local da Meta ainda indisponível</span>
+      <p>A aguardar o primeiro relatório do servidor com dados Meta validados. A ausência de relatório não significa zero.</p>
+    {% endif %}
+    <p class="analytics-note">A contagem identifica sinais de origem nos pedidos de páginas (Referer, parâmetros UTM ou fbclid). O navegador pode omiti-los e um anúncio pode gerar mais de um pedido. Para identificar com maior rigor anúncios novos, usar utm_source=facebook ou instagram e utm_medium=paid_social no URL de destino.</p>
   </section>
 
   <section class="card" aria-label="Integrações de tráfego, publicidade e vendas">
