@@ -247,25 +247,25 @@ async function main() {
       await context.close();
     }
 
-    // Browser-only verification of the optional Android experiment.
-    // This does NOT claim that Telegram WebView or Android native-app attribution
-    // can be simulated by a Chromium user-agent override.
+    // Browser-only verification of the optional Android mobile experiment.
+    // A Chromium user-agent test cannot attest native AliExpress app attribution.
     const affiliateMobileCases = [
-      { label: "telegram-android", userAgent:
-        "Mozilla/5.0 (Linux; Android 13; Redmi Note 11) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36 Telegram-Android/11.0",
-        trial: true, shouldTrial: true },
-      { label: "android-chrome", userAgent:
+      { label: "android-chrome-trial", userAgent:
         "Mozilla/5.0 (Linux; Android 13; Redmi Note 11) AppleWebKit/537.36 " +
         "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36",
         trial: true, shouldTrial: true },
-      { label: "telegram-default", userAgent:
+      { label: "android-webview-trial", userAgent:
+        "Mozilla/5.0 (Linux; Android 13; Redmi Note 11 Build/TP1A) " +
+        "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 " +
+        "Chrome/125.0 Mobile Safari/537.36 wv",
+        trial: true, shouldTrial: true },
+      { label: "android-chrome-default", userAgent:
         "Mozilla/5.0 (Linux; Android 13; Redmi Note 11) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36 Telegram-Android/11.0",
+        "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36",
         trial: false, shouldTrial: false },
-      { label: "telegram-ios", userAgent:
+      { label: "ios-safari-trial", userAgent:
         "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) " +
-        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Telegram-iOS/11.0",
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
         trial: true, shouldTrial: false },
     ];
     for (const c of affiliateMobileCases) {
@@ -304,7 +304,7 @@ async function main() {
         assert.equal(await page.locator('.offer-cta a[href^="/go/"]').count(), 4);
       }
       report.checks.push({
-        page: "telegram-android-affiliate-chrome-trial:" + c.label,
+        page: "android-mobile-affiliate-chrome-trial:" + c.label,
         width: 390, status: "PASS",
       });
       await context.close();
