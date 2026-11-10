@@ -983,3 +983,9 @@ body { background: var(--bg); }
 .offer-browser-help input:focus-visible { outline: 3px solid #2d796a; outline-offset: 2px; }
 .offer-browser-help .button { width: 100%; margin-top: 9px; cursor: pointer; }
 .offer-browser-help [data-affiliate-copy-status]:empty { display: none; }
+
+/* Share control only uses the exact, manually supplied owner affiliate URL. */
+.offer-affiliate-actions { margin-top: 10px; }
+.offer-affiliate-actions > .meta { margin: 8px 0 0; line-height: 1.5; }
+.offer-affiliate-actions > [data-affiliate-share-status]:empty { display: none; }
+.offer-share-button:focus-visible { outline: 3px solid #2d796a; outline-offset: 2px; }
