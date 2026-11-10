@@ -41,7 +41,7 @@ class ReferralSummaryTests(SimpleTestCase):
             stamp = when.strftime("%d/%b/%Y:%H:%M:%S %z")
             return (
                 f'192.0.2.45 - - [{stamp}] "GET {path} HTTP/1.1" {status} 100 '
-                f'"{referer}" "Synthetic-UserAgent"\\n'
+                f'"{referer}" "Synthetic-UserAgent"\n'
             )
 
         observed = "".join([
