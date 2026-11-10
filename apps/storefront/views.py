@@ -152,7 +152,10 @@ def _family_queryset(*, include_es_price=False):
 
 
 def _prepare_offer(offer, family, *, use_es_price=False):
-    offer.observation_display = build_observation_display(offer.observation_history)
+    offer.observation_display = build_observation_display(
+        offer.observation_history,
+        allow_historical_owner_price=(offer.source == Offer.Source.ALIEXPRESS_OWNER),
+    )
     offer.price_market = "PT"
     if use_es_price and getattr(offer, "recent_es_price_evidence", []):
         # A real, recent ES/EUR price takes precedence on Spanish pages only.

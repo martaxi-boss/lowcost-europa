@@ -7,7 +7,7 @@ from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Trim
 from django.utils import timezone
 
-from apps.catalog.models import OfferObservation
+from apps.catalog.models import Offer, OfferObservation
 
 
 @dataclass(frozen=True)
@@ -45,11 +45,21 @@ def observation_history_queryset(*, require_recent_price=None):
         # Keep public price rendering aligned with the exact evidence gate.
         # The latest non-EUR, zero or future observation is not a public price.
         as_of = timezone.now()
+        # Manual owner links are exempt from the 24-hour publication gate.
+        # Keep their latest genuine PT/EUR price (with its original timestamp),
+        # even when the availability-only monitor adds newer null-price rows.
+        # Automatic offers still require a recent price and cannot borrow one.
         price = _latest_fact_id(
             Q(
                 price__gt=0,
                 currency__iexact="EUR",
                 observed_at__gte=as_of - timedelta(hours=24),
+                observed_at__lte=as_of,
+            )
+            | Q(
+                offer__source=Offer.Source.ALIEXPRESS_OWNER,
+                price__gt=0,
+                currency__iexact="EUR",
                 observed_at__lte=as_of,
             )
         )
@@ -70,11 +80,18 @@ def observation_history_queryset(*, require_recent_price=None):
 
 
 def _has_valid_price(
-    observation: OfferObservation, *, require_recent_price=None
+    observation: OfferObservation, *, require_recent_price=None,
+    allow_historical_owner_price=False,
 ) -> bool:
     currency = (observation.currency or "").strip()
     if observation.price is None or not currency:
         return False
+    if allow_historical_owner_price:
+        return bool(
+            observation.price > 0
+            and currency.upper() == "EUR"
+            and observation.observed_at <= timezone.now()
+        )
     if require_recent_price is None:
         require_recent_price = settings.PUBLIC_RECENT_PRICE_REQUIRED
     if not require_recent_price:
@@ -108,7 +125,8 @@ def _first_matching(
 
 
 def build_observation_display(
-    observations: Iterable[OfferObservation], *, require_recent_price=None
+    observations: Iterable[OfferObservation], *, require_recent_price=None,
+    allow_historical_owner_price=False,
 ) -> PublicOfferObservationData:
     # Spanish observations are private market evidence, never a replacement for
     # the existing Portuguese storefront's price/logistics or publication gate.
@@ -117,7 +135,8 @@ def build_observation_display(
         price_observation=_first_matching(
             history,
             lambda observation: _has_valid_price(
-                observation, require_recent_price=require_recent_price
+                observation, require_recent_price=require_recent_price,
+                allow_historical_owner_price=allow_historical_owner_price,
             ),
         ),
         rating_observation=_first_matching(
