@@ -29,5 +29,6 @@ urlpatterns = [
     path("robots.txt", views.robots_txt, name="robots"),
     re_path(r"^indexnow-(?P<key>[a-f0-9]{32})\.txt$", views.indexnow_key, name="indexnow-key"),
     path("products/<slug:slug>/", views.product_family_detail, name="product-family-detail"),
+    path("oferta/<int:offer_id>/", views.offer_landing, name="offer-landing"),
     path("go/<int:offer_id>/", views.offer_go, name="offer-go"),
 ]
