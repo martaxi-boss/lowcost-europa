@@ -708,13 +708,13 @@ def offer_landing(request, offer_id):
         "meta_description": (
             "Oferta selecionada. Confirme preço, envio e disponibilidade no AliExpress."
         ),
-        "robots_directive": "noindex, follow",
+        "robots_directive": "noindex, nofollow",
         "canonical_url": None,
         "seo_alternates": [],
         "structured_data_json": None,
     }
     response = _render_storefront(request, "storefront/offer_landing.html", context)
-    response["X-Robots-Tag"] = "noindex, follow"
+    response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
