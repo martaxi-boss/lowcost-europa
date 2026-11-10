@@ -62,6 +62,7 @@ class OfferGoTests(TestCase):
             HTTP_USER_AGENT=agents[0],
         )
         self.assertContains(response, 'target="_blank" rel="sponsored nofollow noopener"')
+        self.assertContains(response, 'data-affiliate-browser-trial')
         self.assertContains(response, 'data-affiliate-copy')
         self.assertContains(
             response,

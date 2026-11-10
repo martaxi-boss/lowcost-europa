@@ -60,7 +60,7 @@
     <div class="offer-cta">
       <button class="compare-toggle" type="button" data-compare-toggle aria-pressed="false" aria-label="{{ 'Adicionar'|ui_t }} {{ offer.title|default:'equipamento' }} {{ 'à comparação'|ui_t }}" hidden>{{ "+ Comparar equipamento"|ui_t }}</button>
       {% if offer.can_redirect %}
-        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}" target="_blank" rel="sponsored nofollow noopener">{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
+        <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}" target="_blank" rel="sponsored nofollow noopener"{% if offer.source == "ALIEXPRESS_OWNER" %} data-affiliate-browser-trial{% endif %}>{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
         {% if offer.source == "ALIEXPRESS_OWNER" %}
         <div class="offer-affiliate-actions" data-affiliate-actions>
           <button type="button" class="button button--secondary offer-share-button" data-affiliate-share-button
