@@ -76,6 +76,8 @@ async function main() {
       assert.match(await mainLink.getAttribute("rel"), /noopener/);
       assert.equal(await page.locator("[data-affiliate-copy]").count(), 1,
         "Only Owner-supplied links expose the original URL to copy");
+      assert.equal(await page.locator("[data-affiliate-share-button]").count(), 1,
+        "Only Owner-supplied links offer direct sharing of the original URL");
       if (width === 390) {
         const copyPanel = page.locator("[data-affiliate-copy]").first();
         await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
@@ -83,6 +85,32 @@ async function main() {
         const exact = "https://s.click.aliexpress.com/e/_OwnerBrowserFixture";
         assert.equal(await copyPanel.locator("[data-affiliate-copy-value]").inputValue(),
           exact, "Owner URL must not be regenerated or normalized");
+        const shareButton = page.locator("[data-affiliate-share-button]");
+        // Mock only the system Share UI; capture the actual argument sent by
+        // the storefront and verify it is the owner's original literal link.
+        await page.evaluate(() => {
+          Object.defineProperty(navigator, "share", {
+            configurable: true,
+            value: async payload => { window.__capturedShare = payload; },
+          });
+        });
+        await shareButton.click();
+        assert.deepEqual(await page.evaluate(() => window.__capturedShare),
+          { url: exact }, "Native share must receive exactly the owner's short link");
+        assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
+          /enviado para partilha/i);
+        await page.evaluate(() => {
+          Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
+        });
+        await shareButton.click();
+        await page.waitForFunction(() => document.querySelector(
+          "[data-affiliate-share-status]")?.textContent?.includes("copiado"));
+        assert.equal(await page.evaluate(() => navigator.clipboard.readText()), exact,
+          "Share fallback must copy the exact original short link");
+        assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
+          /copiado/i);
+        report.checks.push({ page: "owner-affiliate-native-share-and-fallback",
+          width, status: "PASS" });
         await copyPanel.locator("[data-affiliate-copy-button]").click();
         // Clipboard API is asynchronous; wait for the visible status announcement.
         await copyPanel.locator("[data-affiliate-copy-status]").waitFor({ state: "visible" });

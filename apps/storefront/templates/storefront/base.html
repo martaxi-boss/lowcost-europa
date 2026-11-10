@@ -20,10 +20,10 @@
   <meta property="og:image" content="{{ social_image_url }}">
   <meta name="twitter:card" content="summary">
   {% if canonical_url %}<meta property="og:url" content="{{ canonical_url }}">{% endif %}
-  <link rel="stylesheet" href="{% static 'storefront/storefront.css' %}?v=affiliate-browser-20261109">
+  <link rel="stylesheet" href="{% static 'storefront/storefront.css' %}?v=owner-share-20261110">
   <script src="{% static 'storefront/product-images.js' %}" defer></script>
   {{ JS_LABELS|json_script:"lowcost-js-i18n" }}
-  <script src="{% static 'storefront/catalog-explorer.js' %}?v=affiliate-browser-20261109" defer></script>
+  <script src="{% static 'storefront/catalog-explorer.js' %}?v=owner-share-20261110" defer></script>
 </head>
 <body>
   {% if request.user.is_authenticated and request.user.is_staff %}<aside class="owner-private-bar" aria-label="Gestão privada">{% if owner_preview_public %}<span>A ver como cliente</span><a href="{{ owner_return_to_management }}">Voltar à gestão</a>{% else %}<span>Gestão ativa</span><a href="{% url 'owner-panel:dashboard' %}">Resumo</a>{% endif %}<form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form></aside>{% endif %}
