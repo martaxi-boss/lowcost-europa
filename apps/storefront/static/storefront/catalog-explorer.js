@@ -62,6 +62,41 @@
     return element;
   }
 
+  // Controlled Android Chrome experiment. Normal visitors keep the proven /go/ CTA.
+  // The experiment is opt-in via ?teste_chrome=1, and never modifies stored links.
+  // A browser intent is only a *request* to Android: Chrome can still hand off to
+  // the AliExpress app. This mode deliberately does not count /go/ clicks.
+  function chromeTrialIntent(rawUrl) {
+    try {
+      const url = new URL(rawUrl);
+      if (url.protocol !== "https:" || url.hostname !== "s.click.aliexpress.com"
+          || url.port || url.username || url.password || url.hash) return null;
+      return "intent://" + url.host + url.pathname + url.search
+        + "#Intent;scheme=https;action=android.intent.action.VIEW;"
+        + "package=com.android.chrome;"
+        + "S.browser_fallback_url=" + encodeURIComponent(rawUrl) + ";end";
+    } catch {
+      return null;
+    }
+  }
+
+  if (/Android/i.test(navigator.userAgent || "")
+      && new URLSearchParams(window.location.search).get("teste_chrome") === "1") {
+    document.querySelectorAll("[data-affiliate-browser-trial]").forEach((anchor) => {
+      const card = anchor.closest("[data-offer-card]");
+      const original = card?.querySelector("[data-affiliate-copy-value]")?.value;
+      const trialUrl = original ? chromeTrialIntent(original) : null;
+      if (!trialUrl) return;
+      anchor.setAttribute("href", trialUrl);
+      anchor.removeAttribute("target");
+      anchor.dataset.chromeTrialActive = "true";
+      const info = document.createElement("p");
+      info.className = "meta";
+      info.textContent = "Teste Android: pedido de abertura no Chrome. O sistema pode abrir a aplicação AliExpress. Este teste não regista um clique de saída no painel.";
+      anchor.insertAdjacentElement("afterend", info);
+    });
+  }
+
   // Share the exact owner-provided URL with a visible product identity;
   // never regenerate/normalize the link or share the current AliExpress page.
   async function copyOriginalAffiliateUrl(input, content = input.value) {
