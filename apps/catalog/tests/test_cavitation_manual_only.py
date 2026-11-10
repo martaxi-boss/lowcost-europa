@@ -95,7 +95,10 @@ class CavitationManualOnlyTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertContains(response, "139,90 EUR")
-                self.assertContains(response, "Observado em")
+                if url == reverse("storefront:home"):
+                    self.assertContains(response, "Observado em")
+                else:
+                    self.assertNotContains(response, "Observado em")
         detail = self.client.get(
             reverse("storefront:product-family-detail", args=[self.family.slug])
         )
