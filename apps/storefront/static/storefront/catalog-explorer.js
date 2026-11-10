@@ -110,10 +110,12 @@
       // this product, while the original owner URL remains the URL field.
       if (typeof navigator.share === "function") {
         try {
+          // Android share targets may rewrite a dedicated URL field or open
+          // AliExpress before the user copies the original affiliate link.
+          // Put the exact owner URL in the plain-text payload instead.
           await navigator.share({
             title: productTitle + " | Low Cost Europa",
-            text: description,
-            url: input.value,
+            text: completeMessage,
           });
           status.textContent = button.dataset.shareSuccess;
           return;
