@@ -1,0 +1,20 @@
+/* One-product ad landing pilot; no changes to the indexed storefront. */
+.promo-landing { padding-block: clamp(1.5rem, 4vw, 4rem); }
+.promo-landing .category-breadcrumb { margin-bottom: 1.5rem; }
+.promo-landing__grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(1.5rem,4vw,4rem); align-items:center; }
+.promo-landing__visual { background:#f5f7f4; border-radius:1rem; overflow:hidden; min-height:260px; display:grid; place-items:center; }
+.promo-landing__visual img { display:block; width:100%; max-height:600px; aspect-ratio:4/3; object-fit:contain; }
+.promo-landing__placeholder { padding:3rem; font-weight:700; text-align:center; color:#31564a; }
+.promo-landing__details h1 { font-size:clamp(1.75rem,3vw,2.8rem); line-height:1.14; overflow-wrap:anywhere; }
+.promo-landing__intro { font-size:1.06rem; line-height:1.6; }
+.promo-landing__label { font-weight:600; margin-bottom:.25rem; }
+.promo-landing__price { font-size:clamp(1.65rem,2.5vw,2.2rem); font-weight:800; margin:.2rem 0; }
+.promo-landing__cta { display:block; margin-top:1.25rem; text-align:center; min-height:3.25rem; }
+.promo-landing__disclosure { font-size:.875rem; line-height:1.55; opacity:.84; margin-top:1rem; }
+.promo-landing__more { margin-top:1.25rem; }
+@media (max-width:760px) {
+  .promo-landing__grid {grid-template-columns:minmax(0,1fr);gap:1rem}
+  .promo-landing__visual {min-height:200px}
+  .promo-landing__visual img {max-height:360px}
+  .promo-landing__cta {width:100%}
+}
