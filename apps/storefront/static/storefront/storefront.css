@@ -989,3 +989,13 @@ body { background: var(--bg); }
 .offer-affiliate-actions > .meta { margin: 8px 0 0; line-height: 1.5; }
 .offer-affiliate-actions > [data-affiliate-share-status]:empty { display: none; }
 .offer-share-button:focus-visible { outline: 3px solid #2d796a; outline-offset: 2px; }
+
+/* Cavitation product-card editorial simplification: no new JS dependencies. */
+.offer-card .offer-price-block--compact { padding: 23px 0 12px; margin-top: 22px; }
+.offer-card .offer-price-block--compact .fact-label { margin: 12px 0 7px; }
+.offer-card .offer-price-block--compact .price { margin: 0; font-size: clamp(1.65rem, 3vw, 2.05rem); }
+.offer-origin-heading { margin: 0 0 14px; color: #154c3e; font-weight: 850; font-size: clamp(1.15rem, 2.5vw, 1.38rem); line-height: 1.25; text-transform: uppercase; letter-spacing: .015em; }
+.offer-origin-unknown { margin: 0 0 14px; color: #486258; font-size: .87rem; font-weight: 720; }
+.offer-share-feedback { margin: 8px 0 0; color: #235849; font-size: .86rem; }
+.offer-share-feedback:empty { display: none; }
+.offer-card .offer-cta .compare-toggle { width: 100%; }

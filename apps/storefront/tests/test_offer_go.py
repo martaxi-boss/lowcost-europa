@@ -62,20 +62,52 @@ class OfferGoTests(TestCase):
             HTTP_USER_AGENT=agents[0],
         )
         self.assertContains(response, 'target="_blank" rel="sponsored nofollow noopener"')
-        self.assertContains(response, 'data-affiliate-copy')
         self.assertContains(
             response,
-            'value="https://s.click.aliexpress.com/e/_OwnerLinkFixture"',
+            'data-affiliate-original-url="https://s.click.aliexpress.com/e/_OwnerLinkFixture"',
         )
-        self.assertContains(response, 'data-affiliate-copy-button')
+        self.assertNotContains(response, 'data-affiliate-copy')
+        self.assertNotContains(response, 'offer-browser-help')
         self.assertContains(response, 'data-affiliate-actions')
         self.assertContains(response, 'data-affiliate-share-button')
         self.assertContains(response, 'data-affiliate-share-status')
         self.assertContains(response, 'data-share-product-id="go-offer"')
         self.assertContains(response, 'data-share-product-title="Eligible offer"')
         self.assertContains(response, "PARTILHAR ESTE PRODUTO")
-        self.assertContains(response, "Produto a partilhar")
-        self.assertContains(response, "AliExpress ID: go-offer")
+        self.assertNotContains(response, "Produto a partilhar")
+        self.assertNotContains(response, "AliExpress ID: go-offer")
+        self.assertContains(response, "+ Comparar equipamento")
+
+    def test_cavitation_card_has_clean_price_and_qualified_origin_claim(self):
+        self.family.slug = "cavitacao-rf-vacuum-corpo"
+        self.family.save(update_fields=["slug"])
+        self.offer.source = Offer.Source.ALIEXPRESS_OWNER
+        self.offer.affiliate_url = "https://s.click.aliexpress.com/e/_OwnerLinkFixture"
+        self.offer.ship_from_country = None
+        self.offer.ship_from_verified_at = None
+        self.offer.save(update_fields=[
+            "source", "affiliate_url", "ship_from_country", "ship_from_verified_at",
+        ])
+        url = reverse("storefront:product-family-detail", args=[self.family.slug])
+        response = self.client.get(url)
+        self.assertContains(response, "Origem de envio por confirmar")
+        self.assertNotContains(response, "Enviado da Europa")
+        self.assertContains(response, "Preço observado")
+        self.assertContains(response, "+ Comparar equipamento")
+        self.assertContains(response, "VER PREÇO NO ALIEXPRESS")
+        self.assertContains(response, "PARTILHAR ESTE PRODUTO")
+        self.assertNotContains(response, "Produto a partilhar")
+        self.assertNotContains(response, "Consultar avaliações e vendas indicadas")
+        self.assertNotContains(response, "Logística observada")
+        self.assertNotContains(response, "Não abriu no navegador?")
+        self.assertNotContains(response, "Compra externa.")
+        self.assertContains(response, 'data-affiliate-original-url="https://s.click.aliexpress.com/e/_OwnerLinkFixture"')
+        self.offer.ship_from_country = "PL"
+        self.offer.ship_from_verified_at = timezone.now()
+        self.offer.save(update_fields=["ship_from_country", "ship_from_verified_at"])
+        response_verified = self.client.get(url)
+        self.assertContains(response_verified, "Enviado da Europa")
+        self.assertNotContains(response_verified, "Origem de envio por confirmar")
 
     def test_each_valid_request_creates_separate_click(self):
         self.client.get(self.url)

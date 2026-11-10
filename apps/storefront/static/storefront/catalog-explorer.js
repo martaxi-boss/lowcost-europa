@@ -64,48 +64,47 @@
 
   // Share the exact owner-provided URL with a visible product identity;
   // never regenerate/normalize the link or share the current AliExpress page.
-  async function copyOriginalAffiliateUrl(input, content = input.value) {
+  async function copyOriginalAffiliateUrl(content) {
     if (navigator.clipboard?.writeText) {
       try {
         await navigator.clipboard.writeText(content);
         return true;
       } catch {
-        // Embedded browsers can block Clipboard API access.
+        // Embedded browsers can block the clipboard, so try a local fallback.
       }
     }
-    const isRawLink = content === input.value;
-    const target = isRawLink ? input : document.createElement("textarea");
-    if (!isRawLink) {
-      target.value = content;
-      target.readOnly = true;
-      target.style.position = "fixed";
-      target.style.opacity = "0";
-      document.body.appendChild(target);
-    }
+    const target = document.createElement("textarea");
+    target.value = content;
+    target.readOnly = true;
+    target.setAttribute("aria-hidden", "true");
+    target.style.position = "fixed";
+    target.style.left = "-9999px";
+    target.style.opacity = "0";
+    document.body.appendChild(target);
     target.focus();
     target.select();
     try {
       return document.execCommand("copy");
     } catch {
-      // The original link remains selectable in the visible input.
       return false;
     } finally {
-      if (!isRawLink) target.remove();
+      target.remove();
     }
   }
 
   document.querySelectorAll("[data-affiliate-share-button]").forEach((button) => {
     button.addEventListener("click", async () => {
-      const root = button.closest("[data-affiliate-actions]");
-      const input = root?.querySelector("[data-affiliate-copy-value]");
-      const status = root?.querySelector("[data-affiliate-share-status]");
-      if (!input || !status) return;
+      const originalUrl = button.dataset.affiliateOriginalUrl;
+      const status = button.closest("[data-affiliate-actions]")?.querySelector(
+        "[data-affiliate-share-status]"
+      );
+      if (!originalUrl || !status) return;
       const productTitle = (button.dataset.shareProductTitle || "Produto").trim();
       const productId = (button.dataset.shareProductId || "").trim();
       const heading = (button.dataset.shareHeading || "Produto Low Cost Europa").trim();
       const description = heading + ": " + productTitle
         + (productId ? "\nAliExpress ID: " + productId : "");
-      const completeMessage = description + "\n" + input.value;
+      const completeMessage = description + "\n" + originalUrl;
       // Some share targets ignore title or reinterpret a dedicated URL field.
       // Keep product identity and original owner URL together as plain text.
       if (typeof navigator.share === "function") {
@@ -124,20 +123,9 @@
           // Unsupported/failed share falls back to one copyable full message.
         }
       }
-      const copied = await copyOriginalAffiliateUrl(input, completeMessage);
+      const copied = await copyOriginalAffiliateUrl(completeMessage);
       status.textContent = copied
         ? button.dataset.shareCopySuccess : button.dataset.shareCopyFailure;
-    });
-  });
-
-  document.querySelectorAll("[data-affiliate-copy-button]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const root = button.closest("[data-affiliate-copy]");
-      const input = root?.querySelector("[data-affiliate-copy-value]");
-      const status = root?.querySelector("[data-affiliate-copy-status]");
-      if (!input || !status) return;
-      const copied = await copyOriginalAffiliateUrl(input);
-      status.textContent = copied ? button.dataset.copySuccess : button.dataset.copyFailure;
     });
   });
 
@@ -234,9 +222,11 @@
         addText(tile, "strong", "compare-panel__price",
           card.querySelector(".offer-price-block .price")?.textContent?.trim()
           || uiT("Não disponível"));
-        addText(tile, "small", "", uiT("Logística observada"));
-        addText(tile, "p", "",
-          card.querySelector(".facts dd")?.textContent?.trim() || uiT("Prazo não confirmado"));
+        const observedLogistics = card.querySelector(".facts dd")?.textContent?.trim();
+        if (observedLogistics) {
+          addText(tile, "small", "", uiT("Logística observada"));
+          addText(tile, "p", "", observedLogistics);
+        }
         const actions = document.createElement("div");
         actions.className = "compare-panel__actions";
         const href = card.querySelector('.offer-cta a[href^="/go/"]')?.getAttribute("href");

@@ -28,6 +28,10 @@ class EditorialStorefrontTests(SimpleTestCase):
             self.assertIn(text, card)
         self.assertIn("{% url 'storefront:offer-go' offer.pk %}", card)
         self.assertNotIn("Entrega garantida", card)
+        self.assertIn('"Enviado da Europa"|ui_t', card)
+        self.assertIn("offer.owner_origin_verified", card)
+        self.assertIn('data-affiliate-original-url="{{ offer.affiliate_url }}"', card)
+        self.assertNotIn("data-affiliate-copy-button", card)
 
     def test_missing_photo_does_not_claim_published_family_is_in_preparation(self):
         card = self.template("components/product_family_card.html")
@@ -56,8 +60,8 @@ class EditorialStorefrontTests(SimpleTestCase):
 
     def test_static_css_and_explorer_script_are_versioned(self):
         base = self.template("base.html")
-        self.assertIn("storefront.css' %}?v=owner-share-product-20261110", base)
-        self.assertIn("catalog-explorer.js' %}?v=owner-share-text-20261110", base)
+        self.assertIn("storefront.css' %}?v=cavitation-card-clean-20261110", base)
+        self.assertIn("catalog-explorer.js' %}?v=share-in-button-20261110", base)
 
 
 
