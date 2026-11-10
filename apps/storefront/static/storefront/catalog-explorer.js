@@ -106,14 +106,16 @@
       const description = heading + ": " + productTitle
         + (productId ? "\nAliExpress ID: " + productId : "");
       const completeMessage = description + "\n" + input.value;
-      // Share-target apps can ignore the title. The text itself identifies
-      // this product, while the original owner URL remains the URL field.
+      // Some share targets ignore title or reinterpret a dedicated URL field.
+      // Keep product identity and original owner URL together as plain text.
       if (typeof navigator.share === "function") {
         try {
+          // Android share targets may rewrite a dedicated URL field or open
+          // AliExpress before the user copies the original affiliate link.
+          // Put the exact owner URL in the plain-text payload instead.
           await navigator.share({
             title: productTitle + " | Low Cost Europa",
-            text: description,
-            url: input.value,
+            text: completeMessage,
           });
           status.textContent = button.dataset.shareSuccess;
           return;
