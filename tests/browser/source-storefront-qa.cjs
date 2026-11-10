@@ -246,6 +246,70 @@ async function main() {
       assert.equal(pageErrors.length, 0, "Locale " + locale + ": " + pageErrors.join("; "));
       await context.close();
     }
+
+    // Browser-only verification of the optional Android experiment.
+    // This does NOT claim that Telegram WebView or Android native-app attribution
+    // can be simulated by a Chromium user-agent override.
+    const affiliateMobileCases = [
+      { label: "telegram-android", userAgent:
+        "Mozilla/5.0 (Linux; Android 13; Redmi Note 11) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36 Telegram-Android/11.0",
+        trial: true, shouldTrial: true },
+      { label: "android-chrome", userAgent:
+        "Mozilla/5.0 (Linux; Android 13; Redmi Note 11) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36",
+        trial: true, shouldTrial: true },
+      { label: "telegram-default", userAgent:
+        "Mozilla/5.0 (Linux; Android 13; Redmi Note 11) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36 Telegram-Android/11.0",
+        trial: false, shouldTrial: false },
+      { label: "telegram-ios", userAgent:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) " +
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Telegram-iOS/11.0",
+        trial: true, shouldTrial: false },
+    ];
+    for (const c of affiliateMobileCases) {
+      const context = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        isMobile: true, hasTouch: true, userAgent: c.userAgent,
+        locale: "pt-PT", reducedMotion: "reduce",
+      });
+      const page = await context.newPage();
+      const url = origin + "/products/hifu-profissional/" +
+        (c.trial ? "?teste_chrome=1" : "");
+      const res = await page.goto(url, { waitUntil: "networkidle" });
+      assert.equal(res.status(), 200);
+      const ownerLink = page.locator("[data-affiliate-browser-trial]");
+      assert.equal(await ownerLink.count(), 1);
+      const original = await page.locator("[data-affiliate-copy-value]").inputValue();
+      assert.equal(original, "https://s.click.aliexpress.com/e/_OwnerBrowserFixture");
+      const href = await ownerLink.getAttribute("href");
+      if (c.shouldTrial) {
+        assert.ok(href.startsWith("intent://s.click.aliexpress.com/e/_OwnerBrowserFixture#Intent;"),
+          c.label + " must preserve the entire owner shortlink in the opt-in intent");
+        assert.match(href, /package=com\.android\.chrome;/);
+        const fallback = href.match(/S\.browser_fallback_url=([^;]+);end$/);
+        assert.ok(fallback, "Intent must contain a safe original URL fallback");
+        assert.equal(decodeURIComponent(fallback[1]), original,
+          "Fallback must remain the byte-for-byte original Owner shortlink");
+        assert.equal(await ownerLink.getAttribute("target"), null);
+        assert.equal(await ownerLink.getAttribute("data-chrome-trial-active"), "true");
+        assert.equal(await page.locator('.offer-cta a[href^="/go/"]').count(), 3,
+          "Non-owner offerings must retain their existing /go/ links");
+      } else {
+        assert.match(href, /^\/go\/[0-9]+\/$/,
+          "Without an eligible opt-in, the original /go/ must be unchanged");
+        assert.equal(await ownerLink.getAttribute("target"), "_blank");
+        assert.equal(await ownerLink.getAttribute("data-chrome-trial-active"), null);
+        assert.equal(await page.locator('.offer-cta a[href^="/go/"]').count(), 4);
+      }
+      report.checks.push({
+        page: "telegram-android-affiliate-chrome-trial:" + c.label,
+        width: 390, status: "PASS",
+      });
+      await context.close();
+    }
+
   } catch (e) {
     report.errors.push(String(e.stack || e));
   } finally {
