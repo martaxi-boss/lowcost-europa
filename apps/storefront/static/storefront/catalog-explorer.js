@@ -62,32 +62,57 @@
     return element;
   }
 
-  // A visitor may be inside an Android/iOS in-app browser with no address bar.
-  // Copy the exact Owner URL already in the rendered form; never regenerate it.
+  // Copy or share the exact owner-provided URL; no link generator is involved.
+  async function copyOriginalAffiliateUrl(input) {
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(input.value);
+        return true;
+      } catch {
+        // Embedded browsers can block Clipboard API access.
+      }
+    }
+    input.focus();
+    input.select();
+    try {
+      return document.execCommand("copy");
+    } catch {
+      // Selection remains available for a manual long-press copy.
+      return false;
+    }
+  }
+
+  document.querySelectorAll("[data-affiliate-share-button]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const root = button.closest("[data-affiliate-actions]");
+      const input = root?.querySelector("[data-affiliate-copy-value]");
+      const status = root?.querySelector("[data-affiliate-share-status]");
+      if (!input || !status) return;
+      // Use only the original server-rendered short link; never share the
+      // current AliExpress page, its canonical URL or a generated short link.
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({ url: input.value });
+          status.textContent = button.dataset.shareSuccess;
+          return;
+        } catch (error) {
+          if (error?.name === "AbortError") return;
+          // Unsupported/failed share falls back to copying the same URL.
+        }
+      }
+      const copied = await copyOriginalAffiliateUrl(input);
+      status.textContent = copied
+        ? button.dataset.shareCopySuccess : button.dataset.shareCopyFailure;
+    });
+  });
+
   document.querySelectorAll("[data-affiliate-copy-button]").forEach((button) => {
     button.addEventListener("click", async () => {
       const root = button.closest("[data-affiliate-copy]");
       const input = root?.querySelector("[data-affiliate-copy-value]");
       const status = root?.querySelector("[data-affiliate-copy-status]");
       if (!input || !status) return;
-      let copied = false;
-      if (navigator.clipboard?.writeText) {
-        try {
-          await navigator.clipboard.writeText(input.value);
-          copied = true;
-        } catch {
-          // Some embedded browsers disable Clipboard API access.
-        }
-      }
-      if (!copied) {
-        input.focus();
-        input.select();
-        try {
-          copied = document.execCommand("copy");
-        } catch {
-          // The selected text remains available for a manual long-press copy.
-        }
-      }
+      const copied = await copyOriginalAffiliateUrl(input);
       status.textContent = copied ? button.dataset.copySuccess : button.dataset.copyFailure;
     });
   });
