@@ -19,7 +19,21 @@
       <h3 class="offer-title" title="{{ offer.title|default:'Oferta disponível' }}">{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
     {% if placement and placement.selection_reason %}<div class="selection-reason"><strong>{{ "Porque está aqui"|ui_t }}</strong><p>{{ placement.selection_reason }}</p></div>{% endif %}
+    {% if family.slug == "cavitacao-rf-vacuum-corpo" %}
+    <div class="offer-price-block offer-price-block--compact">
+      {% if offer.owner_origin_verified %}
+        <p class="offer-origin-heading">{{ "Enviado da Europa"|ui_t }}</p>
+      {% else %}
+        <p class="offer-origin-unknown">{{ "Origem de envio por confirmar"|ui_t }}</p>
+      {% endif %}
+      <p class="fact-label">{{ "Preço observado"|ui_t }}</p>
+      <p class="price">{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}{{ "Não disponível"|ui_t }}{% endif %}{% endwith %}</p>
+      {% if offer.price_observation_old %}<p class="fact-freshness-warning">{{ "Observação com mais de 7 dias. Confirme o preço atual no parceiro."|ui_t }}</p>{% endif %}
+    </div>
+    {% else %}
     <div class="offer-price-block"><p class="meta">{% if offer.price_market == "ES" %}{{ "Preço EUR observado para Espanha; confirme stock e entrega no vendedor."|ui_t }}{% else %}{{ "Dados de referência para Portugal; preço e entrega para Espanha não confirmados."|ui_t }}{% endif %}</p><p class="fact-label">{{ "Preço observado"|ui_t }}</p><p class="price">{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}{{ "Não disponível"|ui_t }}{% endif %}{% endwith %}</p>{% with obs=offer.observation_display.price_observation %}{% if obs %}<p class="meta">{{ "Observado em"|ui_t }} {{ obs.observed_at|date:"d/m/Y H:i" }} · {{ "pode mudar no parceiro"|ui_t }}</p>{% endif %}{% endwith %}{% if offer.price_observation_old %}<p class="fact-freshness-warning">{{ "Observação com mais de 7 dias. Confirme o preço atual no parceiro."|ui_t }}</p>{% endif %}</div>
+    {% endif %}
+    {% if family.slug != "cavitacao-rf-vacuum-corpo" %}
     {% if request.user.is_authenticated and request.user.is_staff and not owner_preview_public and not owner_manual_only %}
     <details class="offer-card__evidence" data-owner-commercial-evidence>
       <summary>Verificação interna: origem, stock e entrega</summary>
@@ -40,6 +54,7 @@
       <div><dt>{{ "Vendas indicadas"|ui_t }}</dt><dd>{% with obs=offer.observation_display.sales_observation %}{% if obs %}{{ obs.sales_count }}{% else %}{{ "Não disponível"|ui_t }}{% endif %}{% endwith %}</dd></div>
           </dl>
     </details>
+    {% endif %}
     {% if request.user.is_authenticated and request.user.is_staff and not owner_preview_public %}
     {% if owner_manual_only %}
       <div class="owner-context-actions">
@@ -64,28 +79,17 @@
         {% if offer.source == "ALIEXPRESS_OWNER" %}
         <div class="offer-affiliate-actions" data-affiliate-actions>
           <button type="button" class="button button--secondary offer-share-button" data-affiliate-share-button
+                  data-affiliate-original-url="{{ offer.affiliate_url }}"
                   data-share-product-title="{{ offer.title|default:'Produto'|truncatechars:120 }}"
                   data-share-product-id="{{ offer.external_product_id }}"
                   data-share-heading="{{ 'Produto Low Cost Europa'|ui_t }}"
                   data-share-success="{{ 'Link original e identificação do produto enviados para partilha.'|ui_t }}"
                   data-share-copy-success="{{ 'Mensagem com o produto e o link original copiada. Cole-a na conversa.'|ui_t }}"
-                  data-share-copy-failure="{{ 'Não foi possível copiar. Abra a opção abaixo para selecionar o link original.'|ui_t }}">{{ "PARTILHAR ESTE PRODUTO"|ui_t }} <span aria-hidden="true">↗</span></button>
-          <p class="meta"><strong>{{ "Produto a partilhar"|ui_t }}:</strong> {{ offer.title|default:"Produto"|truncatechars:100 }} · AliExpress ID: {{ offer.external_product_id }}</p>
-          <p class="meta">{{ "A mensagem inclui o produto e o link original. A opção Partilhar da aplicação AliExpress pode criar outro endereço."|ui_t }}</p>
-          <p class="meta" role="status" aria-live="polite" data-affiliate-share-status></p>
-        <details class="offer-browser-help" data-affiliate-copy>
-          <summary>{{ "Não abriu no navegador? Copiar link original"|ui_t }}</summary>
-          <p class="meta">{{ "Se o telemóvel abrir a aplicação AliExpress, copie o link original e cole-o no Chrome ou Safari."|ui_t }}</p>
-          <label for="affiliate-original-{{ offer.pk }}">{{ "Link de afiliado original"|ui_t }}</label>
-          <input id="affiliate-original-{{ offer.pk }}" type="url" readonly autocomplete="off" spellcheck="false" value="{{ offer.affiliate_url }}" data-affiliate-copy-value>
-          <button class="button button--secondary" type="button" data-affiliate-copy-button
-                  data-copy-success="{{ 'Link copiado. Cole-o no Chrome ou Safari.'|ui_t }}"
-                  data-copy-failure="{{ 'Selecione o link acima e copie-o manualmente.'|ui_t }}">{{ "Copiar link original"|ui_t }}</button>
-          <p class="meta" role="status" aria-live="polite" data-affiliate-copy-status></p>
-        </details>
+                  data-share-copy-failure="{{ 'Não foi possível copiar o link neste navegador.'|ui_t }}">{{ "PARTILHAR ESTE PRODUTO"|ui_t }} <span aria-hidden="true">↗</span></button>
+          <p class="offer-share-feedback" role="status" aria-live="polite" data-affiliate-share-status></p>
         </div>
         {% endif %}
-        <p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>
+        {% if family.slug != "cavitacao-rf-vacuum-corpo" %}<p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>{% endif %}
       {% else %}
         <button class="button button--large" type="button" disabled aria-disabled="true">{{ "Oferta indisponível"|ui_t }}</button><p class="meta">{{ "Esta oferta não está disponível para encaminhamento neste momento."|ui_t }}</p>
       {% endif %}

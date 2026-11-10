@@ -74,20 +74,19 @@ async function main() {
       assert.equal(await mainLink.getAttribute("target"), "_blank",
         "External offer link requests a new browser tab without changing /go/");
       assert.match(await mainLink.getAttribute("rel"), /noopener/);
-      assert.equal(await page.locator("[data-affiliate-copy]").count(), 1,
-        "Only Owner-supplied links expose the original URL to copy");
+      assert.equal(await page.locator("[data-affiliate-copy]").count(), 0,
+        "Original link must not be shown in an extra copy panel");
       assert.equal(await page.locator("[data-affiliate-share-button]").count(), 1,
-        "Only Owner-supplied links offer direct sharing of the original URL");
+        "Only Owner-supplied links offer direct sharing");
       if (width === 390) {
-        const copyPanel = page.locator("[data-affiliate-copy]").first();
         await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
-        await copyPanel.locator("summary").click();
-        const exact = "https://s.click.aliexpress.com/e/_OwnerBrowserFixture";
-        assert.equal(await copyPanel.locator("[data-affiliate-copy-value]").inputValue(),
-          exact, "Owner URL must not be regenerated or normalized");
         const shareButton = page.locator("[data-affiliate-share-button]");
-        // Mock only the system Share UI; capture the actual argument sent by
-        // the storefront and verify it is the owner's original literal link.
+        const exact = "https://s.click.aliexpress.com/e/_OwnerBrowserFixture";
+        assert.equal(await shareButton.getAttribute("data-affiliate-original-url"), exact,
+          "Share button must contain the verbatim owner affiliate link");
+        assert.equal(await page.locator("[data-affiliate-actions]").innerText(),
+          "PARTILHAR ESTE PRODUTO ↗",
+          "No affiliate URL or explanatory text may appear on the product card");
         await page.evaluate(() => {
           Object.defineProperty(navigator, "share", {
             configurable: true,
@@ -98,17 +97,13 @@ async function main() {
         const productId = "browser-qa-1-1";
         assert.equal(await shareButton.getAttribute("data-share-product-title"), productTitle);
         assert.equal(await shareButton.getAttribute("data-share-product-id"), productId);
-        assert.match(await page.locator("[data-affiliate-actions] > p.meta").first().innerText(),
-          /Produto a partilhar.*HIFU profissional.*browser-qa-1-1/);
         await shareButton.click();
         const description = "Produto Low Cost Europa: " + productTitle
           + "\nAliExpress ID: " + productId;
         assert.deepEqual(await page.evaluate(() => window.__capturedShare), {
           title: productTitle + " | Low Cost Europa",
           text: description + "\n" + exact,
-        }, "Mobile share must send a single text payload with product identity and exact original URL, not a URL field");
-        assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
-          /enviados para partilha/i);
+        }, "Share dialog must use text, containing the exact owner link and ID");
         await page.evaluate(() => {
           Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
         });
@@ -117,20 +112,11 @@ async function main() {
           "[data-affiliate-share-status]")?.textContent?.includes("copiada"));
         assert.equal(await page.evaluate(() => navigator.clipboard.readText()),
           description + "\n" + exact,
-          "Share fallback must copy the exact product identity and untouched owner URL");
-        assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
-          /copiada/i);
+          "Fallback share must copy the original owner link");
+        assert.ok(!(await page.locator("[data-affiliate-actions]").innerText()).includes(exact),
+          "No visible original affiliate URL before or after sharing");
         report.checks.push({ page: "owner-affiliate-native-share-and-fallback",
           width, status: "PASS" });
-        await copyPanel.locator("[data-affiliate-copy-button]").click();
-        // Clipboard API is asynchronous; wait for the visible status announcement.
-        await copyPanel.locator("[data-affiliate-copy-status]").waitFor({ state: "visible" });
-        assert.match(await copyPanel.locator("[data-affiliate-copy-status]").innerText(),
-          /copiado/i);
-        assert.equal(await page.evaluate(() => navigator.clipboard.readText()), exact,
-          "Clipboard must contain the exact original Owner short link");
-        await copyPanel.locator("summary").click();
-        report.checks.push({ page: "owner-affiliate-mobile-copy", width, status: "PASS" });
       }
       assert.equal(await page.locator(".whatsapp-float").isVisible(), !mobile,
         "Fixed contact button must not obscure mobile product filters");
