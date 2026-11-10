@@ -222,7 +222,11 @@
         addText(tile, "strong", "compare-panel__price",
           card.querySelector(".offer-price-block .price")?.textContent?.trim()
           || uiT("Não disponível"));
-        // The comparison focuses on the actual visible offer and price.
+        const observedLogistics = card.querySelector(".facts dd")?.textContent?.trim();
+        if (observedLogistics) {
+          addText(tile, "small", "", uiT("Logística observada"));
+          addText(tile, "p", "", observedLogistics);
+        }
         const actions = document.createElement("div");
         actions.className = "compare-panel__actions";
         const href = card.querySelector('.offer-cta a[href^="/go/"]')?.getAttribute("href");
