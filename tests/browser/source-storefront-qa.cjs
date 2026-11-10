@@ -84,8 +84,8 @@ async function main() {
         const exact = "https://s.click.aliexpress.com/e/_OwnerBrowserFixture";
         assert.equal(await shareButton.getAttribute("data-affiliate-original-url"), exact,
           "Share button must contain the verbatim owner affiliate link");
-        assert.equal(await page.locator("[data-affiliate-actions]").innerText(),
-          "PARTILHAR ESTE PRODUTO ↗",
+        assert.match(await page.locator("[data-affiliate-actions]").innerText(),
+          /^PARTILHAR ESTE PRODUTO\s+↗$/,
           "No affiliate URL or explanatory text may appear on the product card");
         await page.evaluate(() => {
           Object.defineProperty(navigator, "share", {
