@@ -186,6 +186,33 @@ async function main() {
         });
       }
 
+      // Exercise the one-product paid landing itself, not only the main catalog.
+      // No external redirect or affiliate request is performed by this QA.
+      const sourceTitle = await page.locator("[data-offer-card]").first()
+        .locator(".offer-title").innerText();
+      const sourceGoUrl = await mainLink.getAttribute("href");
+      const offerMatch = /^\\/go\\/(\\d+)\\/$/.exec(sourceGoUrl || "");
+      assert.ok(offerMatch, "Source offer must expose the existing /go/<id>/ URL");
+      res = await page.goto(origin + "/oferta/" + offerMatch[1] + "/",
+        { waitUntil: "networkidle" });
+      assert.equal(res.status(), 200, "One-product landing must load on " + width + "px");
+      await verify(page, "promo-landing-mobile-desktop-pilot", width);
+      assert.equal(await page.locator("main h1").innerText(), sourceTitle);
+      assert.equal(await page.locator(".promo-landing__cta").count(), 1,
+        "Campaign landing needs exactly one main purchase CTA");
+      assert.equal(await page.locator(".promo-landing__cta").getAttribute("href"), sourceGoUrl,
+        "Campaign CTA must preserve existing /go/ endpoint and owner link");
+      assert.equal(await page.locator("[data-offer-card]").count(), 0,
+        "Single-product campaign landing must not become a product grid");
+      assert.match(await page.locator(".promo-landing__disclosure").innerText(),
+        /AliExpress/);
+      if (width === 390 || width === 1440) {
+        await page.screenshot({
+          path: path.join(out, "landing-" + width + ".png"),
+          fullPage: true, animations: "disabled",
+        });
+      }
+
       res = await page.goto(origin + "/pesquisar/?q=hifu",
         { waitUntil: "networkidle" });
       assert.equal(res.status(), 200);
