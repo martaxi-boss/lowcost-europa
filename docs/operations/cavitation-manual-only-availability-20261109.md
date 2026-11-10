@@ -24,6 +24,20 @@ de ofertas automáticas `ALIEXPRESS` exclui os produtos históricos ligados
 a esta categoria; os produtos `ALIEXPRESS_OWNER` já estavam excluídos.
 As outras quatro categorias mantêm a lógica e painel anteriores.
 
+## Preço observado — separação entre evidência e atualização
+
+A montra manual não deve perder o último preço **PT/EUR realmente registado**
+apenas porque passou o prazo de 24 horas aplicado às ofertas automáticas.
+A apresentação usa a última observação válida (EUR positivo, data não futura,
+mercado PT) preservando **o valor e a data originais**, sem a apresentar como
+preço atual garantido. Após sete dias, mostra um aviso explícito de antiguidade.
+Se nunca houve observação PT/EUR válida, mantém «Não disponível»: não converte
+preços ES, não inventa valores e não consulta o AliExpress para atualizar preços.
+
+A manutenção automática conserva o controlo de 24 horas nas restantes quatro
+categorias. O monitor da Cavitação continua limitado à indisponibilidade e
+não escreve preços, imagens, títulos ou links.
+
 ## Único automatismo permitido: indisponibilidade
 
 O serviço privado `lowcost-europa-cavitation-availability.service` corre
