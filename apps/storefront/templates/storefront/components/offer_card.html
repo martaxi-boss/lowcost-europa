@@ -62,6 +62,13 @@
       {% if offer.can_redirect %}
         <a class="button button--large" href="{% url 'storefront:offer-go' offer.pk %}" target="_blank" rel="sponsored nofollow noopener">{{ "VER PREÇO NO ALIEXPRESS"|ui_t }} <span aria-hidden="true">↗</span></a>
         {% if offer.source == "ALIEXPRESS_OWNER" %}
+        <div class="offer-affiliate-actions" data-affiliate-actions>
+          <button type="button" class="button button--secondary offer-share-button" data-affiliate-share-button
+                  data-share-success="{{ 'Link original enviado para partilha.'|ui_t }}"
+                  data-share-copy-success="{{ 'Link original copiado. Cole-o na mensagem que quer enviar.'|ui_t }}"
+                  data-share-copy-failure="{{ 'Não foi possível copiar. Abra a opção abaixo para selecionar o link original.'|ui_t }}">{{ "PARTILHAR LINK ORIGINAL"|ui_t }} <span aria-hidden="true">↗</span></button>
+          <p class="meta">{{ "Partilhe aqui para enviar o link original. A opção Partilhar da aplicação AliExpress pode criar outro endereço."|ui_t }}</p>
+          <p class="meta" role="status" aria-live="polite" data-affiliate-share-status></p>
         <details class="offer-browser-help" data-affiliate-copy>
           <summary>{{ "Não abriu no navegador? Copiar link original"|ui_t }}</summary>
           <p class="meta">{{ "Se o telemóvel abrir a aplicação AliExpress, copie o link original e cole-o no Chrome ou Safari."|ui_t }}</p>
@@ -72,6 +79,7 @@
                   data-copy-failure="{{ 'Selecione o link acima e copie-o manualmente.'|ui_t }}">{{ "Copiar link original"|ui_t }}</button>
           <p class="meta" role="status" aria-live="polite" data-affiliate-copy-status></p>
         </details>
+        </div>
         {% endif %}
         <p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>
       {% else %}
