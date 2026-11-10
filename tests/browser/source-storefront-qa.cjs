@@ -115,7 +115,7 @@ async function main() {
         });
         await shareButton.click();
         await page.waitForFunction(() => document.querySelector(
-          "[data-affiliate-share-status]")?.textContent?.includes("copiado"));
+          "[data-affiliate-share-status]")?.textContent?.includes("copiada"));
         assert.equal(await page.evaluate(() => navigator.clipboard.readText()),
           description + "\n" + exact,
           "Share fallback must copy the exact product identity and untouched owner URL");
