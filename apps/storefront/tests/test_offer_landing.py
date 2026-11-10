@@ -7,7 +7,9 @@ from apps.catalog.models import Offer, OfferClick, OfferFamilyPlacement, Product
 
 class OneProductLandingPilotTests(TestCase):
     def setUp(self):
-        self.family = ProductFamily.objects.create(name="Cavitacao", slug="cavitacao-rf-vacuum-corpo")
+        self.family = ProductFamily.objects.create(
+            name="Cavitação", slug="cavitacao-rf-vacuum-corpo"
+        )
         self.offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS_OWNER,
             external_product_id="1005013070854347",
@@ -23,7 +25,7 @@ class OneProductLandingPilotTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "AOKO - equipamento selecionado")
-        self.assertContains(response, "VER PRECO NO ALIEXPRESS")
+        self.assertContains(response, "VER PREÇO NO ALIEXPRESS")
         self.assertContains(response, reverse("storefront:offer-go", args=[self.offer.pk]))
         self.assertNotContains(response, "https://s.click.aliexpress.com/e/_EHuDEKi")
         self.assertEqual(response["X-Robots-Tag"], "noindex, follow")
@@ -55,4 +57,5 @@ class OneProductLandingPilotTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 404)
 
     def test_unknown_offer_not_reachable(self):
-        self.assertEqual(self.client.get(reverse("storefront:offer-landing", args=[999999])).status_code, 404)
+        missing = reverse("storefront:offer-landing", args=[999999])
+        self.assertEqual(self.client.get(missing).status_code, 404)
