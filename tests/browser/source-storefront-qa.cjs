@@ -103,6 +103,8 @@ async function main() {
           Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
         });
         await shareButton.click();
+        await page.waitForFunction(() => document.querySelector(
+          "[data-affiliate-share-status]")?.textContent?.includes("copiado"));
         assert.equal(await page.evaluate(() => navigator.clipboard.readText()), exact,
           "Share fallback must copy the exact original short link");
         assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
