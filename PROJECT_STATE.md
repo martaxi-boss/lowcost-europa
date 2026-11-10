@@ -1,5 +1,21 @@
 # Lowcost Europa — Project State
 
+## First usable Google performance rows — 10 November 2026, 13:27 Lisbon
+
+Windsor's connected Search Console account `sc-domain:lowcost-europa.eu`, queried for **2–10 November 2026**, returned two page/day rows fetched at **2026-11-10T13:27:51 UTC**. Both refer to **8 November**, before the PT/ES SEO publication on 9 November.
+
+| Page | Data date | Impressions | Clicks | CTR | Average position |
+| --- | --- | ---: | ---: | ---: | ---: |
+| https://www.lowcost-europa.eu/products/hifu/ | 2026-11-08 | 1 | 0 | 0% | 11 |
+| https://www.lowcost-europa.eu/products/hydrodermoabrasao-aqua-facial-multifuncoes/ | 2026-11-08 | 1 | 0 | 0% | 86 |
+
+This is the first usable performance evidence in this monitoring task, superseding the earlier empty-result baseline only for these returned rows. It is **two observed impressions, no clicks in those rows**, not proof of complete site traffic, sustained ranking, a particular query position or improvement caused by the later SEO publication. No rows dated 9–10 November were returned in this query.
+
+Follow-up reads adding country, and country plus query, both returned **zero rows** for the same period. PT/ES country attribution and search terms remain unavailable; the reason for the difference in granularity was not established. Do not turn the empty detailed responses into zero traffic or infer the countries/queries.
+
+No new integration, forced paid refresh, submission, runtime change or Ferrari certification. Google TXT Success/23 remains the delivery baseline; discovered URLs are not an indexed-page total. The first seven-day review is **not delivered yet**: perform it once on the first normal run on/after 16 November Europe/Lisbon, then record delivery. The same monitoring task remains active for all seven engines.
+
+
 ## PT/ES SEO implementation published — 9 November 2026
 
 **This implementation round is deployed and verified. Sitemap delivery is successful; full index inclusion and ranking gains remain external outcomes to measure.**
