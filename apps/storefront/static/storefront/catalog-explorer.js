@@ -62,23 +62,35 @@
     return element;
   }
 
-  // Copy or share the exact owner-provided URL; no link generator is involved.
-  async function copyOriginalAffiliateUrl(input) {
+  // Share the exact owner-provided URL with a visible product identity;
+  // never regenerate/normalize the link or share the current AliExpress page.
+  async function copyOriginalAffiliateUrl(input, content = input.value) {
     if (navigator.clipboard?.writeText) {
       try {
-        await navigator.clipboard.writeText(input.value);
+        await navigator.clipboard.writeText(content);
         return true;
       } catch {
         // Embedded browsers can block Clipboard API access.
       }
     }
-    input.focus();
-    input.select();
+    const isRawLink = content === input.value;
+    const target = isRawLink ? input : document.createElement("textarea");
+    if (!isRawLink) {
+      target.value = content;
+      target.readOnly = true;
+      target.style.position = "fixed";
+      target.style.opacity = "0";
+      document.body.appendChild(target);
+    }
+    target.focus();
+    target.select();
     try {
       return document.execCommand("copy");
     } catch {
-      // Selection remains available for a manual long-press copy.
+      // The original link remains selectable in the visible input.
       return false;
+    } finally {
+      if (!isRawLink) target.remove();
     }
   }
 
@@ -88,19 +100,29 @@
       const input = root?.querySelector("[data-affiliate-copy-value]");
       const status = root?.querySelector("[data-affiliate-share-status]");
       if (!input || !status) return;
-      // Use only the original server-rendered short link; never share the
-      // current AliExpress page, its canonical URL or a generated short link.
+      const productTitle = (button.dataset.shareProductTitle || "Produto").trim();
+      const productId = (button.dataset.shareProductId || "").trim();
+      const heading = (button.dataset.shareHeading || "Produto Low Cost Europa").trim();
+      const description = heading + ": " + productTitle
+        + (productId ? "\nAliExpress ID: " + productId : "");
+      const completeMessage = description + "\n" + input.value;
+      // Share-target apps can ignore the title. The text itself identifies
+      // this product, while the original owner URL remains the URL field.
       if (typeof navigator.share === "function") {
         try {
-          await navigator.share({ url: input.value });
+          await navigator.share({
+            title: productTitle + " | Low Cost Europa",
+            text: description,
+            url: input.value,
+          });
           status.textContent = button.dataset.shareSuccess;
           return;
         } catch (error) {
           if (error?.name === "AbortError") return;
-          // Unsupported/failed share falls back to copying the same URL.
+          // Unsupported/failed share falls back to one copyable full message.
         }
       }
-      const copied = await copyOriginalAffiliateUrl(input);
+      const copied = await copyOriginalAffiliateUrl(input, completeMessage);
       status.textContent = copied
         ? button.dataset.shareCopySuccess : button.dataset.shareCopyFailure;
     });

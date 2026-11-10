@@ -71,7 +71,11 @@ class OfferGoTests(TestCase):
         self.assertContains(response, 'data-affiliate-actions')
         self.assertContains(response, 'data-affiliate-share-button')
         self.assertContains(response, 'data-affiliate-share-status')
-        self.assertContains(response, "PARTILHAR LINK ORIGINAL")
+        self.assertContains(response, 'data-share-product-id="go-offer"')
+        self.assertContains(response, 'data-share-product-title="Eligible offer"')
+        self.assertContains(response, "PARTILHAR ESTE PRODUTO")
+        self.assertContains(response, "Produto a partilhar")
+        self.assertContains(response, "AliExpress ID: go-offer")
 
     def test_each_valid_request_creates_separate_click(self):
         self.client.get(self.url)

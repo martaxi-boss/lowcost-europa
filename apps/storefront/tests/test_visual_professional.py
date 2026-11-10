@@ -56,8 +56,8 @@ class EditorialStorefrontTests(SimpleTestCase):
 
     def test_static_css_and_explorer_script_are_versioned(self):
         base = self.template("base.html")
-        self.assertIn("storefront.css' %}?v=owner-share-20261110", base)
-        self.assertIn("catalog-explorer.js' %}?v=owner-share-20261110", base)
+        self.assertIn("storefront.css' %}?v=owner-share-product-20261110", base)
+        self.assertIn("catalog-explorer.js' %}?v=owner-share-product-20261110", base)
 
 
 

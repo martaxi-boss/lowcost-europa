@@ -94,21 +94,33 @@ async function main() {
             value: async payload => { window.__capturedShare = payload; },
           });
         });
+        const productTitle = "HIFU profissional - equipamento demonstrativo 1";
+        const productId = "browser-qa-1-1";
+        assert.equal(await shareButton.getAttribute("data-share-product-title"), productTitle);
+        assert.equal(await shareButton.getAttribute("data-share-product-id"), productId);
+        assert.match(await page.locator("[data-affiliate-actions] > p.meta").first().innerText(),
+          /Produto a partilhar.*HIFU profissional.*browser-qa-1-1/);
         await shareButton.click();
-        assert.deepEqual(await page.evaluate(() => window.__capturedShare),
-          { url: exact }, "Native share must receive exactly the owner's short link");
+        const description = "Produto Low Cost Europa: " + productTitle
+          + "\nAliExpress ID: " + productId;
+        assert.deepEqual(await page.evaluate(() => window.__capturedShare), {
+          title: productTitle + " | Low Cost Europa",
+          text: description,
+          url: exact,
+        }, "Mobile share must identify the correct product while keeping the original URL");
         assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
-          /enviado para partilha/i);
+          /enviados para partilha/i);
         await page.evaluate(() => {
           Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
         });
         await shareButton.click();
         await page.waitForFunction(() => document.querySelector(
-          "[data-affiliate-share-status]")?.textContent?.includes("copiado"));
-        assert.equal(await page.evaluate(() => navigator.clipboard.readText()), exact,
-          "Share fallback must copy the exact original short link");
+          "[data-affiliate-share-status]")?.textContent?.includes("copiada"));
+        assert.equal(await page.evaluate(() => navigator.clipboard.readText()),
+          description + "\n" + exact,
+          "Share fallback must copy the exact product identity and untouched owner URL");
         assert.match(await page.locator("[data-affiliate-share-status]").innerText(),
-          /copiado/i);
+          /copiada/i);
         report.checks.push({ page: "owner-affiliate-native-share-and-fallback",
           width, status: "PASS" });
         await copyPanel.locator("[data-affiliate-copy-button]").click();
