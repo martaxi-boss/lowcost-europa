@@ -74,6 +74,78 @@ class CavitationManualOnlyTests(TestCase):
         )
         return offer
 
+    def test_owner_historical_eur_price_survives_24h_and_null_availability(self):
+        previous = timezone.now() - timedelta(days=2)
+        OfferObservation.objects.filter(
+            offer=self.manual, price__isnull=False
+        ).update(observed_at=previous)
+        # This is what the availability-only timer writes: no price.
+        OfferObservation.objects.create(
+            offer=self.manual, destination_country="PT",
+            observed_at=timezone.now(),
+            availability=OfferObservation.Availability.UNKNOWN,
+        )
+        count_before = OfferObservation.objects.filter(offer=self.manual).count()
+        original_url = self.manual.affiliate_url
+
+        for url in (
+            reverse("storefront:home"),
+            reverse("storefront:product-family-detail", args=[self.family.slug]),
+        ):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, "139,90 EUR")
+                self.assertContains(response, "Observado em")
+        detail = self.client.get(
+            reverse("storefront:product-family-detail", args=[self.family.slug])
+        )
+        self.assertIn('data-price="139.90" data-currency="EUR"', detail.content.decode())
+        self.assertEqual(OfferObservation.objects.filter(offer=self.manual).count(), count_before)
+        self.manual.refresh_from_db()
+        self.assertEqual(self.manual.affiliate_url, original_url)
+        self.assertEqual(
+            self.client.head(reverse("storefront:offer-go", args=[self.manual.pk])).status_code,
+            302,
+        )
+
+    def test_owner_eur_price_older_than_seven_days_shows_explicit_warning(self):
+        OfferObservation.objects.filter(
+            offer=self.manual, price__isnull=False
+        ).update(observed_at=timezone.now() - timedelta(days=12))
+        detail = self.client.get(
+            reverse("storefront:product-family-detail", args=[self.family.slug])
+        )
+        self.assertContains(detail, "139,90 EUR")
+        self.assertContains(detail, "Observação com mais de 7 dias.")
+        self.assertContains(detail, "Confirme o preço atual no parceiro.")
+
+    def test_owner_without_genuine_pt_eur_price_stays_unavailable(self):
+        OfferObservation.objects.filter(offer=self.manual).delete()
+        now = timezone.now()
+        for price, currency, age in (
+            ("0.00", "EUR", 3),
+            ("999.00", "USD", 2),
+            ("500.00", "EUR", -1),
+        ):
+            OfferObservation.objects.create(
+                offer=self.manual, price=price, currency=currency,
+                destination_country="PT",
+                observed_at=now - timedelta(hours=age),
+            )
+        OfferObservation.objects.create(
+            offer=self.manual, price="300.00", currency="EUR",
+            destination_country="ES", observed_at=now - timedelta(hours=1),
+        )
+        detail = self.client.get(
+            reverse("storefront:product-family-detail", args=[self.family.slug])
+        )
+        self.assertContains(detail, "Preço observado")
+        self.assertContains(detail, "Não disponível")
+        self.assertNotContains(detail, "999,00 USD")
+        self.assertNotContains(detail, "500,00 EUR")
+        self.assertNotContains(detail, "300,00 EUR")
+        self.assertNotContains(detail, "0,00 EUR")
+
     def test_private_panel_shows_only_montra_and_delete(self):
         self.client.force_login(self.staff)
         url = reverse("owner-panel:family", args=[self.family.slug])
