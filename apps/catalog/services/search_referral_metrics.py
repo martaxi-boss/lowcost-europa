@@ -300,9 +300,11 @@ def read_private_report(path, *, now=None):
                    for day in daily):
                 return None
             dates = [date.fromisoformat(day["date"]) for day in daily]
-            if dates != sorted(set(dates)) or sum(day["requests"] for day in daily) != meta["total"]:
+            if (dates != sorted(set(dates))
+                    or sum(day["requests"] for day in daily) != meta["total"]):
                 return None
-            if meta["today"] != daily[-1]["requests"] or meta["yesterday"] != daily[-2]["requests"]:
+            if (meta["today"] != daily[-1]["requests"]
+                    or meta["yesterday"] != daily[-2]["requests"]):
                 return None
         return {
             "checked_at": checked,
