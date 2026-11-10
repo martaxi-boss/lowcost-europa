@@ -78,7 +78,7 @@ class OfferGoTests(TestCase):
         self.assertNotContains(response, "AliExpress ID: go-offer")
         self.assertContains(response, "+ Comparar equipamento")
 
-    def test_cavitation_card_has_clean_price_and_qualified_origin_claim(self):
+    def test_cavitation_card_has_owner_requested_heading(self):
         self.family.slug = "cavitacao-rf-vacuum-corpo"
         self.family.save(update_fields=["slug"])
         self.offer.source = Offer.Source.ALIEXPRESS_OWNER
@@ -90,8 +90,8 @@ class OfferGoTests(TestCase):
         ])
         url = reverse("storefront:product-family-detail", args=[self.family.slug])
         response = self.client.get(url)
-        self.assertContains(response, "Origem de envio por confirmar")
-        self.assertNotContains(response, "Enviado da Europa")
+        self.assertContains(response, "Enviado da Europa")
+        self.assertNotContains(response, "Origem de envio por confirmar")
         self.assertContains(response, "Preço observado")
         self.assertContains(response, "+ Comparar equipamento")
         self.assertContains(response, "VER PREÇO NO ALIEXPRESS")
