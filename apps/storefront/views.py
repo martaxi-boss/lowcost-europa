@@ -705,7 +705,9 @@ def offer_landing(request, offer_id):
         "family": family,
         "observed_price": price,
         "page_title": f"{offer.title or 'Oferta'} | Low Cost Europa",
-        "meta_description": "Oferta selecionada. Confirme o preco, envio e disponibilidade no AliExpress.",
+        "meta_description": (
+            "Oferta selecionada. Confirme preço, envio e disponibilidade no AliExpress."
+        ),
         "robots_directive": "noindex, follow",
         "canonical_url": None,
         "seo_alternates": [],
