@@ -64,10 +64,14 @@
         {% if offer.source == "ALIEXPRESS_OWNER" %}
         <div class="offer-affiliate-actions" data-affiliate-actions>
           <button type="button" class="button button--secondary offer-share-button" data-affiliate-share-button
-                  data-share-success="{{ 'Link original enviado para partilha.'|ui_t }}"
-                  data-share-copy-success="{{ 'Link original copiado. Cole-o na mensagem que quer enviar.'|ui_t }}"
-                  data-share-copy-failure="{{ 'Não foi possível copiar. Abra a opção abaixo para selecionar o link original.'|ui_t }}">{{ "PARTILHAR LINK ORIGINAL"|ui_t }} <span aria-hidden="true">↗</span></button>
-          <p class="meta">{{ "Partilhe aqui para enviar o link original. A opção Partilhar da aplicação AliExpress pode criar outro endereço."|ui_t }}</p>
+                  data-share-product-title="{{ offer.title|default:'Produto'|truncatechars:120 }}"
+                  data-share-product-id="{{ offer.external_product_id }}"
+                  data-share-heading="{{ 'Produto Low Cost Europa'|ui_t }}"
+                  data-share-success="{{ 'Link original e identificação do produto enviados para partilha.'|ui_t }}"
+                  data-share-copy-success="{{ 'Mensagem com o produto e o link original copiada. Cole-a na conversa.'|ui_t }}"
+                  data-share-copy-failure="{{ 'Não foi possível copiar. Abra a opção abaixo para selecionar o link original.'|ui_t }}">{{ "PARTILHAR ESTE PRODUTO"|ui_t }} <span aria-hidden="true">↗</span></button>
+          <p class="meta"><strong>{{ "Produto a partilhar"|ui_t }}:</strong> {{ offer.title|default:"Produto"|truncatechars:100 }} · AliExpress ID: {{ offer.external_product_id }}</p>
+          <p class="meta">{{ "A mensagem inclui o produto e o link original. A opção Partilhar da aplicação AliExpress pode criar outro endereço."|ui_t }}</p>
           <p class="meta" role="status" aria-live="polite" data-affiliate-share-status></p>
         <details class="offer-browser-help" data-affiliate-copy>
           <summary>{{ "Não abriu no navegador? Copiar link original"|ui_t }}</summary>
