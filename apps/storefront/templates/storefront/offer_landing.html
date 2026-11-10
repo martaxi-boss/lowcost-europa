@@ -1,0 +1,40 @@
+{% extends "storefront/base.html" %}
+{% load static storefront_i18n %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'storefront/offer-landing.css' %}?v=campaign-one-product-20261110">
+{% endblock %}
+{% block content %}
+<section class="section promo-landing" aria-labelledby="promo-title">
+  <div class="container">
+    <nav class="category-breadcrumb" aria-label="Percurso da página">
+      <a href="{% storefront_home_url %}">Low Cost Europa</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Oferta selecionada</span>
+    </nav>
+    <div class="promo-landing__grid">
+      <div class="promo-landing__visual">
+        {% if offer.image_url|slice:":8" == "https://" %}
+          <img src="{{ offer.image_url }}" alt="{{ offer.title }}" width="640" height="480" loading="eager">
+        {% else %}
+          <div class="promo-landing__placeholder">Low Cost Europa</div>
+        {% endif %}
+      </div>
+      <div class="promo-landing__details">
+        <p class="eyebrow">Produto selecionado · Low Cost Europa</p>
+        <h1 id="promo-title">{{ offer.title|default:"Oferta selecionada" }}</h1>
+        <p class="promo-landing__intro">Veja as condições atuais e compre diretamente na plataforma parceira AliExpress.</p>
+        {% if observed_price %}
+          <p class="promo-landing__label">Preço observado</p>
+          <p class="promo-landing__price">{{ observed_price.price }} {{ observed_price.currency }}</p>
+          <p class="meta">Observado em {{ observed_price.observed_at|date:"d/m/Y H:i" }}. O preço pode mudar no vendedor.</p>
+        {% else %}
+          <p class="meta">Consulte o preço atualizado diretamente no AliExpress.</p>
+        {% endif %}
+        <a class="button button--large promo-landing__cta" href="{% url 'storefront:offer-go' offer.pk %}" rel="sponsored nofollow noopener">VER PREÇO NO ALIEXPRESS <span aria-hidden="true">↗</span></a>
+        <p class="promo-landing__disclosure">Compra externa. A oferta, a variante, o stock, a expedição e o pagamento são geridos pelo AliExpress. Alguns links podem gerar comissão de afiliado.</p>
+        <p class="promo-landing__more"><a href="{% url 'storefront:product-family-detail' family.slug %}">Ver outras ofertas da categoria</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

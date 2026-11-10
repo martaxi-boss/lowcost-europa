@@ -671,6 +671,54 @@ def _should_record_offer_click(request):
 
 
 @require_safe
+def offer_landing(request, offer_id):
+    """One-product, noindex page for campaigns; never regenerates affiliate URLs."""
+    eligible = Offer.objects.filter(
+        public_eligibility_q(),
+        pk=offer_id,
+        family_placements__product_family__status__in=[
+            ProductFamily.Status.NEW,
+            ProductFamily.Status.TESTING,
+            ProductFamily.Status.VERIFIED,
+            ProductFamily.Status.PROVEN,
+            ProductFamily.Status.WINNER,
+            ProductFamily.Status.OBSERVATION,
+        ],
+    ).distinct()
+    offer = get_object_or_404(eligible)
+    if not is_https_affiliate_url(offer.affiliate_url):
+        raise Http404
+
+    family = (ProductFamily.objects.filter(offer_placements__offer_id=offer.pk)
+        .exclude(status=ProductFamily.Status.RETIRED)
+        .order_by("display_order", "pk").first())
+    if family is None:
+        raise Http404
+
+    offer.observation_display = build_observation_display(
+        observation_history_queryset().filter(offer_id=offer.pk),
+        allow_historical_owner_price=(offer.source == Offer.Source.ALIEXPRESS_OWNER),
+    )
+    price = offer.observation_display.price_observation
+    context = {
+        "offer": offer,
+        "family": family,
+        "observed_price": price,
+        "page_title": f"{offer.title or 'Oferta'} | Low Cost Europa",
+        "meta_description": (
+            "Oferta selecionada. Confirme preço, envio e disponibilidade no AliExpress."
+        ),
+        "robots_directive": "noindex, nofollow",
+        "canonical_url": None,
+        "seo_alternates": [],
+        "structured_data_json": None,
+    }
+    response = _render_storefront(request, "storefront/offer_landing.html", context)
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@require_safe
 def offer_go(request, offer_id):
     eligible = Offer.objects.filter(
         public_eligibility_q(),
