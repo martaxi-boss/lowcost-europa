@@ -68,6 +68,10 @@ class OfferGoTests(TestCase):
             'value="https://s.click.aliexpress.com/e/_OwnerLinkFixture"',
         )
         self.assertContains(response, 'data-affiliate-copy-button')
+        self.assertContains(response, 'data-affiliate-actions')
+        self.assertContains(response, 'data-affiliate-share-button')
+        self.assertContains(response, 'data-affiliate-share-status')
+        self.assertContains(response, "PARTILHAR LINK ORIGINAL")
 
     def test_each_valid_request_creates_separate_click(self):
         self.client.get(self.url)
@@ -206,3 +210,4 @@ class StorefrontCtaTests(TestCase):
                 f'href="{reverse("storefront:offer-go", args=[offer.pk])}"',
             )
             self.assertNotContains(response, offer.affiliate_url)
+        self.assertNotContains(response, 'data-affiliate-share-button')
