@@ -28,7 +28,7 @@ class OneProductLandingPilotTests(TestCase):
         self.assertContains(response, "VER PREÇO NO ALIEXPRESS")
         self.assertContains(response, reverse("storefront:offer-go", args=[self.offer.pk]))
         self.assertNotContains(response, "https://s.click.aliexpress.com/e/_EHuDEKi")
-        self.assertEqual(response["X-Robots-Tag"], "noindex, follow")
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         self.assertNotContains(response, '<link rel="canonical"', html=False)
         self.offer.refresh_from_db()
         self.assertEqual(self.offer.affiliate_url, "https://s.click.aliexpress.com/e/_c3qslKyf")
