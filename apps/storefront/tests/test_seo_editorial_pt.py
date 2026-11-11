@@ -9,6 +9,8 @@ from apps.catalog.models import ProductFamily
 from apps.storefront.seo_editorial import (
     ES_CATEGORY_GUIDES,
     PT_CATEGORY_GUIDES,
+    PT_BUYING_QUESTIONS,
+    buying_questions_for_category,
     guide_for_category,
 )
 
@@ -107,3 +109,63 @@ class PortugueseSeoGuideTests(TestCase):
                 self.assertContains(page, 'hreflang="es-ES"')
                 self.assertContains(page, 'href="/es/#familias"')
                 self.assertNotContains(page, 'itemtype="https://schema.org/Offer"')
+
+
+    def test_portugal_purchase_questions_are_useful_and_do_not_touch_spain(self):
+        self.assertEqual(set(PT_BUYING_QUESTIONS), set(FAMILIES))
+        for slug, questions in PT_BUYING_QUESTIONS.items():
+            with self.subTest(slug=slug):
+                self.assertEqual(len(questions), 3)
+                self.assertEqual(
+                    buying_questions_for_category(slug, "pt-pt"), questions
+                )
+                self.assertEqual(
+                    buying_questions_for_category(slug, "es"), ()
+                )
+                pt = self.get_page(f"/pt/products/{slug}/")
+                es = self.get_page(f"/es/products/{slug}/")
+                self.assertEqual(pt.status_code, 200)
+                self.assertEqual(es.status_code, 200)
+                self.assertEqual(pt.context["pt_buying_questions"], questions)
+                self.assertEqual(es.context["pt_buying_questions"], ())
+                self.assertContains(pt, "Dúvidas práticas antes de escolher")
+                self.assertNotContains(es, "Dúvidas práticas antes de escolher")
+                self.assertNotContains(es, "Informação para compradores em Portugal")
+                for question, answer in questions:
+                    self.assertContains(pt, question)
+                    self.assertContains(pt, answer)
+                    self.assertNotContains(es, question)
+                self.assertContains(
+                    pt, f'<link rel="canonical" href="{BASE}/pt/products/{slug}/">'
+                )
+                self.assertContains(
+                    es, f'<link rel="canonical" href="{BASE}/es/products/{slug}/">'
+                )
+                self.assertContains(pt, 'hreflang="es-ES"')
+                self.assertContains(es, 'hreflang="pt-PT"')
+                self.assertNotContains(pt, '"@type":"FAQPage"')
+                self.assertNotContains(es, '"@type":"FAQPage"')
+
+    def test_portugal_home_metadata_changes_without_changing_spanish_home(self):
+        pt = self.get_page("/pt/")
+        es = self.get_page("/es/")
+        root = self.get_page("/")
+        self.assertEqual(pt.status_code, 200)
+        self.assertEqual(es.status_code, 200)
+        self.assertEqual(root.status_code, 200)
+        self.assertEqual(
+            pt.context["page_title"],
+            "Equipamentos de Estética Profissional em Portugal | Lowcost Europa",
+        )
+        self.assertIn("em Portugal", pt.context["meta_description"])
+        self.assertContains(
+            pt, '<link rel="canonical" href="https://www.example.test/pt/">'
+        )
+        self.assertNotIn("em Portugal", es.context["page_title"])
+        self.assertNotIn("em Portugal", es.context["meta_description"])
+        self.assertEqual(
+            es.context["canonical_url"], "https://www.example.test/es/"
+        )
+        self.assertEqual(
+            self.get_page("/sitemap.xml").content.count(b"<loc>"), 23
+        )
