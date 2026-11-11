@@ -461,6 +461,14 @@ def dashboard(request):
         now=now,
     )
 
+    # O relatorio local pode continuar legivel durante 48 horas por resiliencia,
+    # mas "Hoje" so significa "ate a ultima recolha". Nunca marcar dados de
+    # varias horas como atualizados ou confundir um zero antigo com zero ao vivo.
+    search_referrers_recent = bool(
+        search_referrers
+        and timedelta(0) <= now - search_referrers["checked_at"] <= timedelta(hours=2)
+    )
+
     # Comparar motores exige cliques medidos na mesma origem e período.
     # Search Console só mede Google; não inventar números para outros motores.
     # Não recolher aqui IP, sessões, referers ou novos dados de visitantes.
@@ -555,6 +563,8 @@ def dashboard(request):
                 "google_search_configured": google_search_configured,
                 "engine_comparison_rows": engine_comparison_rows,
                 "search_referrers": search_referrers,
+                "search_referrers_recent": search_referrers_recent,
+                "google_search_provider": google_search_provider,
                 "google_search_report_payload": google_search_report_payload,
                 "google_search_report_fresh": google_search_report_fresh,
             },
