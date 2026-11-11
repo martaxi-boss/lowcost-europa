@@ -1,50 +1,24 @@
-"""Refresh each private provider report independently; keep last-known-good snapshots."""
+"""Periodic AliExpress affiliate order snapshots.
 
-import os
+Google/Meta traffic is counted independently and for free from Nginx logs.
+No Google Ads, Google OAuth, Windsor.ai, pixels or third-party metric API.
+"""
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    help = "Refresh authorized AliExpress and Google Search Console metrics."
+    help = "Refresh authorized AliExpress orders; site origin counts use the local Nginx report."
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
         flags = ["--dry-run"] if options["dry_run"] else []
-        failures = []
         try:
             call_command("sync_affiliate_orders", *flags)
         except CommandError:
-            failures.append("ALIEXPRESS")
             self.stderr.write("ALIEXPRESS_REPORT=UNAVAILABLE")
-
-        # Meta advertising was disconnected by the owner. Never sync it here.
-        provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
-        has_provider_auth = (
-            bool(os.environ.get("WINDSOR_API_KEY")) if provider == "WINDSOR"
-            else all(os.environ.get(key) for key in (
-                "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
-                "GOOGLE_OAUTH_REFRESH_TOKEN",
-            )) if provider == "GOOGLE_OFFICIAL" else False
-        )
-        # Search Console uses the independent site property and must remain active.
-        property_id = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY", "").strip()
-        if not property_id:
-            self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_PROPERTY_AUTHORIZATION")
-        elif property_id != "sc-domain:lowcost-europa.eu" or not has_provider_auth:
-            failures.append("GOOGLE_SEARCH_CONFIG")
-            self.stderr.write("GOOGLE_SEARCH_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
-        else:
-            try:
-                call_command("sync_google_search_console", *flags)
-            except CommandError:
-                failures.append("GOOGLE_SEARCH")
-                self.stderr.write("GOOGLE_SEARCH_REPORT=UNAVAILABLE")
-
-        # Report partial failure to systemd without blocking successful
-        # independent snapshots or hiding either provider's error.
-        if failures:
-            raise CommandError("EXTERNAL_METRICS_FAILED=" + ",".join(failures))
+            raise CommandError("EXTERNAL_METRICS_FAILED=ALIEXPRESS") from None
+        self.stdout.write("VISITOR_ORIGINS=PRIVATE_NGINX_COUNTER_ONLY")
