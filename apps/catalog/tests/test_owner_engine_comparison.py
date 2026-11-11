@@ -46,6 +46,7 @@ class OwnerSearchEngineComparisonTests(TestCase):
             period_end=now,
             checked_at=now,
             payload={
+                "provider": "GOOGLE_OFFICIAL",
                 "property": "sc-domain:lowcost-europa.eu",
                 "clicks": 27,
                 "impressions": 450,
@@ -54,10 +55,17 @@ class OwnerSearchEngineComparisonTests(TestCase):
                 "top_queries": [],
             },
         )
-        with patch(
-            "apps.catalog.services.windsor_search_console_reporting._fetch_rows"
-        ) as provider:
-            response = self.client.get(self.url)
+        with patch.dict("os.environ", {
+            "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
+            "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+            "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+            "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "test-refresh",
+        }):
+            with patch(
+                "apps.catalog.services.official_search_console_reporting._oauth_access_token"
+            ) as provider:
+                response = self.client.get(self.url)
         provider.assert_not_called()
         rows = response.context["engine_comparison_rows"]
         self.assertEqual(rows[0]["clicks"], 27)
@@ -77,6 +85,7 @@ class OwnerSearchEngineComparisonTests(TestCase):
             period_end=now,
             checked_at=now,
             payload={
+                "provider": "GOOGLE_OFFICIAL",
                 "property": "sc-domain:lowcost-europa.eu",
                 "clicks": 0,
                 "impressions": 0,
