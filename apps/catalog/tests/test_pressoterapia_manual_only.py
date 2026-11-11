@@ -1,4 +1,4 @@
-"""The manually curated second category mirrors the approved Cavitation UI."""
+"""The manually curated third category mirrors the approved Cavitation UI."""
 
 from contextlib import nullcontext
 from datetime import timedelta
@@ -26,7 +26,7 @@ from apps.integrations.aliexpress.types import AliExpressProduct
 class PressoterapiaManualOnlyTests(TestCase):
     def setUp(self):
         self.family = ProductFamily.objects.create(
-            name="Pressoterapiaabrasão / Hidrodermoabrasão / Multifunções faciais",
+            name="Pressoterapia / RF Tecar",
             slug="pressoterapia-vacuum-drenagem",
             display_order=3,
             status=ProductFamily.Status.NEW,
@@ -122,7 +122,7 @@ class PressoterapiaManualOnlyTests(TestCase):
                 self.assertEqual(response.status_code, 403)
 
     @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
-    def test_new_manual_micro_offer_monitored_and_removed_only_after_two_confirmations(self, lock):
+    def test_new_manual_pressotherapy_offer_monitored_and_removed_only_after_two_confirmations(self, lock):
         lock.return_value = nullcontext()
         batch = select_manual_cavitation_batch()
         self.assertEqual([offer.pk for offer in batch], [self.offer.pk])
