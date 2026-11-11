@@ -268,11 +268,11 @@ class ManualCandidateIntakeServiceTests(TestCase):
 
 class ManualCandidateIntakeOwnerPanelTests(TestCase):
     def setUp(self):
-        # HIFU still uses the legacy candidate-review workflow. Pressoterapia,
-        # like Cavitacao and Microdermo, is now an exclusively manual storefront.
+        # Only category 5 still uses the legacy candidate-review workflow.
+        # HIFU joins the first three exclusively manual storefronts.
         self.family = ProductFamily.objects.create(
-            name="HIFU",
-            slug="hifu",
+            name="Diodo Laser",
+            slug="diodo-laser-remocao-tatuagens-pigmentacao",
         )
         self.staff = get_user_model().objects.create_user(
             username="owner-manual-intake",
