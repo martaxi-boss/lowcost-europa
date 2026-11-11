@@ -112,7 +112,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["top_clicked_offers"][0]["total"], 2)
         self.assertEqual(response.context["families"][0].recent_raw_clicks, 2)
         self.assertContains(response, "não representam visitantes únicos, compras ou comissões")
-        self.assertContains(response, "indisponíveis até existirem integrações verificadas")
+        self.assertContains(response, "São pedidos de páginas HTTP, não visitantes únicos")
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
 
