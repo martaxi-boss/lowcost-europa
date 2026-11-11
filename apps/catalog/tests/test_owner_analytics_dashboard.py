@@ -84,6 +84,12 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "3 pedidos de páginas")
         self.assertNotContains(response, "Google Analytics 4")
         self.assertEqual(response.context["search_referrers"]["total"], 3)
+        engine_rows = response.context["engine_comparison_rows"]
+        self.assertEqual(engine_rows[0]["local_requests"], 2)
+        self.assertEqual(engine_rows[1]["local_requests"], 1)
+        self.assertIsNone(engine_rows[2]["local_requests"])
+        self.assertIsNone(engine_rows[1]["clicks"])
+        self.assertContains(response, "Chegadas observadas (VPS, 7 dias)")
         self.assertFalse(response.context["google_search_report_payload"])
         self.assertEqual(response["Cache-Control"], "private, no-store")
 
@@ -447,6 +453,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
     def test_missing_or_stale_google_data_is_not_invented(self):
         pending = self.client.get(self.url)
         self.assertContains(pending, "Ligação de métricas pendente")
+        self.assertIsNone(pending.context["engine_comparison_rows"][0]["local_requests"])
         self.assertNotContains(pending, "Métricas Google sincronizadas")
         now = timezone.now()
         ExternalMetricsSnapshot.objects.create(
