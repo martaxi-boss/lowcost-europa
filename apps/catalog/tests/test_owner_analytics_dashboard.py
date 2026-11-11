@@ -22,16 +22,16 @@ from apps.catalog.models import (
 
 
 class OwnerAnalyticsDashboardTests(TestCase):
-    def test_configured_property_without_report_is_waiting_for_data_not_fake_metrics(self):
-        self.client.force_login(self.owner)
+    def test_no_provider_credentials_required_for_local_counter(self):
         with patch.dict(os.environ, {
-            "WINDSOR_API_KEY": "test-only",
-            "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+            "WINDSOR_API_KEY": "legacy-test-only",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "legacy-test-only",
         }):
-            response = self.client.get(reverse("owner-panel:dashboard"))
-        self.assertContains(response, "Leitura configurada — a aguardar dados")
-        self.assertNotContains(response, "Falta autorizar a leitura automática")
-        self.assertFalse(response.context["google_search_report_payload"])
+            response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Contador gratuito — Google, Meta e AliExpress")
+        self.assertContains(response, "Relatório de origens indisponível")
+        self.assertEqual(response.context["google_local_requests_7d"], None)
         self.assertFalse(ExternalMetricsSnapshot.objects.exists())
 
     def setUp(self):
@@ -78,10 +78,8 @@ class OwnerAnalyticsDashboardTests(TestCase):
         ):
             response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Chegadas da pesquisa")
-        self.assertContains(response, "Origem da pesquisa — contador próprio")
-        self.assertContains(response, "Relatório local ativo")
-        self.assertContains(response, "3 pedidos de páginas")
+        self.assertContains(response, "Contador gratuito — Google, Meta e AliExpress")
+        self.assertContains(response, "Pedidos de páginas com origem Google identificada")
         self.assertNotContains(response, "Google Analytics 4")
         self.assertEqual(response.context["search_referrers"]["total"], 3)
         self.assertTrue(response.context["search_referrers_recent"])
@@ -89,10 +87,10 @@ class OwnerAnalyticsDashboardTests(TestCase):
         engine_rows = response.context["engine_comparison_rows"]
         self.assertEqual(engine_rows[0]["local_requests"], 2)
         self.assertEqual(engine_rows[1]["local_requests"], 1)
-        self.assertIsNone(engine_rows[2]["local_requests"])
-        self.assertIsNone(engine_rows[1]["clicks"])
-        self.assertContains(response, "Chegadas observadas (VPS, 7 dias)")
-        self.assertFalse(response.context["google_search_report_payload"])
+        self.assertEqual(len(engine_rows), 2)
+        self.assertNotIn("clicks", engine_rows[1])
+        self.assertContains(response, "Chegadas identificadas (VPS, 7 dias)")
+        self.assertEqual(response.context["google_local_requests_7d"], 2)
         self.assertEqual(response["Cache-Control"], "private, no-store")
 
     def test_metrics_are_real_outbound_clicks_not_sales_or_unique_visitors(self):
@@ -295,9 +293,9 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "Resumo de métricas")
         self.assertContains(response, "Cliques para parceiros")
         self.assertContains(response, "Evolução — 14 dias")
-        self.assertContains(response, "Motores de pesquisa — desempenho")
+        self.assertContains(response, "Contador gratuito — Google, Meta e AliExpress")
         self.assertNotContains(response, "Meta Ads")
-        self.assertContains(response, "Google Search Console")
+        self.assertNotContains(response, "Google Search Console")
         self.assertContains(response, "VER LOJA")
         for forbidden in (
             "Validação comercial — oferta a oferta",
@@ -342,9 +340,9 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertNotContains(response, "25.22")
         self.assertNotContains(response, "382")
         self.assertNotIn("meta_report_payload", response.context)
-        self.assertContains(response, "Google Search Console")
+        self.assertContains(response, "Contador gratuito — Google, Meta e AliExpress")
         self.assertContains(response, "AliExpress")
-        self.assertContains(response, "Motores de pesquisa")
+        self.assertContains(response, "Google — chegadas identificadas")
         self.assertTrue(ExternalMetricsSnapshot.objects.filter(source="META").exists())
 
     def test_unauthorised_users_cannot_open_metrics(self):
@@ -424,7 +422,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "Dados desatualizados")
         self.assertNotContains(response, "Consulta automática ativa")
 
-    def test_google_search_snapshot_is_separate_from_local_outbound_clicks(self):
+    def test_legacy_search_console_snapshot_never_overrides_local_counter(self):
         now = timezone.now()
         self._click_ago(1)
         ExternalMetricsSnapshot.objects.create(
@@ -433,73 +431,20 @@ class OwnerAnalyticsDashboardTests(TestCase):
             period_end=now,
             checked_at=now,
             payload={
+                "provider": "WINDSOR",
                 "property": "sc-domain:lowcost-europa.eu",
-                "clicks": 23,
-                "impressions": 480,
-                "ctr_percent": "4.79",
-                "average_position": "12.80",
-                "top_queries": [{"query": "lowcost europa", "clicks": 7, "impressions": 80}],
+                "clicks": 999,
+                "impressions": 9999,
+                "top_queries": [{"query": "hidden-old-query", "clicks": 5}],
             },
         )
         response = self.client.get(self.url)
-        self.assertTrue(response.context["google_search_report_fresh"])
-        self.assertEqual(response.context["google_search_report_payload"]["clicks"], 23)
         self.assertEqual(response.context["recent_raw_clicks_total"], 1)
-        self.assertContains(response, "Métricas Google sincronizadas")
-        self.assertContains(response, "Cliques da pesquisa Google")
-        self.assertContains(response, "480")
-        self.assertContains(response, "lowcost europa")
+        self.assertIsNone(response.context["google_local_requests_7d"])
+        self.assertNotContains(response, "9999")
+        self.assertNotContains(response, "hidden-old-query")
+        self.assertNotContains(response, "Métricas Google sincronizadas")
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
-        self.assertNotContains(response, "gtag(")
-
-    def test_missing_or_stale_google_data_is_not_invented(self):
-        pending = self.client.get(self.url)
-        self.assertContains(pending, "Ligação de métricas pendente")
-        self.assertIsNone(pending.context["engine_comparison_rows"][0]["local_requests"])
-        self.assertNotContains(pending, "Métricas Google sincronizadas")
-        now = timezone.now()
-        ExternalMetricsSnapshot.objects.create(
-            source="GOOGLE_SEARCH_CONSOLE",
-            period_start=now - timedelta(days=33),
-            period_end=now - timedelta(days=3),
-            checked_at=now - timedelta(hours=49),
-            payload={
-                "property": "sc-domain:lowcost-europa.eu",
-                "clicks": 3,
-                "impressions": 45,
-                "ctr_percent": "6.67",
-                "average_position": "16.25",
-                "top_queries": [],
-            },
-        )
-        stale = self.client.get(self.url)
-        self.assertFalse(stale.context["google_search_report_fresh"])
-        self.assertContains(stale, "Dados Google desatualizados")
-
-    def test_google_metrics_stay_owner_only_without_external_requests(self):
-        now = timezone.now()
-        ExternalMetricsSnapshot.objects.create(
-            source="GOOGLE_SEARCH_CONSOLE",
-            period_start=now - timedelta(days=30),
-            period_end=now,
-            checked_at=now,
-            payload={
-                "property": "sc-domain:lowcost-europa.eu",
-                "clicks": 4,
-                "impressions": 40,
-                "ctr_percent": "10.00",
-                "average_position": "8.50",
-                "top_queries": [],
-            },
-        )
-        with patch(
-            "apps.catalog.services.windsor_search_console_reporting._fetch_rows"
-        ) as external:
-            response = self.client.get(self.url)
-        external.assert_not_called()
-        self.assertEqual(response.status_code, 200)
-        self.client.logout()
-        self.assertEqual(self.client.get(self.url).status_code, 302)
 
     def test_old_local_report_does_not_claim_realtime_zero_for_today(self):
         previous = timezone.now() - timedelta(hours=5)
@@ -529,14 +474,18 @@ class OwnerAnalyticsDashboardTests(TestCase):
             response, "Recolha atrasada — números até à última leitura",
             count=2,
         )
-        self.assertContains(response, "Relatório local com atraso")
         self.assertEqual(response.context["search_referrers"]["meta"]["today"], 2)
         self.assertNotContains(response, "Recolha local recente")
 
-    def test_windsor_dependency_is_explained_not_disguised_as_official_api(self):
-        with patch.dict(os.environ, {"GOOGLE_SEARCH_CONSOLE_PROVIDER": "WINDSOR"}):
+    def test_simple_local_panel_does_not_need_google_or_third_party_keys(self):
+        with patch.dict(os.environ, {
+            "WINDSOR_API_KEY": "",
+            "GOOGLE_OAUTH_CLIENT_ID": "",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "",
+        }):
             response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["google_search_provider"], "WINDSOR")
-        self.assertContains(response, "Fonte de consulta atualmente configurada: Windsor.ai")
-        self.assertContains(response, "ligação gratuita e direta à API oficial")
+        self.assertContains(response, "Contador gratuito — Google, Meta e AliExpress")
+        self.assertNotContains(response, "Google Search Console")
+        self.assertNotContains(response, "Google Ads")
+        self.assertNotContains(response, "Windsor.ai")
