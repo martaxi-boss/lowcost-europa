@@ -427,34 +427,40 @@ def dashboard(request):
         and affiliate_report.checked_at <= now
         and now - affiliate_report.checked_at <= timedelta(hours=12)
     )
-    # Search Console data is a separate, verified organic Google source.
-    # GET never calls Google/Windsor and does not track new visitors.
+    # GET never contacts Google or any other provider. Historical snapshots
+    # from discontinued connectors remain stored for audit, but are NOT live
+    # official data and must not appear as current Google metrics.
+    google_search_provider = os.environ.get(
+        "GOOGLE_SEARCH_CONSOLE_PROVIDER", "GOOGLE_OFFICIAL"
+    ).upper()
+    google_search_configured = bool(
+        google_search_provider == "GOOGLE_OFFICIAL"
+        and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
+        == "sc-domain:lowcost-europa.eu"
+        and all(
+            os.environ.get(key) for key in (
+                "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
+                "GOOGLE_OAUTH_REFRESH_TOKEN",
+            )
+        )
+    )
     google_search_report = ExternalMetricsSnapshot.objects.filter(
         source="GOOGLE_SEARCH_CONSOLE"
     ).first()
     google_search_report_payload = (
         google_search_report.payload
-        if google_search_report and isinstance(google_search_report.payload, dict)
+        if google_search_report
+        and isinstance(google_search_report.payload, dict)
+        and google_search_report.payload.get("provider") == "GOOGLE_OFFICIAL"
         and google_search_report.payload.get("property") == "sc-domain:lowcost-europa.eu"
+        and google_search_provider == "GOOGLE_OFFICIAL"
         else None
     )
     google_search_report_fresh = bool(
         google_search_report_payload
+        and google_search_configured
         and google_search_report.checked_at <= now
         and now - google_search_report.checked_at <= timedelta(hours=48)
-    )
-    google_search_provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
-    google_provider_auth = (
-        bool(os.environ.get("WINDSOR_API_KEY")) if google_search_provider == "WINDSOR"
-        else all(os.environ.get(key) for key in (
-            "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
-            "GOOGLE_OAUTH_REFRESH_TOKEN",
-        )) if google_search_provider == "GOOGLE_OFFICIAL" else False
-    )
-    google_search_configured = bool(
-        google_provider_auth
-        and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
-        == "sc-domain:lowcost-europa.eu"
     )
     search_referrers = read_private_report(
         settings.BASE_DIR / ".local-metrics" / "search-referrers.json",
