@@ -1,5 +1,9 @@
 """The manually curated second category mirrors the approved Cavitation UI."""
 
+from contextlib import nullcontext
+from datetime import timedelta
+from unittest.mock import Mock, patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -12,6 +16,11 @@ from apps.catalog.models import (
     OfferObservation,
     ProductFamily,
 )
+from apps.catalog.services.cavitation_availability import (
+    monitor_cavitation_availability,
+    select_manual_cavitation_batch,
+)
+from apps.integrations.aliexpress.types import AliExpressProduct
 
 
 class MicrodermoManualOnlyTests(TestCase):
@@ -111,3 +120,34 @@ class MicrodermoManualOnlyTests(TestCase):
                     reverse("owner-panel:" + route, args=args)
                 )
                 self.assertEqual(response.status_code, 403)
+
+    @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
+    def test_new_manual_micro_offer_monitored_and_removed_only_after_two_confirmations(self, lock):
+        lock.return_value = nullcontext()
+        batch = select_manual_cavitation_batch()
+        self.assertEqual([offer.pk for offer in batch], [self.offer.pk])
+        original_link = self.offer.affiliate_url
+        fake = Mock()
+        fake.get_product_detail.return_value = AliExpressProduct(
+            product_id=self.offer.external_product_id, availability_raw="out of stock"
+        )
+        start = timezone.now()
+        first = monitor_cavitation_availability(client=fake, now=start)
+        self.assertEqual(first.selected, 1)
+        self.assertEqual(first.awaiting_confirmation, 1)
+        self.assertEqual(first.removed_from_storefront, 0)
+        self.offer.refresh_from_db()
+        self.assertFalse(self.offer.owner_hidden)
+        second = monitor_cavitation_availability(
+            client=fake, now=start + timedelta(hours=4)
+        )
+        self.assertEqual(second.removed_from_storefront, 1)
+        self.offer.refresh_from_db()
+        self.assertTrue(self.offer.owner_hidden)
+        self.assertFalse(self.offer.is_active)
+        self.assertEqual(self.offer.affiliate_url, original_link)
+        self.assertEqual(
+            self.client.head(reverse("storefront:offer-go", args=[self.offer.pk])).status_code,
+            404,
+        )
+        self.assertEqual(fake.generate_affiliate_link.call_count, 0)
