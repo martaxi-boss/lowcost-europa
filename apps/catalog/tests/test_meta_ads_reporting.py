@@ -18,7 +18,6 @@ class MetaDisconnectedTests(TestCase):
             {
                 "META_ACCESS_TOKEN": "historical-test-token",
                 "META_AD_ACCOUNT_ID": "000000",
-                "WINDSOR_API_KEY": "test-windsor-key",
             },
         ):
             with self.assertRaisesRegex(CommandError, "META_REPORT=DISABLED_BY_OWNER"):
@@ -32,8 +31,11 @@ class MetaDisconnectedTests(TestCase):
                 {
                     "META_ACCESS_TOKEN": "historical-test-token",
                     "META_AD_ACCOUNT_ID": "000000",
-                    "WINDSOR_API_KEY": "test-windsor-key",
+                        "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
                     "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+                    "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+                    "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+                    "GOOGLE_OAUTH_REFRESH_TOKEN": "test-refresh",
                 },
             ),
             patch(
@@ -60,8 +62,11 @@ class MetaDisconnectedTests(TestCase):
                 {
                     "META_ACCESS_TOKEN": "historical-test-token",
                     "META_AD_ACCOUNT_ID": "000000",
-                    "WINDSOR_API_KEY": "test-windsor-key",
+                        "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
                     "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+                    "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+                    "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+                    "GOOGLE_OAUTH_REFRESH_TOKEN": "test-refresh",
                 },
             ),
             patch(
@@ -85,8 +90,11 @@ class MetaDisconnectedTests(TestCase):
             patch.dict(
                 os.environ,
                 {
-                    "WINDSOR_API_KEY": "test-windsor-key",
+                        "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
                     "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+                    "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+                    "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+                    "GOOGLE_OAUTH_REFRESH_TOKEN": "test-refresh",
                 },
             ),
             patch(
