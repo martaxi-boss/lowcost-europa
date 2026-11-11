@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.catalog.models import ProductFamily
-from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.catalog.services.candidate_discovery import discover_family_candidates
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.integrations.aliexpress.client import AliExpressClient, format_execution_metrics
 from apps.integrations.aliexpress.exceptions import AliExpressError, AliExpressRateLimitError
 
