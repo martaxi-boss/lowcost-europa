@@ -94,13 +94,14 @@
     <p class="analytics-section-subtitle">Comparação das fontes de pesquisa, quando existirem métricas verificadas. Os cliques de pesquisa não equivalem a visitas nem a saídas para parceiros.</p>
     <div class="commercial-table-wrap" role="region" aria-label="Tabela de métricas dos motores de pesquisa" tabindex="0">
       <table class="commercial-table engine-table">
-        <thead><tr><th scope="col">Motor</th><th scope="col">Cliques de pesquisa</th><th scope="col">Impressões</th><th scope="col">Estado e origem</th></tr></thead>
+        <thead><tr><th scope="col">Motor</th><th scope="col">Cliques de pesquisa</th><th scope="col">Impressões</th><th scope="col">Chegadas observadas (VPS, 7 dias)</th><th scope="col">Estado e origem</th></tr></thead>
         <tbody>
         {% for item in engine_comparison_rows %}
           <tr>
             <th scope="row">{{ item.name }}</th>
             <td>{% if item.clicks is not None %}<strong>{{ item.clicks }}</strong>{% else %}—{% endif %}</td>
             <td>{% if item.impressions is not None %}{{ item.impressions }}{% else %}—{% endif %}</td>
+            <td>{% if item.local_requests is not None %}<strong>{{ item.local_requests }}</strong>{% else %}—{% endif %}</td>
             <td>
               <strong>{{ item.status }}</strong>
               <small>{{ item.source }}{% if item.checked_at %} · {{ item.checked_at|date:"d/m/Y H:i" }}{% endif %}</small>
@@ -110,7 +111,7 @@
         </tbody>
       </table>
     </div>
-    <p class="analytics-note engine-note">Sem dados confirmados, o sinal «—» significa <strong>indisponível</strong>, não zero. Ainda não é possível classificar qual motor traz mais tráfego: a única fonte de cliques de pesquisa ligada é a Google, e os seus primeiros dados ainda podem estar em processamento. O relatório Google refere-se ao domínio inteiro, não apenas a Portugal. Abaixo encontra-se uma medição separada de pedidos com Referer identificado. Não deve ser confundida com cliques oficiais de pesquisa.</p>
+    <p class="analytics-note engine-note">Sem dados confirmados, o sinal «—» significa <strong>indisponível</strong>, não zero. A coluna «Chegadas observadas» usa o mesmo contador gratuito Nginx para todos os motores e pode incluir vários pedidos da mesma pessoa; zero significa que não foram observados pedidos na janela dos registos disponíveis. O símbolo «—» indica ausência de dados verificáveis. Apenas a Google poderá ter cliques e impressões oficiais do Search Console, quando autorizados; essa fonte refere-se ao domínio inteiro e tem um período diferente. Nunca somar estes números nem apresentá-los como vendas.</p>
     <p class="analytics-note">A indexação ou aceitação de URLs pelo IndexNow não demonstra cliques, visitas, vendas ou posicionamento. Este painel não recolhe novos dados dos visitantes.</p>
   </section>
 
