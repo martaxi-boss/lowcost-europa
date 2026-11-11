@@ -1,15 +1,15 @@
 {% extends "catalog/owner_panel/base.html" %}
-{% block title %}Montra Cavitação | Lowcost Europa{% endblock %}
+{% block title %}Montra manual | Lowcost Europa{% endblock %}
 {% block body %}
 <nav class="owner-top">
   <span class="brand">LOWCOST EUROPA</span>
   <a href="{% url 'storefront:product-family-detail' family.slug %}">VER MONTRA</a>
   <form method="post" action="{% url 'owner-panel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form>
 </nav>
-<main class="owner-wrap" id="montra-cavitacao">
+<main class="owner-wrap" id="montra-manual">
   <h1>{{ family.name }}</h1>
   <p>Montra manual. Só os links de afiliado que forneceste são publicados aqui.</p>
-  <p>A verificação de indisponibilidade funciona automaticamente; não gera links nem acrescenta produtos.</p>
+  <p>Os links são exclusivamente manuais. Confirma a disponibilidade no parceiro antes de comprar.</p>
   {% if owner_error %}<div class="message error">{{ owner_error }}</div>{% endif %}
   {% if owner_notice %}<div class="message notice">{{ owner_notice }}</div>{% endif %}
   <div class="counts">

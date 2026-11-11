@@ -10,7 +10,7 @@ from django.db.models import F, Max, Q
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
-from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.catalog.services.public_eligibility import public_eligibility_q
 from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 from apps.integrations.aliexpress.client import AliExpressClient
@@ -174,8 +174,8 @@ def select_maintenance_batch(batch_size):
     active = (
         Offer.objects.filter(source=Offer.Source.ALIEXPRESS, is_active=True)
         # Do not operate on old Cavitation entries after manual replacement.
-        .exclude(product_family__slug=MANUAL_ONLY_FAMILY_SLUG)
-        .exclude(family_placements__product_family__slug=MANUAL_ONLY_FAMILY_SLUG)
+        .exclude(product_family__slug__in=MANUAL_ONLY_FAMILY_SLUGS)
+        .exclude(family_placements__product_family__slug__in=MANUAL_ONLY_FAMILY_SLUGS)
         .distinct()
         .annotate(last_check=Max(
             "observations__observed_at",

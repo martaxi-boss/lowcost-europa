@@ -102,4 +102,5 @@ class Family02TaxonomyAlignmentTests(TestCase):
         self.assertNotContains(dashboard, self.old_name)
         managed = self.client.get(detail_url + "?gestao=montra")
         self.assertContains(managed, self.new_name)
-        self.assertContains(managed, "Gestão ativa")
+        self.assertContains(managed, "Gestão manual")
+        self.assertNotContains(managed, "A rever <span>")
