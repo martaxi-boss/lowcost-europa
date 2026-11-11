@@ -19,7 +19,7 @@
       <h3 class="offer-title" title="{{ offer.title|default:'Oferta disponível' }}">{{ offer.title|default:"Oferta disponível" }}</h3>
     </div>
     {% if placement and placement.selection_reason %}<div class="selection-reason"><strong>{{ "Porque está aqui"|ui_t }}</strong><p>{{ placement.selection_reason }}</p></div>{% endif %}
-    {% if family.slug == "cavitacao-rf-vacuum-corpo" %}
+    {% if family.slug == "cavitacao-rf-vacuum-corpo" or family.slug == "hydrodermoabrasao-aqua-facial-multifuncoes" %}
     <div class="offer-price-block offer-price-block--compact">
       <p class="offer-origin-heading">{{ "Enviado da Europa"|ui_t }}</p>
       <p class="fact-label">{{ "Preço observado"|ui_t }}</p>
@@ -29,7 +29,7 @@
     {% else %}
     <div class="offer-price-block"><p class="meta">{% if offer.price_market == "ES" %}{{ "Preço EUR observado para Espanha; confirme stock e entrega no vendedor."|ui_t }}{% else %}{{ "Dados de referência para Portugal; preço e entrega para Espanha não confirmados."|ui_t }}{% endif %}</p><p class="fact-label">{{ "Preço observado"|ui_t }}</p><p class="price">{% with obs=offer.observation_display.price_observation %}{% if obs %}{{ obs.price }} {{ obs.currency }}{% else %}{{ "Não disponível"|ui_t }}{% endif %}{% endwith %}</p>{% with obs=offer.observation_display.price_observation %}{% if obs %}<p class="meta">{{ "Observado em"|ui_t }} {{ obs.observed_at|date:"d/m/Y H:i" }} · {{ "pode mudar no parceiro"|ui_t }}</p>{% endif %}{% endwith %}{% if offer.price_observation_old %}<p class="fact-freshness-warning">{{ "Observação com mais de 7 dias. Confirme o preço atual no parceiro."|ui_t }}</p>{% endif %}</div>
     {% endif %}
-    {% if family.slug != "cavitacao-rf-vacuum-corpo" %}
+    {% if family.slug != "cavitacao-rf-vacuum-corpo" and family.slug != "hydrodermoabrasao-aqua-facial-multifuncoes" %}
     {% if request.user.is_authenticated and request.user.is_staff and not owner_preview_public and not owner_manual_only %}
     <details class="offer-card__evidence" data-owner-commercial-evidence>
       <summary>Verificação interna: origem, stock e entrega</summary>
@@ -85,7 +85,7 @@
           <p class="offer-share-feedback" role="status" aria-live="polite" data-affiliate-share-status></p>
         </div>
         {% endif %}
-        {% if family.slug != "cavitacao-rf-vacuum-corpo" %}<p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>{% endif %}
+        {% if family.slug != "cavitacao-rf-vacuum-corpo" and family.slug != "hydrodermoabrasao-aqua-facial-multifuncoes" %}<p class="meta"><strong>{{ "Compra externa."|ui_t }}</strong> {{ "Vai continuar no parceiro; alguns links podem gerar comissão afiliada. Confirme a variante, o stock e o país de expedição no vendedor antes de pagar."|ui_t }}</p>{% endif %}
       {% else %}
         <button class="button button--large" type="button" disabled aria-disabled="true">{{ "Oferta indisponível"|ui_t }}</button><p class="meta">{{ "Esta oferta não está disponível para encaminhamento neste momento."|ui_t }}</p>
       {% endif %}

@@ -25,7 +25,7 @@ from apps.catalog.models import (
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
-from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.catalog.services.observation_display import (
     build_observation_display,
     observation_history_queryset,
@@ -417,7 +417,7 @@ def _owner_family_context(request, family):
         }
     if family.status == ProductFamily.Status.RETIRED:
         return {"owner_mode": True, "owner_active_tab": "montra"}
-    if family.slug == MANUAL_ONLY_FAMILY_SLUG:
+    if family.slug in MANUAL_ONLY_FAMILY_SLUGS:
         # The Owner sees exactly the manual montra and delete controls.
         # Do not fetch legacy review/approval queues for this category.
         return {

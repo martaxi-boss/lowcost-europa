@@ -38,9 +38,9 @@ class WeeklyDiscoveryTests(TestCase):
         report = run_weekly_discovery(client=self.client)
 
         self.assertEqual([item.family_slug for item in report.families], list(WEEKLY_FAMILY_SLUGS))
-        self.assertEqual([slug for slug, _client in order], list(WEEKLY_FAMILY_SLUGS[1:]))
+        self.assertEqual([slug for slug, _client in order], list(WEEKLY_FAMILY_SLUGS[2:]))
         self.assertTrue(all(client is self.client for _slug, client in order))
-        self.assertEqual(discover.call_count, 4)
+        self.assertEqual(discover.call_count, 3)
 
     @patch("apps.catalog.services.weekly_discovery.discover_family_deep")
     def test_pending_cap_skips_full_family_without_spending_api_budget(self, discover):
@@ -70,7 +70,7 @@ class WeeklyDiscoveryTests(TestCase):
         self.assertEqual(diode_result.pending_before, PENDING_CAP_PER_FAMILY)
         self.assertEqual(diode_result.pending_after, PENDING_CAP_PER_FAMILY)
         self.assertNotIn("diodo-laser-remocao-tatuagens-pigmentacao", called)
-        self.assertEqual(len(called), 3)
+        self.assertEqual(len(called), 2)
 
     @patch("apps.catalog.services.weekly_discovery.discover_family_deep")
     def test_low_queues_are_processed_before_high_backlog(self, discover):
