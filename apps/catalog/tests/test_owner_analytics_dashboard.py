@@ -84,6 +84,8 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertContains(response, "3 pedidos de páginas")
         self.assertNotContains(response, "Google Analytics 4")
         self.assertEqual(response.context["search_referrers"]["total"], 3)
+        self.assertTrue(response.context["search_referrers_recent"])
+        self.assertContains(response, "Recolha local recente")
         engine_rows = response.context["engine_comparison_rows"]
         self.assertEqual(engine_rows[0]["local_requests"], 2)
         self.assertEqual(engine_rows[1]["local_requests"], 1)
@@ -498,3 +500,43 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.client.logout()
         self.assertEqual(self.client.get(self.url).status_code, 302)
+
+    def test_old_local_report_does_not_claim_realtime_zero_for_today(self):
+        previous = timezone.now() - timedelta(hours=5)
+        report = {
+            "checked_at": previous,
+            "total": 0,
+            "rows": [{"name": "Google", "requests": 0}],
+            "meta": {
+                "total": 2,
+                "facebook": 1,
+                "instagram": 1,
+                "unspecified": 0,
+                "paid_tagged": 2,
+                "today": 2,
+                "yesterday": 0,
+                "daily": [{"date": "2026-11-11", "requests": 2}],
+            },
+        }
+        with patch(
+            "apps.catalog.owner_panel_views.read_private_report",
+            return_value=report,
+        ):
+            response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["search_referrers_recent"])
+        self.assertContains(
+            response, "Recolha atrasada — números até à última leitura",
+            count=2,
+        )
+        self.assertContains(response, "Relatório local com atraso")
+        self.assertEqual(response.context["search_referrers"]["meta"]["today"], 2)
+        self.assertNotContains(response, "Recolha local recente")
+
+    def test_windsor_dependency_is_explained_not_disguised_as_official_api(self):
+        with patch.dict(os.environ, {"GOOGLE_SEARCH_CONSOLE_PROVIDER": "WINDSOR"}):
+            response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["google_search_provider"], "WINDSOR")
+        self.assertContains(response, "Fonte de consulta atualmente configurada: Windsor.ai")
+        self.assertContains(response, "ligação gratuita e direta à API oficial")

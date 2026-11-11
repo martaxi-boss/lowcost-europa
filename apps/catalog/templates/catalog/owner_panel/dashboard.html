@@ -119,7 +119,7 @@
     <h2 class="analytics-section-title">Chegadas da pesquisa — observação do servidor</h2>
     <p class="analytics-section-subtitle">Medição local e gratuita, sem serviços de terceiros, cookies ou pixels adicionais. Fonte: cabeçalho Referer dos pedidos HTTP observados pelo Nginx.</p>
     {% if search_referrers %}
-      <span class="source-status active">Relatório local atualizado</span>
+      {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
       <p>Janela: últimos 7 dias nos registos disponíveis. Última recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal).</p>
       <p><strong>{{ search_referrers.total }} pedidos de páginas com origem de pesquisa declarada</strong></p>
       <div class="commercial-table-wrap" role="region" aria-label="Pedidos observados por motor" tabindex="0">
@@ -143,7 +143,7 @@
     <h2 class="analytics-section-title">Chegadas da Meta — contador próprio</h2>
     <p class="analytics-section-subtitle">Facebook e Instagram nos registos locais do Nginx, sem Windsor.ai, Pixel ou cookies novos.</p>
     {% if search_referrers and search_referrers.meta %}
-      <span class="source-status active">Relatório local atualizado</span>
+      {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
       <p class="analytics-note">Recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Últimos 7 dias nos registos disponíveis.</p>
       <div class="metrics-grid">
         <div class="metric"><span class="metric-label">Hoje — Meta</span><strong class="metric-value">{{ search_referrers.meta.today }}</strong><span class="metric-hint">Pedidos observados até à recolha</span></div>
@@ -176,7 +176,7 @@
       <article class="source-card">
         <h3>Origem da pesquisa — contador próprio</h3>
         {% if search_referrers %}
-          <span class="source-status active">Relatório local ativo</span>
+          {% if search_referrers_recent %}<span class="source-status active">Relatório local ativo</span>{% else %}<span class="source-status">Relatório local com atraso</span>{% endif %}
           <p>Última observação: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong>. Foram identificados <strong>{{ search_referrers.total }}</strong> pedidos de páginas com origem de pesquisa declarada nos registos disponíveis. Detalhe por motor acima.</p>
         {% else %}
           <span class="source-status">Recolha local indisponível</span>
@@ -218,6 +218,9 @@
       </article>
       <article class="source-card">
         <h3>Google Search Console — pesquisa orgânica</h3>
+        {% if google_search_provider == "WINDSOR" %}
+          <p class="analytics-note">Fonte de consulta atualmente configurada: Windsor.ai (serviço externo). A ligação gratuita e direta à API oficial do Google ainda não está autorizada; este painel não pode substituir essa autorização nem garantir dados do Google em tempo real.</p>
+        {% endif %}
         {% if google_search_report_payload %}
           {% if google_search_report_fresh %}
           <span class="source-status active">Métricas Google sincronizadas</span>
