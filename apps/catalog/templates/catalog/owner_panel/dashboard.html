@@ -91,7 +91,7 @@
 
   <section class="card" aria-label="Contador simples de origens e saídas">
     <h2 class="analytics-section-title">Contador gratuito — Google, Meta e AliExpress</h2>
-    <p class="analytics-section-subtitle">Dados recolhidos na própria VPS, sem Windsor, Google Ads, Google OAuth, pixels ou novos cookies. O navegador pode ocultar a origem.</p>
+    <p class="analytics-section-subtitle">Dados recolhidos na própria VPS, sem fornecedores externos de métricas, contas Google, pixels ou novos cookies. O navegador pode ocultar a origem.</p>
     {% if search_referrers %}
       {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
       <p class="analytics-note">Última recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Os pedidos de origem referem-se aos últimos sete dias nos registos disponíveis.</p>
@@ -118,7 +118,7 @@
 
   <section class="card" aria-label="Chegadas locais provenientes da Meta">
     <h2 class="analytics-section-title">Chegadas da Meta — contador próprio</h2>
-    <p class="analytics-section-subtitle">Facebook e Instagram nos registos locais do Nginx, sem Windsor.ai, Pixel ou cookies novos.</p>
+    <p class="analytics-section-subtitle">Facebook e Instagram nos registos locais do Nginx, sem serviços externos, pixels ou novos cookies.</p>
     {% if search_referrers and search_referrers.meta %}
       {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
       <p class="analytics-note">Recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Últimos 7 dias nos registos disponíveis.</p>
@@ -183,7 +183,7 @@
         {% endif %}
       </article>
     </div>
-    <p class="analytics-note">A venda registada é distinta da comissão aprovada. Nenhuma integração com Google Ads ou OAuth é necessária para estes números.</p>
+    <p class="analytics-note">A venda registada é distinta da comissão aprovada. Estes números não exigem nenhuma ligação ao Google ou autorização externa.</p>
   </section>
 
 </main>
