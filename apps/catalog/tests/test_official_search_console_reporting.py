@@ -17,7 +17,7 @@ from apps.catalog.models import ExternalMetricsSnapshot
 from apps.catalog.services.official_search_console_reporting import (
     collect_official_search_console_report,
 )
-from apps.catalog.services.windsor_search_console_reporting import (
+from apps.catalog.services.search_console_metrics import (
     EXPECTED_PROPERTY,
     SearchConsoleAwaitingData,
     SearchConsoleNotConfigured,
@@ -157,7 +157,13 @@ class OfficialSearchConsoleTests(SimpleTestCase):
 
 class OfficialSearchConsoleCommandTests(TestCase):
     def test_official_provider_dry_run_no_database_write(self):
-        with patch.dict(os.environ, {"GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL"}):
+        with patch.dict(os.environ, {
+            "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
+            "GOOGLE_SEARCH_CONSOLE_PROPERTY": EXPECTED_PROPERTY,
+            "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+            "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "test-refresh",
+        }):
             with patch(
                 "apps.catalog.management.commands.sync_google_search_console."
                 "collect_official_search_console_report",
@@ -181,7 +187,7 @@ class OfficialSearchConsoleCommandTests(TestCase):
             "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
             "GOOGLE_SEARCH_CONSOLE_PROPERTY": EXPECTED_PROPERTY,
             "GOOGLE_OAUTH_CLIENT_ID": "id", "GOOGLE_OAUTH_CLIENT_SECRET": "secret",
-            "GOOGLE_OAUTH_REFRESH_TOKEN": "refresh", "WINDSOR_API_KEY": "",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "refresh",
         }
         with patch.dict(os.environ, env):
             response = self.client.get(reverse("owner-panel:dashboard"))
