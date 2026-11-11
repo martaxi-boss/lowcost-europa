@@ -120,6 +120,113 @@ PT_CATEGORY_GUIDES = {
 }
 
 
+# Perguntas editoriais específicas do mercado português: apoio à compra, não
+# alegações sobre produtos, stock, segurança certificada ou envio garantido.
+# Não criar páginas artificiais nem schema FAQPage para estas perguntas.
+PT_BUYING_QUESTIONS = {
+    "cavitacao-rf-vacuum-corpo": (
+        (
+            "A cavitação, a radiofrequência e o vácuo vêm sempre na mesma máquina?",
+            "Não. São funções distintas e um anúncio pode apresentar configurações "
+            "diferentes. Confirme na descrição da variante escolhida os aplicadores "
+            "incluídos, os modos disponíveis e as condições de utilização.",
+        ),
+        (
+            "Como comparar duas máquinas de cavitação para um espaço profissional?",
+            "Compare a configuração exata, os consumíveis, a manutenção indicada "
+            "pelo fabricante e a disponibilidade de peças e assistência. Um preço "
+            "inferior não demonstra que as duas ofertas incluam o mesmo conjunto.",
+        ),
+        (
+            "O preço apresentado já inclui entrega e impostos para Portugal?",
+            "Não é possível garantir esse total a partir da ficha desta página. "
+            "Na plataforma do vendedor, confirme o código postal de destino, "
+            "transporte, impostos aplicáveis, eventuais taxas e condições de devolução.",
+        ),
+    ),
+    "hydrodermoabrasao-aqua-facial-multifuncoes": (
+        (
+            "O que devo confirmar num equipamento Aqua Facial multifunções?",
+            "Veja na variante anunciada quais as ponteiras, recipientes, acessórios "
+            "e funções efetivamente incluídos. O nome Aqua Facial não identifica "
+            "por si só o conteúdo da embalagem.",
+        ),
+        (
+            "Que custos de utilização devo comparar além do preço inicial?",
+            "Confirme o tipo e a frequência de substituição de ponteiras e outros "
+            "consumíveis, as instruções de higienização e a disponibilidade de "
+            "componentes compatíveis com o modelo concreto.",
+        ),
+        (
+            "Como verificar se a oferta Aqua Facial serve para comprar em Portugal?",
+            "Antes de pagar, confirme a entrega para a morada em Portugal, "
+            "a alimentação elétrica indicada na ficha técnica, a documentação "
+            "fornecida e as condições de assistência, devolução e garantia.",
+        ),
+    ),
+    "pressoterapia-vacuum-drenagem": (
+        (
+            "Pressoterapia e radiofrequência Tecar são o mesmo equipamento?",
+            "Não são a mesma tecnologia. A categoria reúne anúncios com "
+            "características diferentes: consulte a ficha de cada oferta para "
+            "identificar a função real, em vez de assumir que são equivalentes.",
+        ),
+        (
+            "Como comparar acessórios de pressoterapia?",
+            "Verifique as peças incluídas, os tamanhos disponíveis, as ligações "
+            "e a compatibilidade com o equipamento anunciado. Considere também "
+            "as instruções de limpeza e a reposição das peças.",
+        ),
+        (
+            "Que condições confirmar para utilizar o equipamento em Portugal?",
+            "Peça ao vendedor as especificações e documentação aplicáveis ao "
+            "modelo, informação de assistência e as condições finais de envio "
+            "e garantia. A presença na montra não constitui certificação técnica.",
+        ),
+    ),
+    "hifu": (
+        (
+            "Todos os equipamentos HIFU incluem os mesmos cartuchos?",
+            "Não. O número, as referências e a compatibilidade dos cartuchos "
+            "dependem do modelo e da variante anunciados. Confira o conteúdo "
+            "da embalagem e as referências de substituição antes de encomendar.",
+        ),
+        (
+            "Como comparar o custo real de duas máquinas HIFU?",
+            "Além do preço inicial, verifique cartuchos incluídos, custos de "
+            "reposição, documentação, manutenção e condições de assistência "
+            "do vendedor. Só compare ofertas com configurações equivalentes.",
+        ),
+        (
+            "O que devo confirmar antes de comprar uma máquina HIFU para Portugal?",
+            "Confirme a documentação técnica, os requisitos de utilização e "
+            "formação aplicáveis, a compatibilidade elétrica e o preço total "
+            "para a morada de entrega. O vendedor deve esclarecer a garantia.",
+        ),
+    ),
+    "diodo-laser-remocao-tatuagens-pigmentacao": (
+        (
+            "Um laser de díodo anunciado para depilação também remove tatuagens?",
+            "Não se pode concluir isso pelo título do anúncio. Remoção de pelos "
+            "e remoção de pigmentos são aplicações distintas; confirme a finalidade "
+            "declarada pelo fabricante para o modelo concreto.",
+        ),
+        (
+            "Que informação técnica é importante comparar antes da compra?",
+            "Verifique a finalidade prevista, as especificações do equipamento, "
+            "os acessórios fornecidos e as instruções de segurança, formação "
+            "e manutenção disponibilizadas pelo fabricante.",
+        ),
+        (
+            "Que condições devo validar para encomendar em Portugal?",
+            "Confirme requisitos aplicáveis ao equipamento e à sua utilização, "
+            "documentação, compatibilidade elétrica, assistência e custos de "
+            "entrega e devolução. Um anúncio de afiliado não substitui essa verificação.",
+        ),
+    ),
+}
+
+
 ES_CATEGORY_GUIDES = {
     "cavitacao-rf-vacuum-corpo": {
         "title": "Máquinas de Cavitación y Radiofrecuencia | Lowcost Europa",
@@ -277,3 +384,11 @@ def guide_for_category(slug, language):
     if language in {"es", "es-es"}:
         return ES_CATEGORY_GUIDES.get(slug)
     return None
+
+
+def buying_questions_for_category(slug, language):
+    """Show useful purchasing guidance only in PT; Spanish pages stay as-is."""
+    language = str(language).lower().replace("_", "-")
+    if language in {"pt", "pt-pt"}:
+        return PT_BUYING_QUESTIONS.get(slug, ())
+    return ()

@@ -72,6 +72,23 @@
 </section>
 {% endif %}
 
+{% if pt_buying_questions %}
+<section class="section section--surface" aria-labelledby="duvidas-compra-portugal">
+  <div class="container prose">
+    <p class="eyebrow">Informação para compradores em Portugal</p>
+    <h2 id="duvidas-compra-portugal">Dúvidas práticas antes de escolher {{ family|family_label }}</h2>
+    <p>As respostas ajudam a comparar características e condições de compra; não confirmam especificações, certificações, stock nem prazos de qualquer oferta.</p>
+    {% for question, answer in pt_buying_questions %}
+      <article class="buyer-question">
+        <h3>{{ question }}</h3>
+        <p>{{ answer }}</p>
+      </article>
+    {% endfor %}
+    <p class="meta">Para o preço total, o destino de envio e a garantia, consulte sempre os dados atuais do vendedor antes de pagar.</p>
+  </div>
+</section>
+{% endif %}
+
 {% if related_families %}
 <section class="section section--surface" aria-labelledby="outras-especialidades-titulo">
   <div class="container">
