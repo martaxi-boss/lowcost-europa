@@ -1,13 +1,21 @@
-"""Refresh each private provider report independently; keep last-known-good snapshots."""
+"""Refresh independent AliExpress and official Google reports.
+
+Do not fail the AliExpress timer while Google Search Console awaits owner OAuth.
+"""
 
 import os
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
+from apps.catalog.management.commands.sync_google_search_console import (
+    official_google_oauth_ready,
+)
+from apps.catalog.services.search_console_metrics import EXPECTED_PROPERTY
+
 
 class Command(BaseCommand):
-    help = "Refresh authorized AliExpress and Google Search Console metrics."
+    help = "Refresh AliExpress orders and authorized official Google Search Console metrics."
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true")
@@ -21,22 +29,18 @@ class Command(BaseCommand):
             failures.append("ALIEXPRESS")
             self.stderr.write("ALIEXPRESS_REPORT=UNAVAILABLE")
 
-        # Meta advertising was disconnected by the owner. Never sync it here.
-        provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
-        has_provider_auth = (
-            bool(os.environ.get("WINDSOR_API_KEY")) if provider == "WINDSOR"
-            else all(os.environ.get(key) for key in (
-                "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
-                "GOOGLE_OAUTH_REFRESH_TOKEN",
-            )) if provider == "GOOGLE_OFFICIAL" else False
-        )
-        # Search Console uses the independent site property and must remain active.
-        property_id = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY", "").strip()
-        if not property_id:
-            self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_PROPERTY_AUTHORIZATION")
-        elif property_id != "sc-domain:lowcost-europa.eu" or not has_provider_auth:
-            failures.append("GOOGLE_SEARCH_CONFIG")
-            self.stderr.write("GOOGLE_SEARCH_REPORT=INCOMPLETE_SERVER_CONFIGURATION")
+        provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "GOOGLE_OFFICIAL").upper()
+        property_id = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY", "")
+        if provider != "GOOGLE_OFFICIAL":
+            failures.append("GOOGLE_SEARCH_PROVIDER")
+            self.stderr.write("GOOGLE_SEARCH_REPORT=UNSUPPORTED_PROVIDER")
+        elif property_id != EXPECTED_PROPERTY:
+            failures.append("GOOGLE_SEARCH_PROPERTY")
+            self.stderr.write("GOOGLE_SEARCH_REPORT=PROPERTY_NOT_AUTHORIZED")
+        elif not official_google_oauth_ready():
+            # A genuine incomplete migration is an explicit pending state, not
+            # a reason to break independent AliExpress reporting or use a fallback.
+            self.stdout.write("GOOGLE_SEARCH_REPORT=AWAITING_OFFICIAL_OAUTH")
         else:
             try:
                 call_command("sync_google_search_console", *flags)
@@ -44,7 +48,5 @@ class Command(BaseCommand):
                 failures.append("GOOGLE_SEARCH")
                 self.stderr.write("GOOGLE_SEARCH_REPORT=UNAVAILABLE")
 
-        # Report partial failure to systemd without blocking successful
-        # independent snapshots or hiding either provider's error.
         if failures:
             raise CommandError("EXTERNAL_METRICS_FAILED=" + ",".join(failures))
