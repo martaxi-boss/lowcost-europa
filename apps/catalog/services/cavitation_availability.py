@@ -1,4 +1,4 @@
-"""Read-only AliExpress availability checks for manually supplied Cavitation links.
+"""Read-only AliExpress availability checks for both manually curated storefronts.
 
 Only two distinct, explicit unavailable signals can deactivate a listing.
 Never create or replace affiliate URLs, and never reactivate hidden items.
@@ -12,7 +12,7 @@ from django.db.models import F, Max, Q
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferObservation
-from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUG
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.catalog.services.offer_maintenance import (
     is_factually_available,
     is_factually_unavailable,
@@ -49,14 +49,15 @@ def select_manual_cavitation_batch(batch_size=MAX_BATCH_SIZE):
     if not 1 <= batch_size <= MAX_BATCH_SIZE:
         raise ValueError("batch_size must be 1..5")
     # The historical ALIEXPRESS offers are intentionally NOT selected.
-    # Only published manual offers in Cavitation are eligible for this check.
+    # Only published Owner links in either manual-only category are eligible.
     queryset = (
         Offer.objects.filter(
             source=Offer.Source.ALIEXPRESS_OWNER,
             is_active=True,
             owner_hidden=False,
-            family_placements__product_family__slug=MANUAL_ONLY_FAMILY_SLUG,
+            family_placements__product_family__slug__in=MANUAL_ONLY_FAMILY_SLUGS,
         )
+        .distinct()
         .annotate(
             last_pt_check=Max(
                 "observations__observed_at",
@@ -79,7 +80,7 @@ def _record_check(offer_id, status, now):
         ):
             return "SKIPPED"
         if not offer.family_placements.filter(
-            product_family__slug=MANUAL_ONLY_FAMILY_SLUG
+            product_family__slug__in=MANUAL_ONLY_FAMILY_SLUGS
         ).exists():
             return "SKIPPED"
 
