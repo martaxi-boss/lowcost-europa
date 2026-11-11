@@ -38,9 +38,9 @@ class WeeklyDiscoveryTests(TestCase):
         report = run_weekly_discovery(client=self.client)
 
         self.assertEqual([item.family_slug for item in report.families], list(WEEKLY_FAMILY_SLUGS))
-        self.assertEqual([slug for slug, _client in order], list(WEEKLY_FAMILY_SLUGS[3:]))
+        self.assertEqual([slug for slug, _client in order], list(WEEKLY_FAMILY_SLUGS[4:]))
         self.assertTrue(all(client is self.client for _slug, client in order))
-        self.assertEqual(discover.call_count, 2)
+        self.assertEqual(discover.call_count, 1)
 
     @patch("apps.catalog.services.weekly_discovery.discover_family_deep")
     def test_pending_cap_skips_full_family_without_spending_api_budget(self, discover):
@@ -70,7 +70,7 @@ class WeeklyDiscoveryTests(TestCase):
         self.assertEqual(diode_result.pending_before, PENDING_CAP_PER_FAMILY)
         self.assertEqual(diode_result.pending_after, PENDING_CAP_PER_FAMILY)
         self.assertNotIn("diodo-laser-remocao-tatuagens-pigmentacao", called)
-        self.assertEqual(len(called), 1)
+        self.assertEqual(len(called), 0)
 
     @patch("apps.catalog.services.weekly_discovery.discover_family_deep")
     def test_low_queues_are_processed_before_high_backlog(self, discover):
@@ -90,7 +90,7 @@ class WeeklyDiscoveryTests(TestCase):
         discover.side_effect = fake
         run_weekly_discovery(client=self.client)
 
-        self.assertEqual(order[-1], "hifu")
+        self.assertEqual(order, ["diodo-laser-remocao-tatuagens-pigmentacao"])
 
     @patch("apps.catalog.services.weekly_discovery.discover_family_deep")
     def test_persistent_rate_limit_aborts_remaining_campaign(self, discover):
@@ -99,7 +99,7 @@ class WeeklyDiscoveryTests(TestCase):
         def fake(family, keywords, **kwargs):
             nonlocal calls
             calls += 1
-            if calls == 2:
+            if calls == 1:
                 exc = AliExpressRateLimitError("persistent 429")
                 exc.deep_discovery_result = DeepDiscoveryResult()
                 raise exc
@@ -110,7 +110,7 @@ class WeeklyDiscoveryTests(TestCase):
         with self.assertRaises(AliExpressRateLimitError) as caught:
             run_weekly_discovery(client=self.client)
 
-        self.assertEqual(discover.call_count, 2)
+        self.assertEqual(discover.call_count, 1)
         self.assertTrue(hasattr(caught.exception, "weekly_discovery_report"))
 
     def test_systemd_timer_is_weekly_persistent_and_single_campaign(self):

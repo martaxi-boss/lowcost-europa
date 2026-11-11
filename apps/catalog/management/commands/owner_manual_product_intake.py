@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.catalog.models import ProductFamily
+from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.catalog.services.manual_candidate_intake import (
     ManualCandidateIntakeError,
     intake_manual_aliexpress_candidate,
@@ -27,6 +28,9 @@ class Command(BaseCommand):
             family = ProductFamily.objects.get(slug=options["family"])
         except ProductFamily.DoesNotExist as exc:
             raise CommandError("Target family does not exist") from exc
+
+        if family.slug in MANUAL_ONLY_FAMILY_SLUGS:
+            raise CommandError("Esta categoria aceita apenas links de afiliado manuais publicados diretamente.")
 
         created = 0
         existing = 0

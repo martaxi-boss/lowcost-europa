@@ -1,4 +1,4 @@
-"""Read-only AliExpress availability checks for both manually curated storefronts.
+"""Read-only AliExpress availability checks for all manually curated storefronts.
 
 Only two distinct, explicit unavailable signals can deactivate a listing.
 Never create or replace affiliate URLs, and never reactivate hidden items.
@@ -49,7 +49,7 @@ def select_manual_cavitation_batch(batch_size=MAX_BATCH_SIZE):
     if not 1 <= batch_size <= MAX_BATCH_SIZE:
         raise ValueError("batch_size must be 1..5")
     # The historical ALIEXPRESS offers are intentionally NOT selected.
-    # Only published Owner links in either manual-only category are eligible.
+    # Only published Owner links in a manual-only category are eligible.
     queryset = (
         Offer.objects.filter(
             source=Offer.Source.ALIEXPRESS_OWNER,
