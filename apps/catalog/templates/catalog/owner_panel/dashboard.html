@@ -218,9 +218,7 @@
       </article>
       <article class="source-card">
         <h3>Google Search Console — pesquisa orgânica</h3>
-        {% if google_search_provider == "WINDSOR" %}
-          <p class="analytics-note">Fonte de consulta atualmente configurada: Windsor.ai (serviço externo). A ligação gratuita e direta à API oficial do Google ainda não está autorizada; este painel não pode substituir essa autorização nem garantir dados do Google em tempo real.</p>
-        {% endif %}
+        <p class="analytics-note">Fonte: API oficial e gratuita do Google Search Console. A consulta automática exige uma autorização Google OAuth específica para este servidor; a autorização do Google no ChatGPT não pode ser reutilizada.</p>
         {% if google_search_report_payload %}
           {% if google_search_report_fresh %}
           <span class="source-status active">Métricas Google sincronizadas</span>
@@ -251,7 +249,7 @@
           <p>A leitura da propriedade lowcost-europa.eu está configurada no servidor. Ainda não existe um relatório verificável para apresentar. A ausência de dados não significa zero cliques ou impressões. Consulte o estado de processamento no Search Console.</p>
           {% else %}
           <span class="source-status">Ligação de métricas pendente</span>
-          <p>O domínio já está verificado no Google Search Console. Falta autorizar a leitura automática desta propriedade na fonte de métricas do servidor. Até à primeira consulta comprovada, cliques e impressões ficam indisponíveis — nunca são apresentados como zero.</p>
+          <p>O domínio já está verificado no Google Search Console. Falta a autorização Google OAuth de leitura para a VPS. A loja, o contador próprio e as encomendas AliExpress mantêm-se operacionais. Até à primeira consulta oficial comprovada, cliques, impressões e posição do Google ficam indisponíveis, nunca são apresentados como zero.</p>
           {% endif %}
         {% endif %}
         <p><a class="analytics-link" href="https://search.google.com/search-console/performance/search-analytics?resource_id=sc-domain%3Alowcost-europa.eu" target="_blank" rel="noopener noreferrer">Abrir desempenho no Google Search Console</a></p>
