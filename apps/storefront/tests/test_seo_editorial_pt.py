@@ -8,8 +8,8 @@ from django.test import TestCase, override_settings
 from apps.catalog.models import ProductFamily
 from apps.storefront.seo_editorial import (
     ES_CATEGORY_GUIDES,
-    PT_CATEGORY_GUIDES,
     PT_BUYING_QUESTIONS,
+    PT_CATEGORY_GUIDES,
     buying_questions_for_category,
     guide_for_category,
 )
