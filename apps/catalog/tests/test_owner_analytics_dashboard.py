@@ -25,8 +25,11 @@ class OwnerAnalyticsDashboardTests(TestCase):
     def test_configured_property_without_report_is_waiting_for_data_not_fake_metrics(self):
         self.client.force_login(self.owner)
         with patch.dict(os.environ, {
-            "WINDSOR_API_KEY": "test-only",
+            "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
             "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+            "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+            "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "test-token",
         }):
             response = self.client.get(reverse("owner-panel:dashboard"))
         self.assertContains(response, "Leitura configurada — a aguardar dados")
@@ -433,6 +436,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             period_end=now,
             checked_at=now,
             payload={
+                "provider": "GOOGLE_OFFICIAL",
                 "property": "sc-domain:lowcost-europa.eu",
                 "clicks": 23,
                 "impressions": 480,
@@ -441,7 +445,14 @@ class OwnerAnalyticsDashboardTests(TestCase):
                 "top_queries": [{"query": "lowcost europa", "clicks": 7, "impressions": 80}],
             },
         )
-        response = self.client.get(self.url)
+        with patch.dict(os.environ, {
+            "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
+            "GOOGLE_SEARCH_CONSOLE_PROPERTY": "sc-domain:lowcost-europa.eu",
+            "GOOGLE_OAUTH_CLIENT_ID": "test-id",
+            "GOOGLE_OAUTH_CLIENT_SECRET": "test-secret",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "test-token",
+        }):
+            response = self.client.get(self.url)
         self.assertTrue(response.context["google_search_report_fresh"])
         self.assertEqual(response.context["google_search_report_payload"]["clicks"], 23)
         self.assertEqual(response.context["recent_raw_clicks_total"], 1)
@@ -464,6 +475,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             period_end=now - timedelta(days=3),
             checked_at=now - timedelta(hours=49),
             payload={
+                "provider": "GOOGLE_OFFICIAL",
                 "property": "sc-domain:lowcost-europa.eu",
                 "clicks": 3,
                 "impressions": 45,
@@ -484,6 +496,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             period_end=now,
             checked_at=now,
             payload={
+                "provider": "GOOGLE_OFFICIAL",
                 "property": "sc-domain:lowcost-europa.eu",
                 "clicks": 4,
                 "impressions": 40,
@@ -493,7 +506,7 @@ class OwnerAnalyticsDashboardTests(TestCase):
             },
         )
         with patch(
-            "apps.catalog.services.windsor_search_console_reporting._fetch_rows"
+            "apps.catalog.services.official_search_console_reporting._oauth_access_token"
         ) as external:
             response = self.client.get(self.url)
         external.assert_not_called()
@@ -533,10 +546,39 @@ class OwnerAnalyticsDashboardTests(TestCase):
         self.assertEqual(response.context["search_referrers"]["meta"]["today"], 2)
         self.assertNotContains(response, "Recolha local recente")
 
-    def test_windsor_dependency_is_explained_not_disguised_as_official_api(self):
-        with patch.dict(os.environ, {"GOOGLE_SEARCH_CONSOLE_PROVIDER": "WINDSOR"}):
+    def test_discontinued_provider_snapshot_is_not_displayed_as_official_google(self):
+        now = timezone.now()
+        ExternalMetricsSnapshot.objects.create(
+            source="GOOGLE_SEARCH_CONSOLE",
+            period_start=now - timedelta(days=30),
+            period_end=now,
+            checked_at=now,
+            payload={
+                "provider": "WINDSOR",
+                "property": "sc-domain:lowcost-europa.eu",
+                "clicks": 999,
+                "impressions": 1000,
+                "ctr_percent": "99.90",
+                "top_queries": [],
+            },
+        )
+        with patch.dict(os.environ, {
+            "GOOGLE_SEARCH_CONSOLE_PROVIDER": "GOOGLE_OFFICIAL",
+            "GOOGLE_OAUTH_CLIENT_ID": "",
+            "GOOGLE_OAUTH_CLIENT_SECRET": "",
+            "GOOGLE_OAUTH_REFRESH_TOKEN": "",
+        }):
             response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["google_search_provider"], "WINDSOR")
-        self.assertContains(response, "Fonte de consulta atualmente configurada: Windsor.ai")
-        self.assertContains(response, "ligação gratuita e direta à API oficial")
+        self.assertIsNone(response.context["google_search_report_payload"])
+        self.assertFalse(response.context["google_search_report_fresh"])
+        self.assertContains(response, "Ligação de métricas pendente")
+        self.assertContains(response, "Falta a autorização Google OAuth")
+        self.assertNotContains(response, "999")
+        self.assertNotContains(response, "99.90")
+        self.assertEqual(ExternalMetricsSnapshot.objects.count(), 1)
+
+    def test_google_source_explained_without_external_provider(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, "API oficial e gratuita do Google Search Console")
+        self.assertContains(response, "autorização Google OAuth")
