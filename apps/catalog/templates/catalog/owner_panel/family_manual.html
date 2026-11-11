@@ -9,7 +9,7 @@
 <main class="owner-wrap" id="montra-manual">
   <h1>{{ family.name }}</h1>
   <p>Montra manual. Só os links de afiliado que forneceste são publicados aqui.</p>
-  <p>Os links são exclusivamente manuais. Confirma a disponibilidade no parceiro antes de comprar.</p>
+  {% if family.slug == 'cavitacao-rf-vacuum-corpo' %}<p>A verificação de indisponibilidade funciona automaticamente; não gera links nem acrescenta produtos.</p>{% else %}<p>Os links são exclusivamente manuais. Confirma a disponibilidade no parceiro antes de comprar.</p>{% endif %}
   {% if owner_error %}<div class="message error">{{ owner_error }}</div>{% endif %}
   {% if owner_notice %}<div class="message notice">{{ owner_notice }}</div>{% endif %}
   <div class="counts">
