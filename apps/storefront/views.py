@@ -38,7 +38,10 @@ from apps.catalog.services.public_eligibility import (
 from apps.catalog.services.weekly_discovery import PENDING_CAP_PER_FAMILY
 from apps.integrations.aliexpress.affiliate_url import is_https_affiliate_url
 from apps.storefront.seo import PRIVATE_PATH_PREFIXES, public_indexing_active
-from apps.storefront.seo_editorial import guide_for_category
+from apps.storefront.seo_editorial import (
+    buying_questions_for_category,
+    guide_for_category,
+)
 from apps.storefront.seo_locales import (
     alternate_public_urls,
     home_page_url,
@@ -301,14 +304,19 @@ def home(request):
         "families": families,
         **_seo_context(
             request,
-            translate_ui(
-                "Lowcost Europa | Equipamentos de estética profissional",
-                getattr(request, "LANGUAGE_CODE", "pt-pt"),
+            (
+                "Equipamentos de Estética Profissional em Portugal | Lowcost Europa"
+                if getattr(request, "LANGUAGE_CODE", "pt-pt") in {"pt", "pt-pt"}
+                else translate_ui(
+                    "Lowcost Europa | Equipamentos de estética profissional",
+                    getattr(request, "LANGUAGE_CODE", "pt-pt"),
+                )
             ),
             {
                 "pt-pt": (
-                    "Explore equipamentos de estética profissional, preços observados "
-                    "e informação de entrega sem promessas não verificadas."
+                    "Compare equipamentos de estética profissional em Portugal: "
+                    "HIFU, cavitação, Aqua Facial, pressoterapia e laser. "
+                    "Preços observados; confirme entrega e condições no vendedor."
                 ),
                 "es": (
                     "Explora equipos de estética profesional, precios observados "
@@ -550,6 +558,7 @@ def product_family_detail(request, slug):
     context = {
         "family": family,
         "family_seo_guide": guide,
+        "pt_buying_questions": buying_questions_for_category(family.slug, language),
         "related_families": list(
             ProductFamily.objects.exclude(pk=family.pk)
             .exclude(status=ProductFamily.Status.RETIRED)
