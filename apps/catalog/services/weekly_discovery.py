@@ -98,8 +98,7 @@ def _attach_partial_report(exc, results, started_at):
 
 
 def run_weekly_discovery(*, client=None):
-    """Run one bounded, sequential five-family discovery campaign."""
-    client = client or AliExpressClient()
+    """Keep five legacy queues for audit without generating any candidates in manual categories."""
     started_at = timezone.now()
     families = []
     for order, slug in enumerate(WEEKLY_FAMILY_SLUGS):
@@ -114,8 +113,8 @@ def run_weekly_discovery(*, client=None):
 
     for pending_before, _order, family in families:
         if family.slug in MANUAL_ONLY_FAMILY_SLUGS:
-            # Owner-curated Cavitation is explicitly excluded from discovery.
-            # Keep the legacy queue only as historical data, never replenish it.
+            # All Owner-curated public categories are excluded from discovery.
+            # Preserve legacy queue history but do not replenish it.
             results.append(
                 WeeklyFamilyResult(
                     family_slug=family.slug,
@@ -153,6 +152,8 @@ def run_weekly_discovery(*, client=None):
         max_detail_attempts = min(MAX_DETAIL_ATTEMPTS_PER_FAMILY, remaining_slots)
         max_details = min(MAX_DETAILS_PER_PAGE, remaining_slots)
         try:
+            if client is None:
+                client = AliExpressClient()
             deep = discover_family_deep(
                 family,
                 keywords,
