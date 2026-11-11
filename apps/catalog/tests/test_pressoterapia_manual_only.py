@@ -122,7 +122,7 @@ class PressoterapiaManualOnlyTests(TestCase):
                 self.assertEqual(response.status_code, 403)
 
     @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
-    def test_new_manual_pressotherapy_offer_monitored_and_removed_only_after_two_confirmations(self, lock):
+    def test_manual_offer_removed_after_two_unavailable_confirmations(self, lock):
         lock.return_value = nullcontext()
         batch = select_manual_cavitation_batch()
         self.assertEqual([offer.pk for offer in batch], [self.offer.pk])
