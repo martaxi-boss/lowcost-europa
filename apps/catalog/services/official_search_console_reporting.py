@@ -1,8 +1,8 @@
 """Official, read-only Google Search Console Search Analytics reporting.
 
 Credentials live only in the existing private server environment. The official
-OAuth refresh token is NOT the Windsor authorization and must be granted by the
-Search Console property owner separately. No visitor-level records are stored.
+OAuth refresh token must be granted by the Search Console property owner.
+No visitor-level records are stored.
 """
 
 import json
@@ -13,7 +13,7 @@ from urllib import error, parse, request
 
 from django.utils import timezone
 
-from apps.catalog.services.windsor_search_console_reporting import (
+from apps.catalog.services.search_console_metrics import (
     EXPECTED_PROPERTY,
     SearchConsoleAwaitingData,
     SearchConsoleNotConfigured,
