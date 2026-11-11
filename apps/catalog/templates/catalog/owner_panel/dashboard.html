@@ -89,59 +89,36 @@
     </div>
   </section>
 
-  <section class="card" aria-label="Comparativo de motores de pesquisa">
-    <h2 class="analytics-section-title">Motores de pesquisa — desempenho</h2>
-    <p class="analytics-section-subtitle">Comparação das fontes de pesquisa, quando existirem métricas verificadas. Os cliques de pesquisa não equivalem a visitas nem a saídas para parceiros.</p>
-    <div class="commercial-table-wrap" role="region" aria-label="Tabela de métricas dos motores de pesquisa" tabindex="0">
+  <section class="card" aria-label="Contador simples de origens e saídas">
+    <h2 class="analytics-section-title">Contador gratuito — Google, Meta e AliExpress</h2>
+    <p class="analytics-section-subtitle">Dados recolhidos na própria VPS, sem fornecedores externos de métricas, contas Google, pixels ou novos cookies. O navegador pode ocultar a origem.</p>
+    {% if search_referrers %}
+      {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
+      <p class="analytics-note">Última recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Os pedidos de origem referem-se aos últimos sete dias nos registos disponíveis.</p>
+    {% else %}
+      <span class="source-status">Relatório de origens indisponível</span>
+    {% endif %}
+    <div class="metrics-grid">
+      <div class="metric"><span class="metric-label">Google — chegadas identificadas (7 dias)</span><strong class="metric-value">{% if google_local_requests_7d is not None %}{{ google_local_requests_7d }}{% else %}—{% endif %}</strong><span class="metric-hint">Pedidos de páginas com origem Google identificada</span></div>
+      <div class="metric"><span class="metric-label">Meta — chegadas identificadas (7 dias)</span><strong class="metric-value">{% if search_referrers and search_referrers.meta %}{{ search_referrers.meta.total }}{% else %}—{% endif %}</strong><span class="metric-hint">Facebook e Instagram observados</span></div>
+      <div class="metric"><span class="metric-label">AliExpress — saídas pelo site hoje</span><strong class="metric-value">{{ raw_clicks_today }}</strong><span class="metric-hint">Botões que encaminham para parceiros</span></div>
+    </div>
+    <div class="commercial-table-wrap" role="region" aria-label="Pedidos observados por motor de pesquisa" tabindex="0">
       <table class="commercial-table engine-table">
-        <thead><tr><th scope="col">Motor</th><th scope="col">Cliques de pesquisa</th><th scope="col">Impressões</th><th scope="col">Chegadas observadas (VPS, 7 dias)</th><th scope="col">Estado e origem</th></tr></thead>
+        <thead><tr><th scope="col">Motor de origem</th><th scope="col">Chegadas identificadas (VPS, 7 dias)</th></tr></thead>
         <tbody>
-        {% for item in engine_comparison_rows %}
-          <tr>
-            <th scope="row">{{ item.name }}</th>
-            <td>{% if item.clicks is not None %}<strong>{{ item.clicks }}</strong>{% else %}—{% endif %}</td>
-            <td>{% if item.impressions is not None %}{{ item.impressions }}{% else %}—{% endif %}</td>
-            <td>{% if item.local_requests is not None %}<strong>{{ item.local_requests }}</strong>{% else %}—{% endif %}</td>
-            <td>
-              <strong>{{ item.status }}</strong>
-              <small>{{ item.source }}{% if item.checked_at %} · {{ item.checked_at|date:"d/m/Y H:i" }}{% endif %}</small>
-            </td>
-          </tr>
-        {% endfor %}
+          {% for item in engine_comparison_rows %}
+          <tr><th scope="row">{{ item.name }}</th><td>{% if item.local_requests is not None %}{{ item.local_requests }}{% else %}—{% endif %}</td></tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
-    <p class="analytics-note engine-note">Sem dados confirmados, o sinal «—» significa <strong>indisponível</strong>, não zero. A coluna «Chegadas observadas» usa o mesmo contador gratuito Nginx para todos os motores e pode incluir vários pedidos da mesma pessoa; zero significa que não foram observados pedidos na janela dos registos disponíveis. O símbolo «—» indica ausência de dados verificáveis. Apenas a Google poderá ter cliques e impressões oficiais do Search Console, quando autorizados; essa fonte refere-se ao domínio inteiro, não apenas a Portugal, e tem um período diferente. Nunca somar estes números nem apresentá-los como vendas.</p>
-    <p class="analytics-note">A indexação ou aceitação de URLs pelo IndexNow não demonstra cliques, visitas, vendas ou posicionamento. Este painel não recolhe novos dados dos visitantes.</p>
-  </section>
-
-  <section class="card" aria-label="Pesquisa — tráfego observado no servidor">
-    <h2 class="analytics-section-title">Chegadas da pesquisa — observação do servidor</h2>
-    <p class="analytics-section-subtitle">Medição local e gratuita, sem serviços de terceiros, cookies ou pixels adicionais. Fonte: cabeçalho Referer dos pedidos HTTP observados pelo Nginx.</p>
-    {% if search_referrers %}
-      {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
-      <p>Janela: últimos 7 dias nos registos disponíveis. Última recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal).</p>
-      <p><strong>{{ search_referrers.total }} pedidos de páginas com origem de pesquisa declarada</strong></p>
-      <div class="commercial-table-wrap" role="region" aria-label="Pedidos observados por motor" tabindex="0">
-        <table class="commercial-table engine-table">
-          <thead><tr><th scope="col">Motor de origem</th><th scope="col">Pedidos observados</th></tr></thead>
-          <tbody>
-          {% for item in search_referrers.rows %}
-            <tr><th scope="row">{{ item.name }}</th><td>{{ item.requests }}</td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <span class="source-status">A aguardar os primeiros registos locais verificados</span>
-      <p>Este relatório só aparece quando o servidor fornecer observações válidas. Não se apresentam números estimados.</p>
-    {% endif %}
-    <p class="analytics-note">Estes valores contam pedidos HTTP, não visitantes únicos nem cliques, impressões, palavras-chave ou posições oficiais do Search Console. O Referer pode estar ausente, ser omitido pelo navegador ou falsificado; os dados dependem da retenção dos logs.</p>
+    <p class="analytics-note">São pedidos de páginas HTTP, não visitantes únicos nem cliques orgânicos oficiais. «0» significa zero pedidos identificados nesse período; não significa que nenhuma pessoa tenha chegado pelo Google. «—» significa dados indisponíveis. Não há ligação automática entre a origem da visita e cada venda.</p>
   </section>
 
   <section class="card" aria-label="Chegadas locais provenientes da Meta">
     <h2 class="analytics-section-title">Chegadas da Meta — contador próprio</h2>
-    <p class="analytics-section-subtitle">Facebook e Instagram nos registos locais do Nginx, sem Windsor.ai, Pixel ou cookies novos.</p>
+    <p class="analytics-section-subtitle">Facebook e Instagram nos registos locais do Nginx, sem serviços externos, pixels ou novos cookies.</p>
     {% if search_referrers and search_referrers.meta %}
       {% if search_referrers_recent %}<span class="source-status active">Recolha local recente</span>{% else %}<span class="source-status">Recolha atrasada — números até à última leitura</span>{% endif %}
       <p class="analytics-note">Recolha: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Últimos 7 dias nos registos disponíveis.</p>
@@ -169,21 +146,10 @@
     <p class="analytics-note">A contagem identifica sinais de origem nos pedidos de páginas (Referer, parâmetros UTM ou fbclid). O navegador pode omiti-los e um anúncio pode gerar mais de um pedido. Para identificar com maior rigor anúncios novos, usar utm_source=facebook ou instagram e utm_medium=paid_social no URL de destino.</p>
   </section>
 
-  <section class="card" aria-label="Integrações de tráfego, publicidade e vendas">
-    <h2 class="analytics-section-title">Google e comissões</h2>
-    <p class="analytics-section-subtitle">Resultados de pesquisa e parceiros apresentados por origem. Onde não houver dados confirmados, a indicação é «indisponível» ou «a aguardar».</p>
+  <section class="card" aria-label="Encomendas AliExpress">
+    <h2 class="analytics-section-title">AliExpress — vendas registadas</h2>
+    <p class="analytics-section-subtitle">Encomendas lidas pela API AliExpress. Separadas dos contadores locais de Google, Meta e cliques.</p>
     <div class="source-grid">
-      <article class="source-card">
-        <h3>Origem da pesquisa — contador próprio</h3>
-        {% if search_referrers %}
-          {% if search_referrers_recent %}<span class="source-status active">Relatório local ativo</span>{% else %}<span class="source-status">Relatório local com atraso</span>{% endif %}
-          <p>Última observação: <strong>{{ search_referrers.checked_at|date:"d/m/Y H:i" }}</strong>. Foram identificados <strong>{{ search_referrers.total }}</strong> pedidos de páginas com origem de pesquisa declarada nos registos disponíveis. Detalhe por motor acima.</p>
-        {% else %}
-          <span class="source-status">Recolha local indisponível</span>
-          <p>A aguardar o próximo relatório validado do servidor. Não são estimados pedidos nem visitantes.</p>
-        {% endif %}
-        <p>Sem serviços externos, cookies de medição ou pixels adicionais. Não mede visitantes únicos nem compras atribuídas.</p>
-      </article>
       <article class="source-card">
         <h3>AliExpress — encomendas e comissões</h3>
         {% if affiliate_report_payload %}
@@ -216,48 +182,8 @@
           <p>A consulta de encomendas é feita pela API oficial AliExpress, com o Tracking ID preservado. O resultado só aparece aqui depois de uma leitura completa e verificada.</p>
         {% endif %}
       </article>
-      <article class="source-card">
-        <h3>Google Search Console — pesquisa orgânica</h3>
-        {% if google_search_provider == "WINDSOR" %}
-          <p class="analytics-note">Fonte de consulta atualmente configurada: Windsor.ai (serviço externo). A ligação gratuita e direta à API oficial do Google ainda não está autorizada; este painel não pode substituir essa autorização nem garantir dados do Google em tempo real.</p>
-        {% endif %}
-        {% if google_search_report_payload %}
-          {% if google_search_report_fresh %}
-          <span class="source-status active">Métricas Google sincronizadas</span>
-          {% else %}
-          <span class="source-status">Dados Google desatualizados</span>
-          {% endif %}
-          <p>Fonte: propriedade <strong>lowcost-europa.eu</strong> no Search Console. Última consulta válida: <strong>{{ google_search_report.checked_at|date:"d/m/Y H:i" }}</strong> (Portugal). Período: últimos 30 dias.</p>
-          <div class="counts">
-            <div class="count"><strong>Cliques da pesquisa Google</strong><br>{{ google_search_report_payload.clicks }}</div>
-            <div class="count"><strong>Impressões no Google</strong><br>{{ google_search_report_payload.impressions }}</div>
-            <div class="count"><strong>CTR orgânico</strong><br>{{ google_search_report_payload.ctr_percent }}%</div>
-            <div class="count"><strong>Posição média</strong><br>{% if google_search_report_payload.average_position %}{{ google_search_report_payload.average_position }}{% else %}—{% endif %}</div>
-          </div>
-          {% if google_search_report_payload.top_queries %}
-          <details class="report-details">
-            <summary>Principais pesquisas no Google</summary>
-            <ol class="report-lines">
-              {% for item in google_search_report_payload.top_queries %}
-              <li><strong>{{ item.query }}</strong>: {{ item.clicks }} cliques; {{ item.impressions }} impressões.</li>
-              {% endfor %}
-            </ol>
-          </details>
-          {% endif %}
-          <p>Os cliques Google são entradas a partir de pesquisas; não equivalem aos cliques de saída nos produtos. A Google pode ocultar pesquisas raras e os dados recentes podem ter atraso.</p>
-        {% else %}
-          {% if google_search_configured %}
-          <span class="source-status">Leitura configurada — a aguardar dados</span>
-          <p>A leitura da propriedade lowcost-europa.eu está configurada no servidor. Ainda não existe um relatório verificável para apresentar. A ausência de dados não significa zero cliques ou impressões. Consulte o estado de processamento no Search Console.</p>
-          {% else %}
-          <span class="source-status">Ligação de métricas pendente</span>
-          <p>O domínio já está verificado no Google Search Console. Falta autorizar a leitura automática desta propriedade na fonte de métricas do servidor. Até à primeira consulta comprovada, cliques e impressões ficam indisponíveis — nunca são apresentados como zero.</p>
-          {% endif %}
-        {% endif %}
-        <p><a class="analytics-link" href="https://search.google.com/search-console/performance/search-analytics?resource_id=sc-domain%3Alowcost-europa.eu" target="_blank" rel="noopener noreferrer">Abrir desempenho no Google Search Console</a></p>
-      </article>
     </div>
-    <p class="analytics-note">Fontes sem autorização e dados confirmados permanecem indisponíveis até existirem integrações verificadas. Não devem ser interpretados como zero. Cliques de pesquisa Google, saídas para ofertas e encomendas AliExpress são métricas distintas, sem atribuição automática entre si.</p>
+    <p class="analytics-note">A venda registada é distinta da comissão aprovada. Estes números não exigem nenhuma ligação ao Google ou autorização externa.</p>
   </section>
 
 </main>

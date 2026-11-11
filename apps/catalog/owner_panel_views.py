@@ -427,100 +427,32 @@ def dashboard(request):
         and affiliate_report.checked_at <= now
         and now - affiliate_report.checked_at <= timedelta(hours=12)
     )
-    # Search Console data is a separate, verified organic Google source.
-    # GET never calls Google/Windsor and does not track new visitors.
-    google_search_report = ExternalMetricsSnapshot.objects.filter(
-        source="GOOGLE_SEARCH_CONSOLE"
-    ).first()
-    google_search_report_payload = (
-        google_search_report.payload
-        if google_search_report and isinstance(google_search_report.payload, dict)
-        and google_search_report.payload.get("property") == "sc-domain:lowcost-europa.eu"
-        else None
-    )
-    google_search_report_fresh = bool(
-        google_search_report_payload
-        and google_search_report.checked_at <= now
-        and now - google_search_report.checked_at <= timedelta(hours=48)
-    )
-    google_search_provider = os.environ.get("GOOGLE_SEARCH_CONSOLE_PROVIDER", "WINDSOR").upper()
-    google_provider_auth = (
-        bool(os.environ.get("WINDSOR_API_KEY")) if google_search_provider == "WINDSOR"
-        else all(os.environ.get(key) for key in (
-            "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET",
-            "GOOGLE_OAUTH_REFRESH_TOKEN",
-        )) if google_search_provider == "GOOGLE_OFFICIAL" else False
-    )
-    google_search_configured = bool(
-        google_provider_auth
-        and os.environ.get("GOOGLE_SEARCH_CONSOLE_PROPERTY")
-        == "sc-domain:lowcost-europa.eu"
-    )
+    # Privacy-first, free local metrics: NO Google Ads, OAuth, Windsor or
+    # remote calls. These are identified HTTP page requests, not visitors,
+    # organic search clicks or official Search Console statistics.
     search_referrers = read_private_report(
         settings.BASE_DIR / ".local-metrics" / "search-referrers.json",
         now=now,
     )
-
-    # O relatorio local pode continuar legivel durante 48 horas por resiliencia,
-    # mas "Hoje" so significa "ate a ultima recolha". Nunca marcar dados de
-    # varias horas como atualizados ou confundir um zero antigo com zero ao vivo.
     search_referrers_recent = bool(
         search_referrers
         and timedelta(0) <= now - search_referrers["checked_at"] <= timedelta(hours=2)
     )
-
-    # Comparar motores exige cliques medidos na mesma origem e período.
-    # Search Console só mede Google; não inventar números para outros motores.
-    # Não recolher aqui IP, sessões, referers ou novos dados de visitantes.
-    google_status = (
-        "Métricas sincronizadas" if google_search_report_fresh
-        else "Relatório desatualizado" if google_search_report_payload
-        else "A aguardar primeiros dados" if google_search_configured
-        else "Ligação de métricas pendente"
-    )
-    engine_comparison_rows = [
-        {
-            "name": "Google",
-            "clicks": (
-                google_search_report_payload.get("clicks")
-                if google_search_report_payload else None
-            ),
-            "impressions": (
-                google_search_report_payload.get("impressions")
-                if google_search_report_payload else None
-            ),
-            "source": "Search Console (todo o domínio)",
-            "status": google_status,
-            "checked_at": (
-                google_search_report.checked_at if google_search_report_payload else None
-            ),
-        },
-        *[
+    engine_comparison_rows = (
+        [
             {
-                "name": name,
-                "clicks": None,
-                "impressions": None,
-                "source": "Sem fonte de cliques ligada",
-                "status": "A aguardar integração",
-                "checked_at": None,
+                "name": row["name"],
+                "local_requests": row["requests"],
             }
-            for name in ("Bing", "Yahoo", "DuckDuckGo", "Brave", "Seznam", "Yandex")
-        ],
-    ]
-
-    # Integrar os sete contadores locais no comparativo existente, sem
-    # confundir pedidos HTTP com cliques ou impressões oficiais.
-    local_by_engine = (
-        {item["name"]: item["requests"] for item in search_referrers["rows"]}
+            for row in search_referrers["rows"]
+        ]
         if search_referrers is not None
-        else None
+        else [
+            {"name": name, "local_requests": None}
+            for name in ("Google", "Bing", "Yahoo", "DuckDuckGo", "Brave", "Seznam", "Yandex")
+        ]
     )
-    for engine_row in engine_comparison_rows:
-        engine_row["local_requests"] = (
-            local_by_engine.get(engine_row["name"])
-            if local_by_engine is not None
-            else None
-        )
+    google_local_requests_7d = engine_comparison_rows[0]["local_requests"]
 
     return _private(
         render(
@@ -559,14 +491,10 @@ def dashboard(request):
                 "affiliate_report": affiliate_report,
                 "affiliate_report_payload": affiliate_report_payload,
                 "affiliate_report_fresh": affiliate_report_fresh,
-                "google_search_report": google_search_report,
-                "google_search_configured": google_search_configured,
                 "engine_comparison_rows": engine_comparison_rows,
+                "google_local_requests_7d": google_local_requests_7d,
                 "search_referrers": search_referrers,
                 "search_referrers_recent": search_referrers_recent,
-                "google_search_provider": google_search_provider,
-                "google_search_report_payload": google_search_report_payload,
-                "google_search_report_fresh": google_search_report_fresh,
             },
         )
     )
