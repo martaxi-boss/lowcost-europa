@@ -302,11 +302,11 @@ class CavitationManualOnlyTests(TestCase):
             1,
         )
 
-    def test_only_manual_cavitation_is_monitored_and_other_sources_stay_untouched(self):
+    def test_manual_cavitation_and_hifu_are_monitored_but_legacy_is_not(self):
         other_manual = self.make_offer("1005008800880088", self.other)
         selected = select_manual_cavitation_batch()
-        self.assertEqual([x.pk for x in selected], [self.manual.pk])
+        self.assertEqual({x.pk for x in selected}, {self.manual.pk, other_manual.pk})
         selected_old = select_maintenance_batch(20)
         self.assertNotIn(self.manual.pk, [x.pk for x in selected_old])
         self.assertNotIn(self.legacy.pk, [x.pk for x in selected_old])
-        self.assertNotIn(other_manual.pk, [x.pk for x in selected])
+        self.assertNotIn(self.legacy.pk, [x.pk for x in selected])

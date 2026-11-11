@@ -42,11 +42,11 @@ class RankingReadinessPtEsTests(TestCase):
 
     def make_offer(self):
         now = timezone.now()
-        family = ProductFamily.objects.get(slug="hifu")
+        family = ProductFamily.objects.get(slug="diodo-laser-remocao-tatuagens-pigmentacao")
         offer = Offer.objects.create(
             source=Offer.Source.ALIEXPRESS,
             external_product_id="seo-ranking-ptes-001",
-            title="HIFU example without stock proof",
+            title="Diodo laser example without stock proof",
             affiliate_url="https://s.click.aliexpress.com/e/_RankingTest",
             affiliate_promotion_status=Offer.AffiliatePromotionStatus.ELIGIBLE,
             affiliate_promotion_verified_at=now,
@@ -118,8 +118,8 @@ class RankingReadinessPtEsTests(TestCase):
         offer = self.make_offer()
         self.observe(offer, "PT", "120.00", 2)
         self.observe(offer, "ES", "145.00", 1)
-        pt = self.get_public("/pt/products/hifu/")
-        es = self.get_public("/es/products/hifu/")
+        pt = self.get_public("/pt/products/diodo-laser-remocao-tatuagens-pigmentacao/")
+        es = self.get_public("/es/products/diodo-laser-remocao-tatuagens-pigmentacao/")
         self.assertContains(pt, 'data-price="120.00" data-currency="EUR"')
         self.assertContains(es, 'data-price="145.00" data-currency="EUR"')
         self.assertNotContains(pt, 'data-price="145.00"')
@@ -148,7 +148,7 @@ class RankingReadinessPtEsTests(TestCase):
         self.assertNotContains(es_home, "120,00 EUR")
         self.assertContains(pt_home, "120,00 EUR")
         self.assertNotContains(pt_home, "145,00 EUR")
-        pt_search = self.get_public("/pesquisar/?q=HIFU")
+        pt_search = self.get_public("/pesquisar/?q=Diodo")
         self.assertEqual(pt_search.status_code, 200)
         self.assertContains(pt_search, 'data-price="120.00" data-currency="EUR"')
         self.assertNotContains(pt_search, 'data-price="145.00"')
@@ -157,7 +157,7 @@ class RankingReadinessPtEsTests(TestCase):
         offer = self.make_offer()
         self.observe(offer, "PT", "120.00", 2)
         self.observe(offer, "ES", "145.00", 31)
-        es = self.get_public("/es/products/hifu/")
+        es = self.get_public("/es/products/diodo-laser-remocao-tatuagens-pigmentacao/")
         self.assertContains(es, 'data-price="120.00" data-currency="EUR"')
         self.assertContains(es, "Datos de referencia para Portugal")
         self.assertNotContains(es, "Precio en EUR observado para España")
@@ -166,6 +166,6 @@ class RankingReadinessPtEsTests(TestCase):
         offer = self.make_offer()
         self.observe(offer, "PT", "120.00", 31)
         self.observe(offer, "ES", "145.00", 1)
-        es = self.get_public("/es/products/hifu/")
+        es = self.get_public("/es/products/diodo-laser-remocao-tatuagens-pigmentacao/")
         self.assertNotContains(es, 'data-offer-id="' + str(offer.pk) + '"')
         self.assertEqual(self.get_public(f"/go/{offer.pk}/").status_code, 404)
