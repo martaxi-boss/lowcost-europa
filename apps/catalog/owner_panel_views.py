@@ -500,6 +500,20 @@ def dashboard(request):
         ],
     ]
 
+    # Integrar os sete contadores locais no comparativo existente, sem
+    # confundir pedidos HTTP com cliques ou impressões oficiais.
+    local_by_engine = (
+        {item["name"]: item["requests"] for item in search_referrers["rows"]}
+        if search_referrers is not None
+        else None
+    )
+    for engine_row in engine_comparison_rows:
+        engine_row["local_requests"] = (
+            local_by_engine.get(engine_row["name"])
+            if local_by_engine is not None
+            else None
+        )
+
     return _private(
         render(
             request,
