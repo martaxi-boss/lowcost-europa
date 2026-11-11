@@ -7,7 +7,7 @@
     <div class="owner-family-tools__heading">
       <div>
         <p class="eyebrow">Gestão manual</p>
-        <h2 id="owner-family-title">Montra {{ family.name }}</h2>
+        <h2 id="owner-family-title">{% if family.slug == "cavitacao-rf-vacuum-corpo" %}Montra Cavitação{% else %}Montra {{ family.name }}{% endif %}</h2>
         <p class="owner-all-clear">{{ owner_storefront_count }} produtos publicados com os teus links. Podes eliminá-los individualmente nos cartões acima; a disponibilidade é verificada à parte.</p>
       </div>
       <a class="owner-preview-link" href="{{ owner_preview_url }}">Ver como cliente</a>
