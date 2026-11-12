@@ -12,7 +12,7 @@ from apps.integrations.aliexpress.exceptions import (
 
 class Command(BaseCommand):
     help = (
-        "Check only the Owner's manual Cavitation offers for explicit unavailability; "
+        "Check all five Owner-curated categories for explicit unavailability; "
         "no automatic discovery, approval, publication or affiliate URL regeneration."
     )
 
@@ -22,7 +22,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         batch_size = options["batch_size"]
         if not 1 <= batch_size <= MAX_BATCH_SIZE:
-            raise CommandError("batch-size must be between 1 and 5")
+            raise CommandError("batch-size must be between 1 and 10")
         try:
             report = monitor_cavitation_availability(batch_size=batch_size)
         except (AliExpressRateLimitError, AliExpressRuntimeStateError) as exc:
