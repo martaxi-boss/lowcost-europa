@@ -23,3 +23,18 @@ class PublicFaviconTests(SimpleTestCase):
         ).read_bytes()
         self.assertEqual(favicon[:8], bytes.fromhex("89504e470d0a1a0a"))
         self.assertEqual(struct.unpack(">II", favicon[16:24]), (96, 96))
+
+    def test_root_favicon_responds_directly_with_existing_branded_png(self):
+        result = self.client.get("/favicon.ico")
+        expected = (
+            settings.BASE_DIR
+            / "apps/storefront/static/storefront/lowcost-europa-favicon.png"
+        ).read_bytes()
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result["Content-Type"], "image/png")
+        self.assertEqual(result["Cache-Control"], "public, max-age=86400")
+        self.assertEqual(result.content, expected)
+
+    def test_root_favicon_supports_head_but_never_accepts_post(self):
+        self.assertEqual(self.client.head("/favicon.ico").status_code, 200)
+        self.assertEqual(self.client.post("/favicon.ico").status_code, 405)

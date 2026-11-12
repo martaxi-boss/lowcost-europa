@@ -293,6 +293,22 @@ def _render_storefront(request, template, context):
     return response
 
 
+@require_safe
+def favicon(request):
+    """Compatibility favicon for clients requesting /favicon.ico directly.
+
+    Reuse the same 96px branded PNG already declared by the public HTML.
+    No new generated artwork, affiliate traffic, database or paid dependency.
+    """
+    icon = (
+        settings.BASE_DIR
+        / "apps/storefront/static/storefront/lowcost-europa-favicon.png"
+    ).read_bytes()
+    response = HttpResponse(icon, content_type="image/png")
+    response["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
 def home(request):
     families = [
         _prepare_family(family)
