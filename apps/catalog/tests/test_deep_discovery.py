@@ -65,6 +65,8 @@ class DeepDiscoveryTests(TestCase):
     def test_management_command_page_option_is_forwarded_and_reported(self):
         from apps.catalog.services.candidate_discovery import CandidateDiscoveryResult
 
+        # Isolated legacy QA fixture: all five public categories are now manual-only.
+        legacy = ProductFamily.objects.create(name="Legacy QA", slug="legacy-deep-discovery-qa")
         out = StringIO()
         with (
             patch("apps.catalog.management.commands.discover_family_candidates.AliExpressClient"),
@@ -75,7 +77,7 @@ class DeepDiscoveryTests(TestCase):
         ):
             call_command(
                 "discover_family_candidates",
-                family=self.family.slug,
+                family=legacy.slug,
                 keyword="diode laser",
                 page=2,
                 stdout=out,

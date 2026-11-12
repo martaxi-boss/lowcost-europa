@@ -268,11 +268,11 @@ class ManualCandidateIntakeServiceTests(TestCase):
 
 class ManualCandidateIntakeOwnerPanelTests(TestCase):
     def setUp(self):
-        # Only category 5 still uses the legacy candidate-review workflow.
-        # HIFU joins the first three exclusively manual storefronts.
+        # Regression fixture for the retired review path; none of the five
+        # production catalogue families uses candidate approval any more.
         self.family = ProductFamily.objects.create(
-            name="Diodo Laser",
-            slug="diodo-laser-remocao-tatuagens-pigmentacao",
+            name="Legacy QA Fixture",
+            slug="legacy-candidate-intake-qa",
         )
         self.staff = get_user_model().objects.create_user(
             username="owner-manual-intake",

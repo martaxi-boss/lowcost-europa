@@ -11,8 +11,8 @@ from apps.catalog.services.manual_candidate_intake import ManualCandidateIntakeR
 class OwnerManualProductIntakeCommandTests(TestCase):
     def setUp(self):
         self.family = ProductFamily.objects.create(
-            name="Laser / Tatuagens",
-            slug="diodo-laser-remocao-tatuagens-pigmentacao",
+            name="Legacy intake QA",
+            slug="legacy-intake-command-qa",
         )
 
     @patch(

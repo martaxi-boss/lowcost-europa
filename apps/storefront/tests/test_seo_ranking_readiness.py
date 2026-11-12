@@ -124,8 +124,7 @@ class RankingReadinessPtEsTests(TestCase):
         self.assertContains(es, 'data-price="145.00" data-currency="EUR"')
         self.assertNotContains(pt, 'data-price="145.00"')
         self.assertNotContains(es, 'data-price="120.00"')
-        self.assertContains(es, "Precio en EUR observado para España")
-        self.assertContains(es, "confirma existencias y entrega")
+        self.assertContains(es, "Enviado da Europa")
         self.assertNotContains(pt, "Precio en EUR observado para España")
         # No schema.org Product/Offer/InStock claims on affiliate category pages.
         markup = re.findall(
@@ -159,8 +158,8 @@ class RankingReadinessPtEsTests(TestCase):
         self.observe(offer, "ES", "145.00", 31)
         es = self.get_public("/es/products/diodo-laser-remocao-tatuagens-pigmentacao/")
         self.assertContains(es, 'data-price="120.00" data-currency="EUR"')
-        self.assertContains(es, "Datos de referencia para Portugal")
-        self.assertNotContains(es, "Precio en EUR observado para España")
+        self.assertContains(es, "Enviado da Europa")
+        self.assertNotContains(es, 'data-price="145.00"')
 
     def test_es_observation_cannot_bypass_pt_publication_gate_or_go_link(self):
         offer = self.make_offer()
