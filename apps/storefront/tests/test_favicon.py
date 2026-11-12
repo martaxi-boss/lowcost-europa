@@ -21,5 +21,5 @@ class PublicFaviconTests(SimpleTestCase):
             settings.BASE_DIR
             / "apps/storefront/static/storefront/lowcost-europa-favicon.png"
         ).read_bytes()
-        self.assertEqual(favicon[:8], b"\\x89PNG\\r\\n\\x1a\\n")
+        self.assertEqual(favicon[:8], bytes.fromhex("89504e470d0a1a0a"))
         self.assertEqual(struct.unpack(">II", favicon[16:24]), (96, 96))
