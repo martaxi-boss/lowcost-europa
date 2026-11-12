@@ -4,13 +4,13 @@
     {% if family.display_offer and family.display_offer.image_url %}
       {% with image_url=family.display_offer.image_url %}
         {% if image_url|slice:":8" == "https://" %}
-          <div class="product-card__media"><img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480" loading="lazy" data-product-image><span class="image-fallback" data-image-fallback hidden>{{ "Imagem indisponível"|ui_t }}</span><span class="image-quality-note" data-image-quality hidden>{{ "Fotografia de baixa resolução"|ui_t }}</span></div>
+          <div class="product-card__media"><img class="product-card__image" src="{{ image_url }}" alt="{{ family.display_offer.title|default:family.name }}" width="640" height="480" loading="lazy" data-product-image><span class="image-fallback" data-nosnippet data-image-fallback hidden>{{ "Imagem indisponível"|ui_t }}</span><span class="image-quality-note" data-nosnippet data-image-quality hidden>{{ "Fotografia de baixa resolução"|ui_t }}</span></div>
         {% else %}
-          <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>{% if family.display_offer %}{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}{% endif %}</small></div>
+          <div class="product-card__media product-card__media--placeholder" data-nosnippet aria-hidden="true"><span>LE</span><small>{% if family.display_offer %}{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}{% endif %}</small></div>
         {% endif %}
       {% endwith %}
     {% else %}
-      <div class="product-card__media product-card__media--placeholder" aria-hidden="true"><span>LE</span><small>{% if family.display_offer %}{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}{% endif %}</small></div>
+      <div class="product-card__media product-card__media--placeholder" data-nosnippet aria-hidden="true"><span>LE</span><small>{% if family.display_offer %}{{ "Imagem indisponível"|ui_t }}{% else %}{{ "Seleção em preparação"|ui_t }}{% endif %}</small></div>
     {% endif %}
   </a>
   <div class="product-card__body">
