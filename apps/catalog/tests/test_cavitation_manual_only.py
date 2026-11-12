@@ -284,23 +284,79 @@ class CavitationManualOnlyTests(TestCase):
         self.assertFalse(self.manual.owner_hidden)
 
     @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
-    def test_explicit_aliexpress_not_found_error_needs_two_checks(self, lock):
+    def test_definitively_missing_product_is_hidden_on_first_check(self, lock):
         lock.return_value = nullcontext()
         client = Mock()
         client.get_product_detail.side_effect = AliExpressAPIError(
             "AliExpress product does not exist"
         )
+        original_url = self.manual.affiliate_url
+        first = monitor_cavitation_availability(client=client, now=timezone.now())
+        self.assertEqual(first.removed_from_storefront, 1)
+        self.assertEqual(first.awaiting_confirmation, 0)
+        self.manual.refresh_from_db()
+        self.assertFalse(self.manual.is_active)
+        self.assertTrue(self.manual.owner_hidden)
+        self.assertEqual(self.manual.affiliate_url, original_url)
+        self.assertEqual(monitor_cavitation_availability(client=client).selected, 0)
+        self.assertEqual(client.generate_affiliate_link.call_count, 0)
+
+    @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
+    def test_definitive_removed_detail_is_hidden_on_first_check(self, lock):
+        lock.return_value = nullcontext()
+        client = Mock()
+        client.get_product_detail.return_value = AliExpressProduct(
+            product_id=self.manual.external_product_id,
+            availability_raw="deleted",
+        )
+        result = monitor_cavitation_availability(client=client, now=timezone.now())
+        self.assertEqual(result.removed_from_storefront, 1)
+        self.manual.refresh_from_db()
+        self.assertTrue(self.manual.owner_hidden)
+        self.assertEqual(client.generate_affiliate_link.call_count, 0)
+
+    @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
+    def test_stockout_requires_two_signals_at_least_twenty_minutes_apart(self, lock):
+        lock.return_value = nullcontext()
+        client = Mock()
+        client.get_product_detail.return_value = AliExpressProduct(
+            product_id=self.manual.external_product_id,
+            availability_raw="sold out",
+        )
         start = timezone.now()
-        self.assertEqual(
-            monitor_cavitation_availability(client=client, now=start).removed_from_storefront,
-            0,
+        first = monitor_cavitation_availability(client=client, now=start)
+        too_soon = monitor_cavitation_availability(
+            client=client, now=start + timedelta(minutes=10)
         )
-        self.assertEqual(
-            monitor_cavitation_availability(
-                client=client, now=start + timedelta(hours=4)
-            ).removed_from_storefront,
-            1,
+        self.assertEqual(first.awaiting_confirmation, 1)
+        self.assertEqual(too_soon.awaiting_confirmation, 1)
+        self.manual.refresh_from_db()
+        self.assertFalse(self.manual.owner_hidden)
+        confirmed = monitor_cavitation_availability(
+            client=client, now=start + timedelta(minutes=35)
         )
+        self.assertEqual(confirmed.removed_from_storefront, 1)
+        self.manual.refresh_from_db()
+        self.assertTrue(self.manual.owner_hidden)
+        self.assertEqual(client.generate_affiliate_link.call_count, 0)
+
+    @patch("apps.catalog.services.cavitation_availability.maintenance_run_lock")
+    def test_ambiguous_unavailable_api_error_still_requires_confirmation(self, lock):
+        lock.return_value = nullcontext()
+        client = Mock()
+        client.get_product_detail.side_effect = AliExpressAPIError(
+            "Product unavailable"
+        )
+        start = timezone.now()
+        first = monitor_cavitation_availability(client=client, now=start)
+        self.assertEqual(first.awaiting_confirmation, 1)
+        self.manual.refresh_from_db()
+        self.assertFalse(self.manual.owner_hidden)
+        second = monitor_cavitation_availability(
+            client=client, now=start + timedelta(minutes=30)
+        )
+        self.assertEqual(second.removed_from_storefront, 1)
+        self.assertEqual(client.generate_affiliate_link.call_count, 0)
 
     def test_manual_cavitation_and_hifu_are_monitored_but_legacy_is_not(self):
         other_manual = self.make_offer("1005008800880088", self.other)
