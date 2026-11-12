@@ -1,4 +1,8 @@
-# Catalog maintenance systemd policy
+# Owner-only catalogue policy (five manual categories)
+
+As of 12 November 2026, **legacy weekly discovery and legacy automatic catalogue maintenance must remain disabled** on production. Their unit definitions are retained solely as historical files for rollback/tests; they are not authorized to run, generate affiliate links, or add offers. The only supported automatic catalogue job is `lowcost-europa-cavitation-availability.timer`, which checks all five manual categories every 10 minutes, 10 distinct offers per batch, using the AliExpress product-detail API without ever generating links. Definitive deletion/nonexistence hides the product at first evidence; other explicit unavailability requires two checks at least 20 minutes apart. UNKNOWN, 429 and transport errors never hide an offer. Click and order reports, backups and SEO timers are independent.
+
+## Historical catalogue maintenance policy
 
 Implementation reference, not a live host-health certificate. Current infrastructure/authorization is recorded in PROJECT_STATE.md. Historical backup units/scripts below do not authorize reinstalling or enabling an old backup policy.
 
