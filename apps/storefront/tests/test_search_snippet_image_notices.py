@@ -17,7 +17,7 @@ class SearchSnippetImageNoticeTests(SimpleTestCase):
             with self.subTest(path=path):
                 template = (settings.BASE_DIR / path).read_text(encoding="utf-8")
                 notices = re.findall(
-                    r'<span\\b[^>]*class="image-(?:fallback|quality-note)"[^>]*>',
+                    r'<span\b[^>]*class="image-(?:fallback|quality-note)"[^>]*>',
                     template,
                 )
                 self.assertTrue(notices, "Expected image notice elements")
@@ -29,7 +29,7 @@ class SearchSnippetImageNoticeTests(SimpleTestCase):
         path = self.TEMPLATE_PATHS[1]
         template = (settings.BASE_DIR / path).read_text(encoding="utf-8")
         placeholders = re.findall(
-            r'<div\\b[^>]*class="product-card__media product-card__media--placeholder"[^>]*>',
+            r'<div\b[^>]*class="product-card__media product-card__media--placeholder"[^>]*>',
             template,
         )
         self.assertEqual(len(placeholders), 2)
