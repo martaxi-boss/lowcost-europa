@@ -1,7 +1,8 @@
-"""Read-only AliExpress availability checks for all manually curated storefronts.
+"""Availability-only AliExpress checks across all five Owner-curated storefronts.
 
-Only two distinct, explicit unavailable signals can deactivate a listing.
-Never create or replace affiliate URLs, and never reactivate hidden items.
+Definitive deleted/nonexistent products are hidden on their first authoritative signal.
+Temporary stock-out/offline signals need two checks, protecting against false positives.
+Never create/change affiliate URLs, publish products or reactivate hidden items.
 """
 
 from dataclasses import dataclass, field
@@ -28,9 +29,9 @@ from apps.integrations.aliexpress.exceptions import (
 )
 
 # A single negative response is not sufficient to remove an Owner-curated offer.
-MIN_CONFIRMATION_GAP = timedelta(hours=3)
-MAX_CONFIRMATION_AGE = timedelta(days=7)
-MAX_BATCH_SIZE = 5
+MIN_CONFIRMATION_GAP = timedelta(minutes=20)
+MAX_CONFIRMATION_AGE = timedelta(hours=6)
+MAX_BATCH_SIZE = 10
 
 
 @dataclass
@@ -47,7 +48,7 @@ class AvailabilityReport:
 
 def select_manual_cavitation_batch(batch_size=MAX_BATCH_SIZE):
     if not 1 <= batch_size <= MAX_BATCH_SIZE:
-        raise ValueError("batch_size must be 1..5")
+        raise ValueError("batch_size must be 1..10")
     # The historical ALIEXPRESS offers are intentionally NOT selected.
     # Only published Owner links in a manual-only category are eligible.
     queryset = (
@@ -69,7 +70,27 @@ def select_manual_cavitation_batch(batch_size=MAX_BATCH_SIZE):
     return list(queryset[:batch_size])
 
 
-def _record_check(offer_id, status, now):
+def _definitively_removed_api_error(exc):
+    """Only explicit permanent removal/absence is safe for first-check hide."""
+    message = " ".join(str(exc).casefold().split())
+    permanent = (
+        "product does not exist",
+        "item does not exist",
+        "product not found",
+        "item not found",
+        "product removed",
+        "item removed",
+    )
+    return any(text in message for text in permanent)
+
+
+def _definitively_removed_detail(detail):
+    status = str(getattr(detail, "availability_raw", "") or "").casefold()
+    status = " ".join(status.replace("_", " ").replace("-", " ").split())
+    return status in {"removed", "deleted"}
+
+
+def _record_check(offer_id, status, now, *, definitive=False):
     """Lock each offer and commit only the availability observation or hide flag."""
     with transaction.atomic():
         offer = Offer.objects.select_for_update().get(pk=offer_id)
@@ -105,7 +126,7 @@ def _record_check(offer_id, status, now):
             and previous.availability == OfferObservation.Availability.UNAVAILABLE
             and MIN_CONFIRMATION_GAP <= now - previous.observed_at <= MAX_CONFIRMATION_AGE
         )
-        if not confirmed:
+        if not definitive and not confirmed:
             return "AWAITING_CONFIRMATION"
 
         # The affiliate URL itself, commercial details and historical clicks
@@ -125,6 +146,7 @@ def monitor_cavitation_availability(*, batch_size=MAX_BATCH_SIZE, client=None, n
         report.selected = len(offers)
         for offer in offers:
             status = OfferObservation.Availability.UNKNOWN
+            definitive = False
             try:
                 detail = client.get_product_detail(offer.external_product_id, "PT", "EUR")
             except (AliExpressRateLimitError, AliExpressRuntimeStateError):
@@ -134,6 +156,7 @@ def monitor_cavitation_availability(*, batch_size=MAX_BATCH_SIZE, client=None, n
             except AliExpressAPIError as exc:
                 if is_factually_unavailable_error(exc):
                     status = OfferObservation.Availability.UNAVAILABLE
+                    definitive = _definitively_removed_api_error(exc)
                 else:
                     report.errors.append(offer.external_product_id + ":API")
             except AliExpressError as exc:
@@ -142,12 +165,13 @@ def monitor_cavitation_availability(*, batch_size=MAX_BATCH_SIZE, client=None, n
                 if detail.product_id == offer.external_product_id:
                     if is_factually_unavailable(detail):
                         status = OfferObservation.Availability.UNAVAILABLE
+                        definitive = _definitively_removed_detail(detail)
                     elif is_factually_available(detail):
                         status = OfferObservation.Availability.AVAILABLE
                 else:
                     report.errors.append(offer.external_product_id + ":ProductIdMismatch")
 
-            result = _record_check(offer.pk, status, now)
+            result = _record_check(offer.pk, status, now, definitive=definitive)
             if result == "SKIPPED":
                 continue
             report.checked += 1

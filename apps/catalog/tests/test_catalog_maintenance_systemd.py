@@ -43,11 +43,11 @@ class CatalogMaintenanceSystemdPolicyTests(SimpleTestCase):
         self.assertIn("PrivateTmp=true", self.service)
 
     def test_manual_cavitation_availability_has_isolated_schedule(self):
-        self.assertIn("OnCalendar=*-*-* 00/2:00:00", self.cavitation_timer)
-        self.assertIn("RandomizedDelaySec=15min", self.cavitation_timer)
+        self.assertIn("OnCalendar=*-*-* *:0/10:00", self.cavitation_timer)
+        self.assertIn("RandomizedDelaySec=30s", self.cavitation_timer)
         self.assertIn("Persistent=true", self.cavitation_timer)
         self.assertIn(
-            "manage.py monitor_cavitation_availability --batch-size 5",
+            "manage.py monitor_cavitation_availability --batch-size 10",
             self.cavitation_service,
         )
         self.assertIn("PrivateTmp=true", self.cavitation_service)
