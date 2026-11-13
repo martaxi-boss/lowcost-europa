@@ -146,6 +146,29 @@ class PortugueseSeoGuideTests(TestCase):
                 self.assertNotContains(pt, '"@type":"FAQPage"')
                 self.assertNotContains(es, '"@type":"FAQPage"')
 
+    def test_hifu_ems_pt_seo_matches_public_category_without_misleading_product_claims(self):
+        pt_category = self.get_page("/pt/products/hifu/")
+        self.assertIn("HIFU e EMS", pt_category.context["page_title"])
+        self.assertIn("EMS", pt_category.context["meta_description"])
+        self.assertContains(pt_category, "HIFU e EMS: como comparar tecnologias diferentes")
+        questions = PT_BUYING_QUESTIONS["hifu"]
+        self.assertEqual(len(questions), 3)
+        self.assertIn("HIFU", questions[0][0])
+        self.assertIn("EMS", questions[0][0])
+        self.assertIn("tecnologias diferentes", questions[0][1])
+        self.assertContains(
+            pt_category,
+            '<link rel="canonical" href="https://www.example.test/pt/products/hifu/">'
+        )
+
+        pt_home = self.get_page("/pt/")
+        self.assertIn("HIFU/EMS", pt_home.context["meta_description"])
+        self.assertIn("pressoterapia/Tecar", pt_home.context["meta_description"])
+        es_home = self.get_page("/es/")
+        self.assertNotIn("HIFU/EMS", es_home.context["meta_description"])
+        es_category = self.get_page("/es/products/hifu/")
+        self.assertEqual(es_category.context["page_title"], ES_CATEGORY_GUIDES["hifu"]["title"])
+
     def test_portugal_home_metadata_changes_without_changing_spanish_home(self):
         pt = self.get_page("/pt/")
         es = self.get_page("/es/")
