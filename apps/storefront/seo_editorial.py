@@ -73,25 +73,27 @@ PT_CATEGORY_GUIDES = {
         ),
     },
     "hifu": {
-        "title": "HIFU Profissional: Máquinas e Guia | Lowcost Europa",
+        "title": "Máquinas HIFU e EMS para Estética | Lowcost Europa",
         "description": (
-            "Compare equipamentos HIFU profissionais: cartuchos, documentação, "
-            "assistência e preços observados. Confirme os detalhes de cada "
-            "modelo no parceiro."
+            "Explore equipamentos HIFU e EMS para estética profissional. "
+            "Compare tecnologias, cartuchos, aplicadores, documentação e "
+            "condições de compra em Portugal."
         ),
-        "heading": "Como avaliar uma máquina HIFU profissional",
+        "heading": "HIFU e EMS: como comparar tecnologias diferentes",
         "intro": (
-            "As máquinas anunciadas como HIFU podem ter configurações e "
-            "acessórios diferentes. Compare o modelo exato e a sua documentação, "
-            "sem presumir que cartuchos de outros fabricantes são compatíveis."
+            "HIFU (ultrassons focalizados) e EMS (estimulação muscular elétrica) "
+            "são tecnologias diferentes. Uma oferta pode incluir só uma função "
+            "ou várias: confirme as especificações do modelo e da variante "
+            "antes de comparar preços."
         ),
         "checks": (
-            "Cartuchos e aplicadores: confirme os componentes incluídos, "
-            "as referências compatíveis e o custo de reposição.",
-            "Documentação técnica: verifique manuais, requisitos de formação "
-            "e condições de manutenção antes de escolher.",
-            "Condições reais: consulte diretamente no parceiro o preço final, "
-            "a garantia, a disponibilidade e a entrega para Portugal.",
+            "Tecnologia: confirme se a ficha técnica identifica HIFU, EMS ou "
+            "ambas as funções no modelo exato; o nome da categoria não comprova "
+            "as funcionalidades de cada anúncio.",
+            "Acessórios: verifique cartuchos para HIFU, aplicadores e componentes "
+            "para EMS, referências compatíveis e custos de substituição.",
+            "Condições: consulte manuais, requisitos de utilização profissional, "
+            "assistência, garantia e custo final de entrega para Portugal.",
         ),
     },
     "diodo-laser-remocao-tatuagens-pigmentacao": {
@@ -186,22 +188,23 @@ PT_BUYING_QUESTIONS = {
     ),
     "hifu": (
         (
-            "Todos os equipamentos HIFU incluem os mesmos cartuchos?",
-            "Não. O número, as referências e a compatibilidade dos cartuchos "
-            "dependem do modelo e da variante anunciados. Confira o conteúdo "
-            "da embalagem e as referências de substituição antes de encomendar.",
+            "Uma máquina HIFU é o mesmo que um equipamento EMS?",
+            "Não. HIFU utiliza ultrassons focalizados, enquanto EMS se refere "
+            "à estimulação muscular elétrica. A categoria pode conter anúncios "
+            "de tecnologias diferentes; confirme as funções documentadas "
+            "do equipamento concreto.",
         ),
         (
-            "Como comparar o custo real de duas máquinas HIFU?",
-            "Além do preço inicial, verifique cartuchos incluídos, custos de "
-            "reposição, documentação, manutenção e condições de assistência "
-            "do vendedor. Só compare ofertas com configurações equivalentes.",
+            "Que acessórios devo comparar num equipamento HIFU ou EMS?",
+            "Num equipamento HIFU, confirme os cartuchos e as referências "
+            "compatíveis. Num EMS, verifique os aplicadores e componentes "
+            "fornecidos, a reposição, a manutenção e o custo total informado.",
         ),
         (
-            "O que devo confirmar antes de comprar uma máquina HIFU para Portugal?",
-            "Confirme a documentação técnica, os requisitos de utilização e "
-            "formação aplicáveis, a compatibilidade elétrica e o preço total "
-            "para a morada de entrega. O vendedor deve esclarecer a garantia.",
+            "Que condições devo confirmar antes de comprar HIFU ou EMS em Portugal?",
+            "Verifique os requisitos de utilização profissional e de segurança, "
+            "a documentação técnica, a compatibilidade elétrica, a assistência "
+            "e a garantia, bem como o preço final para a morada de entrega.",
         ),
     ),
     "diodo-laser-remocao-tatuagens-pigmentacao": (
