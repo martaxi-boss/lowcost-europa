@@ -330,9 +330,9 @@ def home(request):
             ),
             {
                 "pt-pt": (
-                    "Compare equipamentos de estética profissional em Portugal: "
-                    "HIFU, cavitação, Aqua Facial, pressoterapia e laser. "
-                    "Preços observados; confirme entrega e condições no vendedor."
+                    "Explore equipamentos de estética profissional em Portugal: "
+                    "HIFU/EMS, cavitação, Aqua Facial, pressoterapia/Tecar e laser. "
+                    "Compare condições e entrega diretamente no vendedor."
                 ),
                 "es": (
                     "Explora equipos de estética profesional, precios observados "
