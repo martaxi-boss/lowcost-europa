@@ -1,0 +1,99 @@
+name: Lowcost production mobile Lighthouse audit
+
+on:
+  push:
+    paths:
+      - .github/workflows/production-mobile-lighthouse.yml
+  workflow_dispatch:
+  schedule:
+    - cron: '17 7 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lowcost-production-mobile-lab
+  cancel-in-progress: false
+
+jobs:
+  mobile-lab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Prepare isolated Lighthouse on disposable runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v google-chrome
+          google-chrome --version
+          mkdir -p "$RUNNER_TEMP/lowcost-lighthouse" reports
+          npm install --prefix "$RUNNER_TEMP/lowcost-lighthouse" --no-save --no-package-lock --ignore-scripts --no-audit --no-fund lighthouse@13.6.0
+          "$RUNNER_TEMP/lowcost-lighthouse/node_modules/.bin/lighthouse" --version
+      - name: Audit three production pages as mobile lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          lh="$RUNNER_TEMP/lowcost-lighthouse/node_modules/.bin/lighthouse"
+          for name in home hifu pressoterapia; do
+            case "$name" in
+              home) url='https://www.lowcost-europa.eu/pt/' ;;
+              hifu) url='https://www.lowcost-europa.eu/pt/products/hifu/' ;;
+              pressoterapia) url='https://www.lowcost-europa.eu/pt/products/pressoterapia-vacuum-drenagem/' ;;
+              *) exit 1 ;;
+            esac
+            echo "LOWCOST_MOBILE_LAB_START page=$name"
+            "$lh" "$url" \
+              --form-factor=mobile \
+              --only-categories=performance,seo,accessibility,best-practices \
+              --chrome-flags='--headless --no-sandbox --disable-dev-shm-usage' \
+              --max-wait-for-load=45000 \
+              --output=json --output-path="reports/$name.json" --quiet
+          done
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          results = []
+          for path in sorted(Path('reports').glob('*.json')):
+              report = json.loads(path.read_text(encoding='utf-8'))
+              if report.get('runtimeError'):
+                  raise SystemExit('LOWCOST_MOBILE_LAB_RUNTIME_ERROR ' + path.stem)
+              url = report.get('finalDisplayedUrl') or report.get('finalUrl') or ''
+              if urlsplit(url).netloc != 'www.lowcost-europa.eu':
+                  raise SystemExit('LOWCOST_MOBILE_LAB_WRONG_ORIGIN ' + path.stem)
+              scores = {}
+              for category in ('performance', 'seo', 'accessibility', 'best-practices'):
+                  score = report.get('categories', {}).get(category, {}).get('score')
+                  if not isinstance(score, (int, float)):
+                      raise SystemExit('LOWCOST_MOBILE_LAB_MISSING_SCORE ' + path.stem + ' ' + category)
+                  scores[category] = round(score * 100)
+              audits = report.get('audits', {})
+              timings = {}
+              for metric in ('largest-contentful-paint', 'cumulative-layout-shift',
+                             'total-blocking-time', 'first-contentful-paint'):
+                  value = audits.get(metric, {}).get('numericValue')
+                  timings[metric] = round(value, 2) if isinstance(value, (int, float)) else None
+              crawlable = audits.get('is-crawlable', {}).get('score')
+              if crawlable == 0:
+                  raise SystemExit('LOWCOST_MOBILE_LAB_NOINDEX ' + path.stem)
+              print(f'LOWCOST_MOBILE_LAB page={path.stem} scores={scores} metrics={timings} url={url}')
+              results.append({'page': path.stem, 'url': url, 'scores': scores,
+                              'lab_metrics': timings, 'is_crawlable': crawlable})
+          if len(results) != 3:
+              raise SystemExit('LOWCOST_MOBILE_LAB_PAGE_COUNT_FAIL')
+          output = {'checked_at_utc': datetime.now(timezone.utc).isoformat(),
+                    'source': 'Lighthouse 13.6.0, mobile lab simulation, NOT field Core Web Vitals',
+                    'pages': results}
+          Path('reports/summary.json').write_text(json.dumps(output, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          print('LOWCOST_MOBILE_LAB_BASELINE=PASS pages=3')
+          PY
+      - name: Upload reproducible Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lowcost-mobile-lab-reports
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 7
