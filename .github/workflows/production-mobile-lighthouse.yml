@@ -42,12 +42,28 @@ jobs:
               *) exit 1 ;;
             esac
             echo "LOWCOST_MOBILE_LAB_START page=$name"
-            "$lh" "$url" \
-              --form-factor=mobile \
-              --only-categories=performance,seo,accessibility,best-practices \
-              --chrome-flags='--headless --no-sandbox --disable-dev-shm-usage' \
-              --max-wait-for-load=45000 \
-              --output=json --output-path="reports/$name.json" --quiet
+            # Some Chrome/Lighthouse runs fail transiently with NO_NAVSTART.
+            # Never reuse an incomplete JSON; retries are bounded and recorded.
+            for attempt in 1 2 3; do
+              rm -f "reports/$name.json"
+              if "$lh" "$url" \
+                --form-factor=mobile \
+                --only-categories=performance,seo,accessibility,best-practices \
+                --chrome-flags='--headless --no-sandbox --disable-dev-shm-usage --disable-gpu' \
+                --max-wait-for-load=45000 \
+                --output=json --output-path="reports/$name.json" --quiet; then
+                if python3 -c 'import json,sys; r=json.load(open(sys.argv[1],encoding="utf-8")); sys.exit(bool(r.get("runtimeError")))' "reports/$name.json"; then
+                  echo "LOWCOST_MOBILE_LAB_RUN=PASS page=$name attempt=$attempt"
+                  break
+                fi
+              fi
+              if [[ "$attempt" -ge 3 ]]; then
+                echo "::error::LOWCOST_MOBILE_LAB_ATTEMPTS_EXHAUSTED page=$name"
+                exit 1
+              fi
+              echo "::warning::LOWCOST_MOBILE_LAB_TRANSIENT_RETRY page=$name attempt=$attempt"
+              sleep $((attempt * 7))
+            done
           done
           python3 - <<'PY'
           import json
