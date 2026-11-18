@@ -8,7 +8,6 @@ from django.test import TestCase, override_settings
 from apps.catalog.models import ProductFamily
 from apps.storefront.ui_translations import translate_ui
 
-
 CATEGORIES = (
     ("cavitacao-rf-vacuum-corpo", "Cavitação + RF + Vacuum", "Cavitación + RF + vacío"),
     (
