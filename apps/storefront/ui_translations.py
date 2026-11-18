@@ -1555,6 +1555,20 @@ UI_TRANSLATIONS.update({
   }
 })
 
+
+# Current manual category names: exact matches only, presentation in Spanish.
+# Keep the owner's Portuguese labels and seller product titles untouched.
+UI_TRANSLATIONS.update({
+    "Cavitação + RF + Vacuum": {"es": "Cavitación + RF + vacío"},
+    "Microdermoabrasão / Hidrodermoabrasão / Multifunções faciais": {
+        "es": "Microdermoabrasión / Hidrodermoabrasión / Multifunción facial"
+    },
+    "Pressoterapia / RF Tecar": {"es": "Presoterapia / RF Tecar"},
+    "Diodo Laser / Remoção de tatuagens / Pigmentação": {
+        "es": "Láser de diodo / Eliminación de tatuajes / Pigmentación"
+    },
+})
+
 def translate_ui(value, language):
     if not value:
         return value
