@@ -1,4 +1,5 @@
 """Public labels follow the page language without renaming the manual catalogue."""
+
 import json
 import re
 
@@ -50,7 +51,7 @@ class CurrentCategoryLanguageTests(TestCase):
                 self.assertContains(response, f'<link rel="canonical" href="{BASE}{path}">')
                 self.assertContains(response, 'hreflang="pt-PT"')
                 payload = re.search(
-                    r'<script type="application/ld\\+json">(.*?)</script>',
+                    r'<script type="application/ld\+json">(.*?)</script>',
                     response.content.decode(),
                 )
                 self.assertIsNotNone(payload)
