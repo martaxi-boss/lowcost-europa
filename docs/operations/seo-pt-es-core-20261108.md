@@ -1,5 +1,10 @@
 # SEO Portugal/Espanha — estado publicado (09/11/2026)
 
+## Atualização operacional — 18/11/2026
+
+O [estado vigente](../../PROJECT_STATE.md) prevalece sobre esta descrição histórica de publicação. A revisão inicial foi entregue em 16/11; não repetir. **Não utilizar Windsor.ai**, Ads, OAuth permanente, métricas pagas, pixels ou novos fornecedores; as consultas abaixo são apenas históricas. Google TXT Success/23 resolve a entrega, sem provar 23 indexações. Preservar Portugal prioritário, Espanha/hreflang, 23 URLs e montras manuais. Guias/perguntas PT e melhoria HIFU já publicados; não duplicar. Continuar a mesma tarefa e corrigir apenas defeito reproduzido ou lacuna comprovada.
+
+
 Esta referência substitui a preparação de 08/11. A versão operacional atual é
 `f8a2165604c1a8eee015f1d5ff7a4626ce431e74`, publicada e verificada na
 [VPS #42638965557](https://github.com/martaxi-boss/VPS/actions/runs/42638965557).
@@ -80,5 +85,5 @@ This is the first usable performance evidence in this monitoring task, supersedi
 
 Follow-up reads adding country, and country plus query, both returned **zero rows** for the same period. PT/ES country attribution and search terms remain unavailable; the reason for the difference in granularity was not established. Do not turn the empty detailed responses into zero traffic or infer the countries/queries.
 
-No new integration, forced paid refresh, submission, runtime change or Ferrari certification. Google TXT Success/23 remains the delivery baseline; discovered URLs are not an indexed-page total. The first seven-day review is **not delivered yet**: perform it once on the first normal run on/after 16 November Europe/Lisbon, then record delivery. The same monitoring task remains active for all seven engines.
+No new integration, forced paid refresh, submission, runtime change or Ferrari certification. Google TXT Success/23 remains the delivery baseline; discovered URLs are not an indexed-page total. Historical instruction superseded: the first seven-day review was delivered on 16 November; do not repeat it. The same monitoring task remains active for all seven engines.
 

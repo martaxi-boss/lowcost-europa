@@ -1,5 +1,10 @@
 # International search discovery — 8 November 2026
 
+## Atualização operacional — 18/11/2026
+
+O [estado vigente](../../PROJECT_STATE.md) e as instruções do proprietário de 12 e 16/11 prevalecem sobre o histórico abaixo. Google TXT Success/23 está resolvido desde 09/11; não reabrir o erro XML antigo como pré-condição. Na leitura de 18/11 cerca das 00:34, Bing XML continua Success/23 e as seis URLs continuam Discovered but not crawled; Yandex Add continua desativado. A revisão inicial foi entregue em 16/11 e não deve repetir-se. Não usar Windsor/Ads/OAuth permanente nem repetir submissões inalteradas ou acessos bloqueados. A leitura pública de 18/11 confirmou elegibilidade técnica das 23 páginas, não indexação externa. Os sete motores continuam por concluir; ver o estado vigente para datas, limites e regras.
+
+
 ## Bing sitemap processing confirmed — 9 November 2026, 07:14–07:17 Lisbon
 
 **Material change, authenticated Bing report:** the canonical sitemap https://www.lowcost-europa.eu/sitemap.xml now reports **Success**, **23 URLs discovered**, zero sitemap errors and zero warnings. The dashboard displays last submit and last crawl as 11/9/2026 (9 November). This supersedes Error/0 for Bing sitemap processing. It does not establish page index inclusion. No submission was made during this check; the displayed submission date differs from the older baseline and its cause was not investigated or attributed.

@@ -1,5 +1,19 @@
 # Lowcost Europa — Project State
 
+## Estado operacional vigente — revisão de 18/11/2026
+
+Esta secção prevalece sobre o histórico abaixo e aplica as instruções do proprietário de 12 e 16/11. A revisão inicial de sete dias foi **entregue em 16/11/2026** nesta conversa; não a repetir. Continuar a mesma tarefa de seis em seis horas, sem duplicados.
+
+- **Medição:** Windsor.ai está proibido, tal como Ads, OAuth permanente, métricas pagas, pixels ou novos fornecedores. Referências Windsor abaixo são apenas evidência histórica. O contador Nginx mede pedidos identificados por origem, não visitantes únicos, cliques oficiais, impressões ou posições.
+- **Google:** entrega TXT resolvida: Success/23 descobertas em 09/11. As seis inspeções PASS de 08/11 são históricas; não significam 23 páginas indexadas. Não reabrir a linha XML antiga como avaria enquanto o TXT funcional estiver confirmado.
+- **Bing, leitura autenticada de 18/11 cerca das 00:34:** XML Success/23/0 erros/0 avisos; principal e cinco categorias originais continuam Discovered but not crawled. Desempenho 11–17/11: 0 cliques e impressões no relatório, sem páginas/consultas utilizáveis, sem detalhe Portugal e sem data efetiva de atualização. Não inferir zero tráfego total nem posição zero.
+- **Restantes motores:** Yandex mantém Sitemap files read-only/Add disabled; XML ainda não submetido. Enviar uma vez apenas quando a própria interface permitir. Brave conserva seis resultados públicos históricos de 08/11; Seznam principal confirmada e categorias por confirmar. Yahoo/DuckDuckGo sem inclusão confirmada. Erro ou ausência numa consulta isolada não prova ausência total. Respeitar os bloqueios de acesso já comunicados; não repetir login/CAPTCHA, re-fetch ou reenvios inalterados.
+- **Técnica:** nova leitura pública de 18/11 a partir das 04:37 confirmou as 23 URLs com HTTP 200, sem redirecionamento, canonical autorreferente e sem noindex detetado; XML/TXT coincidem em 23 URLs únicas e robots anuncia ambos. Isto não prova processamento/indexação pelos motores, igualdade GitHub/VPS, contagem atual da montra ou estado interno IndexNow. O workflow existente de 17/11 às 22:32 passou agregação privada e canário de nove rotas: [#44191044984](https://github.com/martaxi-boss/VPS/actions/runs/44191044984).
+- **Conteúdo e operação:** Portugal prioritário, Espanha/hreflang preservados; cinco montras e 45 URLs manuais conforme autorização do proprietário. Não reativar descoberta, manutenção legada ou geração automática de links. Alterar apenas defeito reproduzido ou lacuna comprovada. Não reenviar URLs inalteradas.
+
+Esta ronda corrige registos operacionais; não altera código público, runtime, DNS/email, catálogo ou autenticação. A verificação pública foi executada no ambiente de análise e a leitura interna usou GitHub; **não é um novo job ou certificação Ferrari na VPS**. Os sete motores continuam por concluir.
+
+
 ## First usable Google performance rows — 10 November 2026, 13:27 Lisbon
 
 Windsor's connected Search Console account `sc-domain:lowcost-europa.eu`, queried for **2–10 November 2026**, returned two page/day rows fetched at **2026-11-10T13:27:51 UTC**. Both refer to **8 November**, before the PT/ES SEO publication on 9 November.
@@ -13,7 +27,7 @@ This is the first usable performance evidence in this monitoring task, supersedi
 
 Follow-up reads adding country, and country plus query, both returned **zero rows** for the same period. PT/ES country attribution and search terms remain unavailable; the reason for the difference in granularity was not established. Do not turn the empty detailed responses into zero traffic or infer the countries/queries.
 
-No new integration, forced paid refresh, submission, runtime change or Ferrari certification. Google TXT Success/23 remains the delivery baseline; discovered URLs are not an indexed-page total. The first seven-day review is **not delivered yet**: perform it once on the first normal run on/after 16 November Europe/Lisbon, then record delivery. The same monitoring task remains active for all seven engines.
+No new integration, forced paid refresh, submission, runtime change or Ferrari certification. Google TXT Success/23 remains the delivery baseline; discovered URLs are not an indexed-page total. Historical instruction superseded: the first seven-day review was delivered on 16 November; do not repeat it. The same monitoring task remains active for all seven engines.
 
 
 ## PT/ES SEO implementation published — 9 November 2026
