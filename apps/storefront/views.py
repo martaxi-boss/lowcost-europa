@@ -96,7 +96,7 @@ INSTITUTIONAL_PAGES = {
 }
 
 
-def _family_queryset(*, include_es_price=False):
+def _family_queryset(*, include_es_price=False, homepage_preview=False):
     # Only the Spanish rendering path fetches market-specific EUR evidence.
     # The Portuguese publication gate and historical observation selection
     # remain unchanged, including /go/ eligibility.
@@ -149,6 +149,11 @@ def _family_queryset(*, include_es_price=False):
             "-offer__pk",
         )
     )
+    # The homepage only renders the first eligible offer per family. Limit the
+    # prefetch before fetching historical facts for the selected offers. Django
+    # applies the slice per family using a window, preserving the same ordering.
+    if homepage_preview:
+        placements = placements[:1]
     return ProductFamily.objects.order_by("display_order", "name", "pk").prefetch_related(
         Prefetch("offer_placements", queryset=placements, to_attr="public_placements")
     )
@@ -313,7 +318,8 @@ def home(request):
     families = [
         _prepare_family(family)
         for family in _family_queryset(
-            include_es_price=getattr(request, "LANGUAGE_CODE", "") == "es"
+            include_es_price=getattr(request, "LANGUAGE_CODE", "") == "es",
+            homepage_preview=True,
         ).exclude(status=ProductFamily.Status.RETIRED)
     ]
     context = {
