@@ -180,6 +180,35 @@ class StorefrontPlacementReadPathTests(TestCase):
         self.assertLess(content.index("Offer 53"), others_start)
         self.assertLess(others_start, content.index("Offer 52"))
 
+    def test_homepage_prefetches_one_eligible_preview_per_family_only(self):
+        for index in range(2):
+            family = ProductFamily.objects.create(
+                name=f"Preview {index}", slug=f"preview-{index}", display_order=index + 1
+            )
+            hidden = self.make_offer(
+                f"hidden-{index}", title=f"Hidden {index}", owner_hidden=True
+            )
+            first = self.make_offer(f"first-{index}", title=f"First {index}")
+            second = self.make_offer(f"second-{index}", title=f"Second {index}")
+            for position, offer in enumerate((hidden, first, second), 1):
+                OfferFamilyPlacement.objects.create(
+                    offer=offer, product_family=family, selection_position=position
+                )
+
+        response = self.client.get(reverse("storefront:home"))
+        self.assertEqual(response.status_code, 200)
+        for family in response.context["families"]:
+            if not family.slug.startswith("preview-"):
+                continue
+            index = family.slug.rsplit("-", 1)[1]
+            self.assertEqual(len(family.public_placements), 1)
+            self.assertEqual(family.display_offer.external_product_id, f"first-{index}")
+            detail = self.client.get(
+                reverse("storefront:product-family-detail", kwargs={"slug": family.slug})
+            )
+            self.assertContains(detail, f"First {index}")
+            self.assertContains(detail, f"Second {index}")
+            self.assertNotContains(detail, f"Hidden {index}")
 
 class StorefrontVisualCommercialTests(TestCase):
     def make_placed_offer(self, family, external_id, **kwargs):
