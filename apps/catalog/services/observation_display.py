@@ -23,13 +23,11 @@ class PublicOfferObservationData:
         return logistics_text(self.logistics_observation)
 
 
-def _latest_fact_id(condition, *, require_currency=False):
+def _latest_fact_id(condition, *, require_currency=False, outer_ref="offer_id", exclude_es=True):
     """Select the latest observation for one fact and offer."""
-    candidates = OfferObservation.objects.filter(offer_id=OuterRef("offer_id")).exclude(
-        destination_country="ES"
-    ).filter(
-        condition
-    )
+    candidates = OfferObservation.objects.filter(offer_id=OuterRef(outer_ref)).filter(condition)
+    if exclude_es:
+        candidates = candidates.exclude(destination_country="ES")
     if require_currency:
         candidates = candidates.annotate(
             clean_currency=Trim("currency")
@@ -37,14 +35,14 @@ def _latest_fact_id(condition, *, require_currency=False):
     return Subquery(candidates.order_by("-observed_at", "-pk").values("pk")[:1])
 
 
-def observation_history_queryset(*, require_recent_price=None):
-    """Load no more than five historical factual rows for each visible offer."""
+def _fact_ids(*, require_recent_price=None, outer_ref="offer_id", as_of=None):
+    """Share the exact historical fact-selection rules between read paths."""
     if require_recent_price is None:
         require_recent_price = settings.PUBLIC_RECENT_PRICE_REQUIRED
     if require_recent_price:
         # Keep public price rendering aligned with the exact evidence gate.
         # The latest non-EUR, zero or future observation is not a public price.
-        as_of = timezone.now()
+        as_of = as_of or timezone.now()
         # Manual owner links are exempt from the 24-hour publication gate.
         # Keep their latest genuine PT/EUR price (with its original timestamp),
         # even when the availability-only monitor adds newer null-price rows.
@@ -61,22 +59,68 @@ def observation_history_queryset(*, require_recent_price=None):
                 price__gt=0,
                 currency__iexact="EUR",
                 observed_at__lte=as_of,
-            )
+            ),
+            outer_ref=outer_ref,
         )
     else:
         price = _latest_fact_id(
-            Q(price__isnull=False, currency__isnull=False), require_currency=True
+            Q(price__isnull=False, currency__isnull=False), require_currency=True,
+            outer_ref=outer_ref,
         )
-    rating = _latest_fact_id(Q(evaluation_rate_percent__isnull=False))
-    sales = _latest_fact_id(Q(sales_count__isnull=False))
-    commission = _latest_fact_id(Q(commission_rate__isnull=False))
-    logistics = _latest_fact_id(
-        Q(search_delivery_days__isnull=False) | Q(delivery_days__isnull=False)
+    return {
+        "fact_price": price,
+        "fact_rating": _latest_fact_id(Q(evaluation_rate_percent__isnull=False), outer_ref=outer_ref),
+        "fact_sales": _latest_fact_id(Q(sales_count__isnull=False), outer_ref=outer_ref),
+        "fact_commission": _latest_fact_id(Q(commission_rate__isnull=False), outer_ref=outer_ref),
+        "fact_logistics": _latest_fact_id(
+            Q(search_delivery_days__isnull=False) | Q(delivery_days__isnull=False),
+            outer_ref=outer_ref,
+        ),
+    }
+
+
+def observation_history_queryset(*, require_recent_price=None):
+    """Reference queryset: no more than five historical factual rows per offer."""
+    condition = Q()
+    for fact in _fact_ids(require_recent_price=require_recent_price).values():
+        condition |= Q(pk=fact)
+    return OfferObservation.objects.filter(condition).order_by("-observed_at", "-pk")
+
+
+def load_public_observation_histories(offers, *, include_es_price=False, require_recent_price=None):
+    """Select facts once per visible offer, then fetch only their distinct rows.
+
+    The old observation-driven query repeatedly evaluated five correlated
+    lookups for every historical observation (including availability-only rows).
+    Starting from the bounded set of public Offer IDs avoids that outer scan.
+    Two set-based queries, no cache, no data/schema changes, no per-offer queries.
+    Multiple placements of an offer receive the same factual rows.
+    """
+    offers = list(offers)
+    offer_ids = {offer.pk for offer in offers}
+    if not offer_ids:
+        return
+    as_of = timezone.now()
+    facts = _fact_ids(require_recent_price=require_recent_price, outer_ref="pk", as_of=as_of)
+    if include_es_price:
+        facts["fact_es_price"] = _latest_fact_id(
+            Q(destination_country="ES", observed_at__gte=as_of - timedelta(hours=24),
+              observed_at__lte=as_of, price__gt=0, currency__iexact="EUR"),
+            outer_ref="pk", exclude_es=False,
+        )
+    selected = list(
+        Offer.objects.filter(pk__in=offer_ids).order_by()
+        .annotate(**facts).values_list(*facts)
     )
-    return OfferObservation.objects.filter(
-        Q(pk=price) | Q(pk=rating) | Q(pk=sales) | Q(pk=commission)
-        | Q(pk=logistics)
-    ).order_by("-observed_at", "-pk")
+    row_ids = {pk for result in selected for pk in result if pk is not None}
+    history = {pk: [] for pk in offer_ids}
+    es_evidence = {pk: [] for pk in offer_ids}
+    for observation in OfferObservation.objects.filter(pk__in=row_ids).order_by("-observed_at", "-pk"):
+        target = es_evidence if observation.destination_country == "ES" else history
+        target[observation.offer_id].append(observation)
+    for offer in offers:
+        offer.observation_history = history[offer.pk]
+        offer.recent_es_price_evidence = es_evidence[offer.pk]
 
 
 def _has_valid_price(
