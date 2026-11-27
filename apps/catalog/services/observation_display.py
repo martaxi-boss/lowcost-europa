@@ -69,7 +69,9 @@ def _fact_ids(*, require_recent_price=None, outer_ref="offer_id", as_of=None):
         )
     return {
         "fact_price": price,
-        "fact_rating": _latest_fact_id(Q(evaluation_rate_percent__isnull=False), outer_ref=outer_ref),
+        "fact_rating": _latest_fact_id(
+            Q(evaluation_rate_percent__isnull=False), outer_ref=outer_ref,
+        ),
         "fact_sales": _latest_fact_id(Q(sales_count__isnull=False), outer_ref=outer_ref),
         "fact_commission": _latest_fact_id(Q(commission_rate__isnull=False), outer_ref=outer_ref),
         "fact_logistics": _latest_fact_id(
@@ -115,7 +117,8 @@ def load_public_observation_histories(offers, *, include_es_price=False, require
     row_ids = {pk for result in selected for pk in result if pk is not None}
     history = {pk: [] for pk in offer_ids}
     es_evidence = {pk: [] for pk in offer_ids}
-    for observation in OfferObservation.objects.filter(pk__in=row_ids).order_by("-observed_at", "-pk"):
+    rows = OfferObservation.objects.filter(pk__in=row_ids).order_by("-observed_at", "-pk")
+    for observation in rows:
         target = es_evidence if observation.destination_country == "ES" else history
         target[observation.offer_id].append(observation)
     for offer in offers:
