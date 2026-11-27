@@ -7,7 +7,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import IntegrityError, OperationalError
-from django.db.models import F, OuterRef, Prefetch, Subquery
+from django.db.models import F, Prefetch
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -21,14 +21,13 @@ from apps.catalog.models import (
     OfferCandidate,
     OfferClick,
     OfferFamilyPlacement,
-    OfferObservation,
     ProductFamily,
 )
 from apps.catalog.services.candidate_approval import OWNER_REJECTION_REASON_CHOICES
 from apps.catalog.services.manual_storefront import MANUAL_ONLY_FAMILY_SLUGS
 from apps.catalog.services.observation_display import (
     build_observation_display,
-    observation_history_queryset,
+    load_public_observation_histories,
 )
 from apps.catalog.services.public_eligibility import (
     is_protocol_verified,
@@ -96,43 +95,11 @@ INSTITUTIONAL_PAGES = {
 }
 
 
-def _family_queryset(*, include_es_price=False, homepage_preview=False):
-    # Only the Spanish rendering path fetches market-specific EUR evidence.
-    # The Portuguese publication gate and historical observation selection
-    # remain unchanged, including /go/ eligibility.
-    es_price_prefetches = []
-    if include_es_price:
-        now = timezone.now()
-        latest_es_price_id = (
-            OfferObservation.objects.filter(
-                offer_id=OuterRef("offer_id"),
-                destination_country="ES",
-                observed_at__gte=now - timedelta(hours=24),
-                observed_at__lte=now,
-                price__gt=0,
-                currency__iexact="EUR",
-            )
-            .order_by("-observed_at", "-pk")
-            .values("pk")[:1]
-        )
-        es_price_prefetches = [
-            Prefetch(
-                "offer__observations",
-                queryset=OfferObservation.objects.filter(
-                    pk=Subquery(latest_es_price_id)
-                ),
-                to_attr="recent_es_price_evidence",
-            )
-        ]
+def _family_queryset(*, homepage_preview=False):
     placements = (
         OfferFamilyPlacement.objects.filter(public_eligibility_q(prefix="offer__"))
         .select_related("offer")
         .prefetch_related(
-            Prefetch(
-                "offer__observations",
-                queryset=observation_history_queryset(),
-                to_attr="observation_history",
-            ),
             Prefetch(
                 "offer__approved_candidates",
                 queryset=OfferCandidate.objects.filter(status=OfferCandidate.Status.APPROVED).order_by(
@@ -140,7 +107,6 @@ def _family_queryset(*, include_es_price=False, homepage_preview=False):
                 ),
                 to_attr="approved_candidates_for_display",
             ),
-            *es_price_prefetches,
         )
         .order_by(
             F("selection_position").asc(nulls_last=True),
@@ -215,6 +181,21 @@ def _prepare_family(family):
     family.display_offer = placements[0].offer if placements else None
     return family
 
+
+
+def _prepare_families(families, *, include_es_price=False):
+    """Hydrate one bounded batch of factual rows for the visible placements."""
+    families = list(families)
+    load_public_observation_histories(
+        (
+            placement.offer
+            for family in families
+            if family.status != ProductFamily.Status.RETIRED
+            for placement in family.public_placements
+        ),
+        include_es_price=include_es_price,
+    )
+    return [_prepare_family(family) for family in families]
 
 
 def _json_ld(data):
@@ -315,13 +296,10 @@ def favicon(request):
 
 
 def home(request):
-    families = [
-        _prepare_family(family)
-        for family in _family_queryset(
-            include_es_price=getattr(request, "LANGUAGE_CODE", "") == "es",
-            homepage_preview=True,
-        ).exclude(status=ProductFamily.Status.RETIRED)
-    ]
+    families = _prepare_families(
+        _family_queryset(homepage_preview=True).exclude(status=ProductFamily.Status.RETIRED),
+        include_es_price=getattr(request, "LANGUAGE_CODE", "") == "es",
+    )
     context = {
         "families": families,
         **_seo_context(
@@ -396,11 +374,11 @@ def search(request):
     terms = normalized.split()
     matches = []
     if terms:
-        families = _family_queryset(
-            include_es_price=getattr(request, "LANGUAGE_CODE", "") == "es"
-        ).exclude(status=ProductFamily.Status.RETIRED)
+        families = _prepare_families(
+            _family_queryset().exclude(status=ProductFamily.Status.RETIRED),
+            include_es_price=getattr(request, "LANGUAGE_CODE", "") == "es",
+        )
         for family in families:
-            _prepare_family(family)
             for placement in family.selection_placements + family.other_placements:
                 offer = placement.offer
                 haystack = _search_key(f"{family.name} {offer.title or ''}")
@@ -557,9 +535,9 @@ def product_family_detail(request, slug):
         return redirect("storefront:product-family-detail", slug=redirect_slug)
     language = getattr(request, "LANGUAGE_CODE", "pt-pt")
     family = get_object_or_404(
-        _family_queryset(include_es_price=language == "es"), slug=slug
+        _family_queryset(), slug=slug
     )
-    _prepare_family(family)
+    _prepare_families([family], include_es_price=language == "es")
     guide = guide_for_category(family.slug, language)
     page_title = (
         guide["title"]

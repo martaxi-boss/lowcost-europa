@@ -8,7 +8,10 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.catalog.models import Offer, OfferFamilyPlacement, OfferObservation, ProductFamily
-from apps.catalog.services.observation_display import observation_history_queryset
+from apps.catalog.services.observation_display import (
+    load_public_observation_histories,
+    observation_history_queryset,
+)
 
 
 class ObservationFallbackDisplayTests(TestCase):
@@ -275,4 +278,82 @@ class ObservationFallbackDisplayTests(TestCase):
             for query in captured.captured_queries
             if "catalog_offerobservation" in query["sql"].lower()
         ]
-        self.assertEqual(len(observation_queries), 1)
+        self.assertEqual(len(observation_queries), 2)
+        self.assertIn('FROM "catalog_offer"', observation_queries[0])
+
+
+    def test_batch_fact_selection_matches_reference_in_both_price_modes(self):
+        now = timezone.now()
+        automatic = self.make_offer("batch-auto")
+        manual = self.make_offer("batch-manual", source=Offer.Source.ALIEXPRESS_OWNER)
+        empty = self.make_offer("batch-empty")
+        for offer in (automatic, manual):
+            OfferObservation.objects.create(
+                offer=offer, observed_at=now - timedelta(days=5),
+                price=Decimal("125.00"), currency="EUR", delivery_days=4,
+                commission_rate=Decimal("5.00"),
+            )
+            OfferObservation.objects.create(
+                offer=offer, observed_at=now - timedelta(hours=1),
+                evaluation_rate_percent=Decimal("98.00"), sales_count=7,
+            )
+            OfferObservation.objects.create(
+                offer=offer, observed_at=now - timedelta(hours=1),
+                evaluation_rate_percent=Decimal("99.00"), sales_count=8,
+            )
+            OfferObservation.objects.create(
+                offer=offer, observed_at=now - timedelta(minutes=10),
+                price=Decimal("999.00"), currency="USD",
+            )
+            OfferObservation.objects.create(
+                offer=offer, observed_at=now + timedelta(hours=2),
+                price=Decimal("1000.00"), currency="EUR",
+            )
+            OfferObservation.objects.bulk_create([
+                OfferObservation(offer=offer, observed_at=now - timedelta(minutes=i))
+                for i in range(50)
+            ])
+            OfferObservation.objects.create(
+                offer=offer, destination_country="ES",
+                observed_at=now - timedelta(days=2),
+                price=Decimal("77.00"), currency="EUR",
+            )
+        recent_es = OfferObservation.objects.create(
+            offer=manual, destination_country="ES",
+            observed_at=now - timedelta(minutes=3),
+            price=Decimal("88.00"), currency="EUR",
+        )
+        OfferObservation.objects.create(
+            offer=manual, destination_country="ES",
+            observed_at=now - timedelta(minutes=1),
+            price=Decimal("1.00"), currency="USD",
+        )
+        duplicate = Offer.objects.get(pk=manual.pk)
+        visible = [automatic, manual, empty, duplicate]
+        for require_recent in (False, True):
+            with self.subTest(require_recent=require_recent):
+                with self.assertNumQueries(2):
+                    load_public_observation_histories(
+                        visible, include_es_price=True,
+                        require_recent_price=require_recent,
+                    )
+                for offer in visible:
+                    expected = list(observation_history_queryset(
+                        require_recent_price=require_recent
+                    ).filter(offer=offer).values_list("pk", flat=True))
+                    self.assertEqual(
+                        [row.pk for row in offer.observation_history], expected
+                    )
+                    self.assertLessEqual(len(expected), 5)
+                self.assertEqual(
+                    [row.pk for row in manual.recent_es_price_evidence], [recent_es.pk]
+                )
+                self.assertEqual(
+                    [row.pk for row in duplicate.recent_es_price_evidence], [recent_es.pk]
+                )
+                self.assertEqual(automatic.recent_es_price_evidence, [])
+                self.assertEqual(empty.observation_history, [])
+        load_public_observation_histories(visible, include_es_price=False)
+        self.assertTrue(all(not offer.recent_es_price_evidence for offer in visible))
+        with self.assertNumQueries(0):
+            load_public_observation_histories([])
